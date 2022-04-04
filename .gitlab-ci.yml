@@ -1,0 +1,28 @@
+image: python:3.7
+
+stages:
+  - test
+  - lint
+  - build
+
+before_script:
+  - pip install poetry
+  - poetry install
+
+testing:
+  stage: test
+  script:
+    - poetry run python -m unittest -v
+
+py_lint:
+  stage: lint
+  script:
+    - poetry run black .
+
+building:
+  stage: build
+  script:
+    - poetry build
+    - poetry config repositories.gitlab "https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/packages/pypi"    
+    - poetry config http-basic.gitlab gitlab-ci-token "$CI_JOB_TOKEN"
+    - poetry publish --repository gitlab
