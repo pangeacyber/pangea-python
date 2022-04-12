@@ -2,11 +2,21 @@ from pangea.services import Audit
 
 audit = Audit(token="USERTOKEN")
 
-log_res = audit.log("reboot", "glenn", "world", "success")
+print("Log Data...")
 
-print("Logging Data...")
+data = {
+    "action": "reboot",
+    "actor": "glenn",
+    "target": "world",
+    "status": "success",
+}
+
+log_res = audit.log(data)
+
 print(f"LOG Request ID: {log_res.request_id}, Result: {log_res.result}")
-print("\n")
+
+print("Search Data...")
+
 search_res = audit.search("reboot")
 
 print("Search Request ID", search_res.request_id)

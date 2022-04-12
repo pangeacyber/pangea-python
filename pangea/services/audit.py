@@ -5,22 +5,22 @@ class Audit(ServiceBase):
     service_name = "audit"
     version = "v1"
 
-    def log(self, action, actor, target, status, message=None, old=None, new=None):
+    def log(self, input: dict):
         endpoint_name = "log"
 
-        data = {
-            "action": action,
-            "actor": actor,
-            "target": target,
-            "status": status,
-        }
+        params = ["action", "actor", "target", "status", "old", "new", "message"]
+        data = {}
 
-        if message:
-            data.update({"message": message})
-        if old:
-            data.update({"old": old})
-        if new:
-            data.update({"new": new})
+        for name in params:
+            if name in input:
+                data[name] = input[name]
+
+        if len(data) < 1:
+            # raise exception
+            print(
+                f"Error: no valid parameters, require on or more of: {', '.join(params)}"
+            )
+            exit
 
         response = self.request.post(endpoint_name, data=data)
 
