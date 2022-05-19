@@ -1,4 +1,5 @@
-import json
+# Copyright 2022 Pangea Cyber Corporation
+# Author: Pangea Cyber Corporation
 
 
 class JSONObject(dict):
@@ -21,11 +22,12 @@ class JSONObject(dict):
         return self[item]
 
 
-class Response(object):
+class PangeaResponse(object):
     _data = JSONObject
     _raw = None
     _code = None
     _status = None
+    _success = False
 
     def __init__(self, requests_response):
         self._code = requests_response.status_code
@@ -34,10 +36,11 @@ class Response(object):
         if requests_response.ok:
             self._data = JSONObject(requests_response.json())
             self._raw = requests_response.content
+            self._success = True
 
     @property
     def result(self):
-        return self._data.result
+        return self._data.result if self.success else None
 
     @property
     def status(self):
@@ -48,8 +51,12 @@ class Response(object):
         return self._code
 
     @property
+    def success(self):
+        return self._success
+
+    @property
     def request_id(self):
-        return self._data.request_id
+        return self._data.request_id if self.success else None
 
     @property
     def raw_data(self):

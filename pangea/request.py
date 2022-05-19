@@ -1,4 +1,8 @@
+# Copyright 2022 Pangea Cyber Corporation
+# Author: Pangea Cyber Corporation
+
 import logging
+from urllib import request
 import requests
 import json
 import time
@@ -7,28 +11,35 @@ from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 
 import pangea
-from pangea.response import Response
-
+from pangea.config import PangeaConfig
+from pangea.response import PangeaResponse
 
 logger = logging.getLogger(__name__)
 
 
-class Request(object):
-    def __init__(self, token: str = "", service: str = "", version: str = ""):
+class PangeaRequest(object):
+    def __init__(
+        self,
+        token: str = "",
+        service: str = "",
+        version: str = "",
+        config: PangeaConfig = None,
+    ):
+        self.config = config
         self.token = token
         self.service = service
         self.version = version
 
         # TODO: allow overriding these
-        self.retries = 3
-        self.backoff = 1
-        self.timeout = 5
+        self.retries = config.request_retries
+        self.backoff = config.request_backoff
+        self.timeout = config.request_timeout
 
         # number of async fetch attempts, with exponential backoff (4 -> 1 + 4 + 9 + 16  = 30 seconds of sleep)
-        self.async_retries = 4
+        self.async_retries = config.async_retries
 
         # Async request support flag
-        self._async = True
+        self._async = config.async_enabled
 
         self.request = self._init_request()
 
@@ -37,7 +48,7 @@ class Request(object):
             self._async = value
         return self._async
 
-    def post(self, endpoint: str = "", data: dict = {}) -> Response:
+    def post(self, endpoint: str = "", data: dict = {}) -> PangeaResponse:
         url = self._url(endpoint)
 
         requests_response = self.request.post(
@@ -47,23 +58,26 @@ class Request(object):
         if self._async and requests_response.status_code == 202:
             response_json = requests_response.json()
             request_id = response_json.get("request_id", None)
-            # raise exception if request_id is None
+
+            if not request_id:
+                raise Exception("Async error: response did not include a 'request_id'")
+
             pangea_response = self._handle_async(request_id)
         else:
-            pangea_response = Response(requests_response)
+            pangea_response = PangeaResponse(requests_response)
 
         return pangea_response
 
-    def get(self, endpoint: str, path: str) -> Response:
+    def get(self, endpoint: str, path: str) -> PangeaResponse:
         url = self._url(f"{endpoint}/{path}")
 
         requests_response = self.request.get(url, headers=self._headers())
 
-        pangea_response = Response(requests_response)
+        pangea_response = PangeaResponse(requests_response)
 
         return pangea_response
 
-    def _handle_async(self, request_id: str) -> Response:
+    def _handle_async(self, request_id: str) -> PangeaResponse:
         retry_count = 0
 
         while True:
@@ -84,7 +98,7 @@ class Request(object):
         adapter = HTTPAdapter(max_retries=retry_config)
         request = requests.Session()
 
-        if pangea.insecure:
+        if self.config.insecure:
             request.mount("http://", adapter)
         else:
             request.mount("https://", adapter)
@@ -92,11 +106,11 @@ class Request(object):
         return request
 
     def _url(self, path: str) -> str:
-        protocol = "http://" if pangea.insecure else "https://"
+        protocol = "http://" if self.config.insecure else "https://"
         domain = (
-            pangea.base_domain
-            if pangea.environment == "local"
-            else f"{self.service}.{pangea.base_domain}"
+            self.config.base_domain
+            if self.config.environment == "local"
+            else f"{self.service}.{self.config.base_domain}"
         )
 
         url = f"{protocol}{domain}/{ str(self.version) + '/' if self.version else '' }{path}"

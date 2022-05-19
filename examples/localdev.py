@@ -1,27 +1,33 @@
-import pangea
+import os
+from pangea.config import PangeaConfig
 from pangea.services import Audit
 
-# set base_domain with a custom port
-pangea.base_domain = "localhost:8000"
+"""
+Configuration for development using a local audit service
+"""
+config = PangeaConfig(base_domain="localhost:8000", insecure=True, environment="local")
+token = os.getenv("PANGEA_TOKEN")
+audit = Audit(token=token, config=config)
 
-# set to use http
-pangea.insecure = True
+data = {
+    "action": "reboot",
+    "actor": "villan",
+    "target": "world",
+    "status": "success",
+}
 
-# use only the base_domain, don't prepend the service name
-pangea.environment = "local"
-
-audit = Audit(token="USERTOKEN")
-
-log_res = audit.log("reboot", "glenn", "world", "success")
+log_res = audit.log(data)
 
 print("LOG RESULT", log_res.result)
 
 search_res = audit.search("reboot")
-result = search_res.result
 
-print("Search Request ID", search_res.request_id)
+if search_res.success:
+    print("Search Request ID", search_res.request_id)
 
-for row in search_res.result.audits:
-    print(
-        f"{row.id}\t{row.created}\t{row.actor}\t{row.action}\t{row.target}\t{row.status}"
-    )
+    for row in search_res.result.audits:
+        print(
+            f"{row.id}\t{row.created}\t{row.actor}\t{row.action}\t{row.target}\t{row.status}"
+        )
+else:
+    print("Search Failed:", search_res.code, search_res.status)

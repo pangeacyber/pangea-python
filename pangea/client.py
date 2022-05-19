@@ -1,7 +1,7 @@
 from pangea.services import Audit, Locate, Sanitize
 
 
-class Client(object):
+class PangeaClient(object):
     def __init__(self, token=""):
         self.default_token = token
 

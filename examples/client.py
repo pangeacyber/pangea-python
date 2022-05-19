@@ -1,9 +1,13 @@
+import os
+from pangea.config import PangeaConfig
 from pangea.client import Client
 
-client = Client(token="USERTOKEN")
+token = os.getenv("PANGEA_TOKEN")
+config = PangeaConfig(base_domain="dev.pangea.cloud")
+client = Client(token=token, config=config)
 
 # Search the audit log
-search_term = "glenn"
+search_term = "reboot"
 search_resp = client.audit.search(search_term)
 
 print(f'Audit Search for "{search_term}"')
