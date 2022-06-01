@@ -18,7 +18,7 @@ class AuditSearchResponse(object):
         return getattr(self.response, attr)
 
     def next(self):
-        if self.count:  # TODO: fix, this is the wrong check
+        if self.count < self.total:
             params = {
                 "query": self.data["query"],
                 "last": self.result.last,
