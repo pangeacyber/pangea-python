@@ -21,6 +21,8 @@ py_lint:
 
 building:
   stage: build
+  only:
+    - main
   script:
     - poetry build
     - poetry publish --username __token__ --password $PYPI_SDK_TOKEN
