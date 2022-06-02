@@ -40,7 +40,7 @@ class AuditSearchResponse(object):
         if self.success:
             last = self.result.last
             total = last.split("|")[1]  # TODO: update once `last` returns an object
-            return total
+            return int(total)
         else:
             return 0
 
@@ -49,7 +49,7 @@ class AuditSearchResponse(object):
         if self.success:
             last = self.result.last
             count = last.split("|")[0]  # TODO: update once `last` returns an object
-            return count
+            return int(count)
         else:
             return 0
 
@@ -59,23 +59,32 @@ class Audit(ServiceBase):
     service_name = "audit"
     version = "v1"
 
-    def log(self, input: dict) -> PangeaResponse:
+    def log(self, message: dict, source: str = "") -> PangeaResponse:
         endpoint_name = "log"
 
         """
-        Filter input on valid search params, at least one valid param is required
+        Filter input on valid field params, at least one valid param is required
         """
-        valid_params = ["action", "actor", "target", "status", "old", "new", "message"]
+        valid_params = [
+            "action",
+            "actor",
+            "target",
+            "status",
+            "old",
+            "new",
+            "message",
+            "source",
+        ]
         data = {}
 
         for name in valid_params:
-            if name in input:
-                data[name] = input[name]
+            if name in message:
+                data[name] = message[name]
 
-        if len(data) < 1:
-            raise Exception(
-                f"Error: no valid parameters, require on or more of: {', '.join(valid_params)}"
-            )
+        if "message" not in data:
+            raise Exception(f"Error: missing required field, no `message` provided")
+
+        print(f"Log data: {data}")
 
         response = self.request.post(endpoint_name, data=data)
 
@@ -115,10 +124,3 @@ class Audit(ServiceBase):
         response_wrapper = AuditSearchResponse(response, data)
 
         return response_wrapper
-
-    # TODO: This is a hack, find a better way to handle pagination
-    def search_next(self, data: dict = {}):
-        query = data.get("query", "")
-        del data["query"]
-
-        return self.search(query, **data)

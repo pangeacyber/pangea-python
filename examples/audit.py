@@ -12,16 +12,17 @@ data = {
     "action": "reboot",
     "actor": "villan",
     "target": "world",
-    "status": "success",
+    "status": "error",
+    "message": "test",
 }
 
-log_response = audit.log(data)
+log_response = audit.log(message=data)
 
-print(f"Log Request ID: {log_response.request_id}, Result: {log_response.result}")
+print(f"Log Request ID: {log_response.request_id}, Success: {log_response.success}")
 
 print("Search Data...")
 
-search_res = audit.search(query="reboot", size=5)
+search_res = audit.search(query="reboot", size=10)
 
 if search_res.success:
     print("Search Request ID:", search_res.request_id, "\n")
@@ -30,11 +31,13 @@ if search_res.success:
         f"Results: {search_res.count} of {search_res.total} - next {search_res.next()}",
     )
     for row in search_res.result.audits:
-        print(f"{row.created}\t{row.actor}\t{row.action}\t{row.target}\t{row.status}")
+        print(
+            f"{row.created}\t{row.source}\t{row.actor}\t{row.action}\t{row.target}\t{row.status}"
+        )
 
     # get the next page
     if search_res.next():
         search_res = audit.search(**search_res.next())
-        print("Search Next", search_res.results)
+        print("Search Next", search_res.result)
 else:
     print("Search Failed:", search_res.code, search_res.status)
