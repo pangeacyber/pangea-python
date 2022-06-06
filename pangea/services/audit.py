@@ -19,6 +19,7 @@ from .audit_util import (
     hash_data,
     verify_log_proof,
     to_msg,
+    verify_published_root,
 )
 
 # The fields in a top-level audit log record.
@@ -152,47 +153,57 @@ class Audit(ServiceBase):
         if last:
             data.update({"last": last})
 
-        response = self.request.post(endpoint_name, data=data)
+        resp = self.request.post(endpoint_name, data=data)
 
-##  Test Server Response
+        #  Server Response (Test / Remove this code).
         resp = {
-    "request_id": "placeholder",
-    "request_time": "2022-06-02T16:39:07.450Z",
-    "response_time": "2022-06-02T16:39:07.450Z",
-    "status_code": 200,
-    "status": "success",
-    "result": {
-        "root": {
-            "hash": "030000009727d718a6cf4f986dd2bb467c3cdfc265929449173e89048b8926908de4c39d"
-        },
-        "audits": [
-            {
-                "actor": "testing1",
-                "message": "zzz",
-                "created": "2022-06-02T16:35:25.973960+00:00",
-                "proof": "W3sic2lkZSI6ICJsZWZ0IiwgImhhc2giOiAiZDYzYjJhMDQwYmEyMWVmNjk3YTA2MDM5YzI3MGQ4NzgwN2YzNjUyZGMzZDAwMDZmZDUzNzM0M2E0NmNhNjkyYyJ9LCB7InNpZGUiOiAibGVmdCIsICJoYXNoIjogIjdlZDFlYTJjMzEzYzFjYWNiODFhZGUwYjNjY2M0MmYyMDkwMjNjYjdmZDlkNjVlN2Q3NmNlYTFjNWNjNWQxN2MifV0=",
-                "hash": "6fe11c634524c9c0c48b77a73fdf8799c744af9c7f9bf5f4f78c4ece24ed6c6d"
+            "request_id": "placeholder",
+            "request_time": "2022-06-02T16:39:07.450Z",
+            "response_time": "2022-06-02T16:39:07.450Z",
+            "status_code": 200,
+            "status": "success",
+            "signature": "",
+            "publish_url": "136.243.28.48:1984",
+            "result": {
+                "root": {
+                    "size": 23,
+                    "hash": "030000009727d718a6cf4f986dd2bb467c3cdfc265929449173e89048b8926908de4c39d",
+                    "url": "http://arweave.net/asdfsdfvscdfgsdgsdffg"
+                },
+                "audits": [
+                    {
+                        "actor": "testing1",
+                        "message": "zzz",
+                        "created": "2022-06-02T16:35:25.973960+00:00",
+                        "proof": "W3sic2lkZSI6ICJsZWZ0IiwgImhhc2giOiAiZDYzYjJhMDQwYmEyMWVmNjk3YTA2MDM5YzI3MGQ4NzgwN2YzNjUyZGMzZDAwMDZmZDUzNzM0M2E0NmNhNjkyYyJ9LCB7InNpZGUiOiAibGVmdCIsICJoYXNoIjogIjdlZDFlYTJjMzEzYzFjYWNiODFhZGUwYjNjY2M0MmYyMDkwMjNjYjdmZDlkNjVlN2Q3NmNlYTFjNWNjNWQxN2MifV0=",
+                        "hash": "6fe11c634524c9c0c48b77a73fdf8799c744af9c7f9bf5f4f78c4ece24ed6c6d"
+                    },
+                    {
+                        "actor": "testing1",
+                        "message": "zzz",
+                        "created": "2022-06-02T16:35:25.003627+00:00",
+                        "proof": "W3sic2lkZSI6ICJsZWZ0IiwgImhhc2giOiAiOTI2ODk3OGEwYTM2OTIzMmYwZmEzOTFhODRhMmI5NjhkNWViN2YwYzJlZTYzYzEzZjk1YmUyYzRiNjhjOWM3YiJ9LCB7InNpZGUiOiAicmlnaHQiLCAiaGFzaCI6ICI2ZmUxMWM2MzQ1MjRjOWMwYzQ4Yjc3YTczZmRmODc5OWM3NDRhZjljN2Y5YmY1ZjRmNzhjNGVjZTI0ZWQ2YzZkIn0sIHsic2lkZSI6ICJsZWZ0IiwgImhhc2giOiAiN2VkMWVhMmMzMTNjMWNhY2I4MWFkZTBiM2NjYzQyZjIwOTAyM2NiN2ZkOWQ2NWU3ZDc2Y2VhMWM1Y2M1ZDE3YyJ9XQ==",
+                        "hash": "b5b7f80e55111e7fc7c4c7be0fd3ecc7a11b8f1ed0bfef80ea5a3cf66d1fb708"
+                    },
+                    {
+                        "actor": "testing1",
+                        "message": "zzz",
+                        "created": "2022-06-02T16:35:23.117489+00:00",
+                        "proof": "W3sic2lkZSI6ICJyaWdodCIsICJoYXNoIjogImI1YjdmODBlNTUxMTFlN2ZjN2M0YzdiZTBmZDNlY2M3YTExYjhmMWVkMGJmZWY4MGVhNWEzY2Y2NmQxZmI3MDgifSwgeyJzaWRlIjogInJpZ2h0IiwgImhhc2giOiAiNmZlMTFjNjM0NTI0YzljMGM0OGI3N2E3M2ZkZjg3OTljNzQ0YWY5YzdmOWJmNWY0Zjc4YzRlY2UyNGVkNmM2ZCJ9LCB7InNpZGUiOiAibGVmdCIsICJoYXNoIjogIjdlZDFlYTJjMzEzYzFjYWNiODFhZGUwYjNjY2M0MmYyMDkwMjNjYjdmZDlkNjVlN2Q3NmNlYTFjNWNjNWQxN2MifV0=",
+                        "hash": "9268978a0a369232f0fa391a84a2b968d5eb7f0c2ee63c13f95be2c4b68c9c7b"
+                    }
+                ],
+                "last": "3|3|"
             },
-            {
-                "actor": "testing1",
-                "message": "zzz",
-                "created": "2022-06-02T16:35:25.003627+00:00",
-                "proof": "W3sic2lkZSI6ICJsZWZ0IiwgImhhc2giOiAiOTI2ODk3OGEwYTM2OTIzMmYwZmEzOTFhODRhMmI5NjhkNWViN2YwYzJlZTYzYzEzZjk1YmUyYzRiNjhjOWM3YiJ9LCB7InNpZGUiOiAicmlnaHQiLCAiaGFzaCI6ICI2ZmUxMWM2MzQ1MjRjOWMwYzQ4Yjc3YTczZmRmODc5OWM3NDRhZjljN2Y5YmY1ZjRmNzhjNGVjZTI0ZWQ2YzZkIn0sIHsic2lkZSI6ICJsZWZ0IiwgImhhc2giOiAiN2VkMWVhMmMzMTNjMWNhY2I4MWFkZTBiM2NjYzQyZjIwOTAyM2NiN2ZkOWQ2NWU3ZDc2Y2VhMWM1Y2M1ZDE3YyJ9XQ==",
-                "hash": "b5b7f80e55111e7fc7c4c7be0fd3ecc7a11b8f1ed0bfef80ea5a3cf66d1fb708"
-            },
-            {
-                "actor": "testing1",
-                "message": "zzz",
-                "created": "2022-06-02T16:35:23.117489+00:00",
-                "proof": "W3sic2lkZSI6ICJyaWdodCIsICJoYXNoIjogImI1YjdmODBlNTUxMTFlN2ZjN2M0YzdiZTBmZDNlY2M3YTExYjhmMWVkMGJmZWY4MGVhNWEzY2Y2NmQxZmI3MDgifSwgeyJzaWRlIjogInJpZ2h0IiwgImhhc2giOiAiNmZlMTFjNjM0NTI0YzljMGM0OGI3N2E3M2ZkZjg3OTljNzQ0YWY5YzdmOWJmNWY0Zjc4YzRlY2UyNGVkNmM2ZCJ9LCB7InNpZGUiOiAibGVmdCIsICJoYXNoIjogIjdlZDFlYTJjMzEzYzFjYWNiODFhZGUwYjNjY2M0MmYyMDkwMjNjYjdmZDlkNjVlN2Q3NmNlYTFjNWNjNWQxN2MifV0=",
-                "hash": "9268978a0a369232f0fa391a84a2b968d5eb7f0c2ee63c13f95be2c4b68c9c7b"
-            }
-        ],
-        "last": "3|3|"
-    },
-    "summary": "success"
-}
-    
+            "summary": "success"
+        }
+        #  End Server Response (Test / Remove this code).
+
+        # TODO: Verify signature if verify parameter equal True (Not for beta).
+        if verify == True:
+            signature = resp["signature"]
+
+
         root = resp["result"]["root"]["hash"]
         root_verified = False
 
@@ -214,19 +225,35 @@ class Audit(ServiceBase):
                     if "proof" in a:
                         node_hash = decode_hash(a["hash"])
                         proof = decode_proof(a["proof"])
-                        if verify_log_proof(node_hash, root_hash, proof):
-                            print("Verified!")
-                            root_verified = True
-                            if not root_verified:
-                                raise Exception(
-                                    f"Error: invalid Root Proof."
-                                )
-
                         a["verification"]["proof"] = to_msg(verify_log_proof(node_hash, root_hash, proof))  
 
-        # TODO: Verify against published root.
+                        if a["verification"]["proof"] is not "OK":
+                            raise Exception(
+                                f"Error: invalid Root Proof."
+                            )
 
-        response_wrapper = AuditSearchResponse(response, data)
+        # TODO: Verify against published root.
+        proof_url = resp["result"]["root"]["url"]
+        publish_resp = self.request.get(proof_url, None)
+
+        #  Server Response (Test / Remove this code).
+        publish_resp = {
+            "created": "2020-02-02T10:00:00Z",
+            "size": 14,
+            "hash": "9268978a0a369232f0fa391a84a2b968d5eb7f0c2ee63c13f95be2c4b68c9c7b",
+            "consistency_proof": "W3sic2lkZSI6ICJyaWdodCIsICJoYXNoIjogImI1YjdmODBlNTUxMTFlN2ZjN2M0YzdiZTBmZDNlY2M3YTExYjhmMWVkMGJmZWY4MGVhNWEzY2Y2NmQxZmI3MDgifSwgeyJzaWRlIjogInJpZ2h0IiwgImhhc2giOiAiNmZlMTFjNjM0NTI0YzljMGM0OGI3N2E3M2ZkZjg3OTljNzQ0YWY5YzdmOWJmNWY0Zjc4YzRlY2UyNGVkNmM2ZCJ9LCB7InNpZGUiOiAibGVmdCIsICJoYXNoIjogIjdlZDFlYTJjMzEzYzFjYWNiODFhZGUwYjNjY2M0MmYyMDkwMjNjYjdmZDlkNjVlN2Q3NmNlYTFjNWNjNWQxN2MifV0"
+        }
+        #  End Server Response (Test / Remove this code).
+
+        publish_root_hash = decode_hash(publish_resp["hash"])
+        publish_verify = verify_published_root(root_hash, publish_root_hash)
+
+        if not publish_verify:
+            raise Exception(
+                f"Error: Published Root Not Valid."
+            )
+
+        response_wrapper = AuditSearchResponse(resp, data)
 
         return response_wrapper
 

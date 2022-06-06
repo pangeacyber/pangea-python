@@ -89,6 +89,10 @@ def verify_log_proof(node_hash: Hash, root_hash: Hash, proof: Proof) -> bool:
 
 # root proof validation aginst publish root
 
+def verify_published_root(root_hash: Hash, publish_hash: Hash) -> bool:
+    return root_hash == publish_hash
+
+
 JSON_TYPES = [int, float, str, bool]
 
 
