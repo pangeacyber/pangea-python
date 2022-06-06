@@ -20,6 +20,7 @@ from .audit_util import (
     verify_log_proof,
     to_msg,
     verify_published_root,
+    base64url_decode
 )
 
 # The fields in a top-level audit log record.
@@ -32,6 +33,8 @@ SupportedFields = [
     "old",
     "status",
     "target",
+    "return_hash",
+    "data"
 ]
 
 class AuditSearchResponse(object):
@@ -86,9 +89,10 @@ class AuditSearchResponse(object):
 class Audit(ServiceBase):
     response_class = AuditSearchResponse
     service_name = "audit"
+    service_name = "audit-audit-tamper-proof-casual"    # For Testing Only / Remove this line!
     version = "v1"
 
-    def log(self, input: dict) -> PangeaResponse:
+    def log(self, input: dict, signature = None, public_key = None, verify: bool = False) -> PangeaResponse:
         endpoint_name = "log"
 
         """
@@ -105,14 +109,20 @@ class Audit(ServiceBase):
                 f"Error: no valid parameters, require on or more of: {', '.join(SupportedFields)}"
             )
 
-        if "message" not in data:
+        if "data" not in data:
+            raise Exception(f"Error: missing required field, no `data` provided")
+
+        if "message" not in data["data"]:
             raise Exception(f"Error: missing required field, no `message` provided")
 
-
-        response = self.request.post(endpoint_name, data=data)
+        resp = self.request.post(endpoint_name, data=data)
         # TODO: Verify consistency and membership.
 
-        return response
+        # TODO: Verify signature if verify parameter equal True (Not for beta).
+        if verify == True:
+            signature = resp["signature"]
+
+        return resp
 
 
     def search(
@@ -127,7 +137,7 @@ class Audit(ServiceBase):
         verify: bool = False,
     ) -> AuditSearchResponse:
         endpoint_name = "search"
-        
+
         """
         The `size` param determines the maximum results returned, it must be a positive integer.
         """
@@ -154,61 +164,17 @@ class Audit(ServiceBase):
             data.update({"last": last})
 
         resp = self.request.post(endpoint_name, data=data)
-
-        #  Server Response (Test / Remove this code).
-        resp = {
-            "request_id": "placeholder",
-            "request_time": "2022-06-02T16:39:07.450Z",
-            "response_time": "2022-06-02T16:39:07.450Z",
-            "status_code": 200,
-            "status": "success",
-            "signature": "",
-            "publish_url": "136.243.28.48:1984",
-            "result": {
-                "root": {
-                    "size": 23,
-                    "hash": "030000009727d718a6cf4f986dd2bb467c3cdfc265929449173e89048b8926908de4c39d",
-                    "url": "http://arweave.net/asdfsdfvscdfgsdgsdffg"
-                },
-                "audits": [
-                    {
-                        "actor": "testing1",
-                        "message": "zzz",
-                        "created": "2022-06-02T16:35:25.973960+00:00",
-                        "proof": "W3sic2lkZSI6ICJsZWZ0IiwgImhhc2giOiAiZDYzYjJhMDQwYmEyMWVmNjk3YTA2MDM5YzI3MGQ4NzgwN2YzNjUyZGMzZDAwMDZmZDUzNzM0M2E0NmNhNjkyYyJ9LCB7InNpZGUiOiAibGVmdCIsICJoYXNoIjogIjdlZDFlYTJjMzEzYzFjYWNiODFhZGUwYjNjY2M0MmYyMDkwMjNjYjdmZDlkNjVlN2Q3NmNlYTFjNWNjNWQxN2MifV0=",
-                        "hash": "6fe11c634524c9c0c48b77a73fdf8799c744af9c7f9bf5f4f78c4ece24ed6c6d"
-                    },
-                    {
-                        "actor": "testing1",
-                        "message": "zzz",
-                        "created": "2022-06-02T16:35:25.003627+00:00",
-                        "proof": "W3sic2lkZSI6ICJsZWZ0IiwgImhhc2giOiAiOTI2ODk3OGEwYTM2OTIzMmYwZmEzOTFhODRhMmI5NjhkNWViN2YwYzJlZTYzYzEzZjk1YmUyYzRiNjhjOWM3YiJ9LCB7InNpZGUiOiAicmlnaHQiLCAiaGFzaCI6ICI2ZmUxMWM2MzQ1MjRjOWMwYzQ4Yjc3YTczZmRmODc5OWM3NDRhZjljN2Y5YmY1ZjRmNzhjNGVjZTI0ZWQ2YzZkIn0sIHsic2lkZSI6ICJsZWZ0IiwgImhhc2giOiAiN2VkMWVhMmMzMTNjMWNhY2I4MWFkZTBiM2NjYzQyZjIwOTAyM2NiN2ZkOWQ2NWU3ZDc2Y2VhMWM1Y2M1ZDE3YyJ9XQ==",
-                        "hash": "b5b7f80e55111e7fc7c4c7be0fd3ecc7a11b8f1ed0bfef80ea5a3cf66d1fb708"
-                    },
-                    {
-                        "actor": "testing1",
-                        "message": "zzz",
-                        "created": "2022-06-02T16:35:23.117489+00:00",
-                        "proof": "W3sic2lkZSI6ICJyaWdodCIsICJoYXNoIjogImI1YjdmODBlNTUxMTFlN2ZjN2M0YzdiZTBmZDNlY2M3YTExYjhmMWVkMGJmZWY4MGVhNWEzY2Y2NmQxZmI3MDgifSwgeyJzaWRlIjogInJpZ2h0IiwgImhhc2giOiAiNmZlMTFjNjM0NTI0YzljMGM0OGI3N2E3M2ZkZjg3OTljNzQ0YWY5YzdmOWJmNWY0Zjc4YzRlY2UyNGVkNmM2ZCJ9LCB7InNpZGUiOiAibGVmdCIsICJoYXNoIjogIjdlZDFlYTJjMzEzYzFjYWNiODFhZGUwYjNjY2M0MmYyMDkwMjNjYjdmZDlkNjVlN2Q3NmNlYTFjNWNjNWQxN2MifV0=",
-                        "hash": "9268978a0a369232f0fa391a84a2b968d5eb7f0c2ee63c13f95be2c4b68c9c7b"
-                    }
-                ],
-                "last": "3|3|"
-            },
-            "summary": "success"
-        }
-        #  End Server Response (Test / Remove this code).
+        resp = resp.result
 
         # TODO: Verify signature if verify parameter equal True (Not for beta).
         if verify == True:
             signature = resp["signature"]
 
-
-        root = resp["result"]["root"]["hash"]
+        root = resp["root"]["hash"]
         root_verified = False
 
-        if "result" in resp and "audits" in resp["result"]:
-            audits = resp["result"]["audits"]
+        if "audits" in resp:
+            audits = resp["audits"]
 
             if root is not None:
                 root_hash = decode_root(root).root_hash
@@ -227,25 +193,29 @@ class Audit(ServiceBase):
                         proof = decode_proof(a["proof"])
                         a["verification"]["proof"] = to_msg(verify_log_proof(node_hash, root_hash, proof))  
 
-                        if a["verification"]["proof"] is not "OK":
+                        if a["verification"]["proof"] != "OK":
                             raise Exception(
                                 f"Error: invalid Root Proof."
                             )
 
         # TODO: Verify against published root.
-        proof_url = resp["result"]["root"]["url"]
+        
+        proof_url = base64url_decode(resp["root"]["url"])
         publish_resp = self.request.get(proof_url, None)
 
         #  Server Response (Test / Remove this code).
         publish_resp = {
-            "created": "2020-02-02T10:00:00Z",
-            "size": 14,
-            "hash": "9268978a0a369232f0fa391a84a2b968d5eb7f0c2ee63c13f95be2c4b68c9c7b",
-            "consistency_proof": "W3sic2lkZSI6ICJyaWdodCIsICJoYXNoIjogImI1YjdmODBlNTUxMTFlN2ZjN2M0YzdiZTBmZDNlY2M3YTExYjhmMWVkMGJmZWY4MGVhNWEzY2Y2NmQxZmI3MDgifSwgeyJzaWRlIjogInJpZ2h0IiwgImhhc2giOiAiNmZlMTFjNjM0NTI0YzljMGM0OGI3N2E3M2ZkZjg3OTljNzQ0YWY5YzdmOWJmNWY0Zjc4YzRlY2UyNGVkNmM2ZCJ9LCB7InNpZGUiOiAibGVmdCIsICJoYXNoIjogIjdlZDFlYTJjMzEzYzFjYWNiODFhZGUwYjNjY2M0MmYyMDkwMjNjYjdmZDlkNjVlN2Q3NmNlYTFjNWNjNWQxN2MifV0"
-        }
+            "data": {
+	        "published_at": "2022-06-06T17:40:29.049Z",
+	        "size": 32,
+	        "root_hash": "693cf43181981a8621da38247055ba2072d5cc8b2d905a3cd531677122cd3955",
+	        "consistency_proof": "W3sic2lkZSI6ICJsZWZ0IiwgImhhc2giOiAiNDE3NjI2OTA5NTQ0MzFmOWI4ZTA3MzE4NTE5ZGU5YmIwZWQ4ODFlNzg3OWMwZjY0M2NjNDIyYmI2YTBiM2E0ZSJ9LCB7InNpZGUiOiAicmlnaHQiLCAiaGFzaCI6ICJhNTM4ZWRhNDEzNGIzNzJhZGZkODQ3Yjg0NTNjZmQ4ODVlYmVmY2RmZDdmNzJhZTVhNGI3MDgzMzVhOTE0OGQxIn0sIHsic2lkZSI6ICJsZWZ0IiwgImhhc2giOiAiN2NmZTViZjFmY2Y0NTAyNjIyMTBlMzQ1M2VmN2JiNjNkYmI0OTYzOWE5MzI4OTA3MGEwNzFmNDM3ZDRkYWMxMiJ9LCB7InNpZGUiOiAicmlnaHQiLCAiaGFzaCI6ICI4Mzg2MGYyZjk1MzRhM2VjNjhmODA2YTM2YmViMWE0NjNiNjEwOWQ1NDA4ZjJkODRhYzViYTk4NDgxOTliZDg2In0sIHsic2lkZSI6ICJsZWZ0IiwgImhhc2giOiAiNDk5OTNjZjRjNzliYTBlMTk1ZTMwYzQ1OGM5M2FiYmNmOTk0MDJjNzAyOTU1YWUwZDY0OGY3MTRkM2ViMDRhNyJ9XQ==",
+	        "url": "aHR0cDovL2Fyd2VhdmUubmV0L3R4L0FYak9RQUpyczN5UWVCaUVpdG03YmFhb0I5RDQ3QWd1ZjVZZW5SR1FsX28vZGF0YS8=",  # "http://arweave.net/tx/AXjOQAJrs3yQeBiEitm7baaoB9D47Aguf5YenRGQl_o/data/"
+	        }
+        }        
         #  End Server Response (Test / Remove this code).
 
-        publish_root_hash = decode_hash(publish_resp["hash"])
+        publish_root_hash = decode_hash(publish_resp["data"]["root_hash"])
         publish_verify = verify_published_root(root_hash, publish_root_hash)
 
         if not publish_verify:

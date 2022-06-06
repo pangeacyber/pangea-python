@@ -115,3 +115,18 @@ def hash_data(data: bytes) -> str:
 
 def to_msg(b):
     return "OK" if b else "FAILED"   
+
+
+def base64url_decode(input):
+    """Helper method to base64url_decode a string.
+
+    Args:
+        input (str): A base64url_encoded string to decode.
+
+    """
+    rem = len(input) % 4
+
+    if rem > 0:
+        input += b"=" * (4 - rem)
+
+    return base64.urlsafe_b64decode(input)

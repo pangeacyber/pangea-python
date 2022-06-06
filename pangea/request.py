@@ -114,7 +114,6 @@ class PangeaRequest(object):
         )
 
         url = f"{protocol}{domain}/{ str(self.version) + '/' if self.version else '' }{path}"
-
         return url
 
     def _headers(self) -> dict:
