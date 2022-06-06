@@ -1,8 +1,23 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 
+import json
 from pangea.response import PangeaResponse
 from .base import ServiceBase
+
+SupportedFields = [
+    "actor",
+    "action",
+    "message",
+    "status",
+    "source",
+    "target",
+]
+
+SupportedJSONFields = [
+    "new",
+    "old",
+]
 
 
 class AuditSearchResponse(object):
@@ -65,26 +80,18 @@ class Audit(ServiceBase):
         """
         Filter input on valid field params, at least one valid param is required
         """
-        valid_params = [
-            "action",
-            "actor",
-            "target",
-            "status",
-            "old",
-            "new",
-            "message",
-            "source",
-        ]
         data = {}
 
-        for name in valid_params:
+        for name in SupportedFields:
             if name in message:
                 data[name] = message[name]
 
+        for name in SupportedJSONFields:
+            if name in message:
+                data[name] = json.dumps(message[name])
+
         if "message" not in data:
             raise Exception(f"Error: missing required field, no `message` provided")
-
-        print(f"Log data: {data}")
 
         response = self.request.post(endpoint_name, data=data)
 
@@ -93,6 +100,7 @@ class Audit(ServiceBase):
     def search(
         self,
         query: str = "",
+        sources: list = [],
         size: int = 20,
         start: str = "",
         end: str = "",
@@ -118,6 +126,9 @@ class Audit(ServiceBase):
 
         if last:
             data.update({"last": last})
+
+        if sources:
+            data.update({"sources": sources})
 
         response = self.request.post(endpoint_name, data=data)
 
