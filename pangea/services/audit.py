@@ -20,7 +20,8 @@ from .audit_util import (
     verify_log_proof,
     to_msg,
     verify_published_root,
-    base64url_decode
+    base64url_decode,
+    decode_server_response
 )
 
 # The fields in a top-level audit log record.
@@ -89,7 +90,7 @@ class AuditSearchResponse(object):
 class Audit(ServiceBase):
     response_class = AuditSearchResponse
     service_name = "audit"
-    service_name = "audit-audit-tamper-proof-casual"    # For Testing Only / Remove this line!
+    service_name = "audit-audit-tamper-proof-improve-admin-script"  #"audit-audit-tamper-proof-casual"    # For Testing Only / Remove this line!
     version = "v1"
 
     def log(self, input: dict, signature = None, public_key = None, verify: bool = False) -> PangeaResponse:
@@ -112,9 +113,27 @@ class Audit(ServiceBase):
         if "data" not in data:
             raise Exception(f"Error: missing required field, no `data` provided")
 
+        if "action" not in data["data"]:
+            raise Exception(f"Error: missing required field, no `action` provided")
+
+        if "actor" not in data["data"]:
+            raise Exception(f"Error: missing required field, no `actor` provided")
+
         if "message" not in data["data"]:
             raise Exception(f"Error: missing required field, no `message` provided")
 
+        if "status" not in data["data"]:
+            raise Exception(f"Error: missing required field, no `status` provided")
+
+        if "new" not in data["data"]:
+            raise Exception(f"Error: missing required field, no `new` provided")
+            
+        if "old" not in data["data"]:
+            raise Exception(f"Error: missing required field, no `old` provided")
+            
+        if "target" not in data["data"]:
+            raise Exception(f"Error: missing required field, no `target` provided")
+                        
         resp = self.request.post(endpoint_name, data=data)
         # TODO: Verify consistency and membership.
 
@@ -134,7 +153,7 @@ class Audit(ServiceBase):
         last: str = "",
         signature = None,
         public_key =  None,
-        verify: bool = False,
+        verify_proofs: bool = False,
     ) -> AuditSearchResponse:
         endpoint_name = "search"
 
@@ -144,7 +163,22 @@ class Audit(ServiceBase):
         if not (isinstance(size, int) and size > 0):
             raise Exception("The 'size' argument must be a positive integer > 0")
 
-        data = {"query": query, "max_results": size}
+        if not query or not query.strip():
+            raise Exception(
+                f"Error: Query field is mandatory."
+            )
+
+        include_membership_proof = verify_proofs
+        include_hash = verify_proofs
+        include_root = verify_proofs
+
+        data = {
+            "query": query, 
+            "max_results": size,
+	        "include_membership_proof": include_membership_proof,
+            "include_hash": include_hash,
+	        "include_root": include_root            
+            }
 
         if start:
             if not parser.isoparse(start):
@@ -164,13 +198,29 @@ class Audit(ServiceBase):
             data.update({"last": last})
 
         resp = self.request.post(endpoint_name, data=data)
+
+        if resp is None:
+            raise Exception(
+                f"Error: Empty result from server."
+            )
+        elif resp.result is None:
+            raise Exception(
+                f"Error: Empty result from server."
+            )
+
         resp = resp.result
 
-        # TODO: Verify signature if verify parameter equal True (Not for beta).
-        if verify == True:
-            signature = resp["signature"]
+        if include_root == True and resp["root"] is None:
+            raise Exception(
+                f"Error: Invalid response from server, root field not present."
+            )
 
-        root = resp["root"]["hash"]
+        if include_membership_proof == True and resp["root"]["root_hash"] is None:
+            raise Exception(
+                f"Error: Invalid response from server, root_hash field not present in root."
+            )
+
+        root = resp["root"]["root_hash"]
         root_verified = False
 
         if "audits" in resp:
@@ -188,20 +238,29 @@ class Audit(ServiceBase):
                         "root": to_msg(root_verified),
                     }
 
-                    if "proof" in a:
+                    if "membership_proof" in a:
                         node_hash = decode_hash(a["hash"])
-                        proof = decode_proof(a["proof"])
-                        a["verification"]["proof"] = to_msg(verify_log_proof(node_hash, root_hash, proof))  
-
-                        if a["verification"]["proof"] != "OK":
+                        proof = decode_proof(a["membership_proof"])
+                        if not verify_log_proof(node_hash, root_hash, proof):
                             raise Exception(
-                                f"Error: invalid Root Proof."
+                                f"Error: invalid Membership Proof."
                             )
 
-        # TODO: Verify against published root.
-        
-        proof_url = base64url_decode(resp["root"]["url"])
+#        proof_url = base64url_decode(resp["root"]["url"])
+        proof_url = resp["root"]["url"]
         publish_resp = self.request.get(proof_url, None)
+
+        if publish_resp is None:
+            raise Exception(
+                f"Error: Empty result from server."
+            )
+        elif publish_resp.result is None:
+            raise Exception(
+                f"Error: Empty result from server."
+            )
+
+        publish_resp_b64 = publish_resp.result
+        publish_resp =  decode_server_response(publish_resp_b64)        
 
         #  Server Response (Test / Remove this code).
         publish_resp = {
@@ -210,7 +269,7 @@ class Audit(ServiceBase):
 	        "size": 32,
 	        "root_hash": "693cf43181981a8621da38247055ba2072d5cc8b2d905a3cd531677122cd3955",
 	        "consistency_proof": "W3sic2lkZSI6ICJsZWZ0IiwgImhhc2giOiAiNDE3NjI2OTA5NTQ0MzFmOWI4ZTA3MzE4NTE5ZGU5YmIwZWQ4ODFlNzg3OWMwZjY0M2NjNDIyYmI2YTBiM2E0ZSJ9LCB7InNpZGUiOiAicmlnaHQiLCAiaGFzaCI6ICJhNTM4ZWRhNDEzNGIzNzJhZGZkODQ3Yjg0NTNjZmQ4ODVlYmVmY2RmZDdmNzJhZTVhNGI3MDgzMzVhOTE0OGQxIn0sIHsic2lkZSI6ICJsZWZ0IiwgImhhc2giOiAiN2NmZTViZjFmY2Y0NTAyNjIyMTBlMzQ1M2VmN2JiNjNkYmI0OTYzOWE5MzI4OTA3MGEwNzFmNDM3ZDRkYWMxMiJ9LCB7InNpZGUiOiAicmlnaHQiLCAiaGFzaCI6ICI4Mzg2MGYyZjk1MzRhM2VjNjhmODA2YTM2YmViMWE0NjNiNjEwOWQ1NDA4ZjJkODRhYzViYTk4NDgxOTliZDg2In0sIHsic2lkZSI6ICJsZWZ0IiwgImhhc2giOiAiNDk5OTNjZjRjNzliYTBlMTk1ZTMwYzQ1OGM5M2FiYmNmOTk0MDJjNzAyOTU1YWUwZDY0OGY3MTRkM2ViMDRhNyJ9XQ==",
-	        "url": "aHR0cDovL2Fyd2VhdmUubmV0L3R4L0FYak9RQUpyczN5UWVCaUVpdG03YmFhb0I5RDQ3QWd1ZjVZZW5SR1FsX28vZGF0YS8=",  # "http://arweave.net/tx/AXjOQAJrs3yQeBiEitm7baaoB9D47Aguf5YenRGQl_o/data/"
+	        "url": "http://arweave.net/tx/AXjOQAJrs3yQeBiEitm7baaoB9D47Aguf5YenRGQl_o/data/",  # "http://arweave.net/tx/AXjOQAJrs3yQeBiEitm7baaoB9D47Aguf5YenRGQl_o/data/"
 	        }
         }        
         #  End Server Response (Test / Remove this code).

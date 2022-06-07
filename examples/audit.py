@@ -28,7 +28,7 @@ print(f"Log Request ID: {log_response.request_id}, Result: {log_response.result}
 
 print("Search Data...")
 
-search_res = audit.search(query="testing1", size=5, start='2022-05-05', verify = False)
+search_res = audit.search(query="testing1", size=5, start='2022-05-05', verify_proofs = True)
 
 if search_res.success:
     print("Search Request ID:", search_res.request_id, "\n")

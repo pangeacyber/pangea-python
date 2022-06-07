@@ -81,13 +81,18 @@ def decode_proof(data: str) -> Proof:
     return proof
 
 
+def decode_server_response(data: str) -> dict:
+    data_dec = base64.b64decode(data.encode("utf8"))
+    data_obj = json.loads(data_dec)
+    return data_obj
+
+
 def verify_log_proof(node_hash: Hash, root_hash: Hash, proof: Proof) -> bool:
     for proof_item in proof:
         proof_hash = proof_item.node_hash
         node_hash = hash_pair(proof_hash, node_hash) if proof_item.side == "left" else hash_pair(node_hash, proof_hash)
     return root_hash == node_hash
 
-# root proof validation aginst publish root
 
 def verify_published_root(root_hash: Hash, publish_hash: Hash) -> bool:
     return root_hash == publish_hash
@@ -130,3 +135,5 @@ def base64url_decode(input):
         input += b"=" * (4 - rem)
 
     return base64.urlsafe_b64decode(input)
+
+    

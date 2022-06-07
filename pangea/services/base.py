@@ -30,7 +30,3 @@ class ServiceBase(object):
     @token.setter
     def token(self, value):
         self.request.token = value
-
-    #@service_name.setter
-    #def service_name(self, value):
-    #    self.service_name = value
