@@ -10,7 +10,6 @@ audit = Audit(token=token, config=config)
 print("Log Data...")
 
 data = {
-	"data": {
 		"action": "diego",
 		"actor": "testing2",
 		"message": "Hello",
@@ -18,8 +17,6 @@ data = {
 		"new": "xxx",
         "old": "xxx",
         "target": "xxx"
-	},
-	"return_hash": "true"
 }
 
 log_response = audit.log(data)

@@ -33,9 +33,7 @@ SupportedFields = [
     "new",
     "old",
     "status",
-    "target",
-    "return_hash",
-    "data"
+    "target"
 ]
 
 class AuditSearchResponse(object):
@@ -99,19 +97,20 @@ class Audit(ServiceBase):
         """
         Filter input on valid search params, at least one valid param is required
         """
-        data = {}
+
+        data = {
+	        "data": {},
+	        "return_hash": "true"
+        }
 
         for name in SupportedFields:
             if name in input:
-                data[name] = input[name]
+                data["data"][name] = input[name]
 
         if len(data) < 1:
             raise Exception(
                 f"Error: no valid parameters, require on or more of: {', '.join(SupportedFields)}"
             )
-
-        if "data" not in data:
-            raise Exception(f"Error: missing required field, no `data` provided")
 
         if "action" not in data["data"]:
             raise Exception(f"Error: missing required field, no `action` provided")
@@ -232,11 +231,6 @@ class Audit(ServiceBase):
                     stripped_audit = {k: a[k] for k in SupportedFields if k in a}
                     canon_audit = canonicalize_log(stripped_audit)
                     audit_hash = hash_data(canon_audit)
-
-                    a["verification"] = {
-                        "log": to_msg(audit_hash == a["hash"]),
-                        "root": to_msg(root_verified),
-                    }
 
                     if "membership_proof" in a:
                         node_hash = decode_hash(a["hash"])
