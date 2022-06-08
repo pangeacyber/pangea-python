@@ -8,13 +8,13 @@ from .base import ServiceBase
 SupportedFields = [
     "actor",
     "action",
-    "message",
     "status",
     "source",
     "target",
 ]
 
 SupportedJSONFields = [
+    "message",
     "new",
     "old",
 ]
@@ -36,7 +36,7 @@ class AuditSearchResponse(object):
         if self.count < self.total:
             params = {
                 "query": self.data["query"],
-                "last": self.result.last,
+                "last": self.result["last"],
                 "size": self.data["max_results"],
             }
 
@@ -53,7 +53,7 @@ class AuditSearchResponse(object):
     @property
     def total(self) -> str:
         if self.success:
-            last = self.result.last
+            last = self.result["last"]
             total = last.split("|")[1]  # TODO: update once `last` returns an object
             return int(total)
         else:
@@ -62,7 +62,7 @@ class AuditSearchResponse(object):
     @property
     def count(self) -> str:
         if self.success:
-            last = self.result.last
+            last = self.result["last"]
             count = last.split("|")[0]  # TODO: update once `last` returns an object
             return int(count)
         else:
@@ -74,26 +74,26 @@ class Audit(ServiceBase):
     service_name = "audit"
     version = "v1"
 
-    def log(self, message: dict, source: str = "") -> PangeaResponse:
+    def log(self, data: dict) -> PangeaResponse:
         endpoint_name = "log"
 
         """
         Filter input on valid field params, at least one valid param is required
         """
-        data = {}
+        record = {}
 
         for name in SupportedFields:
-            if name in message:
-                data[name] = message[name]
+            if name in data:
+                record[name] = data[name]
 
         for name in SupportedJSONFields:
-            if name in message:
-                data[name] = json.dumps(message[name])
+            if name in data:
+                record[name] = json.dumps(data[name])
 
-        if "message" not in data:
+        if "message" not in record:
             raise Exception(f"Error: missing required field, no `message` provided")
 
-        response = self.request.post(endpoint_name, data=data)
+        response = self.request.post(endpoint_name, data=record)
 
         return response
 
