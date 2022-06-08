@@ -1,4 +1,4 @@
-# Copyright 2021 Pangea Cyber Corporation
+# Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 
 import base64
@@ -11,6 +11,7 @@ from dateutil import parser
 
 Hash = bytes
 
+JSON_TYPES = [int, float, str, bool]
 
 @dataclass
 class HotRoot:
@@ -27,19 +28,11 @@ class Root:
 
 @dataclass
 class ProofItem:
-    side: str  # TODO: literal "left" or "right"
+    side: str
     node_hash: Hash
 
 
 Proof = list[ProofItem]
-
-#class AuditError(Exception):
-    # TODO: complete
-#    pass
-
-#class AuditInvalidParameterError(AuditError):
-    # TODO: complete
-#    pass
 
 
 @dataclass
@@ -75,10 +68,21 @@ def decode_root(data: str) -> Root:
 
 
 def decode_proof(data: str) -> Proof:
-    data_dec = base64.b64decode(data.encode("utf8"))
-    data_obj = json.loads(data_dec)
-    proof = [ProofItem(side=item["side"], node_hash=decode_hash(item["hash"])) for item in data_obj]
+    proof: Proof = []
+    for item in data.split(","):
+        parts = item.split(":")
+        proof.append(ProofItem(side="left" if parts[0] == "l" else "right", node_hash=decode_hash(parts[1])))
     return proof
+
+
+def decode_root_proof(data: list[str]) -> RootProof:
+    root_proof = []
+    for item in data:
+        ndx = item.index(",")
+        root_proof.append(
+            RootProofItem(node_hash=decode_hash(item[:ndx].split(":")[1]), proof=decode_proof(item[ndx + 1 :]))
+        )
+    return root_proof
 
 
 def decode_server_response(data: str) -> dict:
@@ -96,9 +100,6 @@ def verify_log_proof(node_hash: Hash, root_hash: Hash, proof: Proof) -> bool:
 
 def verify_published_root(root_hash: Hash, publish_hash: Hash) -> bool:
     return root_hash == publish_hash
-
-
-JSON_TYPES = [int, float, str, bool]
 
 
 def canonicalize_log(audit: dict) -> bytes:

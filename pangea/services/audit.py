@@ -4,6 +4,7 @@
 from datetime import date
 import sys
 import uuid
+import requests
 
 import json
 from base64 import b64encode, b64decode
@@ -87,8 +88,7 @@ class AuditSearchResponse(object):
 
 class Audit(ServiceBase):
     response_class = AuditSearchResponse
-    service_name = "audit"
-    service_name = "audit-audit-tamper-proof-improve-admin-script"  #"audit-audit-tamper-proof-casual"    # For Testing Only / Remove this line!
+    service_name = "audit-audit-tamper-proof-improve-admin-script"
     version = "v1"
 
     def log(self, input: dict, signature = None, public_key = None, verify: bool = False) -> PangeaResponse:
@@ -134,11 +134,6 @@ class Audit(ServiceBase):
             raise Exception(f"Error: missing required field, no `target` provided")
                         
         resp = self.request.post(endpoint_name, data=data)
-        # TODO: Verify consistency and membership.
-
-        # TODO: Verify signature if verify parameter equal True (Not for beta).
-        if verify == True:
-            signature = resp["signature"]
 
         return resp
 
@@ -196,37 +191,37 @@ class Audit(ServiceBase):
         if last:
             data.update({"last": last})
 
-        resp = self.request.post(endpoint_name, data=data)
+        response = self.request.post(endpoint_name, data=data)
 
-        if resp is None:
+        if response is None:
             raise Exception(
                 f"Error: Empty result from server."
             )
-        elif resp.result is None:
+        elif response.result is None:
             raise Exception(
                 f"Error: Empty result from server."
             )
 
-        resp = resp.result
+        response_result = response.result
 
-        if include_root == True and resp["root"] is None:
+        if include_root == True and response_result["root"] is None:
             raise Exception(
                 f"Error: Invalid response from server, root field not present."
             )
 
-        if include_membership_proof == True and resp["root"]["root_hash"] is None:
+        if include_membership_proof == True and response_result["root"]["root_hash"] is None:
             raise Exception(
                 f"Error: Invalid response from server, root_hash field not present in root."
             )
 
-        root = resp["root"]["root_hash"]
+        root = response_result["root"]["root_hash"]
         root_verified = False
 
-        if "audits" in resp:
-            audits = resp["audits"]
+        if "audits" in response_result:
+            audits = response_result["audits"]
 
             if root is not None:
-                root_hash = decode_root(root).root_hash
+                root_hash = decode_hash(root)
                 for a in audits:
                     stripped_audit = {k: a[k] for k in SupportedFields if k in a}
                     canon_audit = canonicalize_log(stripped_audit)
@@ -240,33 +235,20 @@ class Audit(ServiceBase):
                                 f"Error: invalid Membership Proof."
                             )
 
-#        proof_url = base64url_decode(resp["root"]["url"])
-        proof_url = resp["root"]["url"]
-        publish_resp = self.request.get(proof_url, None)
+        root_url = response_result["root"]["url"]
+        publish_resp = requests.get(root_url)
 
         if publish_resp is None:
             raise Exception(
                 f"Error: Empty result from server."
             )
-        elif publish_resp.result is None:
+        elif publish_resp.text is None:
             raise Exception(
                 f"Error: Empty result from server."
             )
 
-        publish_resp_b64 = publish_resp.result
-        publish_resp =  decode_server_response(publish_resp_b64)        
-
-        #  Server Response (Test / Remove this code).
-        publish_resp = {
-            "data": {
-	        "published_at": "2022-06-06T17:40:29.049Z",
-	        "size": 32,
-	        "root_hash": "693cf43181981a8621da38247055ba2072d5cc8b2d905a3cd531677122cd3955",
-	        "consistency_proof": "W3sic2lkZSI6ICJsZWZ0IiwgImhhc2giOiAiNDE3NjI2OTA5NTQ0MzFmOWI4ZTA3MzE4NTE5ZGU5YmIwZWQ4ODFlNzg3OWMwZjY0M2NjNDIyYmI2YTBiM2E0ZSJ9LCB7InNpZGUiOiAicmlnaHQiLCAiaGFzaCI6ICJhNTM4ZWRhNDEzNGIzNzJhZGZkODQ3Yjg0NTNjZmQ4ODVlYmVmY2RmZDdmNzJhZTVhNGI3MDgzMzVhOTE0OGQxIn0sIHsic2lkZSI6ICJsZWZ0IiwgImhhc2giOiAiN2NmZTViZjFmY2Y0NTAyNjIyMTBlMzQ1M2VmN2JiNjNkYmI0OTYzOWE5MzI4OTA3MGEwNzFmNDM3ZDRkYWMxMiJ9LCB7InNpZGUiOiAicmlnaHQiLCAiaGFzaCI6ICI4Mzg2MGYyZjk1MzRhM2VjNjhmODA2YTM2YmViMWE0NjNiNjEwOWQ1NDA4ZjJkODRhYzViYTk4NDgxOTliZDg2In0sIHsic2lkZSI6ICJsZWZ0IiwgImhhc2giOiAiNDk5OTNjZjRjNzliYTBlMTk1ZTMwYzQ1OGM5M2FiYmNmOTk0MDJjNzAyOTU1YWUwZDY0OGY3MTRkM2ViMDRhNyJ9XQ==",
-	        "url": "http://arweave.net/tx/AXjOQAJrs3yQeBiEitm7baaoB9D47Aguf5YenRGQl_o/data/",  # "http://arweave.net/tx/AXjOQAJrs3yQeBiEitm7baaoB9D47Aguf5YenRGQl_o/data/"
-	        }
-        }        
-        #  End Server Response (Test / Remove this code).
+        publish_resp_b64 = publish_resp.text
+        publish_resp = base64url_decode(publish_resp_b64)
 
         publish_root_hash = decode_hash(publish_resp["data"]["root_hash"])
         publish_verify = verify_published_root(root_hash, publish_root_hash)
@@ -276,7 +258,7 @@ class Audit(ServiceBase):
                 f"Error: Published Root Not Valid."
             )
 
-        response_wrapper = AuditSearchResponse(resp, data)
+        response_wrapper = AuditSearchResponse(response, data)
 
         return response_wrapper
 
