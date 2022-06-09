@@ -14,7 +14,7 @@ class ServiceBase(object):
         if not token:
             raise Exception("No token provided")
 
-        self.config = config if config else PangeaConfig
+        self.config = config if config else PangeaConfig()
 
         self.request = PangeaRequest(
             token=token,

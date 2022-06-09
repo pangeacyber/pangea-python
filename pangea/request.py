@@ -1,5 +1,6 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+import typing as t
 
 import logging
 from urllib import request
@@ -7,8 +8,7 @@ import requests
 import json
 import time
 
-from requests.adapters import HTTPAdapter
-from requests.packages.urllib3.util.retry import Retry
+from requests.adapters import HTTPAdapter, Retry
 
 import pangea
 from pangea.config import PangeaConfig
@@ -23,8 +23,11 @@ class PangeaRequest(object):
         token: str = "",
         service: str = "",
         version: str = "",
-        config: PangeaConfig = None,
+        config: t.Optional[PangeaConfig] = None,
     ):
+        if config is None:
+            config = PangeaConfig()
+
         self.config = config
         self.token = token
         self.service = service
@@ -89,7 +92,7 @@ class PangeaRequest(object):
             else:
                 return pangea_response
 
-    def _init_request(self) -> requests.models.Request:
+    def _init_request(self) -> requests.Session:
         retry_config = Retry(
             total=self.retries,
             backoff_factor=self.backoff,

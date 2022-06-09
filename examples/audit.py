@@ -39,9 +39,9 @@ if search_res.success:
             # f"{row["created"]}\t{row["source"]}\t{row["actor"]}\t{row["action"]}\t{row["target"]}\t{row["status"]}"
         )
 
-    # get the next page
-    if search_res.next():
-        search_res = audit.search(**search_res.next())
+    next_page = search_res.next()
+    if next_page:
+        search_res = audit.search(**next_page)
         print("Search Next", search_res.result)
 else:
     print("Search Failed:", search_res.code, search_res.status, search_res.result)
