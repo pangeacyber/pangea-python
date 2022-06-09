@@ -48,7 +48,10 @@ class AuditSearchResponse(object):
         return getattr(self.response, attr)
 
     def next(self):
-        if self.count:  # TODO: fix, this is the wrong check
+        reg_count = 0
+        if self.count and self.count != "":
+            reg_count = int(self.count)
+        if reg_count > 0:
             params = {
                 "query": self.data["query"],
                 "last": self.result.last,
@@ -67,21 +70,25 @@ class AuditSearchResponse(object):
 
     @property
     def total(self) -> str:
+        total = "0"
         if self.success:
             last = self.result.last
-            total = last.split("|")[1]  # TODO: update once `last` returns an object
+            if last is not None:
+                total = last.split("|")[1]
             return total
         else:
-            return 0
+            return total
 
     @property
     def count(self) -> str:
+        count = "0"
         if self.success:
             last = self.result.last
-            count = last.split("|")[0]  # TODO: update once `last` returns an object
+            if last is not None:
+                count = last.split("|")[0]
             return count
         else:
-            return 0
+            return count
 
 
 class Audit(ServiceBase):
@@ -213,22 +220,30 @@ class Audit(ServiceBase):
             )
 
         root = response_result["root"]["root_hash"]
+        audits = response_result["audits"]
 
-        if "audits" in response_result:
-            audits = response_result["audits"]
+        if audits is None:
+            raise Exception(
+                f"Error: `audits` field not present."
+            )        
 
-            if root is not None:
-                root_hash = decode_hash(root)
-                for a in audits:
-                    if "membership_proof" in a:
-                        node_hash = decode_hash(a["hash"])
-                        proof = decode_proof(a["membership_proof"])
-                        if not verify_log_proof(node_hash, root_hash, proof):
-                            raise Exception(
-                                f"Error: invalid Membership Proof."
-                            )
+        if root is not None:
+            root_hash = decode_hash(root)
+            for a in audits:
+                if "membership_proof" in a:
+                    node_hash = decode_hash(a["hash"])
+                    proof = decode_proof(a["membership_proof"])
+                    if not verify_log_proof(node_hash, root_hash, proof):
+                        raise Exception(
+                            f"Error: invalid Membership Proof."
+                        )
 
         root_url = response_result["root"]["url"]
+        if root_url is None:
+            raise Exception(
+                f"Error: `url` field not present in root field."
+            )        
+
         publish_resp = requests.get(root_url)
 
         if publish_resp is None:
