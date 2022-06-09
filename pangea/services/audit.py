@@ -2,11 +2,8 @@
 # Author: Pangea Cyber Corporation
 
 from datetime import date
-import sys
-import uuid
 import requests
 
-import json
 from base64 import b64encode, b64decode
 from dateutil import parser
 
@@ -22,7 +19,8 @@ from .audit_util import (
     to_msg,
     verify_published_root,
     base64url_decode,
-    decode_server_response
+    decode_server_response,
+    bytes_to_json
 )
 
 # The fields in a top-level audit log record.
@@ -88,7 +86,7 @@ class AuditSearchResponse(object):
 
 class Audit(ServiceBase):
     response_class = AuditSearchResponse
-    service_name = "audit-audit-tamper-proof-improve-admin-script"
+    service_name = "audit"
     version = "v1"
 
     def log(self, input: dict, signature = None, public_key = None, verify: bool = False) -> PangeaResponse:
@@ -215,7 +213,6 @@ class Audit(ServiceBase):
             )
 
         root = response_result["root"]["root_hash"]
-        root_verified = False
 
         if "audits" in response_result:
             audits = response_result["audits"]
@@ -223,10 +220,6 @@ class Audit(ServiceBase):
             if root is not None:
                 root_hash = decode_hash(root)
                 for a in audits:
-                    stripped_audit = {k: a[k] for k in SupportedFields if k in a}
-                    canon_audit = canonicalize_log(stripped_audit)
-                    audit_hash = hash_data(canon_audit)
-
                     if "membership_proof" in a:
                         node_hash = decode_hash(a["hash"])
                         proof = decode_proof(a["membership_proof"])
@@ -245,12 +238,12 @@ class Audit(ServiceBase):
         elif publish_resp.text is None:
             raise Exception(
                 f"Error: Empty result from server."
-            )
+                )
 
         publish_resp_b64 = publish_resp.text
-        publish_resp = base64url_decode(publish_resp_b64)
+        publish_resp = bytes_to_json(base64url_decode(publish_resp_b64))
 
-        publish_root_hash = decode_hash(publish_resp["data"]["root_hash"])
+        publish_root_hash = decode_hash(publish_resp["root_hash"])
         publish_verify = verify_published_root(root_hash, publish_root_hash)
 
         if not publish_verify:

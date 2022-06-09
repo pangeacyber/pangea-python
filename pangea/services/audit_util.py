@@ -133,8 +133,10 @@ def base64url_decode(input):
     rem = len(input) % 4
 
     if rem > 0:
-        input += b"=" * (4 - rem)
+        input += "=" * (4 - rem)
 
     return base64.urlsafe_b64decode(input)
 
-    
+
+def bytes_to_json(input: bytes) -> dict:
+    return json.loads(input.decode("utf8"))
