@@ -235,8 +235,13 @@ class Audit(ServiceBase):
                     proof = decode_proof(a["membership_proof"])
                     if not verify_log_proof(node_hash, root_hash, proof):
                         raise Exception(
-                            f"Error: invalid Membership Proof."
+                            f"Error: Invalid Membership Proof."
                         )
+                elif verify_proofs:
+                    raise Exception(
+                        f"Error: Membership Proofs not present in Audits."
+                    )
+
 
         root_url = response_result["root"]["url"]
         if root_url is None:
