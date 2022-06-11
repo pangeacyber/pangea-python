@@ -51,10 +51,15 @@ class AuditSearchResponse(object):
         reg_count = 0
         if self.count and self.count != "":
             reg_count = int(self.count)
-        if reg_count > 0:
+
+        reg_total = 0
+        if self.total and self.total != "":
+            reg_total = int(self.total)
+
+        if reg_count < reg_total:
             params = {
                 "query": self.data["query"],
-                "last": self.result.last,
+                "last": self.result["last"],
                 "size": self.data["max_results"],
             }
 
@@ -209,26 +214,26 @@ class Audit(ServiceBase):
 
         response_result = response.result
 
-        if include_root == True and response_result["root"] is None:
+        root = response_result.get("root", [])
+        if include_root == True and (root is None or root == []):
             raise Exception(
-                f"Error: Invalid response from server, root field not present."
-            )
+                f"Error: `root` field not present."
+            )    
 
-        if include_membership_proof == True and response_result["root"]["root_hash"] is None:
+        root_hash_coded = root.get("root_hash", [])
+        if include_membership_proof == True and (root_hash_coded is None or root_hash_coded == []):
             raise Exception(
-                f"Error: Invalid response from server, root_hash field not present in root."
-            )
+                f"Error: `root_hash` field not present."
+            )    
 
-        root = response_result["root"]["root_hash"]
-        audits = response_result["audits"]
-
-        if audits is None:
+        audits = response_result.get("audits", [])
+        if audits is None or audits == []:
             raise Exception(
                 f"Error: `audits` field not present."
             )        
 
-        if root is not None:
-            root_hash = decode_hash(root)
+        if root_hash_coded is not None:
+            root_hash = decode_hash(root_hash_coded)
             for a in audits:
                 if "membership_proof" in a:
                     node_hash = decode_hash(a["hash"])
@@ -239,14 +244,13 @@ class Audit(ServiceBase):
                         )
                 elif verify_proofs:
                     raise Exception(
-                        f"Error: Membership Proofs not present in Audits."
+                        f"Error: `membership_proof` field not present in `audits` field."
                     )
 
-
-        root_url = response_result["root"]["url"]
-        if root_url is None:
+        root_url = root.get("url", [])
+        if root_url is None or root_url == []:
             raise Exception(
-                f"Error: `url` field not present in root field."
+                f"Error: `url` field not present in `root` field."
             )        
 
         publish_resp = requests.get(root_url)
@@ -274,10 +278,3 @@ class Audit(ServiceBase):
         response_wrapper = AuditSearchResponse(response, data)
 
         return response_wrapper
-
-    # TODO: This is a hack, find a better way to handle pagination
-    def search_next(self, data: dict = {}):
-        query = data.get("query", "")
-        del data["query"]
-
-        return self.search(query, **data)    

@@ -34,13 +34,12 @@ if search_res.success:
         f"Results: {search_res.count} of {search_res.total} - next {search_res.next()}",
     )
     for row in search_res.result.audits:
-        print(f"{row.created}\t{row.actor}\t{row.action}\t{row.target}\t{row.status}")
+        print(f"{row.data.message}\t{row.data.created}\t{row.data.source}\t{row.data.actor}")        
 
     # get the next page
     if search_res.next():
-        search_res = audit.search(**search_res.next())
+        search_res = audit.search(**search_res.next(), verify_proofs = True)
         print("Search Next", search_res.result)
-
 
 else:
     print("Search Failed:", search_res.code, search_res.status)
