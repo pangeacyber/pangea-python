@@ -4,7 +4,7 @@ from pangea.services import Audit
 
 token = "pts_3xQABgzxqmi5YYRY3UNT6LAjCMd2"  # os.getenv("PANGEA_TOKEN")
 config = PangeaConfig(base_domain="dev.pangea.cloud")
-audit = Audit(token=token, config=config)
+audit = Audit(token, config=config)
 
 print("Log Data...")
 

@@ -20,14 +20,11 @@ logger = logging.getLogger(__name__)
 class PangeaRequest(object):
     def __init__(
         self,
-        token: str = "",
-        service: str = "",
-        version: str = "",
-        config: t.Optional[PangeaConfig] = None,
+        config: PangeaConfig,
+        token: str,
+        service: str,
+        version: str,
     ):
-        if config is None:
-            config = PangeaConfig()
-
         self.config = config
         self.token = token
         self.service = service

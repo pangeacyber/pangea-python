@@ -4,7 +4,7 @@ from pangea.client import Client
 
 token = os.getenv("PANGEA_TOKEN")
 config = PangeaConfig(base_domain="dev.pangea.cloud")
-client = Client(token=token, config=config)
+client = Client(token, config=config)
 
 # Search the audit log
 search_term = "reboot"
