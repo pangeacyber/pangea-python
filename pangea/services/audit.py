@@ -8,6 +8,7 @@ from base64 import b64encode, b64decode
 from dateutil import parser
 
 from pangea.response import PangeaResponse
+from pangea.response import JSONObject
 from .base import ServiceBase
 from .audit_util import (
     canonicalize_log,
@@ -20,7 +21,9 @@ from .audit_util import (
     verify_published_root,
     base64url_decode,
     decode_server_response,
-    bytes_to_json
+    bytes_to_json,
+    verify_consistency_proof,
+    get_arweave_published_roots    
 )
 
 # The fields in a top-level audit log record.
@@ -100,6 +103,9 @@ class Audit(ServiceBase):
     response_class = AuditSearchResponse
     service_name = "audit"
     version = "v1"
+    allow_server_roots = (
+        True  # In case of Arweave failure, ask the server for the roots
+    )
 
     def log(self, input: dict, signature = None, public_key = None, verify: bool = False) -> PangeaResponse:
         endpoint_name = "log"
@@ -172,9 +178,9 @@ class Audit(ServiceBase):
                 f"Error: Query field is mandatory."
             )
 
-        include_membership_proof = verify_proofs
-        include_hash = verify_proofs
-        include_root = verify_proofs
+        include_membership_proof = True
+        include_hash = True
+        include_root = True
 
         data = {
             "query": query, 
@@ -184,18 +190,12 @@ class Audit(ServiceBase):
 	        "include_root": include_root            
             }
 
-        if start:
-            if not parser.isoparse(start):
-                raise Exception(
-                    f"Error: invalid start date."
-                )
+        if start:    
+            parser.isoparse(start)
             data.update({"start": start})
 
-        if end:
-            if not parser.isoparse(end):
-                raise Exception(
-                    f"Error: invalid end date."
-                )
+        if end:       
+            parser.isoparse(end)
             data.update({"end": end})
 
         if last:
@@ -232,40 +232,36 @@ class Audit(ServiceBase):
                 f"Error: `audits` field not present."
             )        
 
+        tree_sizes = set()
+        for a in audits:
+            leaf_index = a.get("leaf_index")
+            if leaf_index is not None:
+                tree_sizes.add(leaf_index)
+                tree_sizes.add(max(1, leaf_index - 1))
+
+        published_roots = get_arweave_published_roots(
+            root["tree_name"], list(tree_sizes)
+        )
+
+        if self.allow_server_roots:
+            for tree_size in published_roots:
+                if published_roots[tree_size] is None:
+                    published_roots[tree_size] = self.root(tree_size).result
+
         if root_hash_coded is not None:
             root_hash = decode_hash(root_hash_coded)
             for a in audits:
-                if "membership_proof" in a:
-                    node_hash = decode_hash(a["hash"])
-                    proof = decode_proof(a["membership_proof"])
-                    if not verify_log_proof(node_hash, root_hash, proof):
-                        raise Exception(
-                            f"Error: Invalid Membership Proof."
-                        )
-                elif verify_proofs:
-                    raise Exception(
-                        f"Error: `membership_proof` field not present in `audits` field."
-                    )
+                leaf_index = a["data"].get("leaf_index")
+                if leaf_index is not None:
+                    a["published_roots"] = {
+                        "current": published_roots[leaf_index],
+                        "previous": published_roots[leaf_index - 1],
+                    }
 
-        root_url = root.get("url", [])
-        if root_url is None or root_url == []:
-            raise Exception(
-                f"Error: `url` field not present in `root` field."
-            )        
-
-        publish_resp = requests.get(root_url)
-
-        if publish_resp is None:
-            raise Exception(
-                f"Error: Empty result from server."
-            )
-        elif publish_resp.text is None:
-            raise Exception(
-                f"Error: Empty result from server."
-                )
-
-        publish_resp_b64 = publish_resp.text
-        publish_resp = bytes_to_json(base64url_decode(publish_resp_b64))
+        publish_resp: dict = (
+            get_arweave_published_roots(root["tree_name"], [root["size"]])[root["size"]]
+            or {}
+        )
 
         publish_root_hash = decode_hash(publish_resp["root_hash"])
         publish_verify = verify_published_root(root_hash, publish_root_hash)
@@ -278,3 +274,36 @@ class Audit(ServiceBase):
         response_wrapper = AuditSearchResponse(response, data)
 
         return response_wrapper
+
+
+    def verify_membership_proof(
+        self, root: JSONObject, audit: JSONObject, required: bool = False
+    ) -> bool:
+        if audit.get("membership_proof", []) == []:
+            return not required
+        node_hash = decode_hash(audit.hash)
+        root_hash = decode_hash(root.root_hash)
+        proof = decode_proof(audit.membership_proof)
+        return verify_log_proof(node_hash, root_hash, proof)
+
+
+    def verify_consistency_proof(
+        self, audit: JSONObject, required: bool = False
+    ) -> bool:
+        if audit.get("published_roots", []) == []:
+            return not required
+
+        return verify_consistency_proof(
+            audit.published_roots.current, audit.prev_published_roots.previous
+        )
+
+
+    def root(self, tree_size: int = 0) -> AuditSearchResponse:
+        endpoint_name = "root"
+
+        data = {}
+
+        if tree_size > 0:
+            data["tree_size"] = tree_size
+
+        return self.request.post(endpoint_name, data=data)

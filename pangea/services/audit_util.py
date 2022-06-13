@@ -4,14 +4,18 @@
 import base64
 import json
 import struct
+import requests
 from binascii import hexlify, unhexlify
 from dataclasses import dataclass
 from hashlib import sha256
 from dateutil import parser
+from typing import Optional
 
 Hash = bytes
 
 JSON_TYPES = [int, float, str, bool]
+
+ARWEAVE_BASE_URL = "https://arweave.net"
 
 @dataclass
 class HotRoot:
@@ -140,3 +144,92 @@ def base64url_decode(input):
 
 def bytes_to_json(input: bytes) -> dict:
     return json.loads(input.decode("utf8"))
+
+
+def arweave_transaction_url(trans_id: str):
+    return f"{ARWEAVE_BASE_URL}/tx/{trans_id}/data/"
+
+
+def arweave_graphql_url():
+    return f"{ARWEAVE_BASE_URL}/graphql"
+
+
+def get_arweave_published_roots(
+    tree_name: str, tree_sizes: list[int]
+) -> dict[int, Optional[dict]]:
+    if len(tree_sizes) == 0:
+        return {}
+
+    query = """
+    {
+        transactions(
+  			tags: [
+                {
+                    name: "tree_size"
+                    values: [{tree_sizes}]
+                },
+                {
+                    name: "tree_name"
+                    values: ["{tree_name}"]
+                }
+    	    ]      
+        ) {
+            edges {
+                node {
+                    id
+                    tags {
+                        name
+                        value
+                    }
+                }
+            }
+        }
+    }
+    """.replace(
+        "{tree_sizes}", ", ".join(f'"{tree_size}"' for tree_size in tree_sizes)
+    ).replace(
+        "{tree_name}", tree_name
+    )
+    resp = requests.post(arweave_graphql_url(), json={"query": query})
+    resp.raise_for_status()
+    ans: dict[int, Optional[dict]] = {tree_size: None for tree_size in tree_sizes}
+    data = resp.json()
+    for edge in data["data"]["transactions"]["edges"]:
+        node_id = edge["node"]["id"]
+        tree_size = int(
+            next(
+                tag["value"]
+                for tag in edge["node"]["tags"]
+                if tag["name"] == "tree_size"
+            )
+        )
+        url = arweave_transaction_url(node_id)
+
+        # TODO: do all the requests concurrently
+        resp2 = requests.get(url)
+        if resp2.status_code == 200:
+            ans[tree_size] = json.loads(base64url_decode(resp2.text))
+    return ans
+
+
+def verify_consistency_proof(new_root: dict, prev_root: dict) -> bool:
+    if new_root is None or prev_root is None:
+        return False
+    prev_root_hash = decode_hash(prev_root["root_hash"])
+    new_root_hash = decode_hash(new_root["root_hash"])
+    consistency_proof = decode_root_proof(new_root["consistency_proof"])
+
+    # check the prev_root
+    root_hash = consistency_proof[0].node_hash
+    for item in consistency_proof[1:]:
+        root_hash = hash_pair(item.node_hash, root_hash)
+
+    if root_hash != prev_root_hash:
+        return False
+
+    for i, item in enumerate(consistency_proof):
+        if not verify_log_proof(item.node_hash, new_root_hash, item.proof):
+            print(f"failed validation proof number {i}")
+            return False
+
+    return True

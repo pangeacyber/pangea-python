@@ -25,7 +25,7 @@ print(f"Log Request ID: {log_response.request_id}, Result: {log_response.result}
 
 print("Search Data...")
 
-search_res = audit.search(query="action:diego", size=5, verify_proofs = True)
+search_res = audit.search(query="message:prueba_damian", size=5, verify_proofs=True)
 
 if search_res.success:
     print("Search Request ID:", search_res.request_id, "\n")
@@ -35,6 +35,18 @@ if search_res.success:
     )
     for row in search_res.result.audits:
         print(f"{row.data.message}\t{row.data.created}\t{row.data.source}\t{row.data.actor}")        
+
+    print("Verify membership proofs\n\t", end="")
+    for row in search_res.result.audits:
+        ok = audit.verify_membership_proof(search_res.result.root, row, True)
+        print("." if ok else "x", end="")
+    print("")
+
+    print("Verify consistency proofs\n\t", end="")
+    for row in search_res.result.audits:
+        ok = audit.verify_consistency_proof(row, True)
+        print("." if ok else "x", end="")
+    print("")
 
     # get the next page
     if search_res.next():
