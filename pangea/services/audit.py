@@ -243,6 +243,11 @@ class Audit(ServiceBase):
             root["tree_name"], list(tree_sizes)
         )
 
+        if published_roots is None or published_roots == []:
+            raise Exception(
+                f"Error: Published Root Not Valid."
+            )  
+
         if self.allow_server_roots:
             for tree_size in published_roots:
                 if published_roots[tree_size] is None:
@@ -250,18 +255,23 @@ class Audit(ServiceBase):
 
         if root_hash_coded is not None:
             root_hash = decode_hash(root_hash_coded)
-            for a in audits:
-                leaf_index = a["data"].get("leaf_index")
+            for a in response_result.audits:
+                leaf_index = a.get("leaf_index")
                 if leaf_index is not None:
                     a["published_roots"] = {
                         "current": published_roots[leaf_index],
-                        "previous": published_roots[leaf_index - 1],
+                        "previous": published_roots[leaf_index - 1] if leaf_index > 0 else None,
                     }
 
         publish_resp: dict = (
             get_arweave_published_roots(root["tree_name"], [root["size"]])[root["size"]]
             or {}
         )
+
+        if publish_resp is None or publish_resp == []:
+            raise Exception(
+                f"Error: Published Root Not Valid."
+            )          
 
         publish_root_hash = decode_hash(publish_resp["root_hash"])
         publish_verify = verify_published_root(root_hash, publish_root_hash)
@@ -279,7 +289,7 @@ class Audit(ServiceBase):
     def verify_membership_proof(
         self, root: JSONObject, audit: JSONObject, required: bool = False
     ) -> bool:
-        if audit.get("membership_proof", []) == []:
+        if (audit.get("membership_proof", []) == []) or (audit.get("membership_proof", None) == None):
             return not required
         node_hash = decode_hash(audit.hash)
         root_hash = decode_hash(root.root_hash)
@@ -290,12 +300,34 @@ class Audit(ServiceBase):
     def verify_consistency_proof(
         self, audit: JSONObject, required: bool = False
     ) -> bool:
-        if audit.get("published_roots", []) == []:
+        if ((audit.get("published_roots", []) == []) 
+            or (audit.get("published_roots", None) == None)
+        ):
             return not required
 
-        return verify_consistency_proof(
-            audit.published_roots.current, audit.prev_published_roots.previous
-        )
+        if ((audit.published_roots.get("current", []) == []) 
+            or (audit.published_roots.get("current", None) == None)
+        ):
+            return not required
+
+        if ((audit.published_roots.current.get("data", []) == []) 
+            or (audit.published_roots.current.get("data", None) == None)
+        ):
+            return not required
+
+        if ((audit.published_roots.get("previous", []) == []) 
+            or (audit.published_roots.get("previous", None) == None)
+        ):
+            return True
+        else:
+            if ((audit.published_roots.previous.get("data", []) == []) 
+                or (audit.published_roots.previous.get("data", None) == None)
+            ):
+                return False
+
+            return verify_consistency_proof(
+                audit.published_roots.current.data, audit.published_roots.previous.data
+            )
 
 
     def root(self, tree_size: int = 0) -> AuditSearchResponse:

@@ -190,6 +190,7 @@ def get_arweave_published_roots(
     ).replace(
         "{tree_name}", tree_name
     )
+
     resp = requests.post(arweave_graphql_url(), json={"query": query})
     resp.raise_for_status()
     ans: dict[int, Optional[dict]] = {tree_size: None for tree_size in tree_sizes}
@@ -207,9 +208,11 @@ def get_arweave_published_roots(
 
         # TODO: do all the requests concurrently
         resp2 = requests.get(url)
-        if resp2.status_code == 200:
+        if resp2.status_code == 200 and resp2.text.strip() != "": 
             ans[tree_size] = json.loads(base64url_decode(resp2.text))
-    return ans
+            return ans
+        else:
+            return {}
 
 
 def verify_consistency_proof(new_root: dict, prev_root: dict) -> bool:
