@@ -10,17 +10,17 @@ class ServiceBase(object):
     version = "v1"
     service_config = None
 
-    def __init__(self, token=None, config=None):
+    def __init__(self, token, config=None):
         if not token:
             raise Exception("No token provided")
 
-        self.config = config if config else PangeaConfig
+        self.config = config if config else PangeaConfig()
 
         self.request = PangeaRequest(
-            token=token,
-            version=self.version,
-            service=self.service_name,
-            config=self.config,
+            self.config,
+            token,
+            self.version,
+            self.service_name,
         )
 
     @property

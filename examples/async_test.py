@@ -5,7 +5,7 @@ from pangea.services import Tester
 
 token = os.getenv("PANGEA_TOKEN")
 config = PangeaConfig(base_domain="dev.pangea.cloud")
-tester = Tester(token=token, config=config)
+tester = Tester(token, config=config)
 
 data = {"echo": "hello world", "delay": 5}
 response = tester.async_call(data)

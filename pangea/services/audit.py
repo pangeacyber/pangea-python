@@ -1,5 +1,6 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+import typing as t
 
 import json
 from pangea.response import PangeaResponse
@@ -32,7 +33,7 @@ class AuditSearchResponse(object):
     def __getattr__(self, attr):
         return getattr(self.response, attr)
 
-    def next(self):
+    def next(self) -> t.Optional[t.Dict[str, t.Any]]:
         if self.count < self.total:
             params = {
                 "query": self.data["query"],
@@ -51,7 +52,7 @@ class AuditSearchResponse(object):
             return None
 
     @property
-    def total(self) -> str:
+    def total(self) -> int:
         if self.success:
             last = self.result["last"]
             total = last.split("|")[1]  # TODO: update once `last` returns an object
@@ -60,7 +61,7 @@ class AuditSearchResponse(object):
             return 0
 
     @property
-    def count(self) -> str:
+    def count(self) -> int:
         if self.success:
             last = self.result["last"]
             count = last.split("|")[0]  # TODO: update once `last` returns an object

@@ -7,7 +7,7 @@ Configuration for development using a local audit service
 """
 config = PangeaConfig(base_domain="localhost:8000", insecure=True, environment="local")
 token = os.getenv("PANGEA_TOKEN")
-audit = Audit(token=token, config=config)
+audit = Audit(token, config=config)
 
 data = {
     "action": "reboot",
