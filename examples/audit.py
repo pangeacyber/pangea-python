@@ -23,7 +23,7 @@ def main():
     print(f"Log Request ID: {log_response.request_id}, Result: {log_response.result}")
 
     print("Search Data...")
-    search_res = audit.search(query="message:prueba_cron", size=5, verify_proofs=True)
+    search_res = audit.search(query="message:Hello", size=5, verify_proofs=True)
 
     if search_res.success:
         print("Search Request ID:", search_res.request_id, "\n")

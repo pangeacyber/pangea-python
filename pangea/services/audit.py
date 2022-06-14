@@ -52,11 +52,11 @@ class AuditSearchResponse(object):
 
     def next(self):
         reg_count = 0
-        if self.count and self.count != "":
+        if self.count:
             reg_count = int(self.count)
 
         reg_total = 0
-        if self.total and self.total != "":
+        if self.total:
             reg_total = int(self.total)
 
         if reg_count < reg_total:
@@ -214,20 +214,20 @@ class Audit(ServiceBase):
 
         response_result = response.result
 
-        root = response_result.get("root", [])
-        if include_root == True and (root is None or root == []):
+        root = response_result.get("root")
+        if include_root and not root:
             raise Exception(
                 f"Error: `root` field not present."
             )    
 
-        root_hash_coded = root.get("root_hash", [])
-        if include_membership_proof == True and (root_hash_coded is None or root_hash_coded == []):
+        root_hash_coded = root.get("root_hash")
+        if include_membership_proof and not root_hash_coded:
             raise Exception(
                 f"Error: `root_hash` field not present."
             )    
 
-        audits = response_result.get("audits", [])
-        if audits is None or audits == []:
+        audits = response_result.get("audits")
+        if not audits:
             raise Exception(
                 f"Error: `audits` field not present."
             )        
@@ -239,47 +239,48 @@ class Audit(ServiceBase):
                 tree_sizes.add(leaf_index)
                 tree_sizes.add(max(1, leaf_index - 1))
 
-        published_roots = get_arweave_published_roots(
-            root["tree_name"], list(tree_sizes)
-        )
-
-        if published_roots is None or published_roots == []:
-            raise Exception(
-                f"Error: Published Root Not Valid."
-            )  
-
-        if self.allow_server_roots:
-            for tree_size in published_roots:
-                if published_roots[tree_size] is None:
-                    published_roots[tree_size] = self.root(tree_size).result
-
-        if root_hash_coded is not None:
-            root_hash = decode_hash(root_hash_coded)
-            for a in response_result.audits:
-                leaf_index = a.get("leaf_index")
-                if leaf_index is not None:
-                    a["published_roots"] = {
-                        "current": published_roots[leaf_index],
-                        "previous": published_roots[leaf_index - 1] if leaf_index > 0 else None,
-                    }
-
-        publish_resp: dict = (
-             get_arweave_published_roots(root["tree_name"], [root["size"]])[root["size"]]
-             or {}
-         )
-
-        if publish_resp is None or publish_resp == []:
-            raise Exception(
-                f"Error: Published Root Not Valid."
-            )          
-
-        publish_root_hash = decode_hash(publish_resp["root_hash"])
-        publish_verify = verify_published_root(root_hash, publish_root_hash)
-
-        if not publish_verify:
-            raise Exception(
-                f"Error: Published Root Not Valid."
+        try:
+            published_roots = get_arweave_published_roots(
+                root["tree_name"], list(tree_sizes)
             )
+        except Exception as e:
+            published_roots = {tree_size: None for tree_size in tree_sizes}
+
+        if published_roots:
+            if published_roots.get("tree_size"):
+                if self.allow_server_roots:
+                    for tree_size in published_roots:
+                        if published_roots[tree_size] is None:
+                            published_roots[tree_size] = self.root(tree_size).result
+
+                if root_hash_coded is not None:
+                    root_hash = decode_hash(root_hash_coded)
+                    for a in response_result.audits:
+                        leaf_index = a.get("leaf_index")
+                        if leaf_index is not None:
+                            a["published_roots"] = {
+                                "current": published_roots[leaf_index],
+                                "previous": published_roots[leaf_index - 1] if leaf_index > 0 else None,
+                            }
+
+        if not root.get("tree_name") or not root.get("size"):
+            publish_resp_full = get_arweave_published_roots(root["tree_name"], [root["size"]])
+            if publish_resp_full is not None:
+                publish_resp = publish_resp_full[root["size"]]
+            else:
+                publish_resp = None
+        else:
+            publish_resp = None
+                
+        if publish_resp is not None:
+            publish_root_hash = decode_hash(publish_resp.get("root_hash", ""))
+            publish_verify = verify_published_root(root_hash, publish_root_hash)
+
+            if not publish_verify:
+                raise Exception(f"Error: Published Root Not Valid.")
+        else:
+            if not self.allow_server_roots:
+                raise Exception(f"Error: Published Root Not Valid.")
 
         response_wrapper = AuditSearchResponse(response, data)
 
@@ -289,7 +290,7 @@ class Audit(ServiceBase):
     def verify_membership_proof(
         self, root: JSONObject, audit: JSONObject, required: bool = False
     ) -> bool:
-        if (audit.get("membership_proof", []) == []) or (audit.get("membership_proof", None) == None):
+        if not audit.get("membership_proof"):
             return not required
         node_hash = decode_hash(audit.hash)
         root_hash = decode_hash(root.root_hash)
@@ -304,20 +305,17 @@ class Audit(ServiceBase):
             return not required
 
         if not audit.published_roots.get("current"):
-            return not required
-
-        if not audit.published_roots.current.get("data"):
-            return not required
+            return False
 
         if not audit.published_roots.get("previous"):
-            return True
-        else:
-            if not audit.published_roots.previous.get("data"):
+            if audit.get("leaf_index", 0) <= 1:
+                return True
+            else:
                 return False
 
-            return verify_consistency_proof(
-                audit.published_roots.current.data, audit.published_roots.previous.data
-            )
+        return verify_consistency_proof(
+            audit.published_roots.current.data, audit.published_roots.previous.data
+        )
 
 
     def root(self, tree_size: int = 0) -> AuditSearchResponse:

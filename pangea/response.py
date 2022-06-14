@@ -18,10 +18,7 @@ class JSONObject(dict):
             return value
 
     def __getattr__(self, item):
-        ret = self.get(item, [])   #TODO Check if this is ok
-        if ret is None or ret == []:
-            ret = None
-        return ret
+        return self.get(item)
 
 
 class PangeaResponse(object):

@@ -195,24 +195,25 @@ def get_arweave_published_roots(
     resp.raise_for_status()
     ans: dict[int, Optional[dict]] = {tree_size: None for tree_size in tree_sizes}
     data = resp.json()
-    for edge in data["data"]["transactions"]["edges"]:
-        node_id = edge["node"]["id"]
-        tree_size = int(
-            next(
-                tag["value"]
-                for tag in edge["node"]["tags"]
-                if tag["name"] == "tree_size"
-            )
-        )
-        url = arweave_transaction_url(node_id)
 
-        # TODO: do all the requests concurrently
-        resp2 = requests.get(url)
-        if resp2.status_code == 200 and resp2.text.strip() != "": 
-            ans[tree_size] = json.loads(base64url_decode(resp2.text))
-            return ans
-        else:
-            return {}
+    if data["data"]["transactions"].get("edges"):
+        for edge in data["data"]["transactions"]["edges"]:
+            node_id = edge["node"]["id"]
+            tree_size = int(
+                next(
+                    tag["value"]
+                    for tag in edge["node"]["tags"]
+                    if tag["name"] == "tree_size"
+                )
+            )
+            url = arweave_transaction_url(node_id)
+
+            # TODO: do all the requests concurrently
+            resp2 = requests.get(url)
+            if resp2.status_code == 200 and resp2.text.strip() != "": 
+                ans[tree_size] = json.loads(base64url_decode(resp2.text))
+                return ans
+    return {}
 
 
 def verify_consistency_proof(new_root: dict, prev_root: dict) -> bool:
