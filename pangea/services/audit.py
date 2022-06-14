@@ -264,8 +264,7 @@ class Audit(ServiceBase):
                     }
 
         publish_resp: dict = (
-            get_arweave_published_roots(root["tree_name"], [root["size"]])[root["size"]]
-            or {}
+            get_arweave_published_roots(root["tree_name"], [root["size"]])[root["size"]]#            or {}
         )
 
         if publish_resp is None or publish_resp == []:
@@ -300,29 +299,19 @@ class Audit(ServiceBase):
     def verify_consistency_proof(
         self, audit: JSONObject, required: bool = False
     ) -> bool:
-        if ((audit.get("published_roots", []) == []) 
-            or (audit.get("published_roots", None) == None)
-        ):
+        if not audit.get("published_roots"):
             return not required
 
-        if ((audit.published_roots.get("current", []) == []) 
-            or (audit.published_roots.get("current", None) == None)
-        ):
+        if not audit.published_roots.get("current"):
             return not required
 
-        if ((audit.published_roots.current.get("data", []) == []) 
-            or (audit.published_roots.current.get("data", None) == None)
-        ):
+        if not audit.published_roots.current.get("data"):
             return not required
 
-        if ((audit.published_roots.get("previous", []) == []) 
-            or (audit.published_roots.get("previous", None) == None)
-        ):
+        if not audit.published_roots.get("previous"):
             return True
         else:
-            if ((audit.published_roots.previous.get("data", []) == []) 
-                or (audit.published_roots.previous.get("data", None) == None)
-            ):
+            if not audit.published_roots.previous.get("data"):
                 return False
 
             return verify_consistency_proof(
