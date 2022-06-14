@@ -264,8 +264,9 @@ class Audit(ServiceBase):
                     }
 
         publish_resp: dict = (
-            get_arweave_published_roots(root["tree_name"], [root["size"]])[root["size"]]#            or {}
-        )
+             get_arweave_published_roots(root["tree_name"], [root["size"]])[root["size"]]
+             or {}
+         )
 
         if publish_resp is None or publish_resp == []:
             raise Exception(
