@@ -17,6 +17,7 @@ JSON_TYPES = [int, float, str, bool]
 
 ARWEAVE_BASE_URL = "https://arweave.net"
 
+
 @dataclass
 class HotRoot:
     tree_size: int
@@ -75,7 +76,12 @@ def decode_proof(data: str) -> Proof:
     proof: Proof = []
     for item in data.split(","):
         parts = item.split(":")
-        proof.append(ProofItem(side="left" if parts[0] == "l" else "right", node_hash=decode_hash(parts[1])))
+        proof.append(
+            ProofItem(
+                side="left" if parts[0] == "l" else "right",
+                node_hash=decode_hash(parts[1]),
+            )
+        )
     return proof
 
 
@@ -84,7 +90,10 @@ def decode_root_proof(data: list[str]) -> RootProof:
     for item in data:
         ndx = item.index(",")
         root_proof.append(
-            RootProofItem(node_hash=decode_hash(item[:ndx].split(":")[1]), proof=decode_proof(item[ndx + 1 :]))
+            RootProofItem(
+                node_hash=decode_hash(item[:ndx].split(":")[1]),
+                proof=decode_proof(item[ndx + 1 :]),
+            )
         )
     return root_proof
 
@@ -98,7 +107,11 @@ def decode_server_response(data: str) -> dict:
 def verify_log_proof(node_hash: Hash, root_hash: Hash, proof: Proof) -> bool:
     for proof_item in proof:
         proof_hash = proof_item.node_hash
-        node_hash = hash_pair(proof_hash, node_hash) if proof_item.side == "left" else hash_pair(node_hash, proof_hash)
+        node_hash = (
+            hash_pair(proof_hash, node_hash)
+            if proof_item.side == "left"
+            else hash_pair(node_hash, proof_hash)
+        )
     return root_hash == node_hash
 
 
@@ -107,15 +120,12 @@ def verify_published_root(root_hash: Hash, publish_hash: Hash) -> bool:
 
 
 def canonicalize_log(audit: dict) -> bytes:
-    def _default(obj):
-        if not any(isinstance(obj, typ) for typ in JSON_TYPES):
-            return str(obj)
-        else:
-            return obj
-
-    # stringify invalid JSON types before canonicalizing
     return json.dumps(
-        audit, ensure_ascii=False, allow_nan=False, separators=(",", ":"), sort_keys=True, default=_default
+        audit,
+        ensure_ascii=False,
+        allow_nan=False,
+        separators=(",", ":"),
+        sort_keys=True,
     ).encode("utf-8")
 
 
@@ -124,7 +134,7 @@ def hash_data(data: bytes) -> str:
 
 
 def to_msg(b):
-    return "OK" if b else "FAILED"   
+    return "OK" if b else "FAILED"
 
 
 def base64url_decode(input):
@@ -156,7 +166,7 @@ def arweave_graphql_url():
 
 def get_arweave_published_roots(
     tree_name: str, tree_sizes: list[int]
-) -> dict[int, Optional[dict]]:
+) -> dict[int, dict]:
     if len(tree_sizes) == 0:
         return {}
 
@@ -192,28 +202,29 @@ def get_arweave_published_roots(
     )
 
     resp = requests.post(arweave_graphql_url(), json={"query": query})
-    resp.raise_for_status()
-    ans: dict[int, Optional[dict]] = {tree_size: None for tree_size in tree_sizes}
-    data = resp.json()
+    if resp.status_code != 200:
+        return {}
 
-    if data["data"]["transactions"].get("edges"):
-        for edge in data["data"]["transactions"]["edges"]:
-            node_id = edge["node"]["id"]
-            tree_size = int(
-                next(
-                    tag["value"]
-                    for tag in edge["node"]["tags"]
-                    if tag["name"] == "tree_size"
-                )
+    ans: dict[int, dict] = {}
+    data = resp.json()
+    for edge in data.get("data", {}).get("transactions", {}).get("edges", []):
+        try:
+            node_id = edge.get("node").get("id")
+            tree_size = next(
+                tag.get("value")
+                for tag in edge.get("node").get("tags", [])
+                if tag.get("name") == "tree_size"
             )
+
             url = arweave_transaction_url(node_id)
 
             # TODO: do all the requests concurrently
             resp2 = requests.get(url)
-            if resp2.status_code == 200 and resp2.text.strip() != "": 
+            if resp2.status_code == 200 and resp2.text != 'Pending':
                 ans[tree_size] = json.loads(base64url_decode(resp2.text))
-                return ans
-    return {}
+        except:
+            pass
+    return ans
 
 
 def verify_consistency_proof(new_root: dict, prev_root: dict) -> bool:

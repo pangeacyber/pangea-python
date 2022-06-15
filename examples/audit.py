@@ -23,7 +23,7 @@ def main():
     print(f"Log Request ID: {log_response.request_id}, Result: {log_response.result}")
 
     print("Search Data...")
-    search_res = audit.search(query="message:Hello", size=5, verify_proofs=True)
+    search_res = audit.search(query="message:prueba_123", size=5, verify_proofs=True)
 
     if search_res.success:
         print("Search Request ID:", search_res.request_id, "\n")
@@ -47,13 +47,13 @@ def print_page_results(search_res):
 
         print("\nVerify membership proofs\n\t", end="")
         for row in search_res.result.audits:
-            ok = audit.verify_membership_proof(search_res.result.root, row, True)
+            ok = audit.verify_membership_proof(search_res.result.root, row, False)
             print("." if ok else "x", end="\t")
         print("")
 
         print("Verify consistency proofs\n\t", end="")
         for row in search_res.result.audits:
-            ok = audit.verify_consistency_proof(row, True)
+            ok = audit.verify_consistency_proof(search_res.result.published_roots, row, False)
             print("." if ok else "x", end="\t")
 
 

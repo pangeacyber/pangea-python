@@ -52,11 +52,11 @@ class AuditSearchResponse(object):
 
     def next(self):
         reg_count = 0
-        if self.count:
+        if self.count and self.count != "":
             reg_count = int(self.count)
 
         reg_total = 0
-        if self.total:
+        if self.total and self.total != "":
             reg_total = int(self.total)
 
         if reg_count < reg_total:
@@ -101,11 +101,10 @@ class AuditSearchResponse(object):
 
 class Audit(ServiceBase):
     response_class = AuditSearchResponse
-    service_name = "audit"
+    service_name = "audit" #-audit-tamper-proof-merge-main"
     version = "v1"
-    allow_server_roots = (
-        True  # In case of Arweave failure, ask the server for the roots
-    )
+    # In case of Arweave failure, ask the server for the roots
+    allow_server_roots = True
 
     def log(self, input: dict, signature = None, public_key = None, verify: bool = False) -> PangeaResponse:
         endpoint_name = "log"
@@ -174,21 +173,15 @@ class Audit(ServiceBase):
             raise Exception("The 'size' argument must be a positive integer > 0")
 
         if not query or not query.strip():
-            raise Exception(
-                f"Error: Query field is mandatory."
-            )
-
-        include_membership_proof = True
-        include_hash = True
-        include_root = True
+            raise Exception(f"Error: Query field is mandatory.")
 
         data = {
-            "query": query, 
+            "query": query,
             "max_results": size,
-	        "include_membership_proof": include_membership_proof,
-            "include_hash": include_hash,
-	        "include_root": include_root            
-            }
+            "include_membership_proof": True,
+            "include_hash": True,
+            "include_root": True,
+        }
 
         if start:    
             parser.isoparse(start)
@@ -212,111 +205,97 @@ class Audit(ServiceBase):
                 f"Error: Empty result from server."
             )
 
-        response_result = response.result
+        root = response.result.root
 
-        root = response_result.get("root")
-        if include_root and not root:
-            raise Exception(
-                f"Error: `root` field not present."
-            )    
+        # if there is no root, we don't have any record migrated to cold. We cannot verify any proof
+        if not root:
+            response.result.root = {}
+            response.result.published_roots = {}
+            return AuditSearchResponse(response, data)
 
-        root_hash_coded = root.get("root_hash")
-        if include_membership_proof and not root_hash_coded:
-            raise Exception(
-                f"Error: `root_hash` field not present."
-            )    
-
-        audits = response_result.get("audits")
-        if not audits:
-            raise Exception(
-                f"Error: `audits` field not present."
-            )        
-
+        # get the size of all the roots needed for the consistency_proofs
         tree_sizes = set()
-        for a in audits:
+        for a in response.result.audits:
             leaf_index = a.get("leaf_index")
             if leaf_index is not None:
                 tree_sizes.add(leaf_index)
-                tree_sizes.add(max(1, leaf_index - 1))
+                if leaf_index > 1:
+                    tree_sizes.add(leaf_index - 1)
+        tree_sizes.add(root.size)
 
-        try:
-            published_roots = get_arweave_published_roots(
-                root["tree_name"], list(tree_sizes)
-            )
-        except Exception as e:
-            published_roots = {tree_size: None for tree_size in tree_sizes}
+        # get all the roots from arweave
+        response.result.published_roots = {
+            tree_size: JSONObject(obj.get("data", {}))
+            for tree_size, obj in get_arweave_published_roots(
+                root.tree_name, list(tree_sizes) + [root.size]
+            ).items()
+        }
+        for tree_size, root in response.result.published_roots.items():
+            root["source"] = "arweave"
 
-        if published_roots:
-            if published_roots.get("tree_size"):
-                if self.allow_server_roots:
-                    for tree_size in published_roots:
-                        if published_roots[tree_size] is None:
-                            published_roots[tree_size] = self.root(tree_size).result
+        # fill the missing roots from the server
+        for tree_size in tree_sizes:
+            if tree_size not in response.result.published_roots:
+                try:
+                    response.result.published_roots[tree_size] = self.root(
+                        tree_size
+                    ).result.data
+                    response.result.published_roots[tree_size]["source"] = "pangea"
+                except:
+                    pass
 
-                if root_hash_coded is not None:
-                    root_hash = decode_hash(root_hash_coded)
-                    for a in response_result.audits:
-                        leaf_index = a.get("leaf_index")
-                        if leaf_index is not None:
-                            a["published_roots"] = {
-                                "current": published_roots[leaf_index],
-                                "previous": published_roots[leaf_index - 1] if leaf_index > 0 else None,
-                            }
+        # if we've got the current root from arweave, replace the one from the server
+        pub_root = response.result.published_roots.get(root.size)
+        if pub_root:
+            response.result.root = pub_root
 
-        if not root.get("tree_name") or not root.get("size"):
-            publish_resp_full = get_arweave_published_roots(root["tree_name"], [root["size"]])
-            if publish_resp_full is not None:
-                publish_resp = publish_resp_full[root["size"]]
-            else:
-                publish_resp = None
-        else:
-            publish_resp = None
-                
-        if publish_resp is not None:
-            publish_root_hash = decode_hash(publish_resp.get("root_hash", ""))
-            publish_verify = verify_published_root(root_hash, publish_root_hash)
-
-            if not publish_verify:
-                raise Exception(f"Error: Published Root Not Valid.")
-        else:
-            if not self.allow_server_roots:
-                raise Exception(f"Error: Published Root Not Valid.")
+        # calculate the hashes from the data
+        for a in response.result.audits:
+            canon = canonicalize_log(a.data)
+            a["calculated_hash"] = hash_data(canon)
 
         response_wrapper = AuditSearchResponse(response, data)
-
         return response_wrapper
-
 
     def verify_membership_proof(
         self, root: JSONObject, audit: JSONObject, required: bool = False
     ) -> bool:
         if not audit.get("membership_proof"):
             return not required
-        node_hash = decode_hash(audit.hash)
+
+        if not self.allow_server_roots and root.source != "arweave":
+            return False
+
+        node_hash = decode_hash(audit.calculated_hash)
         root_hash = decode_hash(root.root_hash)
         proof = decode_proof(audit.membership_proof)
         return verify_log_proof(node_hash, root_hash, proof)
 
-
     def verify_consistency_proof(
-        self, audit: JSONObject, required: bool = False
+        self,
+        published_roots: dict[int, JSONObject],
+        audit: JSONObject,
+        required: bool = False,
     ) -> bool:
-        if not audit.get("published_roots"):
+        leaf_index = audit.get("leaf_index")
+        if not leaf_index:
             return not required
 
-        if not audit.published_roots.get("current"):
+        if leaf_index == 1:
+            return not required
+
+        curr_root = published_roots.get(leaf_index)
+        prev_root = published_roots.get(leaf_index - 1)
+
+        if not curr_root or not prev_root:
             return False
 
-        if not audit.published_roots.get("previous"):
-            if audit.get("leaf_index", 0) <= 1:
-                return True
-            else:
-                return False
+        if not self.allow_server_roots and (
+            curr_root.source != "arweave" or prev_root.source != "arweave"
+        ):
+            return False
 
-        return verify_consistency_proof(
-            audit.published_roots.current.data, audit.published_roots.previous.data
-        )
-
+        return verify_consistency_proof(curr_root, prev_root)
 
     def root(self, tree_size: int = 0) -> AuditSearchResponse:
         endpoint_name = "root"
