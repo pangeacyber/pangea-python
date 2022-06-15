@@ -101,7 +101,7 @@ class AuditSearchResponse(object):
 
 class Audit(ServiceBase):
     response_class = AuditSearchResponse
-    service_name = "audit" #-audit-tamper-proof-merge-main"
+    service_name = "audit"
     version = "v1"
     # In case of Arweave failure, ask the server for the roots
     allow_server_roots = True
