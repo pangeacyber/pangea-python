@@ -2,8 +2,9 @@ import os
 from pangea.config import PangeaConfig
 from pangea.services import Audit
 
-token = "pts_3xQABgzxqmi5YYRY3UNT6LAjCMd2"  # os.getenv("PANGEA_TOKEN")
-config = PangeaConfig(base_domain="dev.pangea.cloud")
+token = os.getenv("PANGEA_TOKEN")
+config_id = os.getenv("AUDIT_CONFIG_ID")
+config = PangeaConfig(base_domain="dev.pangea.cloud", config_id=config_id)
 audit = Audit(token, config=config)
 
 print("Log Data...")
@@ -19,7 +20,10 @@ data = {
 
 log_response = audit.log(data=data)
 
-print(f"Log Request ID: {log_response.request_id}, Success: {log_response.result}")
+if log_response.success:
+    print(f"Log Request ID: {log_response.request_id}, Success: {log_response.status}")
+else:
+    print(f"Log Request Error: {log_response.response.text}")
 
 print("Search Data...")
 
@@ -31,17 +35,14 @@ if search_res.success:
     print("Search Request ID:", search_res.request_id, "\n")
 
     print(
-        f"Results: {search_res.count} of {search_res.total} - next {search_res.next()}",
+        f"Results: {search_res.count} of {search_res.total}",
     )
     for row in search_res.result["audits"]:
+        event = row["event"]
+
         print(
-            row["created"]
-            # f"{row["created"]}\t{row["source"]}\t{row["actor"]}\t{row["action"]}\t{row["target"]}\t{row["status"]}"
+            f'{event["created"]}\t{event["source"]}\t{event["actor"]}\t{event["action"]}\t{event["target"]}\t{event["status"]}'
         )
 
-    next_page = search_res.next()
-    if next_page:
-        search_res = audit.search(**next_page)
-        print("Search Next", search_res.result)
 else:
     print("Search Failed:", search_res.code, search_res.status, search_res.result)
