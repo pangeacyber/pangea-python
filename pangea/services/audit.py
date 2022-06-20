@@ -94,7 +94,7 @@ class Audit(ServiceBase):
         if "message" not in record:
             raise Exception(f"Error: missing required field, no `message` provided")
 
-        response = self.request.post(endpoint_name, data=record)
+        response = self.request.post(endpoint_name, data={"event": record})
 
         return response
 

@@ -22,13 +22,13 @@ class PangeaRequest(object):
         self,
         config: PangeaConfig,
         token: str,
-        service: str,
         version: str,
+        service: str,
     ):
         self.config = config
         self.token = token
-        self.service = service
         self.version = version
+        self.service = service
 
         # TODO: allow overriding these
         self.retries = config.request_retries
@@ -123,5 +123,8 @@ class PangeaRequest(object):
             "User-Agent": f"Pangea Python v{pangea.__version__}",
             "Authorization": f"Bearer {self.token}",
         }
+
+        if self.config.config_id:
+            headers.update({"X-Pangea-Audit-Config-ID": self.config.config_id})
 
         return headers

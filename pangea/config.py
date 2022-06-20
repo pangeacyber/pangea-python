@@ -5,6 +5,7 @@
 class PangeaConfig(object):
     base_domain = "pangea.cloud"
     environment = "production"
+    config_id = ""
 
     """
     Set to true to use plian http
