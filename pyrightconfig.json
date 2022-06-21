@@ -1,0 +1,20 @@
+{
+  "useLibraryCodeForTypes": true,
+  "strictParameterNoneValue": false,
+  "reportIncompatibleMethodOverride": true,
+  "exclude": [
+    "typings/**",
+    "services/**",
+    "platform/**",
+    "common/database/**",
+    "common/python/pangea/cloud/base.py",
+    "common/python/pangea/cloud/aws.py",
+    "common/python/pangea/cloud/gcp.py",
+    "common/python/pangea/cloud/azure.py",
+    "common/python/tests/integtest/test_cloud.py",
+    "common/python/pangea/serverless.py",
+    "pangea/response.py",
+    "pangea/request.py",
+    "pangea/services/base.py"
+  ]
+}

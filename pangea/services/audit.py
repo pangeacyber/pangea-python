@@ -1,42 +1,34 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 
+from base64 import b64decode, b64encode
 from datetime import date
-import requests
 
-from base64 import b64encode, b64decode
+import requests
 from dateutil import parser
 
-from pangea.response import PangeaResponse
-from pangea.response import JSONObject
-from .base import ServiceBase
+from pangea.response import JSONObject, PangeaResponse
+
 from .audit_util import (
+    base64url_decode,
+    bytes_to_json,
     canonicalize_log,
     decode_hash,
     decode_proof,
     decode_root,
-    hash_data,
-    verify_log_proof,
-    to_msg,
-    verify_published_root,
-    base64url_decode,
     decode_server_response,
-    bytes_to_json,
+    get_arweave_published_roots,
+    hash_data,
+    to_msg,
     verify_consistency_proof,
-    get_arweave_published_roots    
+    verify_log_proof,
+    verify_published_root,
 )
+from .base import ServiceBase
 
 # The fields in a top-level audit log record.
-SupportedFields = [
-    "actor",
-    "action",
-    "created",
-    "message",
-    "new",
-    "old",
-    "status",
-    "target"
-]
+SupportedFields = ["actor", "action", "created", "message", "new", "old", "status", "target"]
+
 
 class AuditSearchResponse(object):
     """
@@ -106,26 +98,21 @@ class Audit(ServiceBase):
     # In case of Arweave failure, ask the server for the roots
     allow_server_roots = True
 
-    def log(self, input: dict, signature = None, public_key = None, verify: bool = False) -> PangeaResponse:
+    def log(self, input: dict, signature=None, public_key=None, verify: bool = False) -> PangeaResponse:
         endpoint_name = "log"
 
         """
         Filter input on valid search params, at least one valid param is required
         """
 
-        data = {
-	        "data": {},
-	        "return_hash": "true"
-        }
+        data = {"data": {}, "return_hash": "true"}
 
         for name in SupportedFields:
             if name in input:
                 data["data"][name] = input[name]
 
         if len(data) < 1:
-            raise Exception(
-                f"Error: no valid parameters, require on or more of: {', '.join(SupportedFields)}"
-            )
+            raise Exception(f"Error: no valid parameters, require on or more of: {', '.join(SupportedFields)}")
 
         if "action" not in data["data"]:
             raise Exception(f"Error: missing required field, no `action` provided")
@@ -141,28 +128,27 @@ class Audit(ServiceBase):
 
         if "new" not in data["data"]:
             raise Exception(f"Error: missing required field, no `new` provided")
-            
+
         if "old" not in data["data"]:
             raise Exception(f"Error: missing required field, no `old` provided")
-            
+
         if "target" not in data["data"]:
             raise Exception(f"Error: missing required field, no `target` provided")
-                        
+
         resp = self.request.post(endpoint_name, data=data)
 
         return resp
 
-
     def search(
         self,
-        query: str = "",
+        query,
         size: int = 20,
         start: str = "",
         end: str = "",
         last: str = "",
-        signature = None,
-        public_key =  None,
-        verify_proofs: bool = False,
+        signature=None,
+        public_key=None,
+        verify: bool = False,
     ) -> AuditSearchResponse:
         endpoint_name = "search"
 
@@ -172,7 +158,7 @@ class Audit(ServiceBase):
         if not (isinstance(size, int) and size > 0):
             raise Exception("The 'size' argument must be a positive integer > 0")
 
-        if not query or not query.strip():
+        if not query:
             raise Exception(f"Error: Query field is mandatory.")
 
         data = {
@@ -183,11 +169,11 @@ class Audit(ServiceBase):
             "include_root": True,
         }
 
-        if start:    
+        if start:
             parser.isoparse(start)
             data.update({"start": start})
 
-        if end:       
+        if end:
             parser.isoparse(end)
             data.update({"end": end})
 
@@ -197,13 +183,9 @@ class Audit(ServiceBase):
         response = self.request.post(endpoint_name, data=data)
 
         if response is None:
-            raise Exception(
-                f"Error: Empty result from server."
-            )
+            raise Exception(f"Error: Empty result from server.")
         elif response.result is None:
-            raise Exception(
-                f"Error: Empty result from server."
-            )
+            raise Exception(f"Error: Empty result from server.")
 
         root = response.result.root
 
@@ -215,8 +197,8 @@ class Audit(ServiceBase):
 
         # get the size of all the roots needed for the consistency_proofs
         tree_sizes = set()
-        for a in response.result.audits:
-            leaf_index = a.get("leaf_index")
+        for audit in response.result.audits:
+            leaf_index = audit.get("leaf_index")
             if leaf_index is not None:
                 tree_sizes.add(leaf_index)
                 if leaf_index > 1:
@@ -226,9 +208,7 @@ class Audit(ServiceBase):
         # get all the roots from arweave
         response.result.published_roots = {
             tree_size: JSONObject(obj.get("data", {}))
-            for tree_size, obj in get_arweave_published_roots(
-                root.tree_name, list(tree_sizes) + [root.size]
-            ).items()
+            for tree_size, obj in get_arweave_published_roots(root.tree_name, list(tree_sizes) + [root.size]).items()
         }
         for tree_size, root in response.result.published_roots.items():
             root["source"] = "arweave"
@@ -237,9 +217,7 @@ class Audit(ServiceBase):
         for tree_size in tree_sizes:
             if tree_size not in response.result.published_roots:
                 try:
-                    response.result.published_roots[tree_size] = self.root(
-                        tree_size
-                    ).result.data
+                    response.result.published_roots[tree_size] = self.root(tree_size).result.data
                     response.result.published_roots[tree_size]["source"] = "pangea"
                 except:
                     pass
@@ -250,16 +228,24 @@ class Audit(ServiceBase):
             response.result.root = pub_root
 
         # calculate the hashes from the data
-        for a in response.result.audits:
-            canon = canonicalize_log(a.data)
-            a["calculated_hash"] = hash_data(canon)
+        for audit in response.result.audits:
+            canon = canonicalize_log(audit.data)
+            audit["calculated_hash"] = hash_data(canon)
+
+        if verify == True:
+            for audit in response.result.audits:
+                # verify membership proofs
+                if not self.verify_membership_proof(response.result.root, audit, verify):
+                    raise Exception(f"Error: Membership proof failed.")
+
+                # verify consistency proofs
+                if not self.verify_consistency_proof(response.result.root, audit, verify):
+                    raise Exception(f"Error: Consistency proof failed.")
 
         response_wrapper = AuditSearchResponse(response, data)
         return response_wrapper
 
-    def verify_membership_proof(
-        self, root: JSONObject, audit: JSONObject, required: bool = False
-    ) -> bool:
+    def verify_membership_proof(self, root: JSONObject, audit: JSONObject, required: bool = False) -> bool:
         if not audit.get("membership_proof"):
             return not required
 
@@ -290,9 +276,7 @@ class Audit(ServiceBase):
         if not curr_root or not prev_root:
             return False
 
-        if not self.allow_server_roots and (
-            curr_root.source != "arweave" or prev_root.source != "arweave"
-        ):
+        if not self.allow_server_roots and (curr_root.source != "arweave" or prev_root.source != "arweave"):
             return False
 
         return verify_consistency_proof(curr_root, prev_root)
@@ -305,4 +289,5 @@ class Audit(ServiceBase):
         if tree_size > 0:
             data["tree_size"] = tree_size
 
-        return self.request.post(endpoint_name, data=data)
+        response = self.request.post(endpoint_name, data=data)
+        return AuditSearchResponse(response, data)

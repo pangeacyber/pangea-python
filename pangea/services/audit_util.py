@@ -4,12 +4,13 @@
 import base64
 import json
 import struct
-import requests
 from binascii import hexlify, unhexlify
 from dataclasses import dataclass
 from hashlib import sha256
-from dateutil import parser
 from typing import Optional
+
+import requests
+from dateutil import parser
 
 Hash = bytes
 
@@ -49,7 +50,7 @@ class RootProofItem:
 RootProof = list[RootProofItem]
 
 
-def decode_hash(hexhash: str) -> Hash:
+def decode_hash(hexhash) -> Hash:
     return unhexlify(hexhash.encode("utf8"))
 
 
@@ -72,7 +73,7 @@ def decode_root(data: str) -> Root:
     return Root(tree_size=tree_size, root_hash=root_hash)
 
 
-def decode_proof(data: str) -> Proof:
+def decode_proof(data) -> Proof:
     proof: Proof = []
     for item in data.split(","):
         parts = item.split(":")
@@ -107,11 +108,7 @@ def decode_server_response(data: str) -> dict:
 def verify_log_proof(node_hash: Hash, root_hash: Hash, proof: Proof) -> bool:
     for proof_item in proof:
         proof_hash = proof_item.node_hash
-        node_hash = (
-            hash_pair(proof_hash, node_hash)
-            if proof_item.side == "left"
-            else hash_pair(node_hash, proof_hash)
-        )
+        node_hash = hash_pair(proof_hash, node_hash) if proof_item.side == "left" else hash_pair(node_hash, proof_hash)
     return root_hash == node_hash
 
 
@@ -164,9 +161,7 @@ def arweave_graphql_url():
     return f"{ARWEAVE_BASE_URL}/graphql"
 
 
-def get_arweave_published_roots(
-    tree_name: str, tree_sizes: list[int]
-) -> dict[int, dict]:
+def get_arweave_published_roots(tree_name: str, tree_sizes: list[int]) -> dict[int, dict]:
     if len(tree_sizes) == 0:
         return {}
 
@@ -182,7 +177,7 @@ def get_arweave_published_roots(
                     name: "tree_name"
                     values: ["{tree_name}"]
                 }
-    	    ]      
+    	    ]
         ) {
             edges {
                 node {
@@ -211,16 +206,14 @@ def get_arweave_published_roots(
         try:
             node_id = edge.get("node").get("id")
             tree_size = next(
-                tag.get("value")
-                for tag in edge.get("node").get("tags", [])
-                if tag.get("name") == "tree_size"
+                tag.get("value") for tag in edge.get("node").get("tags", []) if tag.get("name") == "tree_size"
             )
 
             url = arweave_transaction_url(node_id)
 
             # TODO: do all the requests concurrently
             resp2 = requests.get(url)
-            if resp2.status_code == 200 and resp2.text != 'Pending':
+            if resp2.status_code == 200 and resp2.text != "Pending":
                 ans[tree_size] = json.loads(base64url_decode(resp2.text))
         except:
             pass
