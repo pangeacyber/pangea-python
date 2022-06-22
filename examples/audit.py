@@ -37,11 +37,11 @@ if search_res.success:
     print(
         f"Results: {search_res.count} of {search_res.total}",
     )
-    for row in search_res.result["audits"]:
+    for row in search_res.result["events"]:
         event = row["event"]
 
         print(
-            f'{event["created"]}\t{event["source"]}\t{event["actor"]}\t{event["action"]}\t{event["target"]}\t{event["status"]}'
+            f'{event["created_at"]}\t{event["source"]}\t{event["actor"]}\t{event["action"]}\t{event["target"]}\t{event["status"]}'
         )
 
 else:
