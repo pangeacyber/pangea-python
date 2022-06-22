@@ -38,7 +38,7 @@ class AuditSearchResponse(object):
             params = {
                 "query": self.data["query"],
                 "last": self.result["last"],
-                "size": self.data["max_results"],
+                "size": self.data["page_size"],
             }
 
             if hasattr(self.data, "start"):
@@ -115,7 +115,7 @@ class Audit(ServiceBase):
         if not (isinstance(size, int) and size > 0):
             raise Exception("The 'size' argument must be a positive integer > 0")
 
-        data = {"query": query, "max_results": size}
+        data = {"query": query, "page_size": size}
 
         if start:
             # TODO: validate start date/duration format
