@@ -76,6 +76,18 @@ class Audit(ServiceBase):
     version = "v1"
 
     def log(self, data: dict) -> PangeaResponse:
+        """
+        Log an entry
+
+        Create a log entry in the Secure Audit Log.
+
+        Args:
+            data (dict): A structured dict describing an auditable activity.
+
+        Returns:
+          A PangeaResponse.
+        """
+
         endpoint_name = "log"
 
         """
@@ -107,6 +119,23 @@ class Audit(ServiceBase):
         end: str = "",
         last: str = "",
     ) -> AuditSearchResponse:
+        """
+        Search for events
+
+        Search for events that match the provided search criteria.
+
+        Args:
+            query (str, optional): Natural search string; list of keywords with optional `<option>:<value>` qualifiers. The following optional qualifiers are supported: * action: * actor: * message: * new: * old: * status: * target:`
+            sources (list, optional): A list of sources that the search can apply to. If empty or not provided, matches only the default source.
+            size (int, optional): Maximum number of records to return per page. Default is 20.
+            start (str, optional): The start of the time range to perform the search on.
+            end (str, optional): The end of the time range to perform the search on. All records up to the latest if left out.
+            last (str, optional): If set, the last value from the response to fetch the next page from.
+
+        Returns:
+            An AuditSearchResponse.
+        """
+
         endpoint_name = "search"
 
         """
