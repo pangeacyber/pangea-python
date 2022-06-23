@@ -6,6 +6,8 @@ import json
 from pangea.response import PangeaResponse
 from .base import ServiceBase
 
+ConfigIDHeaderName = "X-Pangea-Audit-Config-ID"
+
 SupportedFields = [
     "actor",
     "action",
@@ -75,6 +77,12 @@ class Audit(ServiceBase):
     service_name = "audit"
     version = "v1"
 
+    def __init__(self, token, config=None):
+        super().__init__(token, config)
+
+        if self.config.config_id:
+            self.request.set_extra_headers({ConfigIDHeaderName: self.config.config_id})
+
     def log(self, data: dict) -> PangeaResponse:
         """
         Log an entry
@@ -114,7 +122,7 @@ class Audit(ServiceBase):
         self,
         query: str = "",
         sources: list = [],
-        size: int = 20,
+        page_size: int = 20,
         start: str = "",
         end: str = "",
         last: str = "",
@@ -127,7 +135,7 @@ class Audit(ServiceBase):
         Args:
             query (str, optional): Natural search string; list of keywords with optional `<option>:<value>` qualifiers. The following optional qualifiers are supported: * action: * actor: * message: * new: * old: * status: * target:`
             sources (list, optional): A list of sources that the search can apply to. If empty or not provided, matches only the default source.
-            size (int, optional): Maximum number of records to return per page. Default is 20.
+            page_size (int, optional): Maximum number of records to return per page. Default is 20.
             start (str, optional): The start of the time range to perform the search on.
             end (str, optional): The end of the time range to perform the search on. All records up to the latest if left out.
             last (str, optional): If set, the last value from the response to fetch the next page from.
@@ -139,12 +147,12 @@ class Audit(ServiceBase):
         endpoint_name = "search"
 
         """
-        The `size` param determines the maximum results returned, it must be a positive integer.
+        The `page_size` param determines the maximum results returned, it must be a positive integer.
         """
-        if not (isinstance(size, int) and size > 0):
+        if not (isinstance(page_size, int) and page_size > 0):
             raise Exception("The 'size' argument must be a positive integer > 0")
 
-        data = {"query": query, "page_size": size}
+        data = {"query": query, "page_size": page_size}
 
         if start:
             # TODO: validate start date/duration format

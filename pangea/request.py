@@ -41,9 +41,15 @@ class PangeaRequest(object):
         # Async request support flag
         self._async = config.async_enabled
 
+        # Custom headers
+        self._extra_headers = {}
+
         self.request = self._init_request()
 
-    def asyncMode(self, value: bool):
+    def set_extra_headers(self, headers: dict):
+        self._extra_headers = headers
+
+    def async_mode(self, value: bool):
         if value:
             self._async = value
         return self._async
@@ -124,7 +130,7 @@ class PangeaRequest(object):
             "Authorization": f"Bearer {self.token}",
         }
 
-        if self.config.config_id:
-            headers.update({"X-Pangea-Audit-Config-ID": self.config.config_id})
+        if self._extra_headers:
+            headers.update(self._extra_headers)
 
         return headers
