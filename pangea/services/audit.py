@@ -125,7 +125,7 @@ class Audit(ServiceBase):
         Search for events that match the provided search criteria.
 
         Args:
-            query (str): Natural search string; list of keywords with optional `<option>:<value>` qualifiers. The following optional qualifiers are supported: * action: * actor: * message: * new: * old: * status: * target:`
+            query (str, optional): Natural search string; list of keywords with optional `<option>:<value>` qualifiers. The following optional qualifiers are supported: * action: * actor: * message: * new: * old: * status: * target:`
             sources (list): A list of sources that the search can apply to. If empty or not provided, matches only the default source.
             size (int): Maximum number of records to return per page.
             start (str): The start of the time range to perform the search on.

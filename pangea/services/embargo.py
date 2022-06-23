@@ -12,10 +12,10 @@ class Embargo(ServiceBase):
         """
         Embargo
 
-        Check IPs and country codes against known sanction and trade embargo lists.
+        Check this IP against known sanction and trade embargo lists.
 
         Args:
-            ip (ipv4 or ipv6 str): Geolocate this IP and check the corresponding country against the enabled embargo lists. Note: Either the IP or ISO_CODE parameter must be provided, not both.
+            ip (str): Geolocate this IP and check the corresponding country against the enabled embargo lists. Accepts both IPV4 and IPV6 strings. 
 
         Returns:
             A PangeaResponse.
@@ -27,10 +27,10 @@ class Embargo(ServiceBase):
         """
         Embargo
 
-        Check IPs and country codes against known sanction and trade embargo lists.
+        Check this country against known sanction and trade embargo lists.
 
         Args:
-            iso_code (str): Check this two character country ISO code against the enabled embargo lists. Note: Either the IP or ISO_CODE parameter must be provided, not both.
+            iso_code (str): Check this two character country ISO code against the enabled embargo lists.
 
         Returns:
             A PangeaResponse.
