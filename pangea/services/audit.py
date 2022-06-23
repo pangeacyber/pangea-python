@@ -2,29 +2,20 @@
 # Author: Pangea Cyber Corporation
 
 import typing as t
-from base64 import b64decode, b64encode
-from datetime import date
 import json
-import requests
-from dateutil import parser
 
 from pangea.response import JSONObject, PangeaResponse
 from .base import ServiceBase
 
 from .audit_util import (
-    base64url_decode,
-    bytes_to_json,
     canonicalize_log,
     decode_hash,
-    decode_proof,
-    decode_root,
-    decode_server_response,
+    decode_membership_proof,
+    decode_consistency_proof,
     get_arweave_published_roots,
     hash_data,
-    to_msg,
     verify_consistency_proof,
-    verify_log_proof,
-    verify_published_root,
+    verify_membership_proof,
 )
 from .base import ServiceBase
 
@@ -99,13 +90,13 @@ class Audit(ServiceBase):
     # In case of Arweave failure, ask the server for the roots
     allow_server_roots = True
 
-    def log(self, data: dict, verify: bool = False) -> PangeaResponse:
+    def log(self, input: dict, verify: bool = False) -> PangeaResponse:
         """
         Filter input on valid search params, at least one valid param is required
         """
         endpoint_name = "log"
 
-        data = {"event": {}, "return_hash": "true"}
+        data: dict[str, t.Any] = {"event": {}, "return_hash": "true"}
 
         for name in SupportedFields:
             if name in input:
@@ -173,36 +164,8 @@ class Audit(ServiceBase):
             response.result.published_roots = {}
             return AuditSearchResponse(response, data)
 
-        # get the size of all the roots needed for the consistency_proofs
-        tree_sizes = set()
-        for audit in response.result.events:
-            leaf_index = audit.get("leaf_index")
-            if leaf_index is not None:
-                tree_sizes.add(leaf_index)
-                if leaf_index > 1:
-                    tree_sizes.add(leaf_index - 1)
-        tree_sizes.add(root.size)
-
         # get all the roots from arweave
-        response.result.published_roots = {
-            tree_size: JSONObject(obj.get("event", {}))
-            for tree_size, obj in get_arweave_published_roots(
-                root.tree_name, list(tree_sizes) + [root.size]
-            ).items()
-        }
-        for tree_size, root in response.result.published_roots.items():
-            root["source"] = "arweave"
-
-        # fill the missing roots from the server
-        for tree_size in tree_sizes:
-            if tree_size not in response.result.published_roots:
-                try:
-                    response.result.published_roots[tree_size] = self.root(
-                        tree_size
-                    ).result.event
-                    response.result.published_roots[tree_size]["source"] = "pangea"
-                except:
-                    pass
+        response.result.published_roots = self._get_published_roots(response.result)
 
         # if we've got the current root from arweave, replace the one from the server
         pub_root = response.result.published_roots.get(root.size)
@@ -231,6 +194,36 @@ class Audit(ServiceBase):
         response_wrapper = AuditSearchResponse(response, data)
         return response_wrapper
 
+    def _get_published_roots(self, result):
+        # get the size of all the roots needed for the consistency_proofs
+        tree_sizes = set()
+        for audit in result.events:
+            leaf_index = audit.get("leaf_index")
+            if leaf_index is not None:
+                tree_sizes.add(leaf_index)
+                if leaf_index > 1:
+                    tree_sizes.add(leaf_index - 1)
+        tree_sizes.add(result.root.size)
+
+        pub_roots = get_arweave_published_roots(
+            result.root.tree_name, list(tree_sizes) + [result.root.size]
+        )
+
+        # fill the missing roots from the server (if allowed)
+        roots = {}
+        for tree_size in tree_sizes:
+            pub_root = None
+            if tree_size in pub_roots:
+                pub_root = JSONObject(pub_roots[tree_size].get("event", {}))
+                pub_root.source = "arweave"
+            elif self.allow_server_roots:
+                resp = self.root(tree_size)
+                if resp.success:
+                    pub_root = resp.result
+                    pub_root.source = "pangea"
+            roots[tree_size] = pub_root
+        return roots
+
     def verify_membership_proof(
         self, root: JSONObject, audit: JSONObject, required: bool = False
     ) -> bool:
@@ -242,8 +235,8 @@ class Audit(ServiceBase):
 
         node_hash = decode_hash(audit.calculated_hash)
         root_hash = decode_hash(root.root_hash)
-        proof = decode_proof(audit.membership_proof)
-        return verify_log_proof(node_hash, root_hash, proof)
+        proof = decode_membership_proof(audit.membership_proof)
+        return verify_membership_proof(node_hash, root_hash, proof)
 
     def verify_consistency_proof(
         self,
@@ -269,7 +262,10 @@ class Audit(ServiceBase):
         ):
             return False
 
-        return verify_consistency_proof(curr_root, prev_root)
+        curr_root_hash = decode_hash(curr_root["root_hash"])
+        prev_root_hash = decode_hash(prev_root["root_hash"])
+        proof = decode_consistency_proof(curr_root["consistency_proof"])
+        return verify_consistency_proof(curr_root_hash, prev_root_hash, proof)
 
     def root(self, tree_size: int = 0) -> AuditSearchResponse:
         endpoint_name = "root"

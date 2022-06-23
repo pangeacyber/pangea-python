@@ -3,51 +3,34 @@
 
 import base64
 import json
-import struct
 from binascii import hexlify, unhexlify
 from dataclasses import dataclass
 from hashlib import sha256
-from typing import Optional
-
 import requests
-from dateutil import parser
+
 
 Hash = bytes
 
-JSON_TYPES = [int, float, str, bool]
 
 ARWEAVE_BASE_URL = "https://arweave.net"
 
 
 @dataclass
-class HotRoot:
-    tree_size: int
-    root_hash: Hash
-    tree_id: str
-
-
-@dataclass
-class Root:
-    tree_size: int
-    root_hash: Hash
-
-
-@dataclass
-class ProofItem:
+class MembershipProofItem:
     side: str
     node_hash: Hash
 
 
-Proof = list[ProofItem]
+MembershipProof = list[MembershipProofItem]
 
 
 @dataclass
-class RootProofItem:
+class ConsistencyProofItem:
     node_hash: Hash
-    proof: Proof
+    proof: MembershipProof
 
 
-RootProof = list[RootProofItem]
+ConsistencyProof = list[ConsistencyProofItem]
 
 
 def decode_hash(hexhash) -> Hash:
@@ -62,23 +45,12 @@ def hash_pair(hash1: Hash, hash2: Hash) -> Hash:
     return sha256(hash1 + hash2).digest()
 
 
-def decode_root(data: str) -> Root:
-    tree_size_enc = unhexlify(data[:8].encode("utf8"))
-    data = data[8:]
-    tree_size = struct.unpack("=L", tree_size_enc)[0]
-
-    root_hash = decode_hash(data[: 32 * 2])
-    data = data[32 * 2 :]
-
-    return Root(tree_size=tree_size, root_hash=root_hash)
-
-
-def decode_proof(data) -> Proof:
-    proof: Proof = []
+def decode_membership_proof(data: str) -> MembershipProof:
+    proof: MembershipProof = []
     for item in data.split(","):
         parts = item.split(":")
         proof.append(
-            ProofItem(
+            MembershipProofItem(
                 side="left" if parts[0] == "l" else "right",
                 node_hash=decode_hash(parts[1]),
             )
@@ -86,34 +58,30 @@ def decode_proof(data) -> Proof:
     return proof
 
 
-def decode_root_proof(data: list[str]) -> RootProof:
+def decode_consistency_proof(data: list[str]) -> ConsistencyProof:
     root_proof = []
     for item in data:
         ndx = item.index(",")
         root_proof.append(
-            RootProofItem(
+            ConsistencyProofItem(
                 node_hash=decode_hash(item[:ndx].split(":")[1]),
-                proof=decode_proof(item[ndx + 1 :]),
+                proof=decode_membership_proof(item[ndx + 1 :]),
             )
         )
     return root_proof
 
 
-def decode_server_response(data: str) -> dict:
-    data_dec = base64.b64decode(data.encode("utf8"))
-    data_obj = json.loads(data_dec)
-    return data_obj
-
-
-def verify_log_proof(node_hash: Hash, root_hash: Hash, proof: Proof) -> bool:
+def verify_membership_proof(
+    node_hash: Hash, root_hash: Hash, proof: MembershipProof
+) -> bool:
     for proof_item in proof:
         proof_hash = proof_item.node_hash
-        node_hash = hash_pair(proof_hash, node_hash) if proof_item.side == "left" else hash_pair(node_hash, proof_hash)
+        node_hash = (
+            hash_pair(proof_hash, node_hash)
+            if proof_item.side == "left"
+            else hash_pair(node_hash, proof_hash)
+        )
     return root_hash == node_hash
-
-
-def verify_published_root(root_hash: Hash, publish_hash: Hash) -> bool:
-    return root_hash == publish_hash
 
 
 def canonicalize_log(audit: dict) -> bytes:
@@ -130,27 +98,11 @@ def hash_data(data: bytes) -> str:
     return sha256(data).hexdigest()
 
 
-def to_msg(b):
-    return "OK" if b else "FAILED"
-
-
 def base64url_decode(input):
-    """Helper method to base64url_decode a string.
-
-    Args:
-        input (str): A base64url_encoded string to decode.
-
-    """
     rem = len(input) % 4
-
     if rem > 0:
         input += "=" * (4 - rem)
-
     return base64.urlsafe_b64decode(input)
-
-
-def bytes_to_json(input: bytes) -> dict:
-    return json.loads(input.decode("utf8"))
 
 
 def arweave_transaction_url(trans_id: str):
@@ -161,7 +113,9 @@ def arweave_graphql_url():
     return f"{ARWEAVE_BASE_URL}/graphql"
 
 
-def get_arweave_published_roots(tree_name: str, tree_sizes: list[int]) -> dict[int, dict]:
+def get_arweave_published_roots(
+    tree_name: str, tree_sizes: list[int]
+) -> dict[int, dict]:
     if len(tree_sizes) == 0:
         return {}
 
@@ -206,7 +160,9 @@ def get_arweave_published_roots(tree_name: str, tree_sizes: list[int]) -> dict[i
         try:
             node_id = edge.get("node").get("id")
             tree_size = next(
-                tag.get("value") for tag in edge.get("node").get("tags", []) if tag.get("name") == "tree_size"
+                tag.get("value")
+                for tag in edge.get("node").get("tags", [])
+                if tag.get("name") == "tree_size"
             )
 
             url = arweave_transaction_url(node_id)
@@ -220,24 +176,20 @@ def get_arweave_published_roots(tree_name: str, tree_sizes: list[int]) -> dict[i
     return ans
 
 
-def verify_consistency_proof(new_root: dict, prev_root: dict) -> bool:
-    if new_root is None or prev_root is None:
-        return False
-    prev_root_hash = decode_hash(prev_root["root_hash"])
-    new_root_hash = decode_hash(new_root["root_hash"])
-    consistency_proof = decode_root_proof(new_root["consistency_proof"])
+def verify_consistency_proof(
+    new_root: Hash, prev_root: Hash, proof: ConsistencyProof
+) -> bool:
 
     # check the prev_root
-    root_hash = consistency_proof[0].node_hash
-    for item in consistency_proof[1:]:
+    root_hash = proof[0].node_hash
+    for item in proof[1:]:
         root_hash = hash_pair(item.node_hash, root_hash)
 
-    if root_hash != prev_root_hash:
+    if root_hash != prev_root:
         return False
 
-    for i, item in enumerate(consistency_proof):
-        if not verify_log_proof(item.node_hash, new_root_hash, item.proof):
-            print(f"failed validation proof number {i}")
+    for item in proof:
+        if not verify_membership_proof(item.node_hash, new_root, item.proof):
             return False
 
     return True
