@@ -28,7 +28,7 @@ else:
 print("Search Data...")
 
 search_res = audit.search(
-    query="reboot", sources=["ppi_3tAdYJUiyssGgJJf7B1SbYLpsdPo"], size=10
+    query="reboot", sources=["ppi_3tAdYJUiyssGgJJf7B1SbYLpsdPo"], page_size=10
 )
 
 if search_res.success:
