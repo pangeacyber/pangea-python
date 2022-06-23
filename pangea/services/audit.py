@@ -126,11 +126,11 @@ class Audit(ServiceBase):
 
         Args:
             query (str, optional): Natural search string; list of keywords with optional `<option>:<value>` qualifiers. The following optional qualifiers are supported: * action: * actor: * message: * new: * old: * status: * target:`
-            sources (list): A list of sources that the search can apply to. If empty or not provided, matches only the default source.
-            size (int): Maximum number of records to return per page.
-            start (str): The start of the time range to perform the search on.
-            end (str): The end of the time range to perform the search on. All records up to the latest if left out.
-            last (str): If set, the last value from the response to fetch the next page from.
+            sources (list, optional): A list of sources that the search can apply to. If empty or not provided, matches only the default source.
+            size (int, optional): Maximum number of records to return per page. Default is 20.
+            start (str, optional): The start of the time range to perform the search on.
+            end (str, optional): The end of the time range to perform the search on. All records up to the latest if left out.
+            last (str, optional): If set, the last value from the response to fetch the next page from.
 
         Returns:
             An AuditSearchResponse.
