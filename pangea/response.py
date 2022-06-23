@@ -1,6 +1,7 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 
+
 class JSONObject(dict):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -22,7 +23,7 @@ class JSONObject(dict):
 
 
 class PangeaResponse(object):
-    _data = JSONObject
+    _data = JSONObject()
     _raw = None
     _code = None
     _status = None
@@ -30,16 +31,14 @@ class PangeaResponse(object):
 
     def __init__(self, requests_response):
         self._code = requests_response.status_code
-        self._status = requests_response.reason      
-
-        if requests_response.ok:
-            self._data = JSONObject(requests_response.json())
-            self._raw = requests_response.content
-            self._success = True
+        self._status = requests_response.reason
+        self._data = JSONObject(requests_response.json())
+        self._success = requests_response.ok
+        self._response = requests_response
 
     @property
     def result(self):
-        return self._data.result if self.success else None
+        return self._data.get("result", None)
 
     @property
     def status(self):
@@ -55,8 +54,8 @@ class PangeaResponse(object):
 
     @property
     def request_id(self):
-        return self._data.request_id if self.success else None
+        return self._data.get("request_id", None)
 
     @property
-    def raw_data(self):
-        return self._raw
+    def response(self):
+        return self._response

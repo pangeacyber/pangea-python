@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "python-pangea"
-version = "0.2.2"
+version = "0.2.6"
 description = "Pangea API SDK"
 authors = ["Glenn Gallien <glenn.gallien@pangea.cloud>"]
 license = "MIT"
@@ -17,7 +17,7 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.6.2"
+python = "^3.7.2"
 requests = "^2.27.1"
 
 [tool.poetry.dev-dependencies]

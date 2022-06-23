@@ -1,13 +1,15 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 
+import typing as t
 from base64 import b64decode, b64encode
 from datetime import date
-
+import json
 import requests
 from dateutil import parser
 
 from pangea.response import JSONObject, PangeaResponse
+from .base import ServiceBase
 
 from .audit_util import (
     base64url_decode,
@@ -26,8 +28,19 @@ from .audit_util import (
 )
 from .base import ServiceBase
 
-# The fields in a top-level audit log record.
-SupportedFields = ["actor", "action", "created", "message", "new", "old", "status", "target"]
+SupportedFields = [
+    "actor",
+    "action",
+    "status",
+    "source",
+    "target",
+]
+
+SupportedJSONFields = [
+    "message",
+    "new",
+    "old",
+]
 
 
 class AuditSearchResponse(object):
@@ -42,20 +55,12 @@ class AuditSearchResponse(object):
     def __getattr__(self, attr):
         return getattr(self.response, attr)
 
-    def next(self):
-        reg_count = 0
-        if self.count and self.count != "":
-            reg_count = int(self.count)
-
-        reg_total = 0
-        if self.total and self.total != "":
-            reg_total = int(self.total)
-
-        if reg_count < reg_total:
+    def next(self) -> t.Optional[t.Dict[str, t.Any]]:
+        if self.count < self.total:
             params = {
                 "query": self.data["query"],
                 "last": self.result["last"],
-                "size": self.data["max_results"],
+                "size": self.data["page_size"],
             }
 
             if hasattr(self.data, "start"):
@@ -69,26 +74,22 @@ class AuditSearchResponse(object):
             return None
 
     @property
-    def total(self) -> str:
-        total = "0"
+    def total(self) -> int:
         if self.success:
-            last = self.result.last
-            if last is not None:
-                total = last.split("|")[1]
-            return total
+            last = self.result["last"]
+            total = last.split("|")[1]  # TODO: update once `last` returns an object
+            return int(total)
         else:
-            return total
+            return 0
 
     @property
-    def count(self) -> str:
-        count = "0"
+    def count(self) -> int:
         if self.success:
-            last = self.result.last
-            if last is not None:
-                count = last.split("|")[0]
-            return count
+            last = self.result["last"]
+            count = last.split("|")[0]  # TODO: update once `last` returns an object
+            return int(count)
         else:
-            return count
+            return 0
 
 
 class Audit(ServiceBase):
@@ -98,12 +99,11 @@ class Audit(ServiceBase):
     # In case of Arweave failure, ask the server for the roots
     allow_server_roots = True
 
-    def log(self, input: dict, signature=None, public_key=None, verify: bool = False) -> PangeaResponse:
-        endpoint_name = "log"
-
+    def log(self, data: dict, verify: bool = False) -> PangeaResponse:
         """
         Filter input on valid search params, at least one valid param is required
         """
+        endpoint_name = "log"
 
         data = {"event": {}, "return_hash": "true"}
 
@@ -111,55 +111,33 @@ class Audit(ServiceBase):
             if name in input:
                 data["event"][name] = input[name]
 
-        if len(data) < 1:
-            raise Exception(f"Error: no valid parameters, require on or more of: {', '.join(SupportedFields)}")
-
-        if "action" not in data["event"]:
-            raise Exception(f"Error: missing required field, no `action` provided")
-
-        if "actor" not in data["event"]:
-            raise Exception(f"Error: missing required field, no `actor` provided")
+        for name in SupportedJSONFields:
+            if name in input:
+                data["event"][name] = json.dumps(input[name])
 
         if "message" not in data["event"]:
             raise Exception(f"Error: missing required field, no `message` provided")
 
-        if "status" not in data["event"]:
-            raise Exception(f"Error: missing required field, no `status` provided")
-
-        if "new" not in data["event"]:
-            raise Exception(f"Error: missing required field, no `new` provided")
-
-        if "old" not in data["event"]:
-            raise Exception(f"Error: missing required field, no `old` provided")
-
-        if "target" not in data["event"]:
-            raise Exception(f"Error: missing required field, no `target` provided")
-
         resp = self.request.post(endpoint_name, data=data)
-
         return resp
 
     def search(
         self,
-        query,
+        query: str = "",
+        sources: list = [],
         size: int = 20,
         start: str = "",
         end: str = "",
         last: str = "",
-        signature=None,
-        public_key=None,
         verify: bool = False,
     ) -> AuditSearchResponse:
-        endpoint_name = "search"
-
         """
         The `size` param determines the maximum results returned, it must be a positive integer.
         """
+        endpoint_name = "search"
+
         if not (isinstance(size, int) and size > 0):
             raise Exception("The 'size' argument must be a positive integer > 0")
-
-        if not query:
-            raise Exception(f"Error: Query field is mandatory.")
 
         data = {
             "query": query,
@@ -169,15 +147,16 @@ class Audit(ServiceBase):
         }
 
         if start:
-            parser.isoparse(start)
             data.update({"start": start})
 
         if end:
-            parser.isoparse(end)
             data.update({"end": end})
 
         if last:
             data.update({"last": last})
+
+        if sources:
+            data.update({"sources": sources})
 
         response = self.request.post(endpoint_name, data=data)
 
@@ -207,7 +186,9 @@ class Audit(ServiceBase):
         # get all the roots from arweave
         response.result.published_roots = {
             tree_size: JSONObject(obj.get("event", {}))
-            for tree_size, obj in get_arweave_published_roots(root.tree_name, list(tree_sizes) + [root.size]).items()
+            for tree_size, obj in get_arweave_published_roots(
+                root.tree_name, list(tree_sizes) + [root.size]
+            ).items()
         }
         for tree_size, root in response.result.published_roots.items():
             root["source"] = "arweave"
@@ -216,7 +197,9 @@ class Audit(ServiceBase):
         for tree_size in tree_sizes:
             if tree_size not in response.result.published_roots:
                 try:
-                    response.result.published_roots[tree_size] = self.root(tree_size).result.event
+                    response.result.published_roots[tree_size] = self.root(
+                        tree_size
+                    ).result.event
                     response.result.published_roots[tree_size]["source"] = "pangea"
                 except:
                     pass
@@ -234,17 +217,23 @@ class Audit(ServiceBase):
         if verify == True:
             for audit in response.result.events:
                 # verify membership proofs
-                if not self.verify_membership_proof(response.result.root, audit, verify):
+                if not self.verify_membership_proof(
+                    response.result.root, audit, verify
+                ):
                     raise Exception(f"Error: Membership proof failed.")
 
                 # verify consistency proofs
-                if not self.verify_consistency_proof(response.result.root, audit, verify):
+                if not self.verify_consistency_proof(
+                    response.result.root, audit, verify
+                ):
                     raise Exception(f"Error: Consistency proof failed.")
 
         response_wrapper = AuditSearchResponse(response, data)
         return response_wrapper
 
-    def verify_membership_proof(self, root: JSONObject, audit: JSONObject, required: bool = False) -> bool:
+    def verify_membership_proof(
+        self, root: JSONObject, audit: JSONObject, required: bool = False
+    ) -> bool:
         if not audit.get("membership_proof"):
             return not required
 
@@ -275,7 +264,9 @@ class Audit(ServiceBase):
         if not curr_root or not prev_root:
             return False
 
-        if not self.allow_server_roots and (curr_root.source != "arweave" or prev_root.source != "arweave"):
+        if not self.allow_server_roots and (
+            curr_root.source != "arweave" or prev_root.source != "arweave"
+        ):
             return False
 
         return verify_consistency_proof(curr_root, prev_root)

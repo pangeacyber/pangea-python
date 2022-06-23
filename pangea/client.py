@@ -1,4 +1,4 @@
-from pangea.services import Audit, Locate, Sanitize
+from pangea.services import Audit, Redact
 
 
 class PangeaClient(object):
@@ -6,8 +6,7 @@ class PangeaClient(object):
         self.default_token = token
 
         self.__audit = None
-        self.__locate = None
-        self.__sanitize = None
+        self.__redact = None
 
     @property
     def audit(self):
@@ -16,13 +15,7 @@ class PangeaClient(object):
         return self.__audit
 
     @property
-    def locate(self):
-        if not self.__locate:
-            self.__locate = Locate(token=self.default_token)
-        return self.__locate
-
-    @property
-    def sanitize(self):
-        if not self.__sanitize:
-            self.__sanitize = Sanitize(token=self.default_token)
-        return self.__sanitize
+    def redact(self):
+        if not self.__redact:
+            self.__redact = Redact(token=self.default_token)
+        return self.__redact
