@@ -105,34 +105,34 @@ class Audit(ServiceBase):
         Filter input on valid search params, at least one valid param is required
         """
 
-        data = {"data": {}, "return_hash": "true"}
+        data = {"event": {}, "return_hash": "true"}
 
         for name in SupportedFields:
             if name in input:
-                data["data"][name] = input[name]
+                data["event"][name] = input[name]
 
         if len(data) < 1:
             raise Exception(f"Error: no valid parameters, require on or more of: {', '.join(SupportedFields)}")
 
-        if "action" not in data["data"]:
+        if "action" not in data["event"]:
             raise Exception(f"Error: missing required field, no `action` provided")
 
-        if "actor" not in data["data"]:
+        if "actor" not in data["event"]:
             raise Exception(f"Error: missing required field, no `actor` provided")
 
-        if "message" not in data["data"]:
+        if "message" not in data["event"]:
             raise Exception(f"Error: missing required field, no `message` provided")
 
-        if "status" not in data["data"]:
+        if "status" not in data["event"]:
             raise Exception(f"Error: missing required field, no `status` provided")
 
-        if "new" not in data["data"]:
+        if "new" not in data["event"]:
             raise Exception(f"Error: missing required field, no `new` provided")
 
-        if "old" not in data["data"]:
+        if "old" not in data["event"]:
             raise Exception(f"Error: missing required field, no `old` provided")
 
-        if "target" not in data["data"]:
+        if "target" not in data["event"]:
             raise Exception(f"Error: missing required field, no `target` provided")
 
         resp = self.request.post(endpoint_name, data=data)
@@ -163,7 +163,6 @@ class Audit(ServiceBase):
 
         data = {
             "query": query,
-            "max_results": size,
             "include_membership_proof": True,
             "include_hash": True,
             "include_root": True,
@@ -197,7 +196,7 @@ class Audit(ServiceBase):
 
         # get the size of all the roots needed for the consistency_proofs
         tree_sizes = set()
-        for audit in response.result.audits:
+        for audit in response.result.events:
             leaf_index = audit.get("leaf_index")
             if leaf_index is not None:
                 tree_sizes.add(leaf_index)
@@ -207,7 +206,7 @@ class Audit(ServiceBase):
 
         # get all the roots from arweave
         response.result.published_roots = {
-            tree_size: JSONObject(obj.get("data", {}))
+            tree_size: JSONObject(obj.get("event", {}))
             for tree_size, obj in get_arweave_published_roots(root.tree_name, list(tree_sizes) + [root.size]).items()
         }
         for tree_size, root in response.result.published_roots.items():
@@ -217,7 +216,7 @@ class Audit(ServiceBase):
         for tree_size in tree_sizes:
             if tree_size not in response.result.published_roots:
                 try:
-                    response.result.published_roots[tree_size] = self.root(tree_size).result.data
+                    response.result.published_roots[tree_size] = self.root(tree_size).result.event
                     response.result.published_roots[tree_size]["source"] = "pangea"
                 except:
                     pass
@@ -227,13 +226,13 @@ class Audit(ServiceBase):
         if pub_root:
             response.result.root = pub_root
 
-        # calculate the hashes from the data
-        for audit in response.result.audits:
-            canon = canonicalize_log(audit.data)
+        # calculate the hashes from the event
+        for audit in response.result.events:
+            canon = canonicalize_log(audit.event)
             audit["calculated_hash"] = hash_data(canon)
 
         if verify == True:
-            for audit in response.result.audits:
+            for audit in response.result.events:
                 # verify membership proofs
                 if not self.verify_membership_proof(response.result.root, audit, verify):
                     raise Exception(f"Error: Membership proof failed.")
