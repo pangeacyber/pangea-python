@@ -27,34 +27,38 @@ def main():
         )
     else:
         print(f"Log Request Error: {log_response.response.text}")
+        for err in search_res.response.result.errors:
+            print(f"\t{err.detail}")
+        print("")
 
     print("Search Data...")
     search_res = audit.search(
         query="message:test",
         sources=["ppi_3tAdYJUiyssGgJJf7B1SbYLpsdPo"],
-        size=5,
+        page_size=5,
         verify=False,
     )
     if search_res.success:
-        print("Search Request ID:", search_res.request_id, "\n")
-        print_page_results(search_res)
+        print(
+            f"Search Request ID: {search_res.request_id}, Success: {log_response.status}"
+        )
 
-        # get next pages
-        while True:
-            last = search_res.next()
-            if last is not None:
-                print_page_results(audit.search(last, verify=False))
-            else:
-                break
+        while search_res is not None:
+            print_page_results(search_res)
+            search_res = audit.search_next(search_res)
+
     else:
-        print("Search Failed:", search_res.code, search_res.status)
+        print("Search Failed:", search_res.code)
+        for err in search_res.response.result.errors:
+            print(f"\t{err.detail}")
+        print("")
 
 
 def print_page_results(search_res):
     print("\n--------------------------------------------------------------------\n")
     for row in search_res.result.events:
         print(
-            f"{row.data.message}\t{row.data.created}\t{row.data.source}\t{row.data.actor}"
+            f"{row.event.message}\t{row.event.created}\t{row.event.source}\t{row.event.actor}"
         )
     print(
         f"\nResults: {search_res.count} of {search_res.total} - next {search_res.next()}",
@@ -63,7 +67,7 @@ def print_page_results(search_res):
     print("\nVerify membership proofs\n\t", end="")
     for row in search_res.result.events:
         ok = audit.verify_membership_proof(search_res.result.root, row, False)
-        print("." if ok else "x", end="\t")
+        print("." if ok else "x", end=" ")
     print("")
 
     print("Verify consistency proofs\n\t", end="")
@@ -71,7 +75,8 @@ def print_page_results(search_res):
         ok = audit.verify_consistency_proof(
             search_res.result.published_roots, row, False
         )
-        print("." if ok else "x", end="\t")
+        print("." if ok else "x", end=" ")
+    print("")
 
 
 if __name__ == "__main__":

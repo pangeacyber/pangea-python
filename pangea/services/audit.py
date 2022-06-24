@@ -48,19 +48,7 @@ class AuditSearchResponse(object):
 
     def next(self) -> t.Optional[t.Dict[str, t.Any]]:
         if self.count < self.total:
-            params = {
-                "query": self.data["query"],
-                "last": self.result["last"],
-                "size": self.data["page_size"],
-            }
-
-            if hasattr(self.data, "start"):
-                params.update({"start": self.data["start"]})
-
-            if hasattr(self.data, "end"):
-                params.update({"end": self.data["end"]})
-
-            return params
+            return self.data | {"last": self.response.result.last}
         else:
             return None
 
@@ -96,7 +84,7 @@ class Audit(ServiceBase):
         """
         endpoint_name = "log"
 
-        data: dict[str, t.Any] = {"event": {}, "return_hash": "true"}
+        data: dict[str, t.Any] = {"event": {}, "return_hash": True}
 
         for name in SupportedFields:
             if name in input:
@@ -116,45 +104,53 @@ class Audit(ServiceBase):
         self,
         query: str = "",
         sources: list = [],
-        size: int = 20,
+        page_size: int = 20,
         start: str = "",
         end: str = "",
         last: str = "",
         verify: bool = False,
     ) -> AuditSearchResponse:
         """
-        The `size` param determines the maximum results returned, it must be a positive integer.
+        The `page_size` param determines the maximum results returned, it must be a positive integer.
         """
         endpoint_name = "search"
 
-        if not (isinstance(size, int) and size > 0):
-            raise Exception("The 'size' argument must be a positive integer > 0")
+        params = {
+            "query": query,
+            "sources": sources,
+            "page_size": page_size,
+            "start": start,
+            "end": end,
+            "last": last,
+            "verify": verify,
+        }
+
+        if not (isinstance(page_size, int) and page_size > 0):
+            raise Exception("The 'page_size' argument must be a positive integer > 0")
 
         data = {
             "query": query,
             "include_membership_proof": True,
             "include_hash": True,
             "include_root": True,
+            "page_size": page_size,
         }
 
         if start:
-            data.update({"start": start})
+            data["start"] = start
 
         if end:
-            data.update({"end": end})
+            data["end"] = end
 
         if last:
-            data.update({"last": last})
+            data["last"] = last
 
         if sources:
-            data.update({"sources": sources})
+            data["sources"] = sources
 
         response = self.request.post(endpoint_name, data=data)
-
-        if response is None:
-            raise Exception(f"Error: Empty result from server.")
-        elif response.result is None:
-            raise Exception(f"Error: Empty result from server.")
+        if not response.success:
+            return AuditSearchResponse(response, data)
 
         root = response.result.root
 
@@ -191,8 +187,15 @@ class Audit(ServiceBase):
                 ):
                     raise Exception(f"Error: Consistency proof failed.")
 
-        response_wrapper = AuditSearchResponse(response, data)
+        response_wrapper = AuditSearchResponse(response, params)
         return response_wrapper
+
+    def search_next(self, response: AuditSearchResponse):
+        params = response.next()
+        if not params:
+            return None
+        else:
+            return self.search(**params)
 
     def _get_published_roots(self, result):
         # get the size of all the roots needed for the consistency_proofs

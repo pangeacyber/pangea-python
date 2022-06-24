@@ -38,7 +38,7 @@ class PangeaResponse(object):
 
     @property
     def result(self):
-        return self._data.get("result", None)
+        return self._data.result
 
     @property
     def status(self):
