@@ -170,7 +170,7 @@ def get_arweave_published_roots(
             # TODO: do all the requests concurrently
             resp2 = requests.get(url)
             if resp2.status_code == 200 and resp2.text != "Pending":
-                ans[tree_size] = json.loads(base64url_decode(resp2.text))
+                ans[int(tree_size)] = json.loads(base64url_decode(resp2.text))
         except:
             pass
     return ans

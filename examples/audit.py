@@ -40,11 +40,13 @@ def main():
     )
     if search_res.success:
         print(
-            f"Search Request ID: {search_res.request_id}, Success: {log_response.status}"
+            f"Search Request ID: {search_res.request_id}, Success: {search_res.status}"
         )
+        pub_roots = {}
 
         while search_res is not None:
-            print_page_results(search_res)
+            audit.update_published_roots(pub_roots, search_res.response.result)
+            print_page_results(pub_roots, search_res)
             search_res = audit.search_next(search_res)
 
     else:
@@ -54,29 +56,36 @@ def main():
         print("")
 
 
-def print_page_results(search_res):
+def membership_verification(audit, root, row):
+    if not audit.can_verify_membership_proof(row):
+        return "o"
+    elif audit.verify_membership_proof(root, row):
+        return "."
+    else:
+        return "x"
+
+
+def consistency_verification(audit, pub_roots, row):
+    if not audit.can_verify_consistency_proof(row):
+        return "o"
+    elif audit.verify_consistency_proof(pub_roots, row):
+        return "."
+    else:
+        return "x"
+
+
+def print_page_results(pub_roots, search_res):
+    root = search_res.result.root
     print("\n--------------------------------------------------------------------\n")
     for row in search_res.result.events:
+        membership = membership_verification(audit, root, row)
+        consistency = consistency_verification(audit, pub_roots, row)
         print(
-            f"{row.event.message}\t{row.event.created}\t{row.event.source}\t{row.event.actor}"
+            f"{row.event.message}\t{row.event.created}\t{row.event.source}\t{row.event.actor}\t\t{membership}{consistency}"
         )
     print(
         f"\nResults: {search_res.count} of {search_res.total} - next {search_res.next()}",
     )
-
-    print("\nVerify membership proofs\n\t", end="")
-    for row in search_res.result.events:
-        ok = audit.verify_membership_proof(search_res.result.root, row, False)
-        print("." if ok else "x", end=" ")
-    print("")
-
-    print("Verify consistency proofs\n\t", end="")
-    for row in search_res.result.events:
-        ok = audit.verify_consistency_proof(
-            search_res.result.published_roots, row, False
-        )
-        print("." if ok else "x", end=" ")
-    print("")
 
 
 if __name__ == "__main__":

@@ -160,31 +160,14 @@ class Audit(ServiceBase):
             response.result.published_roots = {}
             return AuditSearchResponse(response, data)
 
-        # get all the roots from arweave
-        response.result.published_roots = self._get_published_roots(response.result)
-
-        # if we've got the current root from arweave, replace the one from the server
-        pub_root = response.result.published_roots.get(root.size)
-        if pub_root:
-            response.result.root = pub_root
-
-        # calculate the hashes from the event
-        for audit in response.result.events:
-            canon = canonicalize_log(audit.event)
-            audit["calculated_hash"] = hash_data(canon)
-
         if verify == True:
             for audit in response.result.events:
                 # verify membership proofs
-                if not self.verify_membership_proof(
-                    response.result.root, audit, verify
-                ):
+                if not self.verify_membership_proof(response.result.root, audit):
                     raise Exception(f"Error: Membership proof failed.")
 
                 # verify consistency proofs
-                if not self.verify_consistency_proof(
-                    response.result.root, audit, verify
-                ):
+                if not self.verify_consistency_proof(response.result.root, audit):
                     raise Exception(f"Error: Consistency proof failed.")
 
         response_wrapper = AuditSearchResponse(response, params)
@@ -197,65 +180,65 @@ class Audit(ServiceBase):
         else:
             return self.search(**params)
 
-    def _get_published_roots(self, result):
-        # get the size of all the roots needed for the consistency_proofs
+    def update_published_roots(
+        self, pub_roots: dict[int, t.Optional[JSONObject]], result: JSONObject
+    ):
         tree_sizes = set()
         for audit in result.events:
             leaf_index = audit.get("leaf_index")
             if leaf_index is not None:
-                tree_sizes.add(leaf_index)
-                if leaf_index > 1:
-                    tree_sizes.add(leaf_index - 1)
+                tree_sizes.add(leaf_index + 1)
+                if leaf_index > 0:
+                    tree_sizes.add(leaf_index)
         tree_sizes.add(result.root.size)
 
-        pub_roots = get_arweave_published_roots(
-            result.root.tree_name, list(tree_sizes) + [result.root.size]
-        )
+        tree_sizes.difference_update(pub_roots.keys())
+        if tree_sizes:
+            arweave_roots = get_arweave_published_roots(
+                result.root.tree_name, list(tree_sizes) + [result.root.size]
+            )
+        else:
+            arweave_roots = {}
 
         # fill the missing roots from the server (if allowed)
-        roots = {}
         for tree_size in tree_sizes:
             pub_root = None
-            if tree_size in pub_roots:
-                pub_root = JSONObject(pub_roots[tree_size].get("event", {}))
+            if tree_size in arweave_roots:
+                pub_root = JSONObject(arweave_roots[tree_size])
                 pub_root.source = "arweave"
             elif self.allow_server_roots:
                 resp = self.root(tree_size)
                 if resp.success:
                     pub_root = resp.result
                     pub_root.source = "pangea"
-            roots[tree_size] = pub_root
-        return roots
+            pub_roots[tree_size] = pub_root
 
-    def verify_membership_proof(
-        self, root: JSONObject, audit: JSONObject, required: bool = False
-    ) -> bool:
-        if not audit.get("membership_proof"):
-            return not required
+    def can_verify_membership_proof(self, event: JSONObject) -> bool:
+        return event.get("membership_proof") is not None
 
+    def verify_membership_proof(self, root: JSONObject, event: JSONObject) -> bool:
         if not self.allow_server_roots and root.source != "arweave":
             return False
 
-        node_hash = decode_hash(audit.calculated_hash)
+        # TODO: uncomment when audit created field bug is fixed
+        # canon = canonicalize_log(event.event)
+        # node_hash_enc = hash_data(canon)
+        node_hash_enc = event.hash
+        node_hash = decode_hash(node_hash_enc)
         root_hash = decode_hash(root.root_hash)
-        proof = decode_membership_proof(audit.membership_proof)
+        proof = decode_membership_proof(event.membership_proof)
         return verify_membership_proof(node_hash, root_hash, proof)
 
+    def can_verify_consistency_proof(self, event: JSONObject) -> bool:
+        leaf_index = event.get("leaf_index")
+        return leaf_index is not None and leaf_index > 0
+
     def verify_consistency_proof(
-        self,
-        published_roots: dict[int, JSONObject],
-        audit: JSONObject,
-        required: bool = False,
+        self, pub_roots: dict[int, t.Optional[JSONObject]], event: JSONObject
     ) -> bool:
-        leaf_index = audit.get("leaf_index")
-        if not leaf_index:
-            return not required
-
-        if leaf_index == 1:
-            return not required
-
-        curr_root = published_roots.get(leaf_index)
-        prev_root = published_roots.get(leaf_index - 1)
+        leaf_index = event["leaf_index"]
+        curr_root = pub_roots.get(leaf_index + 1)
+        prev_root = pub_roots.get(leaf_index)
 
         if not curr_root or not prev_root:
             return False
@@ -265,9 +248,9 @@ class Audit(ServiceBase):
         ):
             return False
 
-        curr_root_hash = decode_hash(curr_root["root_hash"])
-        prev_root_hash = decode_hash(prev_root["root_hash"])
-        proof = decode_consistency_proof(curr_root["consistency_proof"])
+        curr_root_hash = decode_hash(curr_root.root_hash)
+        prev_root_hash = decode_hash(prev_root.root_hash)
+        proof = decode_consistency_proof(curr_root.consistency_proof)
         return verify_consistency_proof(curr_root_hash, prev_root_hash, proof)
 
     def root(self, tree_size: int = 0) -> AuditSearchResponse:
