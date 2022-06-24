@@ -27,9 +27,10 @@ def main():
         )
     else:
         print(f"Log Request Error: {log_response.response.text}")
-        for err in search_res.response.result.errors:
-            print(f"\t{err.detail}")
-        print("")
+        if log_response.result and log_response.result.errors:
+            for err in log_response.result.errors:
+                print(f"\t{err.detail}")
+            print("")
 
     print("Search Data...")
     search_res = audit.search(

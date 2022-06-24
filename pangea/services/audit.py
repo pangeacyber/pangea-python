@@ -19,6 +19,8 @@ from .audit_util import (
 )
 from .base import ServiceBase
 
+ConfigIDHeaderName = "X-Pangea-Audit-Config-ID"
+
 SupportedFields = [
     "actor",
     "action",
@@ -78,10 +80,25 @@ class Audit(ServiceBase):
     # In case of Arweave failure, ask the server for the roots
     allow_server_roots = True
 
+    def __init__(self, token, config=None):
+        super().__init__(token, config)
+
+        if self.config.config_id:
+            self.request.set_extra_headers({ConfigIDHeaderName: self.config.config_id})
+
     def log(self, input: dict, verify: bool = False) -> PangeaResponse:
         """
-        Filter input on valid search params, at least one valid param is required
+        Log an entry
+
+        Create a log entry in the Secure Audit Log.
+
+        Args:
+            data (dict): A structured dict describing an auditable activity.
+
+        Returns:
+          A PangeaResponse.
         """
+
         endpoint_name = "log"
 
         data: dict[str, t.Any] = {"event": {}, "return_hash": True}
@@ -111,8 +128,22 @@ class Audit(ServiceBase):
         verify: bool = False,
     ) -> AuditSearchResponse:
         """
-        The `page_size` param determines the maximum results returned, it must be a positive integer.
+        Search for events
+
+        Search for events that match the provided search criteria.
+
+        Args:
+            query (str, optional): Natural search string; list of keywords with optional `<option>:<value>` qualifiers. The following optional qualifiers are supported: * action: * actor: * message: * new: * old: * status: * target:`
+            sources (list, optional): A list of sources that the search can apply to. If empty or not provided, matches only the default source.
+            page_size (int, optional): Maximum number of records to return per page. Default is 20.
+            start (str, optional): The start of the time range to perform the search on.
+            end (str, optional): The end of the time range to perform the search on. All records up to the latest if left out.
+            last (str, optional): If set, the last value from the response to fetch the next page from.
+
+        Returns:
+            An AuditSearchResponse.
         """
+
         endpoint_name = "search"
 
         params = {
