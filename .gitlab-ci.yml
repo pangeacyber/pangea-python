@@ -21,7 +21,7 @@ testing:
     - poetry run python -m unittest -v
 
 integration:
-  stage: initegration_tests
+  stage: integration_tests
   script:
     - echo "Integration tests..."
 
