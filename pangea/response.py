@@ -19,11 +19,11 @@ class JSONObject(dict):
             return value
 
     def __getattr__(self, item):
-        return self[item]
+        return self.get(item)
 
 
 class PangeaResponse(object):
-    _json = {}
+    _data = JSONObject()
     _raw = None
     _code = None
     _status = None
@@ -32,13 +32,13 @@ class PangeaResponse(object):
     def __init__(self, requests_response):
         self._code = requests_response.status_code
         self._status = requests_response.reason
-        self._json = requests_response.json()
+        self._data = JSONObject(requests_response.json())
         self._success = requests_response.ok
         self._response = requests_response
 
     @property
     def result(self):
-        return self._json.get("result", None)
+        return self._data.result
 
     @property
     def status(self):
@@ -54,7 +54,7 @@ class PangeaResponse(object):
 
     @property
     def request_id(self):
-        return self._json.get("request_id", None)
+        return self._data.get("request_id", None)
 
     @property
     def response(self):
