@@ -7,6 +7,7 @@ from binascii import hexlify, unhexlify
 from dataclasses import dataclass
 from hashlib import sha256
 import requests
+from typing import List
 
 
 Hash = bytes
@@ -21,7 +22,7 @@ class MembershipProofItem:
     node_hash: Hash
 
 
-MembershipProof = list[MembershipProofItem]
+MembershipProof = List[MembershipProofItem]
 
 
 @dataclass
@@ -30,7 +31,7 @@ class ConsistencyProofItem:
     proof: MembershipProof
 
 
-ConsistencyProof = list[ConsistencyProofItem]
+ConsistencyProof = List[ConsistencyProofItem]
 
 
 def decode_hash(hexhash) -> Hash:
