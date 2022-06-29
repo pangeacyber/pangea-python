@@ -59,7 +59,7 @@ def decode_membership_proof(data: str) -> MembershipProof:
     return proof
 
 
-def decode_consistency_proof(data: list[str]) -> ConsistencyProof:
+def decode_consistency_proof(data: List[str]) -> ConsistencyProof:
     root_proof = []
     for item in data:
         ndx = item.index(",")
@@ -115,7 +115,7 @@ def arweave_graphql_url():
 
 
 def get_arweave_published_roots(
-    tree_name: str, tree_sizes: list[int]
+    tree_name: str, tree_sizes: List[int]
 ) -> dict[int, dict]:
     if len(tree_sizes) == 0:
         return {}
