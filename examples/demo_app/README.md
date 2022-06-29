@@ -3,7 +3,7 @@ This is a Demo App to provide example usage of the Pangea python-sdk.
 
 The Demo App sets up a local sqlite DB and a runs a simple web server on localhost.
 
-The App simulates an HR application that allows a user to upload resume, retrieve employee record, and update employee record.
+The App simulates an HR application that allows a user to upload resumes, retrieve employee records, and update employee records.
 
 ## Usage
 

@@ -16,14 +16,27 @@ from pangea.services import Redact
 PANGEA_TOKEN = os.getenv("PANGEA_TOKEN")
 REDACT_TOKEN = os.getenv("REDACT_TOKEN")
 
+EMBARGO_CONFIG_ID = os.getenv("EMBARGO_CONFIG_ID")
+REDACT_CONFIG_ID = os.getenv("REDACT_CONFIG_ID")
+AUDIT_CONFIG_ID = os.getenv("AUDIT_CONFIG_ID")
+
 class App:
     """ Demo app showing usage of Pangea SDK
     """
     def __init__(self):
         self._db = self._db_instance()
-        self._embargo_config = PangeaConfig(base_domain='dev.pangea.cloud', config_id='pci_pvpjuhgzplfncvipp4dn46pdsw4gb5b4')
-        self._redact_config = PangeaConfig(base_domain='dev.pangea.cloud', config_id='pci_l3olijxaksjmsiugkesfmrhuarilv2li')
-        self._audit_config = PangeaConfig(base_domain='dev.pangea.cloud', config_id='pci_li3wb3fdo5ad6yt5zy6n436fach4ew6p')
+        self._embargo_config = PangeaConfig(base_domain='dev.pangea.cloud', config_id=EMBARGO_CONFIG_ID)
+        self._redact_config = PangeaConfig(base_domain='dev.pangea.cloud', config_id=REDACT_CONFIG_ID)
+        self._audit_config = PangeaConfig(base_domain='dev.pangea.cloud', config_id=AUDIT_CONFIG_ID)
+
+        # Setup Pangea Audit service
+        self._pangea_audit = Audit(token=PANGEA_TOKEN, config=self._audit_config)
+
+        # Setup Pangea Redact service
+        self._pangea_redact = Redact(token=REDACT_TOKEN, config=self._redact_config)
+
+        # Setup Pangea Embargo Service
+        self._pangea_embargo = Embargo(token=PANGEA_TOKEN, config=self._embargo_config)
 
     def _db_instance(self) -> Db:
         return Db()
@@ -47,15 +60,6 @@ class App:
         """
         logging.info(f'[App.upload_resume] Processing input from {user}, {client_ip}')
     
-        # Setup Pangea Audit service
-        pangea_audit = Audit(token=PANGEA_TOKEN, config=self._audit_config)
-
-        # Setup Pangea Redact service
-        pangea_redact = Redact(token=REDACT_TOKEN, config=self._redact_config)
-
-        # Setup Pangea Embargo Service
-        pangea_embargo = Embargo(token=PANGEA_TOKEN, config=self._embargo_config)
-
         # Add the candidate to database
         emp = data['data']
 
@@ -68,7 +72,7 @@ class App:
                              status=EmployeeStatus.CANDIDATE)
 
         # Check client IP against Pangea's Embargo Service
-        resp = pangea_embargo.check_ip(client_ip)
+        resp = self._pangea_embargo.check_ip(client_ip)
 
         logging.info(f'[App.upload_resume] Embargo response: {resp.request_id}, {resp.result}')
 
@@ -79,7 +83,7 @@ class App:
                           "status": "error",
                           "message": f"Resume denied - sactioned country from {client_ip}",
                           "source": "web"}
-            resp = pangea_audit.log(input=audit_data)
+            resp = self._pangea_audit.log(input=audit_data)
             if resp.success:
                 logging.info(f'[App.upload_resume] Audit log ID: {resp.request_id}, Success: {resp.status}')
             else:
@@ -93,7 +97,7 @@ class App:
         ret = self._db.add_employee(candidate)
 
         # Redact
-        resp = pangea_redact.redact_structured(emp)
+        resp = self._pangea_redact.redact_structured(emp)
         if resp.success:
             logging.info(f'[App.upload_resume] Redacted ID: {resp.request_id}, Success: {resp.status}, Result: {resp.result}')
             emp = resp.result # set to redacted data
@@ -109,7 +113,7 @@ class App:
                           "message": f"Resume accepted.",
                           "new" : emp,
                           "source": "web"}
-            resp = pangea_audit.log(input=audit_data)
+            resp = self._pangea_audit.log(input=audit_data)
             if resp.success:
                 logging.info(f'[App.upload_resume] Audit log ID: {resp.request_id}, Success: {resp.status}')
             else:
@@ -123,7 +127,7 @@ class App:
                           "status": "error",
                           "message": f"Resume denied: {emp}",
                           "source": "web"}
-            resp = pangea_audit.log(input=audit_data)            
+            resp = self._pangea_audit.log(input=audit_data)            
             if resp.success:
                 logging.info(f'[App.upload_resume] Audit log ID: {resp.request_id}, Success: {resp.status}')
             else:
@@ -147,6 +151,19 @@ class App:
         ##################################
 
         ret, emp = self._db.lookup_employee(email)
+
+        # Audit log
+        audit_data = {"action" : "lookup_employee",
+                      "actor" : user,
+                      "target" : email,
+                      "status" : "success" if ret else "error",
+                      "message" : "Requested employee record",
+                      "source": "web"}
+        resp = self._pangea_audit.log(input=audit_data)
+        if resp.success:
+            logging.info(f'[App.fetch_employee_record] Audit log ID: {resp.request_id}, Success: {resp.status}')
+        else:
+            logging.error(f'[App.fetch_employee_record] Audit log Error: {resp.response.text}')
 
         if ret:
             return (200, { "employee" : dataclasses.asdict(emp) } )
@@ -174,12 +191,6 @@ class App:
                 bool - success, str - message
         """
         logging.info(f'[App.update_employee] Processing input from {user}: {data}')
-
-        # Setup Pangea Audit service
-        pangea_audit = Audit(token=PANGEA_TOKEN, config=self._audit_config)
-
-        # Setup Pangea Redact service
-        pangea_redact = Redact(token=REDACT_TOKEN, config=self._redact_config)
 
         ##################################
         # TODO: AuthZ to determine access
@@ -226,7 +237,7 @@ class App:
                           "old" : dataclasses.asdict(empold),
                           "new" : dataclasses.asdict(emp),
                           "source": "web"}
-            resp = pangea_audit.log(input=audit_data)
+            resp = self._pangea_audit.log(input=audit_data)
             if resp.success:
                 logging.info(f'[App.update_employee] Audit log ID: {resp.request_id}, Success: {resp.status}')
             else:
