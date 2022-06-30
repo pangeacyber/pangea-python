@@ -14,7 +14,6 @@ from pangea.services import Audit
 from pangea.services import Redact
 
 PANGEA_TOKEN = os.getenv("PANGEA_TOKEN")
-REDACT_TOKEN = os.getenv("REDACT_TOKEN")
 
 EMBARGO_CONFIG_ID = os.getenv("EMBARGO_CONFIG_ID")
 REDACT_CONFIG_ID = os.getenv("REDACT_CONFIG_ID")
@@ -33,7 +32,7 @@ class App:
         self._pangea_audit = Audit(token=PANGEA_TOKEN, config=self._audit_config)
 
         # Setup Pangea Redact service
-        self._pangea_redact = Redact(token=REDACT_TOKEN, config=self._redact_config)
+        self._pangea_redact = Redact(token=PANGEA_TOKEN, config=self._redact_config)
 
         # Setup Pangea Embargo Service
         self._pangea_embargo = Embargo(token=PANGEA_TOKEN, config=self._embargo_config)
@@ -61,7 +60,7 @@ class App:
         logging.info(f'[App.upload_resume] Processing input from {user}, {client_ip}')
     
         # Add the candidate to database
-        emp = data['data']
+        emp = data
 
         candidate = Employee(first_name=emp['first_name'],
                              last_name=emp['last_name'],
@@ -100,7 +99,7 @@ class App:
         resp = self._pangea_redact.redact_structured(emp)
         if resp.success:
             logging.info(f'[App.upload_resume] Redacted ID: {resp.request_id}, Success: {resp.status}, Result: {resp.result}')
-            emp = resp.result # set to redacted data
+            emp = resp.result['redacted_data'] # set to redacted data
         else:
             logging.error(f'App.upload_resume] Redaction Error: {resp.response.text}')
 
@@ -113,6 +112,7 @@ class App:
                           "message": f"Resume accepted.",
                           "new" : emp,
                           "source": "web"}
+
             resp = self._pangea_audit.log(input=audit_data)
             if resp.success:
                 logging.info(f'[App.upload_resume] Audit log ID: {resp.request_id}, Success: {resp.status}')
@@ -214,15 +214,7 @@ class App:
             if 'salary' in data:
                 emp.salary = data['salary']
             if 'status' in data:
-                if data['status'] == 'contractor':
-                    emp.status = EmployeeStatus.CONTRACTOR
-                elif data['status'] == 'fulltime':
-                    emp.status = EmployeeStatus.FULL_TIME
-                elif data['status'] == 'terminated':
-                    emp.status = EmployeeStatus.TERMINATED
-                else:
-                    logging.error(f'[App.update_employee] Unsupported status {data["status"]}')
-                    return (400, 'Bad request')
+                emp.status = EmployeeStatus(data['status'])
             if 'company_email' in data:
                 emp.company_email = data['company_email']
 

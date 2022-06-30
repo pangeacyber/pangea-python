@@ -10,7 +10,7 @@ class Db:
     def init(self):
         """ Connects to the database
         """
-        self._conn = sl.connect('my-test.db')
+        self._conn = sl.connect('demo-app.db')
         logging.info('[Db.init] Connected to database')
 
     def teardown(self):
@@ -41,7 +41,7 @@ class Db:
                     profile_picture BLOB,
                     dl_picture BLOB,
                     ssn TEXT,
-                    status TEXT,
+                    status INTEGER,
                     FOREIGN KEY(manager) REFERENCES employee(id)
                 );
             """)
