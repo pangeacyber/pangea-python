@@ -9,6 +9,7 @@ from binascii import hexlify, unhexlify
 from dataclasses import dataclass
 from hashlib import sha256
 import requests
+from typing import List
 
 
 Hash = bytes
@@ -26,7 +27,7 @@ class MembershipProofItem:
     node_hash: Hash
 
 
-MembershipProof = list[MembershipProofItem]
+MembershipProof = List[MembershipProofItem]
 
 
 @dataclass
@@ -35,7 +36,7 @@ class ConsistencyProofItem:
     proof: MembershipProof
 
 
-ConsistencyProof = list[ConsistencyProofItem]
+ConsistencyProof = List[ConsistencyProofItem]
 
 
 def decode_hash(hexhash) -> Hash:
@@ -63,7 +64,7 @@ def decode_membership_proof(data: str) -> MembershipProof:
     return proof
 
 
-def decode_consistency_proof(data: list[str]) -> ConsistencyProof:
+def decode_consistency_proof(data: List[str]) -> ConsistencyProof:
     root_proof = []
     for item in data:
         ndx = item.index(",")
@@ -120,7 +121,7 @@ def arweave_graphql_url():
 
 
 def get_arweave_published_roots(
-    tree_name: str, tree_sizes: list[int]
+    tree_name: str, tree_sizes: List[int]
 ) -> dict[int, dict]:
     if len(tree_sizes) == 0:
         return {}
