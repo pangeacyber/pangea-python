@@ -32,8 +32,6 @@ class Redact(ServiceBase):
 
         :returns: Pangea Response with redacted text
         """
-        if self.config.config_id:
-            self.request.set_extra_headers({ConfigIDHeaderName: self.config.config_id})
         return self.request.post("redact", data={"text": text, "debug": debug})
 
     def redact_structured(
