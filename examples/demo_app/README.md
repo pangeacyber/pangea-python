@@ -7,6 +7,13 @@ The App simulates an HR application that allows a user to upload resumes, retrie
 
 ## Usage
 
+### Environment Setup
+Set the following environment variables:
+- `PANGEA_TOKEN`
+- `EMBARGO_CONFIG_ID`
+- `REDACT_CONFIG_ID`
+- `AUDIT_CONFIG_ID`
+
 ### Main App Startup
 ```
 python main.py
@@ -38,14 +45,12 @@ Header:
 
 Body: 
 {
-    "data": {
         "first_name" : "Alan",
         "last_name" : "Smith",
         "email" : "alan.smith@gmail.com",
         "phone" : "408-555-1212",
-        "dob" : "June 28, 1999",
+        "dob" : "06-28-1999",
         "ssn" : "123-44-6789"
-    }
 }
 ```
 
@@ -69,10 +74,10 @@ Authorization: Basic manager@acme.com password
 Body:
 {
     "email" : "alan.smith@gmail.com",
-    "start_date" : "July 1, 2022",
+    "start_date" : "07-01-2022",
     "department" : "sales",
-    "salary" : "100000",
-    "status" : "contractor",
+    "salary" : 100000,
+    "status" : 4,
     "company_email" : "alan.smith@acme.com"
 }
 ```
@@ -82,10 +87,10 @@ Body:
 Debug logs for the App are written to `myapp.log` in the `example/demo_app/` directory.
 
 ### Sqlite DB
-`my-test.db` is created in the `example/demo_app/` directory.  To test in sqlite3 tool:
+`demo-app.db` is created in the `example/demo_app/` directory.  To test in sqlite3 tool:
 
 ```
-sqlite3 my-test.db
+sqlite3 demo-app.db
 ```
 
 ## References
