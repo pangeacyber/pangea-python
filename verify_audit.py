@@ -1,0 +1,277 @@
+"""
+Command-line tool for verifying audits. 
+
+Usage: python verify_audit.py [-f filename]
+
+    -f filename: input file (stdin if no filename is provided)
+
+You can provide a single event (obtained from the PUC) or the result from a search call.
+In the latter case, all the events are verified.
+"""
+
+from dataclasses import dataclass
+import json
+import sys
+from typing import Optional
+import logging
+import argparse
+from pangea.services.audit_util import (
+    canonicalize_log,
+    hash_data,
+    get_arweave_published_roots,
+    verify_consistency_proof,
+    verify_membership_proof,
+    decode_hash,
+    decode_membership_proof,
+    decode_consistency_proof,
+)
+
+logger = logging.getLogger("audit")
+pub_roots: dict[int, dict] = {}
+
+
+class VerifierLogFormatter(logging.Formatter):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.indent = 0
+        self.in_section = False
+
+    def format(self, record):
+        indent = self.indent
+
+        if hasattr(record, "is_result"):
+            if record.succeeded:
+                point = "🟢"
+            elif record.succeeded is None:
+                point = "⚪️"
+            else:
+                point = "🔴"
+
+            self.in_section = False
+            return f"{' ' * self.indent}⎿  {record.msg:20s} {point}"
+
+        elif hasattr(record, "is_section"):
+            self.in_section = True
+            return f"{' ' * self.indent}⎾  {record.msg}"
+        else:
+            if self.in_section:
+                pre = f"{' ' * (self.indent+4)}⌲ "
+            else:
+                pre = ""
+            return f"{pre}{record.msg}"
+
+
+def log_result(msg: str, succeeded: Optional[bool]):
+    if succeeded is True:
+        msg += " succeeded"
+    elif succeeded is False:
+        msg += " failed"
+    else:
+        msg += " could not be performed"
+    logger.log(logging.INFO, msg, extra={"is_result": True, "succeeded": succeeded})
+
+
+def log_section(msg: str):
+    logger.log(logging.INFO, msg, extra={"is_section": True})
+
+
+formatter = VerifierLogFormatter()
+
+
+def _verify_hash(data: dict, data_hash: str) -> Optional[bool]:
+    log_section("Checking data hash")
+    error_msg = ""
+    try:
+        logger.debug("Canonicalizing data")
+        data_canon = canonicalize_log(data)
+        logger.debug("Calculating hash")
+        computed_hash = hash_data(data_canon)
+        computed_hash_dec = decode_hash(computed_hash)
+        data_hash_dec = decode_hash(data_hash)
+        logger.debug("Comparing calculated hash with server hash")
+        if computed_hash_dec != data_hash_dec:
+            raise ValueError("Hash does not match")
+        succeeded = True
+    except Exception as e:
+        succeeded = False
+        # logger.error(f"    ⌲ {str(e)}")
+
+    log_result("Data hash verification", succeeded)
+    logger.info("")
+    return succeeded
+
+
+def _verify_membership_proof(
+    tree_name: str, tree_size: int, node_hash: str, proof: Optional[str]
+) -> Optional[bool]:
+    global pub_roots
+
+    log_section("Checking membership proof")
+
+    if proof is None:
+        succeeded = None
+        logger.debug("Proof not found (event not published yet)")
+    else:
+        try:
+            logger.debug("Fetching published roots from Arweave")
+            if tree_size not in pub_roots:
+                pub_roots |= {
+                    int(k): v
+                    for k, v in get_arweave_published_roots(
+                        tree_name, [tree_size]
+                    ).items()
+                }
+            if tree_size not in pub_roots:
+                raise ValueError("Published root could was not found")
+
+            root_hash_dec = decode_hash(pub_roots[tree_size]["root_hash"])
+            node_hash_dec = decode_hash(node_hash)
+            logger.debug("Calculating the proof")
+            proof_dec = decode_membership_proof(proof)
+            logger.debug("Comparing the root hash with the proof hash")
+            succeeded = verify_membership_proof(node_hash_dec, root_hash_dec, proof_dec)
+        except Exception as e:
+            succeeded = False
+            logger.debug(str(e))
+
+    log_result("Membership proof verification", succeeded)
+    logger.info("")
+    return succeeded
+
+
+def _verify_consistency_proof(
+    tree_name: str, leaf_index: Optional[int]
+) -> Optional[bool]:
+    global pub_roots
+
+    log_section("Checking consistency proof")
+
+    if leaf_index is None:
+        succeeded = None
+        logger.debug("Proof not found (event was not published yet)")
+
+    elif leaf_index == 0:
+        succeeded = None
+        logger.debug("Proof not found (event was published in the first leaf)")
+    else:
+        try:
+            logger.debug("Fetching published roots from Arweave")
+            pub_roots |= {
+                int(k): v
+                for k, v in get_arweave_published_roots(
+                    tree_name, [leaf_index + 1, leaf_index]
+                ).items()
+            }
+            if leaf_index + 1 not in pub_roots or leaf_index not in pub_roots:
+                raise ValueError("Published roots could not be retrieved")
+
+            curr_root = pub_roots[leaf_index + 1]
+            prev_root = pub_roots[leaf_index]
+            curr_root_hash = decode_hash(curr_root["root_hash"])
+            prev_root_hash = decode_hash(prev_root["root_hash"])
+            logger.debug("Calculating the proof")
+            proof = decode_consistency_proof(curr_root["consistency_proof"])
+            succeeded = verify_consistency_proof(curr_root_hash, prev_root_hash, proof)
+
+        except Exception as e:
+            succeeded = False
+            logger.debug(str(e))
+
+    log_result("Consistency proof verification", succeeded)
+    logger.info("")
+    return succeeded
+
+
+def verify_multiple(root: dict, events: list[dict]) -> Optional[bool]:
+    """
+    Verify a list of events.
+    Returns a status.
+    """
+
+    succeeded = []
+    for counter, event in enumerate(events):
+        event_succeeded = verify_single(event | {"root": root}, counter + 1)
+        succeeded.append(event_succeeded)
+    return not any(event_succeeded is False for event_succeeded in succeeded)
+
+
+def verify_single(data: dict, counter: Optional[int] = None) -> Optional[bool]:
+    """
+    Verify a single event.
+    Returns a status.
+    """
+    if counter:
+        logger.info(f"Checking event number {counter}...")
+        formatter.indent = 4
+
+    ok_hash = _verify_hash(data["event"], data["hash"])
+    ok_membership = _verify_membership_proof(
+        data["root"]["tree_name"],
+        data["root"]["size"],
+        data["hash"],
+        data.get("membership_proof"),
+    )
+    ok_consistency = _verify_consistency_proof(
+        data["root"]["tree_name"], data["leaf_index"]
+    )
+
+    all_ok = ok_hash is True and ok_membership is True and ok_consistency is True
+    any_failed = ok_hash is False or ok_membership is False or ok_consistency is False
+
+    if counter:
+        formatter.indent = 0
+
+    if all_ok:
+        return True
+    elif any_failed:
+        return False
+    else:
+        return None
+
+
+def main():
+    handler = logging.StreamHandler()
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    logger.setLevel(logging.DEBUG)
+
+    i = 1
+    fin = sys.stdin
+
+    parser = argparse.ArgumentParser(description="Pangea Audit Verifier")
+    parser.add_argument(
+        "--file",
+        "-f",
+        type=argparse.FileType("r"),
+        default=sys.stdin,
+        metavar="PATH",
+        help="Input file (default: standard input).",
+    )
+    args = parser.parse_args()
+
+    data = json.load(args.file)
+    events = data.get("result", {}).get("events", [])
+
+    logger.info("Pangea Audit - Verification Tool")
+    logger.info("")
+
+    status = (
+        verify_multiple(data["result"]["root"], events)
+        if events
+        else verify_single(data)
+    )
+
+    logger.info("")
+    if status is True:
+        logger.info("🟢 Verification succeeded 🟢")
+    elif status is False:
+        logger.info("🔴 Verification failed 🔴")
+    else:
+        logger.info("⚪️ Verification could not be finished ⚪️")
+    logger.info("")
+
+    return 0 if status is not False else 1
+
+
+if __name__ == "__main__":
+    main()
