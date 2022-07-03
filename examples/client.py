@@ -1,11 +1,11 @@
 import os
 
-from pangea.client import Client
+from pangea.client import PangeaClient
 from pangea.config import PangeaConfig
 
 token = os.getenv("PANGEA_TOKEN")
 config = PangeaConfig(base_domain="dev.pangea.cloud")
-client = Client(token, config=config)
+client = PangeaClient(token=token)
 
 # Search the audit log
 search_term = "reboot"

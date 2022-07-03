@@ -3,8 +3,6 @@
 import json
 import logging
 import time
-import typing as t
-from urllib import request
 
 import requests
 from requests.adapters import HTTPAdapter, Retry
@@ -99,14 +97,14 @@ class PangeaRequest(object):
         )
 
         adapter = HTTPAdapter(max_retries=retry_config)
-        request = requests.Session()
+        session = requests.Session()
 
         if self.config.insecure:
-            request.mount("http://", adapter)
+            session.mount("http://", adapter)
         else:
-            request.mount("https://", adapter)
+            session.mount("https://", adapter)
 
-        return request
+        return session
 
     def _url(self, path: str) -> str:
         protocol = "http://" if self.config.insecure else "https://"

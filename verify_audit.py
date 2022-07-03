@@ -13,8 +13,7 @@ import argparse
 import json
 import logging
 import sys
-from dataclasses import dataclass
-from typing import Optional
+from typing import Dict, Optional
 
 from pangea.services.audit_util import (
     canonicalize_log,
@@ -28,7 +27,7 @@ from pangea.services.audit_util import (
 )
 
 logger = logging.getLogger("audit")
-pub_roots: dict[int, dict] = {}
+pub_roots: Dict[int, dict] = {}
 
 
 class VerifierLogFormatter(logging.Formatter):
@@ -38,7 +37,6 @@ class VerifierLogFormatter(logging.Formatter):
         self.in_section = False
 
     def format(self, record):
-        indent = self.indent
 
         if hasattr(record, "is_result"):
             if record.succeeded:
@@ -81,7 +79,6 @@ formatter = VerifierLogFormatter()
 
 def _verify_hash(data: dict, data_hash: str) -> Optional[bool]:
     log_section("Checking data hash")
-    error_msg = ""
     try:
         logger.debug("Canonicalizing data")
         data_canon = canonicalize_log(data)
@@ -221,9 +218,6 @@ def main():
     handler.setFormatter(formatter)
     logger.addHandler(handler)
     logger.setLevel(logging.DEBUG)
-
-    i = 1
-    fin = sys.stdin
 
     parser = argparse.ArgumentParser(description="Pangea Audit Verifier")
     parser.add_argument(

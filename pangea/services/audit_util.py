@@ -7,7 +7,7 @@ import logging
 from binascii import hexlify, unhexlify
 from dataclasses import dataclass
 from hashlib import sha256
-from typing import List, Optional
+from typing import Dict, List
 
 import requests
 
@@ -97,11 +97,11 @@ def hash_data(data: bytes) -> str:
     return sha256(data).hexdigest()
 
 
-def base64url_decode(input):
-    rem = len(input) % 4
+def base64url_decode(input_parameter):
+    rem = len(input_parameter) % 4
     if rem > 0:
-        input += "=" * (4 - rem)
-    return base64.urlsafe_b64decode(input)
+        input_parameter += "=" * (4 - rem)
+    return base64.urlsafe_b64decode(input_parameter)
 
 
 def arweave_transaction_url(trans_id: str):
@@ -113,7 +113,7 @@ def arweave_graphql_url():
     return f"{ARWEAVE_BASE_URL}/graphql"
 
 
-def get_arweave_published_roots(tree_name: str, tree_sizes: List[int]) -> dict[int, dict]:
+def get_arweave_published_roots(tree_name: str, tree_sizes: List[int]) -> Dict[int, dict]:
     if len(tree_sizes) == 0:
         return {}
 
@@ -122,7 +122,7 @@ def get_arweave_published_roots(tree_name: str, tree_sizes: List[int]) -> dict[i
     query = """
     {
         transactions(
-  			tags: [
+          tags: [
                 {
                     name: "tree_size"
                     values: [{tree_sizes}]
@@ -131,7 +131,7 @@ def get_arweave_published_roots(tree_name: str, tree_sizes: List[int]) -> dict[i
                     name: "tree_name"
                     values: ["{tree_name}"]
                 }
-    	    ]
+            ]
         ) {
             edges {
                 node {
@@ -155,8 +155,9 @@ def get_arweave_published_roots(tree_name: str, tree_sizes: List[int]) -> dict[i
         logger.error(f"Error querying Arweave: {resp.reason}")
         return {}
 
-    ans: dict[int, dict] = {}
+    ans: Dict[int, dict] = {}
     data = resp.json()
+    tree_size = None
     for edge in data.get("data", {}).get("transactions", {}).get("edges", []):
         try:
             node_id = edge.get("node").get("id")

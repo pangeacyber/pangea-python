@@ -10,7 +10,7 @@ audit = Audit(token, config=config)
 
 data = {
     "action": "reboot",
-    "actor": "villan",
+    "actor": "villain",
     "target": "world",
     "status": "error",
     "message": "test",
@@ -78,7 +78,8 @@ def print_page_results(pub_roots, search_res):
         membership = membership_verification(audit, root, row)
         consistency = consistency_verification(audit, pub_roots, row)
         print(
-            f"{row.event.message}\t{row.event.created}\t{row.event.source}\t{row.event.actor}\t\t{membership}{consistency}"
+            f"{row.event.message}\t{row.event.created}\t{row.event.source}"
+            f"\t{row.event.actor}\t\t{membership}{consistency}"
         )
     print(
         f"\nResults: {search_res.count} of {search_res.total} - next {search_res.next()}",

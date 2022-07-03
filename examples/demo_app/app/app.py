@@ -82,7 +82,7 @@ class App:
                 "actor": user,
                 "target": candidate.personal_email,
                 "status": "error",
-                "message": f"Resume denied - sactioned country from {client_ip}",
+                "message": f"Resume denied - sanctioned country from {client_ip}",
                 "source": "web",
             }
             resp = self._pangea_audit.log(input=audit_data)

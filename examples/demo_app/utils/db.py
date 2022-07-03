@@ -7,6 +7,7 @@ from utils.employee import Employee, EmployeeStatus
 class Db:
     def __init__(self):
         self.init()
+        self._conn = None
 
     def init(self):
         """Connects to the database"""
@@ -66,13 +67,13 @@ class Db:
     def add_employee(self, emp: Employee) -> bool:
         """Adds new employee entry
         Args:
-            [in] emp - The employee entry.  These are required fields:
-                                * first_name
-                                * last_name
-                                * personal_email
-                                * date_of_birth
-                                * ssn
-                                * status
+            * emp - The employee entry.  These are required fields:
+                                - first_name
+                                - last_name
+                                - personal_email
+                                - date_of_birth
+                                - ssn
+                                - status
         Returns: bool
         """
         query = (

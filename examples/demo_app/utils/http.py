@@ -63,9 +63,6 @@ class HttpHandler(BaseHTTPRequestHandler):
     def _route(self, path: str, user: str, client_ip: str = "", data: dict = None) -> (int, dict):
 
         app = App()
-        status = ""
-        code = 200
-
         path_tok = path.split("/")
 
         try:
