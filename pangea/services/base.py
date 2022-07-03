@@ -1,8 +1,8 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 
-from pangea.request import PangeaRequest
 from pangea.config import PangeaConfig
+from pangea.request import PangeaRequest
 
 
 class ServiceBase(object):

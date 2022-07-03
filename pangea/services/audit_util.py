@@ -4,13 +4,12 @@
 import base64
 import json
 import logging
-from typing import Optional
 from binascii import hexlify, unhexlify
 from dataclasses import dataclass
 from hashlib import sha256
-import requests
-from typing import List
+from typing import List, Optional
 
+import requests
 
 Hash = bytes
 
@@ -77,16 +76,10 @@ def decode_consistency_proof(data: List[str]) -> ConsistencyProof:
     return root_proof
 
 
-def verify_membership_proof(
-    node_hash: Hash, root_hash: Hash, proof: MembershipProof
-) -> bool:
+def verify_membership_proof(node_hash: Hash, root_hash: Hash, proof: MembershipProof) -> bool:
     for proof_item in proof:
         proof_hash = proof_item.node_hash
-        node_hash = (
-            hash_pair(proof_hash, node_hash)
-            if proof_item.side == "left"
-            else hash_pair(node_hash, proof_hash)
-        )
+        node_hash = hash_pair(proof_hash, node_hash) if proof_item.side == "left" else hash_pair(node_hash, proof_hash)
     return root_hash == node_hash
 
 
@@ -120,15 +113,11 @@ def arweave_graphql_url():
     return f"{ARWEAVE_BASE_URL}/graphql"
 
 
-def get_arweave_published_roots(
-    tree_name: str, tree_sizes: List[int]
-) -> dict[int, dict]:
+def get_arweave_published_roots(tree_name: str, tree_sizes: List[int]) -> dict[int, dict]:
     if len(tree_sizes) == 0:
         return {}
 
-    logger.debug(
-        f"Querying Arweave for published roots of sizes: {', '.join(map(str, tree_sizes))}"
-    )
+    logger.debug(f"Querying Arweave for published roots of sizes: {', '.join(map(str, tree_sizes))}")
 
     query = """
     {
@@ -172,9 +161,7 @@ def get_arweave_published_roots(
         try:
             node_id = edge.get("node").get("id")
             tree_size = next(
-                tag.get("value")
-                for tag in edge.get("node").get("tags", [])
-                if tag.get("name") == "tree_size"
+                tag.get("value") for tag in edge.get("node").get("tags", []) if tag.get("name") == "tree_size"
             )
 
             url = arweave_transaction_url(node_id)
@@ -183,24 +170,18 @@ def get_arweave_published_roots(
             # TODO: do all the requests concurrently
             resp2 = requests.get(url)
             if resp2.status_code != 200:
-                logger.error(
-                    f"Error fetching published root for size {tree_size}: {resp2.reason}"
-                )
+                logger.error(f"Error fetching published root for size {tree_size}: {resp2.reason}")
             elif resp2.text == "Pending":
                 logger.warning(f"Published root for size {tree_size} is pending")
             else:
                 ans[int(tree_size)] = json.loads(resp2.text)
         except Exception as e:
-            logger.error(
-                f"Error decoding published root for size {tree_size}: {str(e)}"
-            )
+            logger.error(f"Error decoding published root for size {tree_size}: {str(e)}")
 
     return ans
 
 
-def verify_consistency_proof(
-    new_root: Hash, prev_root: Hash, proof: ConsistencyProof
-) -> bool:
+def verify_consistency_proof(new_root: Hash, prev_root: Hash, proof: ConsistencyProof) -> bool:
 
     # check the prev_root
     logger.debug("Calculating the proof for the old root")

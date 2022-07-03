@@ -1,4 +1,5 @@
 import os
+
 from pangea.config import PangeaConfig
 from pangea.services import Audit
 
@@ -26,8 +27,6 @@ if search_res.success:
     print("Search Request ID", search_res.request_id)
 
     for row in search_res.result.audits:
-        print(
-            f"{row.id}\t{row.created}\t{row.actor}\t{row.action}\t{row.target}\t{row.status}"
-        )
+        print(f"{row.id}\t{row.created}\t{row.actor}\t{row.action}\t{row.target}\t{row.status}")
 else:
     print("Search Failed:", search_res.code, search_res.status)

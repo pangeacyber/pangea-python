@@ -1,7 +1,7 @@
 import os
+
 from pangea.config import PangeaConfig
 from pangea.services import Tester
-
 
 token = os.getenv("PANGEA_TOKEN")
 config = PangeaConfig(base_domain="dev.pangea.cloud")

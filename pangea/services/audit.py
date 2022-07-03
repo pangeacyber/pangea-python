@@ -1,17 +1,16 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 
-import typing as t
 import json
+import typing as t
 
 from pangea.response import JSONObject, PangeaResponse
-from .base import ServiceBase
 
 from .audit_util import (
     canonicalize_log,
+    decode_consistency_proof,
     decode_hash,
     decode_membership_proof,
-    decode_consistency_proof,
     get_arweave_published_roots,
     hash_data,
     verify_consistency_proof,
@@ -211,9 +210,7 @@ class Audit(ServiceBase):
         else:
             return self.search(**params)
 
-    def update_published_roots(
-        self, pub_roots: dict[int, t.Optional[JSONObject]], result: JSONObject
-    ):
+    def update_published_roots(self, pub_roots: dict[int, t.Optional[JSONObject]], result: JSONObject):
         tree_sizes = set()
         for audit in result.events:
             leaf_index = audit.get("leaf_index")
@@ -225,9 +222,7 @@ class Audit(ServiceBase):
 
         tree_sizes.difference_update(pub_roots.keys())
         if tree_sizes:
-            arweave_roots = get_arweave_published_roots(
-                result.root.tree_name, list(tree_sizes) + [result.root.size]
-            )
+            arweave_roots = get_arweave_published_roots(result.root.tree_name, list(tree_sizes) + [result.root.size])
         else:
             arweave_roots = {}
 
@@ -264,9 +259,7 @@ class Audit(ServiceBase):
         leaf_index = event.get("leaf_index")
         return leaf_index is not None and leaf_index > 0
 
-    def verify_consistency_proof(
-        self, pub_roots: dict[int, t.Optional[JSONObject]], event: JSONObject
-    ) -> bool:
+    def verify_consistency_proof(self, pub_roots: dict[int, t.Optional[JSONObject]], event: JSONObject) -> bool:
         leaf_index = event["leaf_index"]
         curr_root = pub_roots.get(leaf_index + 1)
         prev_root = pub_roots.get(leaf_index)
@@ -274,9 +267,7 @@ class Audit(ServiceBase):
         if not curr_root or not prev_root:
             return False
 
-        if not self.allow_server_roots and (
-            curr_root.source != "arweave" or prev_root.source != "arweave"
-        ):
+        if not self.allow_server_roots and (curr_root.source != "arweave" or prev_root.source != "arweave"):
             return False
 
         curr_root_hash = decode_hash(curr_root.root_hash)

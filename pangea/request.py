@@ -1,13 +1,12 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
-import typing as t
-
-import logging
-from urllib import request
-import requests
 import json
+import logging
 import time
+import typing as t
+from urllib import request
 
+import requests
 from requests.adapters import HTTPAdapter, Retry
 
 import pangea
@@ -57,9 +56,7 @@ class PangeaRequest(object):
     def post(self, endpoint: str = "", data: dict = {}) -> PangeaResponse:
         url = self._url(endpoint)
 
-        requests_response = self.request.post(
-            url, headers=self._headers(), data=json.dumps(data)
-        )
+        requests_response = self.request.post(url, headers=self._headers(), data=json.dumps(data))
 
         if self._async and requests_response.status_code == 202:
             response_json = requests_response.json()

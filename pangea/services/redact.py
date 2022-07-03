@@ -5,9 +5,11 @@ import enum
 import typing as t
 
 from pangea.response import PangeaResponse
+
 from .base import ServiceBase
 
 ConfigIDHeaderName = "X-Pangea-Redact-Config-ID"
+
 
 class RedactFormat(str, enum.Enum):
     JSON = "json"
@@ -34,9 +36,7 @@ class Redact(ServiceBase):
         """
         return self.request.post("redact", data={"text": text, "debug": debug})
 
-    def redact_structured(
-        self, obj: t.Any, format: RedactFormat = RedactFormat.JSON, debug=False
-    ) -> PangeaResponse:
+    def redact_structured(self, obj: t.Any, format: RedactFormat = RedactFormat.JSON, debug=False) -> PangeaResponse:
         """
         Redacts text within a structured object
 
@@ -46,6 +46,4 @@ class Redact(ServiceBase):
 
         :returns: Pangea Response with redacted data
         """
-        return self.request.post(
-            "redact_structured", data={"data": obj, "format": format, "debug": debug}
-        )
+        return self.request.post("redact_structured", data={"data": obj, "format": format, "debug": debug})

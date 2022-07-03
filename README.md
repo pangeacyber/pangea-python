@@ -42,7 +42,7 @@ if response.success:
     )
     for row in response.result.audits:
         print(f"{row.created}\t{row.actor}\t{row.action}\t{row.target}\t{row.status}")
-        
+
 else:
     print("Search Failed:", response.code, response.status)
 ```

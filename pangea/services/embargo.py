@@ -1,6 +1,7 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 from pangea.response import PangeaResponse
+
 from .base import ServiceBase
 
 
@@ -15,7 +16,7 @@ class Embargo(ServiceBase):
         Check this IP against known sanction and trade embargo lists.
 
         Args:
-            ip (str): Geolocate this IP and check the corresponding country against the enabled embargo lists. Accepts both IPV4 and IPV6 strings. 
+            ip (str): Geolocate this IP and check the corresponding country against the enabled embargo lists. Accepts both IPV4 and IPV6 strings.
 
         Returns:
             A PangeaResponse.

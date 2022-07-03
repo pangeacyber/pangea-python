@@ -1,5 +1,5 @@
 # Pangea Demo App
-This is a Demo App to provide example usage of the Pangea python-sdk.  
+This is a Demo App to provide example usage of the Pangea python-sdk.
 
 The Demo App sets up a local sqlite DB and a runs a simple web server on localhost.
 
@@ -33,7 +33,7 @@ Body: {}
 
 ### Submitting a Resume
 To upload a resume:
-- Make sure to set the HEADER key "ClientIPAddress" to simulate call originating from an external user's IP.  This is to test the Embargo service.  Ex: '175.45.176.1' submission will be rejected due to sanctions. 
+- Make sure to set the HEADER key "ClientIPAddress" to simulate call originating from an external user's IP.  This is to test the Embargo service.  Ex: '175.45.176.1' submission will be rejected due to sanctions.
 
 ```
 POST http://localhost:8080/upload_resume
@@ -43,7 +43,7 @@ Authorization: Basic user@gmail.com password
 Header:
     "ClientIPAddress" : "1.1.1.1"
 
-Body: 
+Body:
 {
         "first_name" : "Alan",
         "last_name" : "Smith",

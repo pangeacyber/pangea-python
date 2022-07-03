@@ -1,5 +1,5 @@
 """
-Command-line tool for verifying audits. 
+Command-line tool for verifying audits.
 
 Usage: python verify_audit.py [-f filename]
 
@@ -9,21 +9,22 @@ You can provide a single event (obtained from the PUC) or the result from a sear
 In the latter case, all the events are verified.
 """
 
-from dataclasses import dataclass
-import json
-import sys
-from typing import Optional
-import logging
 import argparse
+import json
+import logging
+import sys
+from dataclasses import dataclass
+from typing import Optional
+
 from pangea.services.audit_util import (
     canonicalize_log,
-    hash_data,
-    get_arweave_published_roots,
-    verify_consistency_proof,
-    verify_membership_proof,
+    decode_consistency_proof,
     decode_hash,
     decode_membership_proof,
-    decode_consistency_proof,
+    get_arweave_published_roots,
+    hash_data,
+    verify_consistency_proof,
+    verify_membership_proof,
 )
 
 logger = logging.getLogger("audit")
@@ -101,9 +102,7 @@ def _verify_hash(data: dict, data_hash: str) -> Optional[bool]:
     return succeeded
 
 
-def _verify_membership_proof(
-    tree_name: str, tree_size: int, node_hash: str, proof: Optional[str]
-) -> Optional[bool]:
+def _verify_membership_proof(tree_name: str, tree_size: int, node_hash: str, proof: Optional[str]) -> Optional[bool]:
     global pub_roots
 
     log_section("Checking membership proof")
@@ -115,12 +114,7 @@ def _verify_membership_proof(
         try:
             logger.debug("Fetching published roots from Arweave")
             if tree_size not in pub_roots:
-                pub_roots |= {
-                    int(k): v
-                    for k, v in get_arweave_published_roots(
-                        tree_name, [tree_size]
-                    ).items()
-                }
+                pub_roots |= {int(k): v for k, v in get_arweave_published_roots(tree_name, [tree_size]).items()}
             if tree_size not in pub_roots:
                 raise ValueError("Published root could was not found")
 
@@ -139,9 +133,7 @@ def _verify_membership_proof(
     return succeeded
 
 
-def _verify_consistency_proof(
-    tree_name: str, leaf_index: Optional[int]
-) -> Optional[bool]:
+def _verify_consistency_proof(tree_name: str, leaf_index: Optional[int]) -> Optional[bool]:
     global pub_roots
 
     log_section("Checking consistency proof")
@@ -157,10 +149,7 @@ def _verify_consistency_proof(
         try:
             logger.debug("Fetching published roots from Arweave")
             pub_roots |= {
-                int(k): v
-                for k, v in get_arweave_published_roots(
-                    tree_name, [leaf_index + 1, leaf_index]
-                ).items()
+                int(k): v for k, v in get_arweave_published_roots(tree_name, [leaf_index + 1, leaf_index]).items()
             }
             if leaf_index + 1 not in pub_roots or leaf_index not in pub_roots:
                 raise ValueError("Published roots could not be retrieved")
@@ -211,9 +200,7 @@ def verify_single(data: dict, counter: Optional[int] = None) -> Optional[bool]:
         data["hash"],
         data.get("membership_proof"),
     )
-    ok_consistency = _verify_consistency_proof(
-        data["root"]["tree_name"], data["leaf_index"]
-    )
+    ok_consistency = _verify_consistency_proof(data["root"]["tree_name"], data["leaf_index"])
 
     all_ok = ok_hash is True and ok_membership is True and ok_consistency is True
     any_failed = ok_hash is False or ok_membership is False or ok_consistency is False
@@ -255,11 +242,7 @@ def main():
     logger.info("Pangea Audit - Verification Tool")
     logger.info("")
 
-    status = (
-        verify_multiple(data["result"]["root"], events)
-        if events
-        else verify_single(data)
-    )
+    status = verify_multiple(data["result"]["root"], events) if events else verify_single(data)
 
     logger.info("")
     if status is True:
