@@ -42,7 +42,16 @@ if response.success:
     )
     for row in response.result.audits:
         print(f"{row.created}\t{row.actor}\t{row.action}\t{row.target}\t{row.status}")
-        
+
 else:
     print("Search Failed:", response.code, response.status)
 ```
+
+
+## Contributing
+
+Currently, the setup scripts only have support for Mac/ZSH environments.
+Future support is incoming.
+
+To install our linters, simply run `./dev/setup_repo.sh`
+These linters will run on every `git commit` operation.

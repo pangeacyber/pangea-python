@@ -11,7 +11,7 @@ class PangeaConfig:
     config_id: str = ""
 
     """
-    Set to true to use plian http
+    Set to true to use plain http
     """
     insecure: bool = False
 
@@ -31,7 +31,7 @@ class PangeaConfig:
     request_timeout: int = 5
 
     """
-    Enale asynchronous request support
+    Enable asynchronous request support
     """
     async_enabled: bool = True
 

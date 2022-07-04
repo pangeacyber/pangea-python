@@ -1,13 +1,10 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
-import typing as t
-
-import logging
-from urllib import request
-import requests
 import json
+import logging
 import time
 
+import requests
 from requests.adapters import HTTPAdapter, Retry
 
 import pangea
@@ -57,9 +54,7 @@ class PangeaRequest(object):
     def post(self, endpoint: str = "", data: dict = {}) -> PangeaResponse:
         url = self._url(endpoint)
 
-        requests_response = self.request.post(
-            url, headers=self._headers(), data=json.dumps(data)
-        )
+        requests_response = self.request.post(url, headers=self._headers(), data=json.dumps(data))
 
         if self._async and requests_response.status_code == 202:
             response_json = requests_response.json()
@@ -102,14 +97,14 @@ class PangeaRequest(object):
         )
 
         adapter = HTTPAdapter(max_retries=retry_config)
-        request = requests.Session()
+        session = requests.Session()
 
         if self.config.insecure:
-            request.mount("http://", adapter)
+            session.mount("http://", adapter)
         else:
-            request.mount("https://", adapter)
+            session.mount("https://", adapter)
 
-        return request
+        return session
 
     def _url(self, path: str) -> str:
         protocol = "http://" if self.config.insecure else "https://"

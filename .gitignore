@@ -19,3 +19,6 @@ eggs/
 .env
 .venv
 env/
+
+# editors
+.idea

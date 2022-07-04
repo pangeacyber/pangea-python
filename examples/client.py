@@ -1,10 +1,11 @@
 import os
+
+from pangea.client import PangeaClient
 from pangea.config import PangeaConfig
-from pangea.client import Client
 
 token = os.getenv("PANGEA_TOKEN")
 config = PangeaConfig(base_domain="dev.pangea.cloud")
-client = Client(token, config=config)
+client = PangeaClient(token=token)
 
 # Search the audit log
 search_term = "reboot"
@@ -12,9 +13,7 @@ search_resp = client.audit.search(search_term)
 
 print(f'Audit Search for "{search_term}"')
 for row in search_resp.result.audits:
-    print(
-        f"{row.id}\t{row.created}\t{row.actor}\t{row.action}\t{row.target}\t{row.status}"
-    )
+    print(f"{row.id}\t{row.created}\t{row.actor}\t{row.action}\t{row.target}\t{row.status}")
 print("\n\n")
 
 # Geolocate an IP Address
