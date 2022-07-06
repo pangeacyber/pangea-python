@@ -1,11 +1,18 @@
 # Pangea Demo App
-This is a Demo App to provide example usage of the Pangea python-sdk.  
+This is a Demo App to provide example usage of the Pangea python-sdk.
 
 The Demo App sets up a local sqlite DB and a runs a simple web server on localhost.
 
 The App simulates an HR application that allows a user to upload resumes, retrieve employee records, and update employee records.
 
 ## Usage
+
+### Environment Setup
+Set the following environment variables:
+- `PANGEA_TOKEN`
+- `EMBARGO_CONFIG_ID`
+- `REDACT_CONFIG_ID`
+- `AUDIT_CONFIG_ID`
 
 ### Main App Startup
 ```
@@ -26,7 +33,7 @@ Body: {}
 
 ### Submitting a Resume
 To upload a resume:
-- Make sure to set the HEADER key "ClientIPAddress" to simulate call originating from an external user's IP.  This is to test the Embargo service.  Ex: '175.45.176.1' submission will be rejected due to sanctions. 
+- Make sure to set the HEADER key "ClientIPAddress" to simulate call originating from an external user's IP.  This is to test the Embargo service.  Ex: '175.45.176.1' submission will be rejected due to sanctions.
 
 ```
 POST http://localhost:8080/upload_resume
@@ -36,16 +43,14 @@ Authorization: Basic user@gmail.com password
 Header:
     "ClientIPAddress" : "1.1.1.1"
 
-Body: 
+Body:
 {
-    "data": {
         "first_name" : "Alan",
         "last_name" : "Smith",
         "email" : "alan.smith@gmail.com",
         "phone" : "408-555-1212",
-        "dob" : "June 28, 1999",
+        "dob" : "06-28-1999",
         "ssn" : "123-44-6789"
-    }
 }
 ```
 
@@ -69,10 +74,10 @@ Authorization: Basic manager@acme.com password
 Body:
 {
     "email" : "alan.smith@gmail.com",
-    "start_date" : "July 1, 2022",
+    "start_date" : "07-01-2022",
     "department" : "sales",
-    "salary" : "100000",
-    "status" : "contractor",
+    "salary" : 100000,
+    "status" : 4,
     "company_email" : "alan.smith@acme.com"
 }
 ```
@@ -82,10 +87,10 @@ Body:
 Debug logs for the App are written to `myapp.log` in the `example/demo_app/` directory.
 
 ### Sqlite DB
-`my-test.db` is created in the `example/demo_app/` directory.  To test in sqlite3 tool:
+`demo-app.db` is created in the `example/demo_app/` directory.  To test in sqlite3 tool:
 
 ```
-sqlite3 my-test.db
+sqlite3 demo-app.db
 ```
 
 ## References

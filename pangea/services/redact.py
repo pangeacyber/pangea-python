@@ -5,7 +5,10 @@ import enum
 import typing as t
 
 from pangea.response import PangeaResponse
+
 from .base import ServiceBase
+
+ConfigIDHeaderName = "X-Pangea-Redact-Config-ID"
 
 
 class RedactFormat(str, enum.Enum):
@@ -16,6 +19,12 @@ class Redact(ServiceBase):
     service_name = "redact"
     version = "v1"
     config_id_header = "X-Pangea-Redact-Config-ID"
+
+    def __init__(self, token, config=None):
+        super().__init__(token, config)
+
+        if self.config.config_id:
+            self.request.set_extra_headers({ConfigIDHeaderName: self.config.config_id})
 
     def redact(self, text: str, debug=False) -> PangeaResponse:
         """
@@ -29,17 +38,15 @@ class Redact(ServiceBase):
         return self.request.post("redact", data={"text": text, "debug": debug})
 
     def redact_structured(
-        self, obj: t.Any, format: RedactFormat = RedactFormat.JSON, debug=False
+        self, obj: t.Any, redact_format: RedactFormat = RedactFormat.JSON, debug=False
     ) -> PangeaResponse:
         """
         Redacts text within a structured object
 
-        :param data: The data that should be redacted
-        :param format: The format of the passed data
+        :param obj: The object that should be redacted
+        :param redact_format: The format of the passed data
         :param debug: Return debug output?
 
         :returns: Pangea Response with redacted data
         """
-        return self.request.post(
-            "redact_structured", data={"data": obj, "format": format, "debug": debug}
-        )
+        return self.request.post("redact_structured", data={"data": obj, "format": redact_format, "debug": debug})
