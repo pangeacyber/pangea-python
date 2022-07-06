@@ -9,6 +9,7 @@ class ServiceBase(object):
     service_name = "base"
     version = "v1"
     service_config = None
+    config_id_header = ""
 
     def __init__(self, token, config=None):
         if not token:
@@ -22,6 +23,11 @@ class ServiceBase(object):
             self.version,
             self.service_name,
         )
+
+        if self.config.config_id and self.config_id_header:
+            self.request.set_extra_headers(
+                {self.config_id_header: self.config.config_id}
+            )
 
     @property
     def token(self):

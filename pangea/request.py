@@ -1,5 +1,6 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+
 import json
 import logging
 import time
@@ -54,7 +55,9 @@ class PangeaRequest(object):
     def post(self, endpoint: str = "", data: dict = {}) -> PangeaResponse:
         url = self._url(endpoint)
 
-        requests_response = self.request.post(url, headers=self._headers(), data=json.dumps(data))
+        requests_response = self.request.post(
+            url, headers=self._headers(), data=json.dumps(data)
+        )
 
         if self._async and requests_response.status_code == 202:
             response_json = requests_response.json()
@@ -79,14 +82,14 @@ class PangeaRequest(object):
         return pangea_response
 
     def _handle_async(self, request_id: str) -> PangeaResponse:
-        retry_count = 0
+        retry_count = 1
 
         while True:
+            time.sleep(retry_count * retry_count)
             pangea_response = self.get("request", request_id)
 
-            if pangea_response.code == 202 and retry_count < self.async_retries:
+            if pangea_response.code == 202 and retry_count <= self.async_retries:
                 retry_count += 1
-                time.sleep(retry_count * retry_count)
             else:
                 return pangea_response
 

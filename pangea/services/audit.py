@@ -5,6 +5,7 @@ import json
 import typing as t
 
 from pangea.response import JSONObject, PangeaResponse
+from .base import ServiceBase
 
 from .audit_util import (
     decode_consistency_proof,
@@ -14,9 +15,6 @@ from .audit_util import (
     verify_consistency_proof,
     verify_membership_proof,
 )
-from .base import ServiceBase
-
-ConfigIDHeaderName = "X-Pangea-Audit-Config-ID"
 
 SupportedFields = [
     "actor",
@@ -74,16 +72,12 @@ class Audit(ServiceBase):
     response_class = AuditSearchResponse
     service_name = "audit"
     version = "v1"
+    config_id_header = "X-Pangea-Audit-Config-ID"
+
     # In case of Arweave failure, ask the server for the roots
     allow_server_roots = True
 
-    def __init__(self, token, config=None):
-        super().__init__(token, config)
-
-        if self.config.config_id:
-            self.request.set_extra_headers({ConfigIDHeaderName: self.config.config_id})
-
-    def log(self, input: dict, verify: bool = False) -> PangeaResponse:
+    def log(self, event: dict, verify: bool = False) -> PangeaResponse:
         """
         Log an entry
 
@@ -102,12 +96,12 @@ class Audit(ServiceBase):
         data: t.Dict[str, t.Any] = {"event": {}, "return_hash": True}
 
         for name in SupportedFields:
-            if name in input:
-                data["event"][name] = input[name]
+            if name in data:
+                data["event"][name] = event[name]
 
         for name in SupportedJSONFields:
-            if name in input:
-                data["event"][name] = json.dumps(input[name])
+            if name in event:
+                data["event"][name] = json.dumps(event[name])
 
         if "message" not in data["event"]:
             raise Exception(f"Error: missing required field, no `message` provided")
@@ -214,7 +208,9 @@ class Audit(ServiceBase):
         else:
             return self.search(**params)
 
-    def update_published_roots(self, pub_roots: t.Dict[int, t.Optional[JSONObject]], result: JSONObject):
+    def update_published_roots(
+        self, pub_roots: t.Dict[int, t.Optional[JSONObject]], result: JSONObject
+    ):
         tree_sizes = set()
         for audit in result.events:
             leaf_index = audit.get("leaf_index")
@@ -226,7 +222,9 @@ class Audit(ServiceBase):
 
         tree_sizes.difference_update(pub_roots.keys())
         if tree_sizes:
-            arweave_roots = get_arweave_published_roots(result.root.tree_name, list(tree_sizes) + [result.root.size])
+            arweave_roots = get_arweave_published_roots(
+                result.root.tree_name, list(tree_sizes) + [result.root.size]
+            )
         else:
             arweave_roots = {}
 
@@ -263,7 +261,9 @@ class Audit(ServiceBase):
         leaf_index = event.get("leaf_index")
         return leaf_index is not None and leaf_index > 0
 
-    def verify_consistency_proof(self, pub_roots: t.Dict[int, t.Optional[JSONObject]], event: JSONObject) -> bool:
+    def verify_consistency_proof(
+        self, pub_roots: t.Dict[int, t.Optional[JSONObject]], event: JSONObject
+    ) -> bool:
         leaf_index = event["leaf_index"]
         curr_root = pub_roots.get(leaf_index + 1)
         prev_root = pub_roots.get(leaf_index)
@@ -271,7 +271,9 @@ class Audit(ServiceBase):
         if not curr_root or not prev_root:
             return False
 
-        if not self.allow_server_roots and (curr_root.source != "arweave" or prev_root.source != "arweave"):
+        if not self.allow_server_roots and (
+            curr_root.source != "arweave" or prev_root.source != "arweave"
+        ):
             return False
 
         curr_root_hash = decode_hash(curr_root.root_hash)

@@ -18,6 +18,7 @@ class RedactFormat(str, enum.Enum):
 class Redact(ServiceBase):
     service_name = "redact"
     version = "v1"
+    config_id_header = "X-Pangea-Redact-Config-ID"
 
     def __init__(self, token, config=None):
         super().__init__(token, config)
