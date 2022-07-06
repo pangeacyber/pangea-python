@@ -71,6 +71,23 @@ class AuditSearchResponse(object):
 
 
 class Audit(ServiceBase):
+    """
+    Examples:
+        import os
+
+        # Pangea SDK
+        from pangea.config import PangeaConfig
+        from pangea.services import Audit
+
+        PANGEA_TOKEN = os.getenv("PANGEA_TOKEN")
+        AUDIT_CONFIG_ID = os.getenv("AUDIT_CONFIG_ID")
+
+        audit_config = PangeaConfig(base_domain="dev.pangea.cloud", config_id=AUDIT_CONFIG_ID)
+
+        # Setup Pangea Audit service
+        audit = Audit(token=PANGEA_TOKEN, config=audit_config)
+    """
+
     response_class = AuditSearchResponse
     service_name = "audit"
     version = "v1"
@@ -94,7 +111,20 @@ class Audit(ServiceBase):
             verify (bool):
 
         Returns:
-          A PangeaResponse.
+            A PangeaResponse.
+
+        Examples:
+            audit_data = {
+                "action": "add_employee",
+                "actor": "Mariah Carey",
+                "target": "mariah@mariahcarey.com",
+                "status": "success",
+                "message": "Resume accepted",
+                "new": { "status": "employed" },
+                "source": "web",
+            }
+
+            response = audit.log(input=audit_data)
         """
 
         endpoint_name = "log"
@@ -145,6 +175,9 @@ class Audit(ServiceBase):
 
         Returns:
             An AuditSearchResponse.
+
+        Examples:
+            response = audit.search("Resume accepted", page_size=10)
         """
 
         endpoint_name = "search"
@@ -214,7 +247,9 @@ class Audit(ServiceBase):
         else:
             return self.search(**params)
 
-    def update_published_roots(self, pub_roots: t.Dict[int, t.Optional[JSONObject]], result: JSONObject):
+    def update_published_roots(
+        self, pub_roots: t.Dict[int, t.Optional[JSONObject]], result: JSONObject
+    ):
         tree_sizes = set()
         for audit in result.events:
             leaf_index = audit.get("leaf_index")
@@ -226,7 +261,9 @@ class Audit(ServiceBase):
 
         tree_sizes.difference_update(pub_roots.keys())
         if tree_sizes:
-            arweave_roots = get_arweave_published_roots(result.root.tree_name, list(tree_sizes) + [result.root.size])
+            arweave_roots = get_arweave_published_roots(
+                result.root.tree_name, list(tree_sizes) + [result.root.size]
+            )
         else:
             arweave_roots = {}
 
@@ -263,7 +300,9 @@ class Audit(ServiceBase):
         leaf_index = event.get("leaf_index")
         return leaf_index is not None and leaf_index > 0
 
-    def verify_consistency_proof(self, pub_roots: t.Dict[int, t.Optional[JSONObject]], event: JSONObject) -> bool:
+    def verify_consistency_proof(
+        self, pub_roots: t.Dict[int, t.Optional[JSONObject]], event: JSONObject
+    ) -> bool:
         leaf_index = event["leaf_index"]
         curr_root = pub_roots.get(leaf_index + 1)
         prev_root = pub_roots.get(leaf_index)
@@ -271,7 +310,9 @@ class Audit(ServiceBase):
         if not curr_root or not prev_root:
             return False
 
-        if not self.allow_server_roots and (curr_root.source != "arweave" or prev_root.source != "arweave"):
+        if not self.allow_server_roots and (
+            curr_root.source != "arweave" or prev_root.source != "arweave"
+        ):
             return False
 
         curr_root_hash = decode_hash(curr_root.root_hash)
@@ -280,6 +321,20 @@ class Audit(ServiceBase):
         return verify_consistency_proof(curr_root_hash, prev_root_hash, proof)
 
     def root(self, tree_size: int = 0) -> AuditSearchResponse:
+        """
+        Retrieve tamperproof verification
+
+        Returns current root hash and consistency proof.
+
+        Args:
+            tree_size (int): The size of the tree (the number of records)
+
+        Returns:
+            An AuditSearchResponse.
+
+        Examples:
+            response = audit.root(tree_size=7)
+        """
         endpoint_name = "root"
 
         data = {}
