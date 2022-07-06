@@ -16,6 +16,23 @@ class RedactFormat(str, enum.Enum):
 
 
 class Redact(ServiceBase):
+    """
+    Examples:
+        import os
+
+        # Pangea SDK
+        from pangea.config import PangeaConfig
+        from pangea.services import Redact
+
+        PANGEA_TOKEN = os.getenv("PANGEA_TOKEN")
+        REDACT_CONFIG_ID = os.getenv("REDACT_CONFIG_ID")
+
+        redact_config = PangeaConfig(base_domain="dev.pangea.cloud", config_id=REDACT_CONFIG_ID)
+
+        # Setup Pangea Redact service
+        redact = Redact(token=PANGEA_TOKEN, config=redact_config)
+    """
+
     service_name = "redact"
     version = "v1"
     config_id_header = "X-Pangea-Redact-Config-ID"
@@ -34,6 +51,8 @@ class Redact(ServiceBase):
         :param debug: Return debug output?
 
         :returns: Pangea Response with redacted text
+
+        :examples: response = redact.redact("Jenny Jenny... 415-867-5309")
         """
         return self.request.post("redact", data={"text": text, "debug": debug})
 
@@ -48,5 +67,10 @@ class Redact(ServiceBase):
         :param debug: Return debug output?
 
         :returns: Pangea Response with redacted data
+
+        :examples: response = redact.redact_structured(obj={ "number": "415-867-5309", "ip": "1.1.1.1" }, redact_format="json")
         """
-        return self.request.post("redact_structured", data={"data": obj, "format": redact_format, "debug": debug})
+        return self.request.post(
+            "redact_structured",
+            data={"data": obj, "format": redact_format, "debug": debug},
+        )

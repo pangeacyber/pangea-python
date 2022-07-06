@@ -6,6 +6,23 @@ from .base import ServiceBase
 
 
 class Embargo(ServiceBase):
+    """
+    Examples:
+        import os
+
+        # Pangea SDK
+        from pangea.config import PangeaConfig
+        from pangea.services import Embargo
+
+        PANGEA_TOKEN = os.getenv("PANGEA_TOKEN")
+        EMBARGO_CONFIG_ID = os.getenv("EMBARGO_CONFIG_ID")
+
+        embargo_config = PangeaConfig(base_domain="dev.pangea.cloud", config_id=EMBARGO_CONFIG_ID)
+
+        # Setup Pangea Embargo service
+        embargo = Embargo(token=PANGEA_TOKEN, config=embargo_config)
+    """
+
     service_name = "embargo"
     version = "v1"
 
@@ -21,6 +38,9 @@ class Embargo(ServiceBase):
 
         Returns:
             A PangeaResponse.
+
+        Examples:
+            response = embargo.check_ip("1.1.1.1")
         """
 
         return self.request.post("check", data={"ip": ip})
@@ -36,6 +56,9 @@ class Embargo(ServiceBase):
 
         Returns:
             A PangeaResponse.
+
+        Examples:
+            response = embargo.check_isocode("FR")
         """
 
         return self.request.post("check", data={"iso_code": iso_code})
