@@ -6,8 +6,8 @@ from utils.employee import Employee, EmployeeStatus
 
 class Db:
     def __init__(self):
-        self.init()
         self._conn = None
+        self.init()
 
     def init(self):
         """Connects to the database"""

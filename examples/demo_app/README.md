@@ -13,6 +13,11 @@ Set the following environment variables:
 - `EMBARGO_CONFIG_ID`
 - `REDACT_CONFIG_ID`
 - `AUDIT_CONFIG_ID`
+- `PANGEA_CSP` (ex: "aws" for AWS)
+
+### API Documentation
+
+Please view `openapi.json`
 
 ### Main App Startup
 ```

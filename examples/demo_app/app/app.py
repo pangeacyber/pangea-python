@@ -16,16 +16,16 @@ PANGEA_TOKEN = os.getenv("PANGEA_TOKEN")
 EMBARGO_CONFIG_ID = os.getenv("EMBARGO_CONFIG_ID")
 REDACT_CONFIG_ID = os.getenv("REDACT_CONFIG_ID")
 AUDIT_CONFIG_ID = os.getenv("AUDIT_CONFIG_ID")
-
+PANGEA_CSP = os.getenv("PANGEA_CSP")
 
 class App:
     """Demo app showing usage of Pangea SDK"""
 
     def __init__(self):
         self._db = self._db_instance()
-        self._embargo_config = PangeaConfig(base_domain="dev.pangea.cloud", config_id=EMBARGO_CONFIG_ID)
-        self._redact_config = PangeaConfig(base_domain="dev.pangea.cloud", config_id=REDACT_CONFIG_ID)
-        self._audit_config = PangeaConfig(base_domain="dev.pangea.cloud", config_id=AUDIT_CONFIG_ID)
+        self._embargo_config = PangeaConfig(base_domain=f"{PANGEA_CSP}.pangea.cloud", config_id=EMBARGO_CONFIG_ID)
+        self._redact_config = PangeaConfig(base_domain=f"{PANGEA_CSP}.pangea.cloud", config_id=REDACT_CONFIG_ID)
+        self._audit_config = PangeaConfig(base_domain=f"{PANGEA_CSP}.pangea.cloud", config_id=AUDIT_CONFIG_ID)
 
         # Setup Pangea Audit service
         self._pangea_audit = Audit(token=PANGEA_TOKEN, config=self._audit_config)
@@ -85,7 +85,7 @@ class App:
                 "message": f"Resume denied - sanctioned country from {client_ip}",
                 "source": "web",
             }
-            resp = self._pangea_audit.log(input=audit_data)
+            resp = self._pangea_audit.log(event=audit_data)
             if resp.success:
                 logging.info(f"[App.upload_resume] Audit log ID: {resp.request_id}, Success: {resp.status}")
             else:
@@ -120,7 +120,7 @@ class App:
                 "source": "web",
             }
 
-            resp = self._pangea_audit.log(input=audit_data)
+            resp = self._pangea_audit.log(event=audit_data)
             if resp.success:
                 logging.info(f"[App.upload_resume] Audit log ID: {resp.request_id}, Success: {resp.status}")
             else:
@@ -136,7 +136,7 @@ class App:
                 "message": f"Resume denied: {emp}",
                 "source": "web",
             }
-            resp = self._pangea_audit.log(input=audit_data)
+            resp = self._pangea_audit.log(event=audit_data)
             if resp.success:
                 logging.info(f"[App.upload_resume] Audit log ID: {resp.request_id}, Success: {resp.status}")
             else:
@@ -170,7 +170,7 @@ class App:
             "message": "Requested employee record",
             "source": "web",
         }
-        resp = self._pangea_audit.log(input=audit_data)
+        resp = self._pangea_audit.log(event=audit_data)
         if resp.success:
             logging.info(f"[App.fetch_employee_record] Audit log ID: {resp.request_id}, Success: {resp.status}")
         else:
@@ -242,7 +242,7 @@ class App:
                 "new": dataclasses.asdict(emp),
                 "source": "web",
             }
-            resp = self._pangea_audit.log(input=audit_data)
+            resp = self._pangea_audit.log(event=audit_data)
             if resp.success:
                 logging.info(f"[App.update_employee] Audit log ID: {resp.request_id}, Success: {resp.status}")
             else:
