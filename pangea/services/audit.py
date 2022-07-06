@@ -126,7 +126,7 @@ class Audit(ServiceBase):
         data: t.Dict[str, t.Any] = {"event": {}, "return_hash": True}
 
         for name in SupportedFields:
-            if name in data:
+            if name in event:
                 data["event"][name] = event[name]
 
         for name in SupportedJSONFields:
