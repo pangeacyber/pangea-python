@@ -15,6 +15,7 @@ class RedactFormat(str, enum.Enum):
 class Redact(ServiceBase):
     service_name = "redact"
     version = "v1"
+    config_id_header = "X-Pangea-Redact-Config-ID"
 
     def redact(self, text: str, debug=False) -> PangeaResponse:
         """

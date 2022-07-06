@@ -17,9 +17,6 @@ from .audit_util import (
     verify_consistency_proof,
     verify_membership_proof,
 )
-from .base import ServiceBase
-
-ConfigIDHeaderName = "X-Pangea-Audit-Config-ID"
 
 SupportedFields = [
     "actor",
@@ -77,23 +74,19 @@ class Audit(ServiceBase):
     response_class = AuditSearchResponse
     service_name = "audit"
     version = "v1"
+    config_id_header = "X-Pangea-Audit-Config-ID"
+
     # In case of Arweave failure, ask the server for the roots
     allow_server_roots = True
 
-    def __init__(self, token, config=None):
-        super().__init__(token, config)
-
-        if self.config.config_id:
-            self.request.set_extra_headers({ConfigIDHeaderName: self.config.config_id})
-
-    def log(self, input: dict, verify: bool = False) -> PangeaResponse:
+    def log(self, event: dict, verify: bool = False) -> PangeaResponse:
         """
         Log an entry
 
         Create a log entry in the Secure Audit Log.
 
         Args:
-            data (dict): A structured dict describing an auditable activity.
+            event (dict): A structured dict describing an auditable activity.
 
         Returns:
           A PangeaResponse.
@@ -104,12 +97,12 @@ class Audit(ServiceBase):
         data: dict[str, t.Any] = {"event": {}, "return_hash": True}
 
         for name in SupportedFields:
-            if name in input:
-                data["event"][name] = input[name]
+            if name in data:
+                data["event"][name] = event[name]
 
         for name in SupportedJSONFields:
-            if name in input:
-                data["event"][name] = json.dumps(input[name])
+            if name in event:
+                data["event"][name] = json.dumps(event[name])
 
         if "message" not in data["event"]:
             raise Exception(f"Error: missing required field, no `message` provided")

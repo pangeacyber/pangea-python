@@ -3,7 +3,6 @@
 import typing as t
 
 import logging
-from urllib import request
 import requests
 import json
 import time
@@ -84,14 +83,14 @@ class PangeaRequest(object):
         return pangea_response
 
     def _handle_async(self, request_id: str) -> PangeaResponse:
-        retry_count = 0
+        retry_count = 1
 
         while True:
+            time.sleep(retry_count * retry_count)
             pangea_response = self.get("request", request_id)
 
-            if pangea_response.code == 202 and retry_count < self.async_retries:
+            if pangea_response.code == 202 and retry_count <= self.async_retries:
                 retry_count += 1
-                time.sleep(retry_count * retry_count)
             else:
                 return pangea_response
 
