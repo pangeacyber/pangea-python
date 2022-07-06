@@ -5,6 +5,7 @@ import json
 import typing as t
 
 from pangea.response import JSONObject, PangeaResponse
+from .base import ServiceBase
 
 from .audit_util import (
     decode_consistency_proof,
