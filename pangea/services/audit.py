@@ -31,47 +31,6 @@ SupportedJSONFields = [
 ]
 
 
-class AuditSearchResponse(object):
-    """
-    Wraps the base Response object to include search pagination support
-
-    Properties:
-        total (int): total number of events found in the search
-        count (int): number of events returned in current page
-    """
-
-    def __init__(self, response, data):
-        self.response = response
-        self.data = data
-
-    def __getattr__(self, attr):
-        return getattr(self.response, attr)
-
-    def next(self) -> t.Optional[t.Dict[str, t.Any]]:
-        if self.count < self.total:
-            return self.data | {"last": self.response.result.last}
-        else:
-            return None
-
-    @property
-    def total(self) -> int:
-        if self.success:
-            last = self.result["last"]
-            total = last.split("|")[1]  # TODO: update once `last` returns an object
-            return int(total)
-        else:
-            return 0
-
-    @property
-    def count(self) -> int:
-        if self.success:
-            last = self.result["last"]
-            count = last.split("|")[0]  # TODO: update once `last` returns an object
-            return int(count)
-        else:
-            return 0
-
-
 class Audit(ServiceBase):
     """Audit service client.
 
@@ -103,7 +62,6 @@ class Audit(ServiceBase):
         audit = Audit(token=PANGEA_TOKEN, config=audit_config)
     """
 
-    response_class = AuditSearchResponse
     service_name = "audit"
     version = "v1"
     config_id_header = "X-Pangea-Audit-Config-ID"
@@ -205,7 +163,7 @@ class Audit(ServiceBase):
             verify (bool, optional):
 
         Returns:
-            An AuditSearchResponse where the list of matched events is returned in the
+            A PangeaResponse where the list of matched events is returned in the
                 response.result field.  Available response fields can be found at:
                 [https://docs.dev.pangea.cloud/docs/api/audit#search-for-events]
                 (https://docs.dev.pangea.cloud/docs/api/audit#search-for-events)
@@ -288,6 +246,18 @@ class Audit(ServiceBase):
         return self.handle_search_response(response)
 
     def results(self, id: str, limit: int = 20, offset: int = 0):
+        """
+        Results of a Search
+
+        Returns paginated results of a previous Search
+
+        Args:
+            id (string, required): the id of a search action, found in `response.result.id`
+            limit (integer, optional): the maximum number of results to return, default is 20
+            offset (integer, optional): the position of the first result to return, default is 0
+
+        """
+
         endpoint_name = "results"
 
         if not id:
@@ -342,7 +312,7 @@ class Audit(ServiceBase):
 
         Args:
             pub_roots (dict): series of published root hashes.
-            result (obj): AuditSearchResponse object from previous call to audit.search()
+            result (obj): PangeaResponse object from previous call to audit.search()
         """
         tree_sizes = set()
         for audit in result.events:
@@ -457,7 +427,7 @@ class Audit(ServiceBase):
         proof = decode_consistency_proof(curr_root.consistency_proof)
         return verify_consistency_proof(curr_root_hash, prev_root_hash, proof)
 
-    def root(self, tree_size: int = 0) -> AuditSearchResponse:
+    def root(self, tree_size: int = 0) -> PangeaResponse:
         """
         Retrieve tamperproof verification
 
@@ -467,7 +437,7 @@ class Audit(ServiceBase):
             tree_size (int): The size of the tree (the number of records)
 
         Returns:
-            An AuditSearchResponse.
+            An PangeaResponse.
 
         Examples:
             response = audit.root(tree_size=7)
@@ -479,5 +449,4 @@ class Audit(ServiceBase):
         if tree_size > 0:
             data["tree_size"] = tree_size
 
-        response = self.request.post(endpoint_name, data=data)
-        return AuditSearchResponse(response, data)
+        return self.request.post(endpoint_name, data=data)
