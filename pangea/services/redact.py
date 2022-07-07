@@ -19,13 +19,16 @@ class Redact(ServiceBase):
     """Redact service client.
 
     Provides the methods to interact with the Pangea Redact Service:
-        https://docs.dev.pangea.cloud/docs/api/redact
+        [https://docs.dev.pangea.cloud/docs/api/redact]
+        (https://docs.dev.pangea.cloud/docs/api/redact)
 
     The following information is needed:
         PANGEA_TOKEN - service token which can be found on the Pangea User
-            Console at https://console.dev.pangea.cloud/project/tokens
+            Console at [https://console.dev.pangea.cloud/project/tokens]
+            (https://console.dev.pangea.cloud/project/tokens)
         REDACT_CONFIG_ID - Configuration ID which can be found on the Pangea
-            User Console at https://console.dev.pangea.cloud/service/redact
+            User Console at [https://console.dev.pangea.cloud/service/redact]
+            (https://console.dev.pangea.cloud/service/redact)
 
     Examples:
         import os
@@ -64,11 +67,13 @@ class Redact(ServiceBase):
         Returns:
             Pangea Response with redacted text in the response.result property,
                 available response fields can be found at:
-                https://docs.dev.pangea.cloud/docs/api/redact#redact
+                [https://docs.dev.pangea.cloud/docs/api/redact#redact]
+                (https://docs.dev.pangea.cloud/docs/api/redact#redact)
 
         Examples:
             response = redact.redact("Jenny Jenny... 415-867-5309")
 
+            \"\"\"
             response contains:
             {
                 "request_id": "prq_2aonw26nr3n5hjovo476252npmekem4u",
@@ -81,6 +86,7 @@ class Redact(ServiceBase):
                 },
                 "summary": "Success. Redacted 2 item(s) from text"
             }
+            \"\"\"
         """
         return self.request.post("redact", data={"text": text, "debug": debug})
 
@@ -98,11 +104,13 @@ class Redact(ServiceBase):
         Returns:
             Pangea Response with redacted data in the response.result field,
                 available response fields can be found at:
-                https://docs.dev.pangea.cloud/docs/api/redact#redact
+                [https://docs.dev.pangea.cloud/docs/api/redact#redact]
+                (https://docs.dev.pangea.cloud/docs/api/redact#redact)
 
         Examples:
             response = redact.redact_structured(obj={ "number": "415-867-5309", "ip": "1.1.1.1" }, redact_format="json")
 
+            \"\"\"
             response contains:
             {
                 "request_id": "prq_m2z76gv4mcsbysy4ssu4covympg3sske",
@@ -118,6 +126,7 @@ class Redact(ServiceBase):
                 },
                 "summary": "Success. Redacted 2 item(s) from data"
             }
+            \"\"\"
         """
         return self.request.post(
             "redact_structured",

@@ -33,7 +33,11 @@ SupportedJSONFields = [
 
 class AuditSearchResponse(object):
     """
-    Wrap the base Response object to include search pagination support
+    Wraps the base Response object to include search pagination support
+
+    Properties:
+        total (int): total number of events found in the search
+        count (int): number of events returned in current page
     """
 
     def __init__(self, response, data):
@@ -72,13 +76,16 @@ class Audit(ServiceBase):
     """Audit service client.
 
     Provides methods to interact with Pangea Audit Service:
-        https://docs.dev.pangea.cloud/docs/api/log-an-entry
+        [https://docs.dev.pangea.cloud/docs/api/log-an-entry]
+        (https://docs.dev.pangea.cloud/docs/api/log-an-entry)
 
     The following information is needed:
         PANGEA_TOKEN - service token which can be found on the Pangea User
-            Console at https://console.dev.pangea.cloud/project/tokens
+            Console at [https://console.dev.pangea.cloud/project/tokens]
+            (https://console.dev.pangea.cloud/project/tokens)
         AUDIT_CONFIG_ID - Configuration ID which can be found on the Pangea
-            User Console at https://console.dev.pangea.cloud/service/audit
+            User Console at [https://console.dev.pangea.cloud/service/audit]
+            (https://console.dev.pangea.cloud/service/audit)
 
     Examples:
         import os
@@ -118,7 +125,8 @@ class Audit(ServiceBase):
             A PangeaResponse where the hash of event data and optional verbose
                 results are returned in the response.result field.
                 Available response fields can be found at:
-                https://docs.dev.pangea.cloud/docs/api/audit#log-an-entry
+                [https://docs.dev.pangea.cloud/docs/api/audit#log-an-entry]
+                (https://docs.dev.pangea.cloud/docs/api/audit#log-an-entry)
 
         Examples:
             audit_data = {
@@ -133,6 +141,7 @@ class Audit(ServiceBase):
 
             response = audit.log(input=audit_data)
 
+            \"\"\"
             response contains:
             {
                 "request_id": "prq_ttd3wa7pm4fbut73tlc2r7gi5tcelfcq",
@@ -145,6 +154,7 @@ class Audit(ServiceBase):
                 },
                 "summary": "Logged 1 record(s)"
             }
+            \"\"\"
         """
 
         endpoint_name = "log"
@@ -196,11 +206,13 @@ class Audit(ServiceBase):
         Returns:
             An AuditSearchResponse where the list of matched events is returned in the
                 response.result field.  Available response fields can be found at:
-                https://docs.dev.pangea.cloud/docs/api/audit#search-for-events
+                [https://docs.dev.pangea.cloud/docs/api/audit#search-for-events]
+                (https://docs.dev.pangea.cloud/docs/api/audit#search-for-events)
 
         Examples:
             response = audit.search("Resume accepted", page_size=10)
 
+            \"\"\"
             response contains:
             {
                 "request_id": "prq_cdrlelm2xm66kyeughcyokpg6y5mcewv",
@@ -240,6 +252,7 @@ class Audit(ServiceBase):
                 },
                 "summary": "Found 1 record(s)"
             }
+            \"\"\"
         """
 
         endpoint_name = "search"
@@ -303,6 +316,7 @@ class Audit(ServiceBase):
         return response_wrapper
 
     def search_next(self, response: AuditSearchResponse):
+        """Returns next page in the search response"""
         params = response.next()
         if not params:
             return None
@@ -312,6 +326,14 @@ class Audit(ServiceBase):
     def update_published_roots(
         self, pub_roots: t.Dict[int, t.Optional[JSONObject]], result: JSONObject
     ):
+        """Fetches series of published root hashes from [Arweave](https://arweave.net).
+
+        This is used for subsequent calls to verify_consistency_proof().
+
+        Args:
+            pub_roots (dict): series of published root hashes.
+            result (obj): AuditSearchResponse object from previous call to audit.search()
+        """
         tree_sizes = set()
         for audit in result.events:
             leaf_index = audit.get("leaf_index")
@@ -343,9 +365,30 @@ class Audit(ServiceBase):
             pub_roots[tree_size] = pub_root
 
     def can_verify_membership_proof(self, event: JSONObject) -> bool:
+        """If a given event's membership within the tree can be proven.
+
+        Read more at: [What is a membership proof?](https://docs.dev.pangea.cloud/docs/audit/tamperproof/tamperproof-audit-logs#what-is-a-membership-proof)
+
+        Args:
+            event (obj): The audit event to be verified
+
+        Returns:
+            bool: True if membership proof is available, False otherwise
+        """
         return event.get("membership_proof") is not None
 
     def verify_membership_proof(self, root: JSONObject, event: JSONObject) -> bool:
+        """Verifies an event's membership proof within the tree.
+
+        Read more at: [What is a membership proof?](https://docs.dev.pangea.cloud/docs/audit/tamperproof/tamperproof-audit-logs#what-is-a-membership-proof)
+
+        Args:
+            root (obj): The root node used for verification
+            event (obj): The audit event to be verified
+
+        Returns:
+            bool: True if membership proof is verified, False otherwise
+        """
         if not self.allow_server_roots and root.source != "arweave":
             return False
 
@@ -359,12 +402,34 @@ class Audit(ServiceBase):
         return verify_membership_proof(node_hash, root_hash, proof)
 
     def can_verify_consistency_proof(self, event: JSONObject) -> bool:
+        """If a given event's consistency across time can be proven.
+
+        Read more at: [Cryptographic Signatures](https://docs.dev.pangea.cloud/docs/audit/tamperproof/tamperproof-audit-logs#cryptographic-signatures)
+
+        Args:
+            event (obj): The audit event to be verified.
+
+        Returns:
+            bool: True if the consistency can be verifed, False otherwise
+        """
         leaf_index = event.get("leaf_index")
+
         return leaf_index is not None and leaf_index > 0
 
     def verify_consistency_proof(
         self, pub_roots: t.Dict[int, t.Optional[JSONObject]], event: JSONObject
     ) -> bool:
+        """Checks the cryptographic consistency of the event across time.
+
+        Read more at: [Cryptographic Signatures](https://docs.dev.pangea.cloud/docs/audit/tamperproof/tamperproof-audit-logs#cryptographic-signatures)
+
+        Args:
+            pub_roots (dict): list of published root hashes across time
+            event (obj): Audit event to be verified.
+
+        Returns:
+            bool: True if consistency proof is verified, False otherwise.
+        """
         leaf_index = event["leaf_index"]
         curr_root = pub_roots.get(leaf_index + 1)
         prev_root = pub_roots.get(leaf_index)

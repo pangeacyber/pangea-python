@@ -27,7 +27,8 @@ class PangeaResponse(object):
 
     Properties:
         result (obj): "result" field of the API response as documented at:
-            https://docs.dev.pangea.cloud/docs/api/#responses
+            [https://docs.dev.pangea.cloud/docs/api/#responses]
+            (https://docs.dev.pangea.cloud/docs/api/#responses)
         status (str): short description message, i.e. "OK"
         code (int): HTTP status code
         success (bool): true if call was successful

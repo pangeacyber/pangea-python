@@ -61,7 +61,7 @@ class PangeaRequest(object):
             headers (dict): key-value pair containing extra headers to et
 
         Example:
-            { "X-Pangea-Audit-Config-ID" : "foobar" }
+            set_extra_headers({ "X-Pangea-Audit-Config-ID" : "foobar" })
         """
         self._extra_headers = headers
 

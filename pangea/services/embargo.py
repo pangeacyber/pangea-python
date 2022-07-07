@@ -13,9 +13,11 @@ class Embargo(ServiceBase):
 
     The following information is needed:
         PANGEA_TOKEN - service token which can be found on the Pangea User
-            Console at https://console.dev.pangea.cloud/project/tokens
+            Console at [https://console.dev.pangea.cloud/project/tokens]
+            (https://console.dev.pangea.cloud/project/tokens)
         EMBARGO_CONFIG_ID - Configuration ID which can be found on the Pangea
-            User Console at https://console.dev.pangea.cloud/service/embargo
+            User Console at [https://console.dev.pangea.cloud/service/embargo]
+            (https://console.dev.pangea.cloud/service/embargo)
 
     Examples:
         import os
@@ -45,16 +47,18 @@ class Embargo(ServiceBase):
 
         Args:
             ip (str): Geolocate this IP and check the corresponding country
-            against the enabled embargo lists.  Accepts both IPV4 and IPV6 strings.
+                against the enabled embargo lists.  Accepts both IPV4 and IPV6 strings.
 
         Returns:
             A PangeaResponse where the sanctioned source(s) are in the
                 response.result field.  Available response fields can be found
-                at: https://docs.dev.pangea.cloud/docs/api/embargo
+                at: [https://docs.dev.pangea.cloud/docs/api/embargo]
+                (https://docs.dev.pangea.cloud/docs/api/embargo)
 
         Examples:
             response = embargo.check_ip("1.1.1.1")
 
+            \"\"\"
             response contains:
             {
                 "request_id": "prq_lws4ldnnruaos2a4c2ohgw7ijodzqf52",
@@ -82,6 +86,7 @@ class Embargo(ServiceBase):
                     "count": 1
                 }
             }
+            \"\"\"
         """
 
         return self.request.post("check", data={"ip": ip})
@@ -99,11 +104,13 @@ class Embargo(ServiceBase):
         Returns:
             A PangeaResponse where the sanctioned source(s) are in the
                 response.result field.  Available response fields can be found
-                at: https://docs.dev.pangea.cloud/docs/api/embargo
+                at: [https://docs.dev.pangea.cloud/docs/api/embargo]
+                (https://docs.dev.pangea.cloud/docs/api/embargo)
 
         Examples:
             response = embargo.check_isocode("FR")
 
+            \"\"\"
             response contains:
             {
                 "request_id": "prq_fa6yqoztkfdyg655s6dut5e3bn3plmj5",
@@ -117,6 +124,7 @@ class Embargo(ServiceBase):
                     "count": 0
                 }
             }
+            \"\"\"
         """
 
         return self.request.post("check", data={"iso_code": iso_code})

@@ -6,7 +6,8 @@ class PangeaClient(object):
     clients.
 
     Instantiate with a valid PANGEA_TOKEN, see
-        https://docs.dev.pangea.cloud/docs/admin-guide/Services/#tokens.
+        [https://docs.dev.pangea.cloud/docs/admin-guide/Services/#tokens]
+        (https://docs.dev.pangea.cloud/docs/admin-guide/Services/#tokens).
     """
 
     def __init__(self, token=""):
