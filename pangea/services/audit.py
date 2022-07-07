@@ -69,7 +69,17 @@ class AuditSearchResponse(object):
 
 
 class Audit(ServiceBase):
-    """
+    """Audit service client.
+
+    Provides methods to interact with Pangea Audit Service:
+        https://docs.dev.pangea.cloud/docs/api/log-an-entry
+
+    The following information is needed:
+        PANGEA_TOKEN - service token which can be found on the Pangea User
+            Console at https://console.dev.pangea.cloud/project/tokens
+        AUDIT_CONFIG_ID - Configuration ID which can be found on the Pangea
+            User Console at https://console.dev.pangea.cloud/service/audit
+
     Examples:
         import os
 
@@ -105,7 +115,10 @@ class Audit(ServiceBase):
             verify (bool):
 
         Returns:
-            A PangeaResponse.
+            A PangeaResponse where the hash of event data and optional verbose
+                results are returned in the response.result field.
+                Available response fields can be found at:
+                https://docs.dev.pangea.cloud/docs/api/audit#log-an-entry
 
         Examples:
             audit_data = {
@@ -119,6 +132,19 @@ class Audit(ServiceBase):
             }
 
             response = audit.log(input=audit_data)
+
+            response contains:
+            {
+                "request_id": "prq_ttd3wa7pm4fbut73tlc2r7gi5tcelfcq",
+                "request_time": "2022-07-06T23:46:57.537Z",
+                "response_time": "2022-07-06T23:46:57.556Z",
+                "status_code": 200,
+                "status": "success",
+                "result": {
+                    "hash": "eba9cd62d2f765a462b6a1c246e18dcb20411c5ee6f6ba4b6d315f455fdfb38a"
+                },
+                "summary": "Logged 1 record(s)"
+            }
         """
 
         endpoint_name = "log"
@@ -168,10 +194,52 @@ class Audit(ServiceBase):
             verify (bool, optional):
 
         Returns:
-            An AuditSearchResponse.
+            An AuditSearchResponse where the list of matched events is returned in the
+                response.result field.  Available response fields can be found at:
+                https://docs.dev.pangea.cloud/docs/api/audit#search-for-events
 
         Examples:
             response = audit.search("Resume accepted", page_size=10)
+
+            response contains:
+            {
+                "request_id": "prq_cdrlelm2xm66kyeughcyokpg6y5mcewv",
+                "request_time": "2022-07-06T23:49:09.034Z",
+                "response_time": "2022-07-06T23:49:09.044Z",
+                "status_code": 200,
+                "status": "success",
+                "result": {
+                    "events": [
+                        {
+                            "event": {
+                                "action": "update_employee",
+                                "actor": "manager@acme.co",
+                                "message": "\"{updating employee}\"",
+                                "received_at": "2022-06-29T15:25:00.547967+00:00",
+                                "source": "web",
+                                "status": "pending",
+                                "target": "jane.smith@gmail.com"
+                            },
+                            "hash": "df91bf7cc7500160525dc0959ef1c5387a998d1f68851058f427f5ac7ac8d4fb",
+                            "leaf_index": 5,
+                            "membership_proof": "r:34d9eb62de1d039870abd4a62d7e08be2ed4065c66b435f19a973beea53fefef,r:12bb5ab67c4a8a44439bfddbd93edc656f6bdddf6d61754364ba4eb845125aa4,r:47ea9cb1c54c3357ba1680d48c1ad33d29af53dcef5077d4f6d48ed7705fc09c,r:317b823fa5ca93e3d67d537863c9abe133128e9d26b5112b72be2ff8dafa6ceb,l:89ec1a955393bf1b5eefe29415eec8738bb00b974279a5d96bcbe9b5826f1905,l:c7610ea9a181ab9263d9ec0c0bb307480eb2f6a28c3065d1a02ba89f2268a934"
+                        }
+                    ],
+                    "last": "1|1|",
+                    "root": {
+                    "consistency_proof": [
+                        "x:89ec1a955393bf1b5eefe29415eec8738bb00b974279a5d96bcbe9b5826f1905,r:730315ba3fe23d9724bab2375105934c9097f08e12567d33aaf3ba36ef7eb750,l:c7610ea9a181ab9263d9ec0c0bb307480eb2f6a28c3065d1a02ba89f2268a934",
+                        "x:c7610ea9a181ab9263d9ec0c0bb307480eb2f6a28c3065d1a02ba89f2268a934,r:639b0b5694aaeb70aa75380956f88b10e3507a67b94fb58c96986cf34b705344"
+                    ],
+                    "published_at": "2022-06-29T16:25:11.110758Z",
+                    "root_hash": "d2da009f4778cd29b5bfec823f0952ee63bd1585139c4c09ddafb330ee84c27f",
+                    "size": 6,
+                    "tree_name": "ffaba963b14d03a695714c39f2d324c1ed8c482fcdcd224c57f5040867567de4",
+                    "url": "https://arweave.net/tx/vUe6aAH4761WIeC8FMMSd1_51X6KLlGzJjuWYAa0u5g/data/"
+                    }
+                },
+                "summary": "Found 1 record(s)"
+            }
         """
 
         endpoint_name = "search"

@@ -16,7 +16,17 @@ class RedactFormat(str, enum.Enum):
 
 
 class Redact(ServiceBase):
-    """
+    """Redact service client.
+
+    Provides the methods to interact with the Pangea Redact Service:
+        https://docs.dev.pangea.cloud/docs/api/redact
+
+    The following information is needed:
+        PANGEA_TOKEN - service token which can be found on the Pangea User
+            Console at https://console.dev.pangea.cloud/project/tokens
+        REDACT_CONFIG_ID - Configuration ID which can be found on the Pangea
+            User Console at https://console.dev.pangea.cloud/service/redact
+
     Examples:
         import os
 
@@ -29,7 +39,7 @@ class Redact(ServiceBase):
 
         redact_config = PangeaConfig(base_domain="dev.pangea.cloud", config_id=REDACT_CONFIG_ID)
 
-        # Setup Pangea Redact service
+        # Setup Pangea Redact service client
         redact = Redact(token=PANGEA_TOKEN, config=redact_config)
     """
 
@@ -45,14 +55,32 @@ class Redact(ServiceBase):
 
     def redact(self, text: str, debug=False) -> PangeaResponse:
         """
-        Redacts text
+        Redacts the content of a single text string.
 
-        :param text: The text to be redacted
-        :param debug: Return debug output?
+        Args:
+            text (str): The text to be redacted
+            debug (bool, optional): Return debug output?
 
-        :returns: Pangea Response with redacted text
+        Returns:
+            Pangea Response with redacted text in the response.result property,
+                available response fields can be found at:
+                https://docs.dev.pangea.cloud/docs/api/redact#redact
 
-        :examples: response = redact.redact("Jenny Jenny... 415-867-5309")
+        Examples:
+            response = redact.redact("Jenny Jenny... 415-867-5309")
+
+            response contains:
+            {
+                "request_id": "prq_2aonw26nr3n5hjovo476252npmekem4u",
+                "request_time": "2022-07-06T23:34:46.666Z",
+                "response_time": "2022-07-06T23:34:46.679Z",
+                "status_code": 200,
+                "status": "success",
+                "result": {
+                    "redacted_text": "\"<PERSON>... <PHONE_NUMBER>\""
+                },
+                "summary": "Success. Redacted 2 item(s) from text"
+            }
         """
         return self.request.post("redact", data={"text": text, "debug": debug})
 
@@ -62,13 +90,34 @@ class Redact(ServiceBase):
         """
         Redacts text within a structured object
 
-        :param obj: The object that should be redacted
-        :param redact_format: The format of the passed data
-        :param debug: Return debug output?
+        Args:
+            obj (obj): The object that should be redacted
+            redact_format (RedactFormat, optional): The format of the passed data
+            debug (bool, optional): Return debug output?
 
-        :returns: Pangea Response with redacted data
+        Returns:
+            Pangea Response with redacted data in the response.result field,
+                available response fields can be found at:
+                https://docs.dev.pangea.cloud/docs/api/redact#redact
 
-        :examples: response = redact.redact_structured(obj={ "number": "415-867-5309", "ip": "1.1.1.1" }, redact_format="json")
+        Examples:
+            response = redact.redact_structured(obj={ "number": "415-867-5309", "ip": "1.1.1.1" }, redact_format="json")
+
+            response contains:
+            {
+                "request_id": "prq_m2z76gv4mcsbysy4ssu4covympg3sske",
+                "request_time": "2022-07-06T23:35:41.524Z",
+                "response_time": "2022-07-06T23:35:41.543Z",
+                "status_code": 200,
+                "status": "success",
+                "result": {
+                    "redacted_data": {
+                    "number": "<PHONE_NUMBER>",
+                    "ip": "<IP_ADDRESS>"
+                    }
+                },
+                "summary": "Success. Redacted 2 item(s) from data"
+            }
         """
         return self.request.post(
             "redact_structured",

@@ -2,6 +2,13 @@ from pangea.services import Audit, Redact
 
 
 class PangeaClient(object):
+    """Primary interfacing object that encapsulates supported Pangea Service
+    clients.
+
+    Instantiate with a valid PANGEA_TOKEN, see
+        https://docs.dev.pangea.cloud/docs/admin-guide/Services/#tokens.
+    """
+
     def __init__(self, token=""):
         self.default_token = token
 
