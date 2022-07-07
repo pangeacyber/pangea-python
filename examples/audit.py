@@ -14,7 +14,7 @@ data = {
     "target": "world",
     "status": "error",
     "message": "test",
-    "source": "ppi_3tAdYJUiyssGgJJf7B1SbYLpsdPo",
+    "source": "monitor",
 }
 
 
@@ -22,7 +22,9 @@ def main():
     print("Log Data...")
     log_response = audit.log(data)
     if log_response.success:
-        print(f"Log Request ID: {log_response.request_id}, Success: {log_response.status}")
+        print(
+            f"Log Request ID: {log_response.request_id}, Success: {log_response.status}"
+        )
     else:
         print(f"Log Request Error: {log_response.response.text}")
         if log_response.result and log_response.result.errors:
@@ -31,24 +33,34 @@ def main():
             print("")
 
     print("Search Data...")
+
+    page_size = 10
+
     search_res = audit.search(
         query="message:test",
-        sources=["ppi_3tAdYJUiyssGgJJf7B1SbYLpsdPo"],
-        page_size=5,
+        restriction={"source": ["monitor"]},
+        limit=page_size,
         verify=False,
     )
     if search_res.success:
-        print(f"Search Request ID: {search_res.request_id}, Success: {search_res.status}")
+        result_id = search_res.result.id
+        count = search_res.result.count
+        print(
+            f"Search Request ID: {search_res.request_id}, Success: {search_res.status}, Results: {count}"
+        )
         pub_roots = {}
+        offset = 0
 
-        while search_res is not None:
-            audit.update_published_roots(pub_roots, search_res.response.result)
-            print_page_results(pub_roots, search_res)
-            search_res = audit.search_next(search_res)
+        while offset < count:
+            audit.update_published_roots(pub_roots, search_res.result)
+            print_page_results(pub_roots, search_res, offset, count)
+            offset += page_size
+
+            search_res = audit.results(result_id, limit=page_size, offset=offset)
 
     else:
         print("Search Failed:", search_res.code)
-        for err in search_res.response.result.errors:
+        for err in search_res.result.errors:
             print(f"\t{err.detail}")
         print("")
 
@@ -71,7 +83,7 @@ def consistency_verification(audit, pub_roots, row):
         return "x"
 
 
-def print_page_results(pub_roots, search_res):
+def print_page_results(pub_roots, search_res, offset, count):
     root = search_res.result.root
     print("\n--------------------------------------------------------------------\n")
     for row in search_res.result.events:
@@ -82,7 +94,7 @@ def print_page_results(pub_roots, search_res):
             f"\t{row.event.actor}\t\t{membership}{consistency}"
         )
     print(
-        f"\nResults: {search_res.count} of {search_res.total} - next {search_res.next()}",
+        f"\nResults: {offset+1}-{offset+len(search_res.result.events)} of {count}",
     )
 
 

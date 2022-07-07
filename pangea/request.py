@@ -18,12 +18,10 @@ logger = logging.getLogger(__name__)
 class PangeaRequest(object):
     """An object that makes direct calls to Pangea Service APIs.
 
-    Wraps Get/Post calls to support both synchronous and asynchronous API
-    requests.  In synchronous mode, the request is handled by Pangea server
-    and the response is returned immediately.  In asynchronous mode, the
-    request is accepted by Pangea server, but response will be returned
-    after a delay; this object will poll the result with exponential backoff
-    up to the maximums set in PangeaConfig.
+    Wraps Get/Post calls to support both API requests. If `queued_retry_enabled`
+    is enabled, the progress of long running Post requests will queried until
+    completion or until the `queued_retries` limit is reached. Both values can
+    be set in PangeaConfig.
     """
 
     def __init__(
@@ -43,11 +41,11 @@ class PangeaRequest(object):
         self.backoff = config.request_backoff
         self.timeout = config.request_timeout
 
-        # number of async fetch attempts, with exponential backoff (4 -> 1 + 4 + 9 + 16  = 30 seconds of sleep)
-        self.async_retries = config.async_retries
+        # number of queued retry fetch attempts, with exponential backoff (4 -> 1 + 4 + 9 + 16  = 30 seconds of sleep)
+        self.queued_retries = config.queued_retries
 
-        # Async request support flag
-        self._async = config.async_enabled
+        # Queued request retry support flag
+        self._queued_retry_enabled = config.queued_retry_enabled
 
         # Custom headers
         self._extra_headers = {}
@@ -65,25 +63,22 @@ class PangeaRequest(object):
         """
         self._extra_headers = headers
 
-    def async_mode(self, value: bool):
-        """Sets or returns the asynchronous call enabled mode.
+    def queued_support(self, value: bool):
+        """Sets or returns the queued retry support mode.
 
         Args:
-            value (bool): true - enable asynchronous mode, false - to disable
-                async mode.
+            value (bool): true - enable queued request retry mode, false - to disable
         """
-        if value:
-            self._async = value
-        return self._async
+        self._queued_retry_enabled = value
+
+        return self._queued_retry_enabled
 
     def post(self, endpoint: str = "", data: dict = {}) -> PangeaResponse:
         """Makes the POST call to a Pangea Service endpoint.
 
-        If asynchronous mode is not enabled, this call returns immediately.
-
-        If asynchronous mode is enabled, will wait for the server to indicate
-        processing completed or until expontential backoff retries have been
-        reached.
+        If queued_support mode is enabled, progress checks will be made for
+        queued requests until processing is completed or until expontential
+        backoff `queued_retries` have been reached.
 
         Args:
             endpoint(str): The Pangea Service API endpoint.
@@ -99,14 +94,14 @@ class PangeaRequest(object):
             url, headers=self._headers(), data=json.dumps(data)
         )
 
-        if self._async and requests_response.status_code == 202:
+        if self._queued_retry_enabled and requests_response.status_code == 202:
             response_json = requests_response.json()
             request_id = response_json.get("request_id", None)
 
             if not request_id:
-                raise Exception("Async error: response did not include a 'request_id'")
+                raise Exception("Queue error: response did not include a 'request_id'")
 
-            pangea_response = self._handle_async(request_id)
+            pangea_response = self._handle_queued(request_id)
         else:
             pangea_response = PangeaResponse(requests_response)
 
@@ -131,14 +126,14 @@ class PangeaRequest(object):
 
         return pangea_response
 
-    def _handle_async(self, request_id: str) -> PangeaResponse:
+    def _handle_queued(self, request_id: str) -> PangeaResponse:
         retry_count = 1
 
         while True:
             time.sleep(retry_count * retry_count)
             pangea_response = self.get("request", request_id)
 
-            if pangea_response.code == 202 and retry_count <= self.async_retries:
+            if pangea_response.code == 202 and retry_count <= self.queued_retries:
                 retry_count += 1
             else:
                 return pangea_response
