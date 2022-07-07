@@ -107,6 +107,7 @@ class Audit(ServiceBase):
     service_name = "audit"
     version = "v1"
     config_id_header = "X-Pangea-Audit-Config-ID"
+    verify_response = False
 
     # In case of Arweave failure, ask the server for the roots
     allow_server_roots = True
@@ -178,13 +179,13 @@ class Audit(ServiceBase):
     def search(
         self,
         query: str = "",
-        sources: list = [],
-        page_size: int = 20,
+        restriction: dict = {},
+        limit: int = 20,
         start: str = "",
         end: str = "",
         last: str = "",
         verify: bool = False,
-    ) -> AuditSearchResponse:
+    ) -> PangeaResponse:
         """
         Search for events
 
@@ -194,9 +195,9 @@ class Audit(ServiceBase):
             query (str, optional): Natural search string; list of keywords with optional `<option>:<value>` qualifiers.
             The following optional qualifiers are supported:
             - action: - actor: - message: - new: - old: - status: - target:`
-            sources (list, optional): A list of sources that the search can apply to.
+            restriction (dist, optional): A dict of field name/value pairs on which to restrict the search.
             If empty or not provided, matches only the default source.
-            page_size (int, optional): Maximum number of records to return per page. Default is 20.
+            limit (int, optional): Maximum number of records to return per page. Default is 20.
             start (str, optional): The start of the time range to perform the search on.
             end (str, optional): The end of the time range to perform the search on.
             All records up to the latest if left out.
@@ -257,25 +258,17 @@ class Audit(ServiceBase):
 
         endpoint_name = "search"
 
-        params = {
-            "query": query,
-            "sources": sources,
-            "page_size": page_size,
-            "start": start,
-            "end": end,
-            "last": last,
-            "verify": verify,
-        }
+        if not (isinstance(limit, int) and limit > 0):
+            raise Exception("The 'limit' argument must be a positive integer > 0")
 
-        if not (isinstance(page_size, int) and page_size > 0):
-            raise Exception("The 'page_size' argument must be a positive integer > 0")
+        self.verify_response = verify
 
         data = {
             "query": query,
             "include_membership_proof": True,
             "include_hash": True,
             "include_root": True,
-            "page_size": page_size,
+            "limit": limit,
         }
 
         if start:
@@ -287,12 +280,38 @@ class Audit(ServiceBase):
         if last:
             data["last"] = last
 
-        if sources:
-            data["sources"] = sources
+        if restriction:
+            data["search_restriction"] = restriction
 
         response = self.request.post(endpoint_name, data=data)
+
+        return self.handle_search_response(response)
+
+    def results(self, id: str, limit: int = 20, offset: int = 0):
+        endpoint_name = "results"
+
+        if not id:
+            raise Exception("An 'id' parameter is required")
+
+        if not (isinstance(limit, int) and limit > 0):
+            raise Exception("The 'limit' argument must be a positive integer > 0")
+
+        if not (isinstance(offset, int) and offset > 0):
+            raise Exception("The 'offset' argument must be a positive integer > 0")
+
+        data = {
+            "id": id,
+            "limit": limit,
+            "offset": offset,
+        }
+
+        response = self.request.post(endpoint_name, data=data)
+
+        return self.handle_search_response(response)
+
+    def handle_search_response(self, response: PangeaResponse):
         if not response.success:
-            return AuditSearchResponse(response, data)
+            return response
 
         root = response.result.root
 
@@ -300,9 +319,9 @@ class Audit(ServiceBase):
         if not root:
             response.result.root = {}
             response.result.published_roots = {}
-            return AuditSearchResponse(response, data)
+            return response
 
-        if verify is True:
+        if self.verify_response:
             for audit in response.result.events:
                 # verify membership proofs
                 if not self.verify_membership_proof(response.result.root, audit):
@@ -312,16 +331,7 @@ class Audit(ServiceBase):
                 if not self.verify_consistency_proof(response.result.root, audit):
                     raise Exception(f"Error: Consistency proof failed.")
 
-        response_wrapper = AuditSearchResponse(response, params)
-        return response_wrapper
-
-    def search_next(self, response: AuditSearchResponse):
-        """Returns next page in the search response"""
-        params = response.next()
-        if not params:
-            return None
-        else:
-            return self.search(**params)
+        return response
 
     def update_published_roots(
         self, pub_roots: t.Dict[int, t.Optional[JSONObject]], result: JSONObject
