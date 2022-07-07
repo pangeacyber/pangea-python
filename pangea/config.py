@@ -6,6 +6,8 @@ from dataclasses import dataclass
 
 @dataclass
 class PangeaConfig:
+    """Holds run time configuration information used by SDK components."""
+
     base_domain: str = "pangea.cloud"
     environment: str = "production"
     config_id: str = ""

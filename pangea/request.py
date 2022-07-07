@@ -16,6 +16,16 @@ logger = logging.getLogger(__name__)
 
 
 class PangeaRequest(object):
+    """An object that makes direct calls to Pangea Service APIs.
+
+    Wraps Get/Post calls to support both synchronous and asynchronous API
+    requests.  In synchronous mode, the request is handled by Pangea server
+    and the response is returned immediately.  In asynchronous mode, the
+    request is accepted by Pangea server, but response will be returned
+    after a delay; this object will poll the result with exponential backoff
+    up to the maximums set in PangeaConfig.
+    """
+
     def __init__(
         self,
         config: PangeaConfig,
@@ -45,14 +55,44 @@ class PangeaRequest(object):
         self.request = self._init_request()
 
     def set_extra_headers(self, headers: dict):
+        """Sets any additional headers in the request.
+
+        Args:
+            headers (dict): key-value pair containing extra headers to et
+
+        Example:
+            set_extra_headers({ "X-Pangea-Audit-Config-ID" : "foobar" })
+        """
         self._extra_headers = headers
 
     def async_mode(self, value: bool):
+        """Sets or returns the asynchronous call enabled mode.
+
+        Args:
+            value (bool): true - enable asynchronous mode, false - to disable
+                async mode.
+        """
         if value:
             self._async = value
         return self._async
 
     def post(self, endpoint: str = "", data: dict = {}) -> PangeaResponse:
+        """Makes the POST call to a Pangea Service endpoint.
+
+        If asynchronous mode is not enabled, this call returns immediately.
+
+        If asynchronous mode is enabled, will wait for the server to indicate
+        processing completed or until expontential backoff retries have been
+        reached.
+
+        Args:
+            endpoint(str): The Pangea Service API endpoint.
+            data(dict): The POST body payload object
+
+        Returns:
+            PangeaResponse which contains the response in its entirety and
+               various properties to retrieve individual fields
+        """
         url = self._url(endpoint)
 
         requests_response = self.request.post(
@@ -73,6 +113,16 @@ class PangeaRequest(object):
         return pangea_response
 
     def get(self, endpoint: str, path: str) -> PangeaResponse:
+        """Makes the GET call to a Pangea Service endpoint.
+
+        Args:
+            endpoint(str): The Pangea Service API endpoint.
+            path(str): Additional URL path
+
+        Returns:
+            PangeaResponse which contains the response in its entirety and
+               various properties to retrieve individual fields
+        """
         url = self._url(f"{endpoint}/{path}")
 
         requests_response = self.request.get(url, headers=self._headers())

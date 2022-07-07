@@ -23,6 +23,20 @@ class JSONObject(dict):
 
 
 class PangeaResponse(object):
+    """An object containing Pangea Service API response.
+
+    Properties:
+        result (obj): "result" field of the API response as documented at:
+            [https://docs.dev.pangea.cloud/docs/api/#responses]
+            (https://docs.dev.pangea.cloud/docs/api/#responses)
+        status (str): short description message, i.e. "OK"
+        code (int): HTTP status code
+        success (bool): true if call was successful
+        request_id (str): the ID of the request as tracked by Pangea
+        response (obj): the entire API response payload
+
+    """
+
     _data = JSONObject()
     _raw = None
     _code = None
