@@ -16,6 +16,14 @@ logger = logging.getLogger(__name__)
 
 
 class PangeaRequest(object):
+    """An object that makes direct calls to Pangea Service APIs.
+
+    Wraps Get/Post calls to support both API requests. If `queued_retry_enabled`
+    is enabled, the progress of long running Post requests will queried until
+    completion or until the `queued_retries` limit is reached. Both values can
+    be set in PangeaConfig.
+    """
+
     def __init__(
         self,
         config: PangeaConfig,
@@ -33,11 +41,11 @@ class PangeaRequest(object):
         self.backoff = config.request_backoff
         self.timeout = config.request_timeout
 
-        # number of async fetch attempts, with exponential backoff (4 -> 1 + 4 + 9 + 16  = 30 seconds of sleep)
-        self.async_retries = config.async_retries
+        # number of queued retry fetch attempts, with exponential backoff (4 -> 1 + 4 + 9 + 16  = 30 seconds of sleep)
+        self.queued_retries = config.queued_retries
 
-        # Async request support flag
-        self._async = config.async_enabled
+        # Queued request retry support flag
+        self._queued_retry_enabled = config.queued_retry_enabled
 
         # Custom headers
         self._extra_headers = {}
@@ -45,34 +53,71 @@ class PangeaRequest(object):
         self.request = self._init_request()
 
     def set_extra_headers(self, headers: dict):
+        """Sets any additional headers in the request.
+
+        Args:
+            headers (dict): key-value pair containing extra headers to et
+
+        Example:
+            set_extra_headers({ "X-Pangea-Audit-Config-ID" : "foobar" })
+        """
         self._extra_headers = headers
 
-    def async_mode(self, value: bool):
-        if value:
-            self._async = value
-        return self._async
+    def queued_support(self, value: bool):
+        """Sets or returns the queued retry support mode.
+
+        Args:
+            value (bool): true - enable queued request retry mode, false - to disable
+        """
+        self._queued_retry_enabled = value
+
+        return self._queued_retry_enabled
 
     def post(self, endpoint: str = "", data: dict = {}) -> PangeaResponse:
+        """Makes the POST call to a Pangea Service endpoint.
+
+        If queued_support mode is enabled, progress checks will be made for
+        queued requests until processing is completed or until expontential
+        backoff `queued_retries` have been reached.
+
+        Args:
+            endpoint(str): The Pangea Service API endpoint.
+            data(dict): The POST body payload object
+
+        Returns:
+            PangeaResponse which contains the response in its entirety and
+               various properties to retrieve individual fields
+        """
         url = self._url(endpoint)
 
         requests_response = self.request.post(
             url, headers=self._headers(), data=json.dumps(data)
         )
 
-        if self._async and requests_response.status_code == 202:
+        if self._queued_retry_enabled and requests_response.status_code == 202:
             response_json = requests_response.json()
             request_id = response_json.get("request_id", None)
 
             if not request_id:
-                raise Exception("Async error: response did not include a 'request_id'")
+                raise Exception("Queue error: response did not include a 'request_id'")
 
-            pangea_response = self._handle_async(request_id)
+            pangea_response = self._handle_queued(request_id)
         else:
             pangea_response = PangeaResponse(requests_response)
 
         return pangea_response
 
     def get(self, endpoint: str, path: str) -> PangeaResponse:
+        """Makes the GET call to a Pangea Service endpoint.
+
+        Args:
+            endpoint(str): The Pangea Service API endpoint.
+            path(str): Additional URL path
+
+        Returns:
+            PangeaResponse which contains the response in its entirety and
+               various properties to retrieve individual fields
+        """
         url = self._url(f"{endpoint}/{path}")
 
         requests_response = self.request.get(url, headers=self._headers())
@@ -81,14 +126,14 @@ class PangeaRequest(object):
 
         return pangea_response
 
-    def _handle_async(self, request_id: str) -> PangeaResponse:
+    def _handle_queued(self, request_id: str) -> PangeaResponse:
         retry_count = 1
 
         while True:
             time.sleep(retry_count * retry_count)
             pangea_response = self.get("request", request_id)
 
-            if pangea_response.code == 202 and retry_count <= self.async_retries:
+            if pangea_response.code == 202 and retry_count <= self.queued_retries:
                 retry_count += 1
             else:
                 return pangea_response

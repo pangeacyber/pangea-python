@@ -6,6 +6,8 @@ from dataclasses import dataclass
 
 @dataclass
 class PangeaConfig:
+    """Holds run time configuration information used by SDK components."""
+
     base_domain: str = "pangea.cloud"
     environment: str = "production"
     config_id: str = ""
@@ -31,13 +33,13 @@ class PangeaConfig:
     request_timeout: int = 5
 
     """
-    Enable asynchronous request support
+    Enable queued request retry support
     """
-    async_enabled: bool = True
+    queued_retry_enabled: bool = True
 
     """
-    Number of async retry attempts, with exponential
+    Number of queued request retry attempts, with exponential
     backoff (4 -> 1 + 4 + 9 + 16  = 30 seconds of sleep)
 
     """
-    async_retries: int = 4
+    queued_retries: int = 4

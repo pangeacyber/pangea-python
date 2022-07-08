@@ -31,45 +31,21 @@ SupportedJSONFields = [
 ]
 
 
-class AuditSearchResponse(object):
-    """
-    Wrap the base Response object to include search pagination support
-    """
-
-    def __init__(self, response, data):
-        self.response = response
-        self.data = data
-
-    def __getattr__(self, attr):
-        return getattr(self.response, attr)
-
-    def next(self) -> t.Optional[t.Dict[str, t.Any]]:
-        if self.count < self.total:
-            return self.data | {"last": self.response.result.last}
-        else:
-            return None
-
-    @property
-    def total(self) -> int:
-        if self.success:
-            last = self.result["last"]
-            total = last.split("|")[1]  # TODO: update once `last` returns an object
-            return int(total)
-        else:
-            return 0
-
-    @property
-    def count(self) -> int:
-        if self.success:
-            last = self.result["last"]
-            count = last.split("|")[0]  # TODO: update once `last` returns an object
-            return int(count)
-        else:
-            return 0
-
-
 class Audit(ServiceBase):
-    """
+    """Audit service client.
+
+    Provides methods to interact with Pangea Audit Service:
+        [https://docs.dev.pangea.cloud/docs/api/log-an-entry]
+        (https://docs.dev.pangea.cloud/docs/api/log-an-entry)
+
+    The following information is needed:
+        PANGEA_TOKEN - service token which can be found on the Pangea User
+            Console at [https://console.dev.pangea.cloud/project/tokens]
+            (https://console.dev.pangea.cloud/project/tokens)
+        AUDIT_CONFIG_ID - Configuration ID which can be found on the Pangea
+            User Console at [https://console.dev.pangea.cloud/service/audit]
+            (https://console.dev.pangea.cloud/service/audit)
+
     Examples:
         import os
 
@@ -86,10 +62,10 @@ class Audit(ServiceBase):
         audit = Audit(token=PANGEA_TOKEN, config=audit_config)
     """
 
-    response_class = AuditSearchResponse
     service_name = "audit"
     version = "v1"
     config_id_header = "X-Pangea-Audit-Config-ID"
+    verify_response = False
 
     # In case of Arweave failure, ask the server for the roots
     allow_server_roots = True
@@ -105,7 +81,11 @@ class Audit(ServiceBase):
             verify (bool):
 
         Returns:
-            A PangeaResponse.
+            A PangeaResponse where the hash of event data and optional verbose
+                results are returned in the response.result field.
+                Available response fields can be found at:
+                [https://docs.dev.pangea.cloud/docs/api/audit#log-an-entry]
+                (https://docs.dev.pangea.cloud/docs/api/audit#log-an-entry)
 
         Examples:
             audit_data = {
@@ -119,6 +99,21 @@ class Audit(ServiceBase):
             }
 
             response = audit.log(input=audit_data)
+
+            \"\"\"
+            response contains:
+            {
+                "request_id": "prq_ttd3wa7pm4fbut73tlc2r7gi5tcelfcq",
+                "request_time": "2022-07-06T23:46:57.537Z",
+                "response_time": "2022-07-06T23:46:57.556Z",
+                "status_code": 200,
+                "status": "success",
+                "result": {
+                    "hash": "eba9cd62d2f765a462b6a1c246e18dcb20411c5ee6f6ba4b6d315f455fdfb38a"
+                },
+                "summary": "Logged 1 record(s)"
+            }
+            \"\"\"
         """
 
         endpoint_name = "log"
@@ -142,13 +137,13 @@ class Audit(ServiceBase):
     def search(
         self,
         query: str = "",
-        sources: list = [],
-        page_size: int = 20,
+        restriction: dict = {},
+        limit: int = 20,
         start: str = "",
         end: str = "",
         last: str = "",
         verify: bool = False,
-    ) -> AuditSearchResponse:
+    ) -> PangeaResponse:
         """
         Search for events
 
@@ -158,9 +153,9 @@ class Audit(ServiceBase):
             query (str, optional): Natural search string; list of keywords with optional `<option>:<value>` qualifiers.
             The following optional qualifiers are supported:
             - action: - actor: - message: - new: - old: - status: - target:`
-            sources (list, optional): A list of sources that the search can apply to.
+            restriction (dist, optional): A dict of field name/value pairs on which to restrict the search.
             If empty or not provided, matches only the default source.
-            page_size (int, optional): Maximum number of records to return per page. Default is 20.
+            limit (int, optional): Maximum number of records to return per page. Default is 20.
             start (str, optional): The start of the time range to perform the search on.
             end (str, optional): The end of the time range to perform the search on.
             All records up to the latest if left out.
@@ -168,33 +163,70 @@ class Audit(ServiceBase):
             verify (bool, optional):
 
         Returns:
-            An AuditSearchResponse.
+            A PangeaResponse where the list of matched events is returned in the
+                response.result field.  Available response fields can be found at:
+                [https://docs.dev.pangea.cloud/docs/api/audit#search-for-events]
+                (https://docs.dev.pangea.cloud/docs/api/audit#search-for-events)
 
         Examples:
             response = audit.search("Resume accepted", page_size=10)
+
+            \"\"\"
+            response contains:
+            {
+                "request_id": "prq_cdrlelm2xm66kyeughcyokpg6y5mcewv",
+                "request_time": "2022-07-06T23:49:09.034Z",
+                "response_time": "2022-07-06T23:49:09.044Z",
+                "status_code": 200,
+                "status": "success",
+                "result": {
+                    "events": [
+                        {
+                            "event": {
+                                "action": "update_employee",
+                                "actor": "manager@acme.co",
+                                "message": "\"{updating employee}\"",
+                                "received_at": "2022-06-29T15:25:00.547967+00:00",
+                                "source": "web",
+                                "status": "pending",
+                                "target": "jane.smith@gmail.com"
+                            },
+                            "hash": "df91bf7cc7500160525dc0959ef1c5387a998d1f68851058f427f5ac7ac8d4fb",
+                            "leaf_index": 5,
+                            "membership_proof": "r:34d9eb62de1d039870abd4a62d7e08be2ed4065c66b435f19a973beea53fefef,r:12bb5ab67c4a8a44439bfddbd93edc656f6bdddf6d61754364ba4eb845125aa4,r:47ea9cb1c54c3357ba1680d48c1ad33d29af53dcef5077d4f6d48ed7705fc09c,r:317b823fa5ca93e3d67d537863c9abe133128e9d26b5112b72be2ff8dafa6ceb,l:89ec1a955393bf1b5eefe29415eec8738bb00b974279a5d96bcbe9b5826f1905,l:c7610ea9a181ab9263d9ec0c0bb307480eb2f6a28c3065d1a02ba89f2268a934"
+                        }
+                    ],
+                    "last": "1|1|",
+                    "root": {
+                    "consistency_proof": [
+                        "x:89ec1a955393bf1b5eefe29415eec8738bb00b974279a5d96bcbe9b5826f1905,r:730315ba3fe23d9724bab2375105934c9097f08e12567d33aaf3ba36ef7eb750,l:c7610ea9a181ab9263d9ec0c0bb307480eb2f6a28c3065d1a02ba89f2268a934",
+                        "x:c7610ea9a181ab9263d9ec0c0bb307480eb2f6a28c3065d1a02ba89f2268a934,r:639b0b5694aaeb70aa75380956f88b10e3507a67b94fb58c96986cf34b705344"
+                    ],
+                    "published_at": "2022-06-29T16:25:11.110758Z",
+                    "root_hash": "d2da009f4778cd29b5bfec823f0952ee63bd1585139c4c09ddafb330ee84c27f",
+                    "size": 6,
+                    "tree_name": "ffaba963b14d03a695714c39f2d324c1ed8c482fcdcd224c57f5040867567de4",
+                    "url": "https://arweave.net/tx/vUe6aAH4761WIeC8FMMSd1_51X6KLlGzJjuWYAa0u5g/data/"
+                    }
+                },
+                "summary": "Found 1 record(s)"
+            }
+            \"\"\"
         """
 
         endpoint_name = "search"
 
-        params = {
-            "query": query,
-            "sources": sources,
-            "page_size": page_size,
-            "start": start,
-            "end": end,
-            "last": last,
-            "verify": verify,
-        }
+        if not (isinstance(limit, int) and limit > 0):
+            raise Exception("The 'limit' argument must be a positive integer > 0")
 
-        if not (isinstance(page_size, int) and page_size > 0):
-            raise Exception("The 'page_size' argument must be a positive integer > 0")
+        self.verify_response = verify
 
         data = {
             "query": query,
             "include_membership_proof": True,
             "include_hash": True,
             "include_root": True,
-            "page_size": page_size,
+            "limit": limit,
         }
 
         if start:
@@ -206,12 +238,50 @@ class Audit(ServiceBase):
         if last:
             data["last"] = last
 
-        if sources:
-            data["sources"] = sources
+        if restriction:
+            data["search_restriction"] = restriction
 
         response = self.request.post(endpoint_name, data=data)
+
+        return self.handle_search_response(response)
+
+    def results(self, id: str, limit: int = 20, offset: int = 0):
+        """
+        Results of a Search
+
+        Returns paginated results of a previous Search
+
+        Args:
+            id (string, required): the id of a search action, found in `response.result.id`
+            limit (integer, optional): the maximum number of results to return, default is 20
+            offset (integer, optional): the position of the first result to return, default is 0
+
+        """
+
+        endpoint_name = "results"
+
+        if not id:
+            raise Exception("An 'id' parameter is required")
+
+        if not (isinstance(limit, int) and limit > 0):
+            raise Exception("The 'limit' argument must be a positive integer > 0")
+
+        if not (isinstance(offset, int) and offset > 0):
+            raise Exception("The 'offset' argument must be a positive integer > 0")
+
+        data = {
+            "id": id,
+            "limit": limit,
+            "offset": offset,
+        }
+
+        response = self.request.post(endpoint_name, data=data)
+
+        return self.handle_search_response(response)
+
+    def handle_search_response(self, response: PangeaResponse):
         if not response.success:
-            return AuditSearchResponse(response, data)
+            return response
 
         root = response.result.root
 
@@ -219,9 +289,9 @@ class Audit(ServiceBase):
         if not root:
             response.result.root = {}
             response.result.published_roots = {}
-            return AuditSearchResponse(response, data)
+            return response
 
-        if verify is True:
+        if self.verify_response:
             for audit in response.result.events:
                 # verify membership proofs
                 if not self.verify_membership_proof(response.result.root, audit):
@@ -231,19 +301,19 @@ class Audit(ServiceBase):
                 if not self.verify_consistency_proof(response.result.root, audit):
                     raise Exception(f"Error: Consistency proof failed.")
 
-        response_wrapper = AuditSearchResponse(response, params)
-        return response_wrapper
-
-    def search_next(self, response: AuditSearchResponse):
-        params = response.next()
-        if not params:
-            return None
-        else:
-            return self.search(**params)
+        return response
 
     def update_published_roots(
         self, pub_roots: t.Dict[int, t.Optional[JSONObject]], result: JSONObject
     ):
+        """Fetches series of published root hashes from [Arweave](https://arweave.net).
+
+        This is used for subsequent calls to verify_consistency_proof().
+
+        Args:
+            pub_roots (dict): series of published root hashes.
+            result (obj): PangeaResponse object from previous call to audit.search()
+        """
         tree_sizes = set()
         for audit in result.events:
             leaf_index = audit.get("leaf_index")
@@ -275,9 +345,30 @@ class Audit(ServiceBase):
             pub_roots[tree_size] = pub_root
 
     def can_verify_membership_proof(self, event: JSONObject) -> bool:
+        """If a given event's membership within the tree can be proven.
+
+        Read more at: [What is a membership proof?](https://docs.dev.pangea.cloud/docs/audit/tamperproof/tamperproof-audit-logs#what-is-a-membership-proof)
+
+        Args:
+            event (obj): The audit event to be verified
+
+        Returns:
+            bool: True if membership proof is available, False otherwise
+        """
         return event.get("membership_proof") is not None
 
     def verify_membership_proof(self, root: JSONObject, event: JSONObject) -> bool:
+        """Verifies an event's membership proof within the tree.
+
+        Read more at: [What is a membership proof?](https://docs.dev.pangea.cloud/docs/audit/tamperproof/tamperproof-audit-logs#what-is-a-membership-proof)
+
+        Args:
+            root (obj): The root node used for verification
+            event (obj): The audit event to be verified
+
+        Returns:
+            bool: True if membership proof is verified, False otherwise
+        """
         if not self.allow_server_roots and root.source != "arweave":
             return False
 
@@ -291,12 +382,34 @@ class Audit(ServiceBase):
         return verify_membership_proof(node_hash, root_hash, proof)
 
     def can_verify_consistency_proof(self, event: JSONObject) -> bool:
+        """If a given event's consistency across time can be proven.
+
+        Read more at: [Cryptographic Signatures](https://docs.dev.pangea.cloud/docs/audit/tamperproof/tamperproof-audit-logs#cryptographic-signatures)
+
+        Args:
+            event (obj): The audit event to be verified.
+
+        Returns:
+            bool: True if the consistency can be verifed, False otherwise
+        """
         leaf_index = event.get("leaf_index")
+
         return leaf_index is not None and leaf_index > 0
 
     def verify_consistency_proof(
         self, pub_roots: t.Dict[int, t.Optional[JSONObject]], event: JSONObject
     ) -> bool:
+        """Checks the cryptographic consistency of the event across time.
+
+        Read more at: [Cryptographic Signatures](https://docs.dev.pangea.cloud/docs/audit/tamperproof/tamperproof-audit-logs#cryptographic-signatures)
+
+        Args:
+            pub_roots (dict): list of published root hashes across time
+            event (obj): Audit event to be verified.
+
+        Returns:
+            bool: True if consistency proof is verified, False otherwise.
+        """
         leaf_index = event["leaf_index"]
         curr_root = pub_roots.get(leaf_index + 1)
         prev_root = pub_roots.get(leaf_index)
@@ -314,7 +427,7 @@ class Audit(ServiceBase):
         proof = decode_consistency_proof(curr_root.consistency_proof)
         return verify_consistency_proof(curr_root_hash, prev_root_hash, proof)
 
-    def root(self, tree_size: int = 0) -> AuditSearchResponse:
+    def root(self, tree_size: int = 0) -> PangeaResponse:
         """
         Retrieve tamperproof verification
 
@@ -324,7 +437,7 @@ class Audit(ServiceBase):
             tree_size (int): The size of the tree (the number of records)
 
         Returns:
-            An AuditSearchResponse.
+            An PangeaResponse.
 
         Examples:
             response = audit.root(tree_size=7)
@@ -336,5 +449,4 @@ class Audit(ServiceBase):
         if tree_size > 0:
             data["tree_size"] = tree_size
 
-        response = self.request.post(endpoint_name, data=data)
-        return AuditSearchResponse(response, data)
+        return self.request.post(endpoint_name, data=data)
