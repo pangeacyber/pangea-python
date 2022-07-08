@@ -31,7 +31,7 @@ event = {
     "source": "test",
     "old" : "on",
     "new" : "restart",
-    "message": "despicable act prevented",    
+    "message": "despicable act prevented",
 }
 
 response = audit.log(event=data)
@@ -79,7 +79,6 @@ else:
     print("Search Failed:", response.code, response.status)
 ```
 
-
 ## Contributing
 
 Currently, the setup scripts only have support for Mac/ZSH environments.
@@ -87,3 +86,38 @@ Future support is incoming.
 
 To install our linters, simply run `./dev/setup_repo.sh`
 These linters will run on every `git commit` operation.
+
+## Generate SDK Documentation
+
+### Overview
+
+Throughout the SDK, there are Python doc strings that serve as the source of our SDK docs.
+
+The documentation pipeline here looks like:
+
+1. Write doc strings throughout your Python code. Please refer to existing doc strings as an example of what and how to document.
+1. Make your pull request.
+1. After the pull request is merged, go ahead and run the `parse_module.py` script to generate the JSON docs uses for rendering.
+1. Copy the output from `parse_module.py` and overwrite the existing `python_sdk.json` file in the docs repo. File is located in `platform/docs/openapi/python_sdk.json` in the Pangea monorepo. Save this and make a merge request to update the Python SDK docs in the Pangea monorepo.
+
+### Running the autogen sdk doc script
+
+Make sure you have all the dependencies installed. From the root of the `python-pangea` repo run:
+
+```shell
+poetry install
+```
+
+Now run the script
+
+```shell
+poetry run python parse_module.py
+```
+
+That will output the script in the terminal. If you're on a mac, you can do
+
+```shell
+poetry run python parse_module.py | pbcopy
+```
+
+to copy the output from the script into your clipboard. At the moment, a bunch of stuff will be printed to the terminal if you pipe it to `pbcopy`, but the script still works and copies the output to your clipboard.

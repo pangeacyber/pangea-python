@@ -23,6 +23,7 @@ requests = "^2.27.1"
 [tool.poetry.dev-dependencies]
 mypy = "^0.941"
 black = "^22.1.0"
+docstring-parser = "^0.14.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
