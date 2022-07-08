@@ -67,6 +67,10 @@ class Audit(ServiceBase):
     config_id_header = "X-Pangea-Audit-Config-ID"
     verify_response = False
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.pub_roots = {}
+
     # In case of Arweave failure, ask the server for the roots
     allow_server_roots = True
 
@@ -288,17 +292,18 @@ class Audit(ServiceBase):
         # if there is no root, we don't have any record migrated to cold. We cannot verify any proof
         if not root:
             response.result.root = {}
-            response.result.published_roots = {}
             return response
 
         if self.verify_response:
             for audit in response.result.events:
+                self.update_published_roots(self.pub_roots, response.result)
+
                 # verify membership proofs
                 if not self.verify_membership_proof(response.result.root, audit):
                     raise Exception(f"Error: Membership proof failed.")
 
                 # verify consistency proofs
-                if not self.verify_consistency_proof(response.result.root, audit):
+                if not self.verify_consistency_proof(self.pub_roots, audit):
                     raise Exception(f"Error: Consistency proof failed.")
 
         return response
