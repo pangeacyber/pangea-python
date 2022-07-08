@@ -14,6 +14,9 @@ import requests
 Hash = bytes
 
 
+JSON_TYPES = [int, float, str, bool]
+
+
 logger = logging.getLogger("audit")
 
 
@@ -83,13 +86,18 @@ def verify_membership_proof(node_hash: Hash, root_hash: Hash, proof: MembershipP
     return root_hash == node_hash
 
 
-def canonicalize_log(audit: dict) -> bytes:
+def canonicalize_json(message : dict) -> bytes:
+    """Convert log to valid JSON types and apply RFC-7159 (Canonical JSON)"""
+
+    def _default(obj):
+        if not any(isinstance(obj, typ) for typ in JSON_TYPES):
+            return str(obj)
+        else:
+            return obj
+
+    # stringify invalid JSON types before canonicalizing
     return json.dumps(
-        audit,
-        ensure_ascii=False,
-        allow_nan=False,
-        separators=(",", ":"),
-        sort_keys=True,
+        message, ensure_ascii=False, allow_nan=False, separators=(",", ":"), sort_keys=True, default=_default
     ).encode("utf-8")
 
 

@@ -20,7 +20,7 @@ data = {
 
 def main():
     print("Log Data...")
-    log_response = audit.log(data)
+    log_response = audit.log(data, sign = True)
     if log_response.success:
         print(
             f"Log Request ID: {log_response.request_id}, Success: {log_response.status}"
@@ -35,12 +35,14 @@ def main():
     print("Search Data...")
 
     page_size = 10
+    verify_signatures = False
 
     search_res = audit.search(
         query="message:test",
         restriction={"source": ["monitor"]},
         limit=page_size,
         verify=False,
+        verify_signatures = verify_signatures
     )
     if search_res.success:
         result_id = search_res.result.id
@@ -56,7 +58,7 @@ def main():
             print_page_results(pub_roots, search_res, offset, count)
             offset += page_size
 
-            search_res = audit.results(result_id, limit=page_size, offset=offset)
+            search_res = audit.results(result_id, limit=page_size, offset=offset, verify_signatures = verify_signatures)
 
     else:
         print("Search Failed:", search_res.code)
@@ -83,15 +85,23 @@ def consistency_verification(audit, pub_roots, row):
         return "x"
 
 
+def signature_verification(row):
+    if audit.verify_signature(row):
+        return "."
+    else:
+        return "x"
+
+
 def print_page_results(pub_roots, search_res, offset, count):
     root = search_res.result.root
     print("\n--------------------------------------------------------------------\n")
     for row in search_res.result.events:
         membership = membership_verification(audit, root, row)
         consistency = consistency_verification(audit, pub_roots, row)
+        signature = signature_verification(row)        
         print(
             f"{row.event.message}\t{row.event.created}\t{row.event.source}"
-            f"\t{row.event.actor}\t\t{membership}{consistency}"
+            f"\t{row.event.actor}\t\t{membership}{consistency}{signature}"
         )
     print(
         f"\nResults: {offset+1}-{offset+len(search_res.result.events)} of {count}",

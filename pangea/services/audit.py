@@ -6,6 +6,7 @@ import typing as t
 
 from pangea.response import JSONObject, PangeaResponse
 from .base import ServiceBase
+from pangea.signing import Signing
 
 from .audit_util import (
     decode_consistency_proof,
@@ -62,6 +63,7 @@ class Audit(ServiceBase):
         audit = Audit(token=PANGEA_TOKEN, config=audit_config)
     """
 
+    sign = Signing(generate_keys = True, overwrite_keys_if_exists = False, hash_message = False)
     service_name = "audit"
     version = "v1"
     config_id_header = "X-Pangea-Audit-Config-ID"
@@ -70,7 +72,7 @@ class Audit(ServiceBase):
     # In case of Arweave failure, ask the server for the roots
     allow_server_roots = True
 
-    def log(self, event: dict, verify: bool = False) -> PangeaResponse:
+    def log(self, event: dict, verify: bool = False, sign: bool = False) -> PangeaResponse:
         """
         Log an entry
 
@@ -131,6 +133,25 @@ class Audit(ServiceBase):
         if "message" not in data["event"]:
             raise Exception(f"Error: missing required field, no `message` provided")
 
+        sign_envelope = {
+			"message": data["event"].get("message"),
+			"actor": data["event"].get("actor"),
+			"action": data["event"].get("action"),
+			"new": data["event"].get("new"),
+			"old": data["event"].get("old"),
+			"source": data["event"].get("source"),
+			"status": data["event"].get("status"),
+			"target": data["event"].get("target"),
+            "timestamp": data["event"].get("timestamp")                
+        }
+
+        if sign:
+            signature = self.sign.signMessageJSON(sign_envelope)
+            if signature is not None:
+                data["event"]["signature"] = signature
+            else:
+                raise Exception(f"Error: failure signing message")
+
         resp = self.request.post(endpoint_name, data=data)
         return resp
 
@@ -143,6 +164,7 @@ class Audit(ServiceBase):
         end: str = "",
         last: str = "",
         verify: bool = False,
+        verify_signatures: bool = False,        
     ) -> PangeaResponse:
         """
         Search for events
@@ -243,9 +265,27 @@ class Audit(ServiceBase):
 
         response = self.request.post(endpoint_name, data=data)
 
+        if verify_signatures:
+            for audit_envelope in response.result.events:
+                event = audit_envelope.event
+                sign_envelope = {
+			        "message": event.get("message"),
+			        "actor": event.get("actor"),
+			        "action": event.get("action"),
+			        "new": event.get("new"),
+			        "old": event.get("old"),
+			        "source": event.get("source"),
+			        "status": event.get("status"),
+			        "target": event.get("target"),
+                    "timestamp": event.get("timestamp")                
+                }
+
+                if not self.sign.verifyMessageJSON(event.signature, sign_envelope):
+                    raise Exception(f"Error: signature failed.")                 
+
         return self.handle_search_response(response)
 
-    def results(self, id: str, limit: int = 20, offset: int = 0):
+    def results(self, id: str, limit: int = 20, offset: int = 0, verify_signatures: bool = False):
         """
         Results of a Search
 
@@ -276,6 +316,24 @@ class Audit(ServiceBase):
         }
 
         response = self.request.post(endpoint_name, data=data)
+
+        if verify_signatures:
+            for audit_envelope in response.result.events:
+                event = audit_envelope.event
+                sign_envelope = {
+			        "message": event.get("message"),
+			        "actor": event.get("actor"),
+			        "action": event.get("action"),
+			        "new": event.get("new"),
+			        "old": event.get("old"),
+			        "source": event.get("source"),
+			        "status": event.get("status"),
+			        "target": event.get("target"),
+                    "timestamp": event.get("timestamp")                
+                }
+
+                if not self.sign.verifyMessageJSON(event.signature, sign_envelope):
+                    raise Exception(f"Error: signature failed.")  
 
         return self.handle_search_response(response)
 
@@ -373,7 +431,7 @@ class Audit(ServiceBase):
             return False
 
         # TODO: uncomment when audit created field bug is fixed
-        # canon = canonicalize_log(event.event)
+        # canon = canonicalize_json(event.event)
         # node_hash_enc = hash_data(canon)
         node_hash_enc = event.hash
         node_hash = decode_hash(node_hash_enc)
@@ -426,6 +484,22 @@ class Audit(ServiceBase):
         prev_root_hash = decode_hash(prev_root.root_hash)
         proof = decode_consistency_proof(curr_root.consistency_proof)
         return verify_consistency_proof(curr_root_hash, prev_root_hash, proof)
+
+    def verify_signature(self, audit_envelope: JSONObject) -> bool:
+        event = audit_envelope.event
+
+        sign_envelope = {
+			"message": event.get("message"),
+			"actor": event.get("actor"),
+			"action": event.get("action"),
+			"new": event.get("new"),
+			"old": event.get("old"),
+			"source": event.get("source"),
+			"status": event.get("status"),
+			"target": event.get("target"),
+            "timestamp": event.get("timestamp")                
+        }
+        return self.sign.verifyMessageJSON(event.signature, sign_envelope)
 
     def root(self, tree_size: int = 0) -> PangeaResponse:
         """
