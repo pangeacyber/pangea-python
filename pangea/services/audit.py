@@ -132,7 +132,10 @@ class Audit(ServiceBase):
 
         for name in SupportedJSONFields:
             if name in event:
-                data["event"][name] = json.dumps(event[name])
+                if isinstance(event[name], dict):
+                    data["event"][name] = json.dumps(event[name])
+                else:
+                    data["event"][name] = event[name]
 
         if "message" not in data["event"]:
             raise Exception(f"Error: missing required field, no `message` provided")
