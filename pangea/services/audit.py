@@ -1,6 +1,5 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
-
 import json
 import typing as t
 
@@ -63,7 +62,7 @@ class Audit(ServiceBase):
         audit = Audit(token=PANGEA_TOKEN, config=audit_config)
     """
 
-    sign = Signing(generate_keys = True, overwrite_keys_if_exists = False, hash_message = False)
+    sign = Signing(generate_keys = False, overwrite_keys_if_exists = False, hash_message = False)
     service_name = "audit"
     version = "v1"
     config_id_header = "X-Pangea-Audit-Config-ID"

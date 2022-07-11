@@ -19,11 +19,13 @@ class Signing:
     __public_key = None
     __private_key_cache = False
     __public_key_cache = False
+    __overwrite_keys_if_exists = False
     __hash_message = False
 
     def __init__(self, generate_keys: bool = True, overwrite_keys_if_exists: bool =  False, hash_message: bool = False) -> None:
         self.generate_keys = generate_keys
         self.__hash_message = hash_message
+        self.__overwrite_keys_if_exists = overwrite_keys_if_exists
 
         if self.generate_keys:
             self.generateKeys(overwrite_keys_if_exists)
@@ -57,6 +59,7 @@ class Signing:
     def getPrivateKey(self):
         try:
             if not self.__private_key_cache:
+                self.generateKeys(self.__overwrite_keys_if_exists)
                 with open(self.__private_key_filename, "rb") as file:
                     private_bytes = file.read()
                 
@@ -124,8 +127,8 @@ class Signing:
 
     # Verify a message in bytes using Ed25519 algorithm
     def verifyMessageBytes(self, signature_b64: bytes, message_bytes: bytes) -> bool:
+        public_key = self.getPublicKey()
         try:
-            public_key = self.getPublicKey()
             if self.__hash_message:
                 digest = hashes.Hash(hashes.SHA256())
                 digest.update(message_bytes)
