@@ -133,17 +133,7 @@ class Audit(ServiceBase):
         if "message" not in data["event"]:
             raise Exception(f"Error: missing required field, no `message` provided")
 
-        sign_envelope = {
-			"message": data["event"].get("message"),
-			"actor": data["event"].get("actor"),
-			"action": data["event"].get("action"),
-			"new": data["event"].get("new"),
-			"old": data["event"].get("old"),
-			"source": data["event"].get("source"),
-			"status": data["event"].get("status"),
-			"target": data["event"].get("target"),
-            "timestamp": data["event"].get("timestamp")                
-        }
+        sign_envelope = self.create_sign_envelope(data["event"])
 
         if sign:
             signature = self.sign.signMessageJSON(sign_envelope)
@@ -268,17 +258,7 @@ class Audit(ServiceBase):
         if verify_signatures:
             for audit_envelope in response.result.events:
                 event = audit_envelope.event
-                sign_envelope = {
-			        "message": event.get("message"),
-			        "actor": event.get("actor"),
-			        "action": event.get("action"),
-			        "new": event.get("new"),
-			        "old": event.get("old"),
-			        "source": event.get("source"),
-			        "status": event.get("status"),
-			        "target": event.get("target"),
-                    "timestamp": event.get("timestamp")                
-                }
+                sign_envelope = self.create_sign_envelope(event)
 
                 if not self.sign.verifyMessageJSON(event.signature, sign_envelope):
                     raise Exception(f"Error: signature failed.")                 
@@ -320,17 +300,7 @@ class Audit(ServiceBase):
         if verify_signatures:
             for audit_envelope in response.result.events:
                 event = audit_envelope.event
-                sign_envelope = {
-			        "message": event.get("message"),
-			        "actor": event.get("actor"),
-			        "action": event.get("action"),
-			        "new": event.get("new"),
-			        "old": event.get("old"),
-			        "source": event.get("source"),
-			        "status": event.get("status"),
-			        "target": event.get("target"),
-                    "timestamp": event.get("timestamp")                
-                }
+                sign_envelope = self.create_sign_envelope(event)
 
                 if not self.sign.verifyMessageJSON(event.signature, sign_envelope):
                     raise Exception(f"Error: signature failed.")  
@@ -398,7 +368,7 @@ class Audit(ServiceBase):
             elif self.allow_server_roots:
                 resp = self.root(tree_size)
                 if resp.success:
-                    pub_root = resp.result
+                    pub_root = resp.result.data
                     pub_root.source = "pangea"
             pub_roots[tree_size] = pub_root
 
@@ -487,18 +457,7 @@ class Audit(ServiceBase):
 
     def verify_signature(self, audit_envelope: JSONObject) -> bool:
         event = audit_envelope.event
-
-        sign_envelope = {
-			"message": event.get("message"),
-			"actor": event.get("actor"),
-			"action": event.get("action"),
-			"new": event.get("new"),
-			"old": event.get("old"),
-			"source": event.get("source"),
-			"status": event.get("status"),
-			"target": event.get("target"),
-            "timestamp": event.get("timestamp")                
-        }
+        sign_envelope = self.create_sign_envelope(event)
         return self.sign.verifyMessageJSON(event.signature, sign_envelope)
 
     def root(self, tree_size: int = 0) -> PangeaResponse:
@@ -524,3 +483,17 @@ class Audit(ServiceBase):
             data["tree_size"] = tree_size
 
         return self.request.post(endpoint_name, data=data)
+
+    def create_sign_envelope(self, event: dict) -> dict:
+        sign_envelope = {
+			"message": event.get("message"),
+			"actor": event.get("actor"),
+			"action": event.get("action"),
+			"new": event.get("new"),
+			"old": event.get("old"),
+			"source": event.get("source"),
+			"status": event.get("status"),
+			"target": event.get("target"),
+            "timestamp": event.get("timestamp")                
+        }
+        return sign_envelope        
