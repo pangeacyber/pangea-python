@@ -19,6 +19,7 @@ packages = [
 [tool.poetry.dependencies]
 python = "^3.7.2"
 requests = "^2.27.1"
+cryptography = "^37.0.4"
 
 [tool.poetry.dev-dependencies]
 mypy = "^0.941"
