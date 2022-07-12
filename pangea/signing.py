@@ -1,6 +1,5 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
-
 import os
 from base64 import b64encode, b64decode
 from os.path import exists
@@ -12,16 +11,23 @@ from .services.audit_util import canonicalize_json
 private_key_filename = os.getenv("PRIVATE_KEY")
 public_key_filename = os.getenv("PUBLIC_KEY")
 
+
 class Signing:
     __private_key_filename = private_key_filename
     __public_key_filename = public_key_filename
+    __private_key = None
+    __public_key = None
+    __private_key_cache = False
+    __public_key_cache = False
+    __overwrite_keys_if_exists = False
     __hash_message = False
 
     def __init__(self, generate_keys: bool = True, overwrite_keys_if_exists: bool =  False, hash_message: bool = False) -> None:
         self.generate_keys = generate_keys
         self.__hash_message = hash_message
+        self.__overwrite_keys_if_exists = overwrite_keys_if_exists
 
-        if self.generate_keys == True:
+        if self.generate_keys:
             self.generateKeys(overwrite_keys_if_exists)
 
     # Generates key pairs, storing in local disk.
@@ -34,8 +40,9 @@ class Signing:
                 with open(self.__private_key_filename, "wb") as file:
                     file.write(private_bytes)
 
+                self.__private_key_cache = False
             except Exception:
-                raise Exception(f"Error: Failed generating private key.")
+                raise Exception("Error: Failed generating private key.")
 
             try:
                 public_key = private_key.public_key()
@@ -44,32 +51,38 @@ class Signing:
                 with open(self.__public_key_filename, "wb") as file:
                     file.write(public_bytes)
 
+                self.__public_key_cache = False
             except Exception:
-                raise Exception(f"Error: Failed generating public key.")
+                raise Exception("Error: Failed generating public key.")
 
     # Returns the private key
     def getPrivateKey(self):
         try:
-            with open(self.__private_key_filename, "rb") as file:
-                private_bytes = file.read()
+            if not self.__private_key_cache:
+                self.generateKeys(self.__overwrite_keys_if_exists)
+                with open(self.__private_key_filename, "rb") as file:
+                    private_bytes = file.read()
                 
-            private_key = serialization.load_pem_private_key(private_bytes, None)
+                self.__private_key = serialization.load_pem_private_key(private_bytes, None)
+                self.__private_key_cache = True
         except Exception:
-            raise Exception(f"Error: Failed loading private key.") 
+            raise Exception("Error: Failed loading private key.") 
 
-        return private_key
+        return self.__private_key
 
     # Returns the public key
     def getPublicKey(self):
         try:
-            with open(self.__public_key_filename, "rb") as file:
-                public_bytes = file.read()
+            if not self.__public_key_cache:
+                with open(self.__public_key_filename, "rb") as file:
+                    public_bytes = file.read()
 
-            public_key = serialization.load_ssh_public_key(public_bytes)           
+                self.__public_key = serialization.load_ssh_public_key(public_bytes)
+                self.__public_key_cache = True
         except Exception:
-            raise Exception(f"Error: Failed loading public key.") 
+            raise Exception("Error: Failed loading public key.") 
 
-        return public_key
+        return self.__public_key
 
     # Signs a string message using Ed25519 algorithm
     def signMessageStr(self, message: str):
@@ -114,8 +127,8 @@ class Signing:
 
     # Verify a message in bytes using Ed25519 algorithm
     def verifyMessageBytes(self, signature_b64: bytes, message_bytes: bytes) -> bool:
+        public_key = self.getPublicKey()
         try:
-            public_key = self.getPublicKey()
             if self.__hash_message:
                 digest = hashes.Hash(hashes.SHA256())
                 digest.update(message_bytes)
