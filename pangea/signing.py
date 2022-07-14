@@ -57,45 +57,48 @@ class Signing:
 
     # Returns the private key
     def getPrivateKey(self):
-        try:
-            if not self.__private_key_cache:
+        if not self.__private_key_cache:
+            try:
                 self.generateKeys(self.__overwrite_keys_if_exists)
                 with open(self.__private_key_filename, "rb") as file:
                     private_bytes = file.read()
                 
                 self.__private_key = serialization.load_pem_private_key(private_bytes, None)
-                self.__private_key_cache = True
-        except Exception:
-            raise Exception("Error: Failed loading private key.") 
+            except Exception:
+                raise Exception("Error: Failed loading private key.")
 
+            if not isinstance(self.__private_key, ed25519.Ed25519PrivateKey):
+                raise Exception("Private key is not using Ed25519 algorithm.")
+
+        self.__private_key_cache = True
         return self.__private_key
 
     # Returns the public key
     def getPublicKey(self):
-        try:
-            if not self.__public_key_cache:
+        if not self.__public_key_cache:
+            try:
                 with open(self.__public_key_filename, "rb") as file:
                     public_bytes = file.read()
 
                 self.__public_key = serialization.load_ssh_public_key(public_bytes)
-                self.__public_key_cache = True
-        except Exception:
-            raise Exception("Error: Failed loading public key.") 
+            except Exception:
+                raise Exception("Error: Failed loading public key.") 
 
+            if not isinstance(self.__public_key, ed25519.Ed25519PublicKey):
+                raise Exception("Public key is not using Ed25519 algorithm.")
+
+        self.__public_key_cache = True
         return self.__public_key
 
     # Signs a string message using Ed25519 algorithm
     def signMessageStr(self, message: str):
-        try:
-            message_bytes = bytes(message, "utf8")
-            return self.signMessageBytes(message_bytes)
-        except Exception:
-            return None
+        message_bytes = bytes(message, "utf8")
+        return self.signMessageBytes(message_bytes)
 
     # Signs a message in bytes using Ed25519 algorithm
     def signMessageBytes(self, message_bytes: bytes):
+        private_key = self.getPrivateKey()
         try:
-            private_key = self.getPrivateKey()
             if self.__hash_message:
                 digest = hashes.Hash(hashes.SHA256())
                 digest.update(message_bytes)
@@ -109,21 +112,13 @@ class Signing:
 
     # Signs a JSON message using Ed25519 algorithm
     def signMessageJSON(self, messageJSON: dict):
-        try:
-            message_bytes = canonicalize_json(messageJSON)
-            signature_b64 = self.signMessageBytes(message_bytes)
-        except Exception:
-            return None
-
-        return signature_b64
+        message_bytes = canonicalize_json(messageJSON)
+        return self.signMessageBytes(message_bytes)
 
     # Verify a string message using Ed25519 algorithm
     def verifyMessageStr(self, signature_b64: bytes, message: str) -> bool:
-        try:
-            message_bytes = bytes(message, "utf8")
-            return self.verifyMessageBytes(signature_b64, message_bytes)            
-        except Exception:
-            return False
+        message_bytes = bytes(message, "utf8")
+        return self.verifyMessageBytes(signature_b64, message_bytes)            
 
     # Verify a message in bytes using Ed25519 algorithm
     def verifyMessageBytes(self, signature_b64: bytes, message_bytes: bytes) -> bool:
@@ -142,8 +137,5 @@ class Signing:
 
      # Verify a JSON message using Ed25519 algorithm
     def verifyMessageJSON(self, signature_b64: bytes, messageJSON: dict) -> bool:
-        try:
-            message_bytes = canonicalize_json(messageJSON)
-            return self.verifyMessageBytes(signature_b64, message_bytes)
-        except Exception:
-            return False
+        message_bytes = canonicalize_json(messageJSON)
+        return self.verifyMessageBytes(signature_b64, message_bytes)
