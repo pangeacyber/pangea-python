@@ -15,12 +15,15 @@ SupportedFields = [
     "old"
 ]
 
+CSP = ''
+PANGEA_TOKEN = ''
+AUDIT_CONFIG_ID = ''
+
 class AuditLogger(logging.Logger):
     """Extends Python logger to add the `audit` function to send messages to
     Pangea Audit Service
     """
     def __init__(self, *args, **kwargs):
-        self.auditor = kwargs.pop('auditor', None)
         super(AuditLogger, self).__init__(*args, **kwargs)
 
     def set_auditor(self, auditor : Audit):
@@ -74,24 +77,44 @@ class AuditLogger(logging.Logger):
         else:
             raise Exception(f'Pangea Audit error: {resp.response.text}')
 
-def getLogger(*args, **kwargs):
-    """Gets an instance of the AuditLogger
+def initLogging(csp: str, token: str, config_id: str):
+    """Initializes Audit logging environment
+
+    Args:
+        csp (string) : the Pangea CSP to use, i.e. "aws"
+        token (string) : the Pangea Audit Service token
+        config_id (string) : the Configuration ID associated with Audit Service profile
 
     Examples:
         import os
 
-        from pangea.audit_logger import AuditLogger, getLogger
+        from pangea.audit_logger import AuditLogger, getLogger, initLogging
 
         PANGEA_TOKEN = os.getenv("PANGEA_TOKEN")
         AUDIT_CONFIG_ID = os.getenv("AUDIT_CONFIG_ID")
         PANGEA_CSP = os.getenv("PANGEA_CSP")
 
-        logger = getLogger(name='myLogger',
-                        csp=PANGEA_CSP,
-                        token=PANGEA_TOKEN,
-                        config_id=AUDIT_CONFIG_ID)
+        initLogging(PANGEA_CSP, PANGEA_TOKEN, AUDIT_CONFIG_ID)
+    """
+    global CSP, PANGEA_TOKEN, AUDIT_CONFIG_ID
 
-        assert isinstance(logger, AuditLogger)
+    CSP = csp
+    PANGEA_TOKEN = token
+    AUDIT_CONFIG_ID = config_id
+
+def getLogger(name, level=logging.DEBUG):
+    """Gets an instance of the AuditLogger
+
+    Args:
+        name (str) : name of the logger
+
+        level : debug level
+
+    Examples:
+        from pangea.audit_logger import AuditLogger, getLogger
+
+
+        logger = getLogger(name='myLogger')
 
         logger.info('This is an info')
 
@@ -102,18 +125,12 @@ def getLogger(*args, **kwargs):
         logger.audit("hello world")
 
     """
-    name = kwargs.pop('name', 'logger')
-    level = kwargs.pop('level', logging.DEBUG)
-    csp = kwargs.pop('csp', 'aws')
-    token = kwargs.pop('token', '')
-    config_id = kwargs.pop('config_id', '')
-
     audit_config = PangeaConfig(
-        base_domain=f'{csp}.pangea.cloud',
-        config_id=config_id)
+        base_domain=f'{CSP}.pangea.cloud',
+        config_id=AUDIT_CONFIG_ID)
 
     auditor = Audit(
-        token=token,
+        token=PANGEA_TOKEN,
         config=audit_config)
 
     logging.basicConfig(level=level)
