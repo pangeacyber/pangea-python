@@ -72,7 +72,7 @@ class App:
         )
 
         # Check client IP against Pangea's Embargo Service
-        resp = self._pangea_embargo.check_ip(client_ip)
+        resp = self._pangea_embargo.check(client_ip)
 
         logging.info(f"[App.upload_resume] Embargo response: {resp.request_id}, {resp.result}")
 
