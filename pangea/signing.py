@@ -13,34 +13,31 @@ public_key_filename = os.getenv("PUBLIC_KEY")
 
 
 class Signing:
-    __private_key_filename = private_key_filename
-    __public_key_filename = public_key_filename
-    __private_key = None
-    __public_key = None
-    __private_key_cache = False
-    __public_key_cache = False
-    __overwrite_keys_if_exists = False
-    __hash_message = False
+    _private_key_filename = private_key_filename
+    _public_key_filename = public_key_filename
+    _private_key = None
+    _public_key = None
+    _overwrite_keys_if_exists = False
+    _hash_message = False
 
     def __init__(self, generate_keys: bool = True, overwrite_keys_if_exists: bool =  False, hash_message: bool = False) -> None:
         self.generate_keys = generate_keys
-        self.__hash_message = hash_message
-        self.__overwrite_keys_if_exists = overwrite_keys_if_exists
+        self._hash_message = hash_message
+        self._overwrite_keys_if_exists = overwrite_keys_if_exists
 
         if self.generate_keys:
             self.generateKeys(overwrite_keys_if_exists)
 
     # Generates key pairs, storing in local disk.
     def generateKeys(self, overwrite_if_exists: bool):
-        if not exists(self.__private_key_filename) or not exists(self.__public_key_filename) or overwrite_if_exists:
+        if not exists(self._private_key_filename) or not exists(self._public_key_filename) or overwrite_if_exists:
             try:
                 private_key = ed25519.Ed25519PrivateKey.generate()
                 private_bytes = private_key.private_bytes(encoding=serialization.Encoding.PEM, format=serialization.PrivateFormat.PKCS8, encryption_algorithm=serialization.NoEncryption())
 
-                with open(self.__private_key_filename, "wb") as file:
+                with open(self._private_key_filename, "wb") as file:
                     file.write(private_bytes)
-
-                self.__private_key_cache = False
+                    
             except Exception:
                 raise Exception("Error: Failed generating private key.")
 
@@ -48,47 +45,44 @@ class Signing:
                 public_key = private_key.public_key()
                 public_bytes = public_key.public_bytes(encoding=serialization.Encoding.OpenSSH, format=serialization.PublicFormat.OpenSSH)
 
-                with open(self.__public_key_filename, "wb") as file:
+                with open(self._public_key_filename, "wb") as file:
                     file.write(public_bytes)
 
-                self.__public_key_cache = False
             except Exception:
                 raise Exception("Error: Failed generating public key.")
 
     # Returns the private key
     def getPrivateKey(self):
-        if not self.__private_key_cache:
+        if self._private_key is None:
             try:
-                self.generateKeys(self.__overwrite_keys_if_exists)
-                with open(self.__private_key_filename, "rb") as file:
+                self.generateKeys(self._overwrite_keys_if_exists)
+                with open(self._private_key_filename, "rb") as file:
                     private_bytes = file.read()
                 
-                self.__private_key = serialization.load_pem_private_key(private_bytes, None)
+                self._private_key = serialization.load_pem_private_key(private_bytes, None)
             except Exception:
                 raise Exception("Error: Failed loading private key.")
 
-            if not isinstance(self.__private_key, ed25519.Ed25519PrivateKey):
+            if not isinstance(self._private_key, ed25519.Ed25519PrivateKey):
                 raise Exception("Private key is not using Ed25519 algorithm.")
 
-        self.__private_key_cache = True
-        return self.__private_key
+        return self._private_key
 
     # Returns the public key
     def getPublicKey(self):
-        if not self.__public_key_cache:
+        if self._public_key is None:
             try:
-                with open(self.__public_key_filename, "rb") as file:
+                with open(self._public_key_filename, "rb") as file:
                     public_bytes = file.read()
 
-                self.__public_key = serialization.load_ssh_public_key(public_bytes)
+                self._public_key = serialization.load_ssh_public_key(public_bytes)
             except Exception:
                 raise Exception("Error: Failed loading public key.") 
 
-            if not isinstance(self.__public_key, ed25519.Ed25519PublicKey):
+            if not isinstance(self._public_key, ed25519.Ed25519PublicKey):
                 raise Exception("Public key is not using Ed25519 algorithm.")
 
-        self.__public_key_cache = True
-        return self.__public_key
+        return self._public_key
 
     # Signs a string message using Ed25519 algorithm
     def signMessageStr(self, message: str):
@@ -99,7 +93,7 @@ class Signing:
     def signMessageBytes(self, message_bytes: bytes):
         private_key = self.getPrivateKey()
         try:
-            if self.__hash_message:
+            if self._hash_message:
                 digest = hashes.Hash(hashes.SHA256())
                 digest.update(message_bytes)
                 message_bytes = digest.finalize()
@@ -124,7 +118,7 @@ class Signing:
     def verifyMessageBytes(self, signature_b64: bytes, message_bytes: bytes) -> bool:
         public_key = self.getPublicKey()
         try:
-            if self.__hash_message:
+            if self._hash_message:
                 digest = hashes.Hash(hashes.SHA256())
                 digest.update(message_bytes)
                 message_bytes = digest.finalize() 
