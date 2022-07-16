@@ -39,7 +39,7 @@ class Embargo(ServiceBase):
     service_name = "embargo"
     version = "v1"
 
-    def check(self, ip: str) -> PangeaResponse:
+    def ip_check(self, ip: str) -> PangeaResponse:
         """
         Embargo
 
@@ -56,7 +56,7 @@ class Embargo(ServiceBase):
                 (https://docs.dev.pangea.cloud/docs/api/embargo)
 
         Examples:
-            response = embargo.check("1.1.1.1")
+            response = embargo.ip_check("1.1.1.1")
 
             \"\"\"
             response contains:
@@ -89,9 +89,9 @@ class Embargo(ServiceBase):
             \"\"\"
         """
 
-        return self.request.post("check", data={"ip": ip})
+        return self.request.post("ip/check", data={"ip": ip})
 
-    def lookup(self, iso_code: str) -> PangeaResponse:
+    def iso_check(self, iso_code: str) -> PangeaResponse:
         """
         Embargo
 
@@ -127,4 +127,4 @@ class Embargo(ServiceBase):
             \"\"\"
         """
 
-        return self.request.post("lookup", data={"iso_code": iso_code})
+        return self.request.post("iso/check", data={"iso_code": iso_code})
