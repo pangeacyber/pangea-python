@@ -4,7 +4,6 @@ import json
 import typing as t
 
 from pangea.response import JSONObject, PangeaResponse
-from .base import ServiceBase
 from pangea.signing import Signing
 
 from .audit_util import (
@@ -15,6 +14,7 @@ from .audit_util import (
     verify_consistency_proof,
     verify_membership_proof,
 )
+from .base import ServiceBase
 
 SupportedFields = [
     "actor",
@@ -62,18 +62,32 @@ class Audit(ServiceBase):
         audit = Audit(token=PANGEA_TOKEN, config=audit_config)
     """
 
-    sign = Signing(generate_keys = False, overwrite_keys_if_exists = False, hash_message = False)
-    service_name = "audit"
-    version = "v1"
-    config_id_header = "X-Pangea-Audit-Config-ID"
-    verify_response = False
+    service_name: str = "audit"
+    version: str = "v1"
+    config_id_header: str = "X-Pangea-Audit-Config-ID"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.pub_roots = {}
 
-    # In case of Arweave failure, ask the server for the roots
-    allow_server_roots = True
+        self.pub_roots: dict = {}
+
+        # TODO: Document signing options
+        self.verify_response: bool = kwargs.get("verify_response", False)
+        self.enable_signing: bool = kwargs.get("enable_signing", False)
+
+        if self.enable_signing:
+            generate_keys = kwargs.get("generate_keys", True)
+            overwrite_keys_if_exists = kwargs.get("overwrite_keys_if_exists", False)
+            hash_message = kwargs.get("hash_message", True)
+
+            self.signing = Signing(
+                generate_keys=generate_keys,
+                overwrite_keys_if_exists=overwrite_keys_if_exists,
+                hash_message=hash_message,
+            )
+
+        # In case of Arweave failure, ask the server for the roots
+        self.allow_server_roots = True
 
     def log(self, event: dict, verify: bool = False, sign: bool = False) -> PangeaResponse:
         """
@@ -123,6 +137,9 @@ class Audit(ServiceBase):
 
         endpoint_name = "log"
 
+        if sign and not self.enable_signing:
+            raise Exception(f"Error: the `sign` parameter set, but `enable_signing` is not set to True")
+
         data: t.Dict[str, t.Any] = {"event": {}, "return_hash": True}
 
         for name in SupportedFields:
@@ -139,10 +156,9 @@ class Audit(ServiceBase):
         if "message" not in data["event"]:
             raise Exception(f"Error: missing required field, no `message` provided")
 
-        sign_envelope = self.create_sign_envelope(data["event"])
-
         if sign:
-            signature = self.sign.signMessageJSON(sign_envelope)
+            sign_envelope = self.create_signed_envelope(data["event"])
+            signature = self.signing.signMessageJSON(sign_envelope)
             if signature is not None:
                 data["event"]["signature"] = signature
             else:
@@ -160,7 +176,7 @@ class Audit(ServiceBase):
         end: str = "",
         last: str = "",
         verify: bool = False,
-        verify_signatures: bool = False,        
+        verify_signatures: bool = False,
     ) -> PangeaResponse:
         """
         Search for events
@@ -261,13 +277,14 @@ class Audit(ServiceBase):
 
         response = self.request.post(endpoint_name, data=data)
 
-        if verify_signatures:
-            for audit_envelope in response.result.events:
-                event = audit_envelope.event
-                sign_envelope = self.create_sign_envelope(event)
+        # TODO: Enable when this feature is available
+        # if verify_signatures:
+        #     for audit_envelope in response.result.events:
+        #         event = audit_envelope.event
+        #         sign_envelope = self.create_signed_envelope(event)
 
-                if not self.sign.verifyMessageJSON(event.signature, sign_envelope):
-                    raise Exception(f"Error: signature failed.")                 
+        #         if not self.signing.verifyMessageJSON(event.signature, sign_envelope):
+        #             raise Exception(f"Error: signature failed.")
 
         return self.handle_search_response(response)
 
@@ -303,13 +320,14 @@ class Audit(ServiceBase):
 
         response = self.request.post(endpoint_name, data=data)
 
-        if verify_signatures:
-            for audit_envelope in response.result.events:
-                event = audit_envelope.event
-                sign_envelope = self.create_sign_envelope(event)
+        # TODO: Enable when this feature is available
+        # if verify_signatures:
+        #     for audit_envelope in response.result.events:
+        #         event = audit_envelope.event
+        #         sign_envelope = self.create_signed_envelope(event)
 
-                if not self.sign.verifyMessageJSON(event.signature, sign_envelope):
-                    raise Exception(f"Error: signature failed.")  
+        #         if not self.signing.verifyMessageJSON(event.signature, sign_envelope):
+        #             raise Exception(f"Error: signature failed.")
 
         return self.handle_search_response(response)
 
@@ -338,9 +356,7 @@ class Audit(ServiceBase):
 
         return response
 
-    def update_published_roots(
-        self, pub_roots: t.Dict[int, t.Optional[JSONObject]], result: JSONObject
-    ):
+    def update_published_roots(self, pub_roots: t.Dict[int, t.Optional[JSONObject]], result: JSONObject):
         """Fetches series of published root hashes from [Arweave](https://arweave.net).
 
         This is used for subsequent calls to verify_consistency_proof().
@@ -356,13 +372,13 @@ class Audit(ServiceBase):
                 tree_sizes.add(leaf_index + 1)
                 if leaf_index > 0:
                     tree_sizes.add(leaf_index)
-        tree_sizes.add(result.root.size)
+
+        if result.root:
+            tree_sizes.add(result.root.size)
 
         tree_sizes.difference_update(pub_roots.keys())
         if tree_sizes:
-            arweave_roots = get_arweave_published_roots(
-                result.root.tree_name, list(tree_sizes) + [result.root.size]
-            )
+            arweave_roots = get_arweave_published_roots(result.root.tree_name, list(tree_sizes) + [result.count])
         else:
             arweave_roots = {}
 
@@ -413,7 +429,9 @@ class Audit(ServiceBase):
         node_hash_enc = event.hash
         node_hash = decode_hash(node_hash_enc)
         root_hash = decode_hash(root.root_hash)
+
         proof = decode_membership_proof(event.membership_proof)
+
         return verify_membership_proof(node_hash, root_hash, proof)
 
     def can_verify_consistency_proof(self, event: JSONObject) -> bool:
@@ -431,9 +449,7 @@ class Audit(ServiceBase):
 
         return leaf_index is not None and leaf_index > 0
 
-    def verify_consistency_proof(
-        self, pub_roots: t.Dict[int, t.Optional[JSONObject]], event: JSONObject
-    ) -> bool:
+    def verify_consistency_proof(self, pub_roots: t.Dict[int, t.Optional[JSONObject]], event: JSONObject) -> bool:
         """Checks the cryptographic consistency of the event across time.
 
         Read more at: [Cryptographic Signatures](https://docs.dev.pangea.cloud/docs/audit/tamperproof/tamperproof-audit-logs#cryptographic-signatures)
@@ -452,20 +468,19 @@ class Audit(ServiceBase):
         if not curr_root or not prev_root:
             return False
 
-        if not self.allow_server_roots and (
-            curr_root.source != "arweave" or prev_root.source != "arweave"
-        ):
+        if not self.allow_server_roots and (curr_root.source != "arweave" or prev_root.source != "arweave"):
             return False
 
         curr_root_hash = decode_hash(curr_root.root_hash)
         prev_root_hash = decode_hash(prev_root.root_hash)
         proof = decode_consistency_proof(curr_root.consistency_proof)
+
         return verify_consistency_proof(curr_root_hash, prev_root_hash, proof)
 
     def verify_signature(self, audit_envelope: JSONObject) -> bool:
         event = audit_envelope.event
-        sign_envelope = self.create_sign_envelope(event)
-        return self.sign.verifyMessageJSON(event.signature, sign_envelope)
+        sign_envelope = self.create_signed_envelope(event)
+        return self.signing.verifyMessageJSON(event.signature, sign_envelope)
 
     def root(self, tree_size: int = 0) -> PangeaResponse:
         """
@@ -491,16 +506,16 @@ class Audit(ServiceBase):
 
         return self.request.post(endpoint_name, data=data)
 
-    def create_sign_envelope(self, event: dict) -> dict:
+    def create_signed_envelope(self, event: dict) -> dict:
         sign_envelope = {
-			"message": event.get("message"),
-			"actor": event.get("actor"),
-			"action": event.get("action"),
-			"new": event.get("new"),
-			"old": event.get("old"),
-			"source": event.get("source"),
-			"status": event.get("status"),
-			"target": event.get("target"),
-            "timestamp": event.get("timestamp")                
+            "message": event.get("message"),
+            "actor": event.get("actor"),
+            "action": event.get("action"),
+            "new": event.get("new"),
+            "old": event.get("old"),
+            "source": event.get("source"),
+            "status": event.get("status"),
+            "target": event.get("target"),
+            "timestamp": event.get("timestamp"),
         }
-        return sign_envelope        
+        return sign_envelope
