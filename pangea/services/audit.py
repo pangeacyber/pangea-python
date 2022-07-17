@@ -277,14 +277,13 @@ class Audit(ServiceBase):
 
         response = self.request.post(endpoint_name, data=data)
 
-        # TODO: Enable when this feature is available
-        # if verify_signatures:
-        #     for audit_envelope in response.result.events:
-        #         event = audit_envelope.event
-        #         sign_envelope = self.create_signed_envelope(event)
+        if verify_signatures:
+            for audit_envelope in response.result.events:
+                event = audit_envelope.event
+                sign_envelope = self.create_signed_envelope(event)
 
-        #         if not self.signing.verifyMessageJSON(event.signature, sign_envelope):
-        #             raise Exception(f"Error: signature failed.")
+                if not self.signing.verifyMessageJSON(event.signature, sign_envelope):
+                    raise Exception(f"Error: signature failed.")
 
         return self.handle_search_response(response)
 
@@ -320,14 +319,13 @@ class Audit(ServiceBase):
 
         response = self.request.post(endpoint_name, data=data)
 
-        # TODO: Enable when this feature is available
-        # if verify_signatures:
-        #     for audit_envelope in response.result.events:
-        #         event = audit_envelope.event
-        #         sign_envelope = self.create_signed_envelope(event)
+        if verify_signatures:
+            for audit_envelope in response.result.events:
+                event = audit_envelope.event
+                sign_envelope = self.create_signed_envelope(event)
 
-        #         if not self.signing.verifyMessageJSON(event.signature, sign_envelope):
-        #             raise Exception(f"Error: signature failed.")
+                if not self.signing.verifyMessageJSON(event.signature, sign_envelope):
+                    raise Exception(f"Error: signature failed.")
 
         return self.handle_search_response(response)
 

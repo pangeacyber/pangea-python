@@ -19,18 +19,16 @@ data = {
 
 
 def main():
-    # print("Log Data...")
-    # log_response = audit.log(data)
-    # if log_response.success:
-    #     print(
-    #         f"Log Request ID: {log_response.request_id}, Success: {log_response.status}"
-    #     )
-    # else:
-    #     print(f"Log Request Error: {log_response.response.text}")
-    #     if log_response.result and log_response.result.errors:
-    #         for err in log_response.result.errors:
-    #             print(f"\t{err.detail}")
-    #         print("")
+    print("Log Data...")
+    log_response = audit.log(data)
+    if log_response.success:
+        print(f"Log Request ID: {log_response.request_id}, Success: {log_response.status}")
+    else:
+        print(f"Log Request Error: {log_response.response.text}")
+        if log_response.result and log_response.result.errors:
+            for err in log_response.result.errors:
+                print(f"\t{err.detail}")
+            print("")
 
     print("Search Data...")
 

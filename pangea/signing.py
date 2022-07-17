@@ -27,8 +27,8 @@ class Signing:
         self.__hash_message = hash_message
         self.__overwrite_keys_if_exists = overwrite_keys_if_exists
 
-        self.__private_key_file = os.getenv("PRIVATE_KEY")
-        self.__public_key_file = os.getenv("PUBLIC_KEY")
+        self.__private_key_file = os.getenv("PANGEA_AUDIT_PRIVATE_KEY_FILENAME")
+        self.__public_key_file = os.getenv("PANGEA_AUDIT_PUBLIC_KEY_FILENAME")
 
         if self.generate_keys:
             self.generateKeys(overwrite_keys_if_exists)
