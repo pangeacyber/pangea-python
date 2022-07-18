@@ -86,7 +86,7 @@ def verify_membership_proof(node_hash: Hash, root_hash: Hash, proof: MembershipP
     return root_hash == node_hash
 
 
-def canonicalize_json(message : dict) -> bytes:
+def canonicalize_json(message: dict) -> bytes:
     """Convert log to valid JSON types and apply RFC-7159 (Canonical JSON)"""
 
     def _default(obj):

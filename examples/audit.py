@@ -52,7 +52,8 @@ def main():
             print_page_results(pub_roots, search_res, offset, count)
             offset += page_size
 
-            search_res = audit.results(result_id, limit=page_size, offset=offset)
+            if offset < count:
+                search_res = audit.results(result_id, limit=page_size, offset=offset)
 
     else:
         print("Search Failed:", search_res.code)
