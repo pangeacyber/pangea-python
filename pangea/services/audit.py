@@ -345,8 +345,8 @@ class Audit(ServiceBase):
 
                 # set verification flags for all events to `none`
                 for audit in response.result.events:
-                    audit["membership_proof_verification"] = "none"
-                    audit["consistency_proof_verification"] = "none"
+                    audit.event.membership_proof_verification = "none"
+                    audit.event.consistency_proof_verification = "none"
 
                 return response
 
