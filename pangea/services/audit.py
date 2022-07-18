@@ -174,7 +174,6 @@ class Audit(ServiceBase):
         limit: int = 20,
         start: str = "",
         end: str = "",
-        last: str = "",
         verify: bool = False,
         verify_signatures: bool = False,
     ) -> PangeaResponse:
@@ -193,7 +192,6 @@ class Audit(ServiceBase):
             start (str, optional): The start of the time range to perform the search on.
             end (str, optional): The end of the time range to perform the search on.
             All records up to the latest if left out.
-            last (str, optional): If set, the last value from the response to fetch the next page from.
             verify (bool, optional): If set, the consistency and membership proofs are validated for all
             events returned by `search` and `results`. The fields `consistency_proof_verification` and
             `membership_proof_verification` are added to each event, with the value `pass`, `fail` or `none`.
@@ -271,9 +269,6 @@ class Audit(ServiceBase):
 
         if end:
             data["end"] = end
-
-        if last:
-            data["last"] = last
 
         if restriction:
             data["search_restriction"] = restriction
