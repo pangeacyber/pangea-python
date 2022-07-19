@@ -138,7 +138,7 @@ class Audit(ServiceBase):
         endpoint_name = "log"
 
         if sign and not self.enable_signing:
-            raise Exception(f"Error: the `sign` parameter set, but `enable_signing` is not set to True")
+            raise Exception("Error: the `sign` parameter set, but `enable_signing` is not set to True")
 
         data: t.Dict[str, t.Any] = {"event": {}, "return_hash": True}
 
@@ -154,7 +154,7 @@ class Audit(ServiceBase):
                     data["event"][name] = event[name]
 
         if "message" not in data["event"]:
-            raise Exception(f"Error: missing required field, no `message` provided")
+            raise Exception("Error: missing required field, no `message` provided")
 
         if sign:
             sign_envelope = self.create_signed_envelope(data["event"])
@@ -162,7 +162,7 @@ class Audit(ServiceBase):
             if signature is not None:
                 data["event"]["signature"] = signature
             else:
-                raise Exception(f"Error: failure signing message")
+                raise Exception("Error: failure signing message")
 
         resp = self.request.post(endpoint_name, data=data)
         return resp
@@ -174,7 +174,6 @@ class Audit(ServiceBase):
         limit: int = 20,
         start: str = "",
         end: str = "",
-        last: str = "",
         verify: bool = False,
         verify_signatures: bool = False,
     ) -> PangeaResponse:
@@ -193,8 +192,9 @@ class Audit(ServiceBase):
             start (str, optional): The start of the time range to perform the search on.
             end (str, optional): The end of the time range to perform the search on.
             All records up to the latest if left out.
-            last (str, optional): If set, the last value from the response to fetch the next page from.
-            verify (bool, optional):
+            verify (bool, optional): If set, the consistency and membership proofs are validated for all
+            events returned by `search` and `results`. The fields `consistency_proof_verification` and
+            `membership_proof_verification` are added to each event, with the value `pass`, `fail` or `none`.
 
         Returns:
             A PangeaResponse where the list of matched events is returned in the
@@ -255,6 +255,7 @@ class Audit(ServiceBase):
 
         self.verify_response = verify
 
+        # TODO: allow control of `include` flags
         data = {
             "query": query,
             "include_membership_proof": True,
@@ -269,9 +270,6 @@ class Audit(ServiceBase):
         if end:
             data["end"] = end
 
-        if last:
-            data["last"] = last
-
         if restriction:
             data["search_restriction"] = restriction
 
@@ -283,7 +281,7 @@ class Audit(ServiceBase):
                 sign_envelope = self.create_signed_envelope(event)
 
                 if not self.signing.verifyMessageJSON(event.signature, sign_envelope):
-                    raise Exception(f"Error: signature failed.")
+                    raise Exception("Error: signature failed.")
 
         return self.handle_search_response(response)
 
@@ -325,7 +323,7 @@ class Audit(ServiceBase):
                 sign_envelope = self.create_signed_envelope(event)
 
                 if not self.signing.verifyMessageJSON(event.signature, sign_envelope):
-                    raise Exception(f"Error: signature failed.")
+                    raise Exception("Error: signature failed.")
 
         return self.handle_search_response(response)
 
@@ -335,22 +333,40 @@ class Audit(ServiceBase):
 
         root = response.result.root
 
-        # if there is no root, we don't have any record migrated to cold. We cannot verify any proof
-        if not root:
-            response.result.root = {}
-            return response
-
         if self.verify_response:
+            # if there is no root, we don't have any record migrated to cold. We cannot verify any proof
+            if not root:
+                response.result.root = {}
+
+                # set verification flags for all events to `none`
+                for audit in response.result.events:
+                    audit.event.membership_proof_verification = "none"
+                    audit.event.consistency_proof_verification = "none"
+
+                return response
+
             for audit in response.result.events:
                 self.update_published_roots(self.pub_roots, response.result)
 
                 # verify membership proofs
-                if not self.verify_membership_proof(response.result.root, audit):
-                    raise Exception(f"Error: Membership proof failed.")
+                membership_verification = "none"
+                if self.can_verify_membership_proof(audit):
+                    if self.verify_membership_proof(response.result.root, audit):
+                        membership_verification = "pass"
+                    else:
+                        membership_verification = "fail"
+
+                audit.event.membership_proof_verification = membership_verification
 
                 # verify consistency proofs
-                if not self.verify_consistency_proof(self.pub_roots, audit):
-                    raise Exception(f"Error: Consistency proof failed.")
+                consistency_verification = "none"
+                if self.can_verify_consistency_proof(audit):
+                    if self.verify_consistency_proof(self.pub_roots, audit):
+                        consistency_verification = "pass"
+                    else:
+                        consistency_verification = "fail"
+
+                audit.event.consistency_proof_verification = consistency_verification
 
         return response
 
