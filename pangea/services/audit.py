@@ -174,6 +174,8 @@ class Audit(ServiceBase):
         limit: int = 20,
         start: str = "",
         end: str = "",
+        order: str = "",
+        order_by: str = "",
         verify: bool = False,
         verify_signatures: bool = False,
     ) -> PangeaResponse:
@@ -192,6 +194,8 @@ class Audit(ServiceBase):
             start (str, optional): The start of the time range to perform the search on.
             end (str, optional): The end of the time range to perform the search on.
             All records up to the latest if left out.
+            order (str, optional): One of  "asc", "desc"
+            order_by (str, optional): One of "actor", "action", "message", "received_at", "signature", "source", "status", "target", "timestamp"
             verify (bool, optional): If set, the consistency and membership proofs are validated for all
             events returned by `search` and `results`. The fields `consistency_proof_verification` and
             `membership_proof_verification` are added to each event, with the value `pass`, `fail` or `none`.
@@ -273,6 +277,12 @@ class Audit(ServiceBase):
         if restriction:
             data["search_restriction"] = restriction
 
+        if order:
+            data["order"] = order
+
+        if order_by:
+            data["order_by"] = order_by
+
         response = self.request.post(endpoint_name, data=data)
 
         if verify_signatures:
@@ -306,8 +316,8 @@ class Audit(ServiceBase):
         if not (isinstance(limit, int) and limit > 0):
             raise Exception("The 'limit' argument must be a positive integer > 0")
 
-        if not (isinstance(offset, int) and offset > 0):
-            raise Exception("The 'offset' argument must be a positive integer > 0")
+        if not (isinstance(offset, int) and offset >= 0):
+            raise Exception("The 'offset' argument must be a positive integer")
 
         data = {
             "id": id,
