@@ -175,6 +175,8 @@ class Audit(ServiceBase):
         start: str = "",
         end: str = "",
         last: str = "",
+        order: str = "",
+        order_by: str = "",
         verify: bool = False,
         verify_signatures: bool = False,
     ) -> PangeaResponse:
@@ -194,6 +196,8 @@ class Audit(ServiceBase):
             end (str, optional): The end of the time range to perform the search on.
             All records up to the latest if left out.
             last (str, optional): If set, the last value from the response to fetch the next page from.
+            order (str, optional): One of  "asc", "desc"
+            order_by (str, optional): One of "actor", "action", "message", "received_at", "signature", "source", "status", "target", "timestamp"
             verify (bool, optional):
 
         Returns:
@@ -275,6 +279,12 @@ class Audit(ServiceBase):
         if restriction:
             data["search_restriction"] = restriction
 
+        if order:
+            data["order"] = order
+
+        if order_by:
+            data["order_by"] = order_by
+
         response = self.request.post(endpoint_name, data=data)
 
         if verify_signatures:
@@ -308,8 +318,8 @@ class Audit(ServiceBase):
         if not (isinstance(limit, int) and limit > 0):
             raise Exception("The 'limit' argument must be a positive integer > 0")
 
-        if not (isinstance(offset, int) and offset > 0):
-            raise Exception("The 'offset' argument must be a positive integer > 0")
+        if not (isinstance(offset, int) and offset >= 0):
+            raise Exception("The 'offset' argument must be a positive integer")
 
         data = {
             "id": id,
