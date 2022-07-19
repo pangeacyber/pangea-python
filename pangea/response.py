@@ -18,8 +18,11 @@ class JSONObject(dict):
         else:
             return value
 
-    def __getattr__(self, item):
-        return self.get(item)
+    def __getattr__(self, name: str):
+        return self.get(name)
+
+    def __setattr__(self, name: str, value) -> None:
+        self[name] = value
 
 
 class PangeaResponse(object):
