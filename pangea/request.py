@@ -77,7 +77,7 @@ class PangeaRequest(object):
         """Makes the POST call to a Pangea Service endpoint.
 
         If queued_support mode is enabled, progress checks will be made for
-        queued requests until processing is completed or until expontential
+        queued requests until processing is completed or until exponential
         backoff `queued_retries` have been reached.
 
         Args:
