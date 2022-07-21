@@ -35,16 +35,13 @@ class Audit(ServiceBase):
     """Audit service client.
 
     Provides methods to interact with Pangea Audit Service:
-        [https://docs.dev.pangea.cloud/docs/api/log-an-entry]
-        (https://docs.dev.pangea.cloud/docs/api/log-an-entry)
+        [https://docs.dev.pangea.cloud/docs/api/log-an-entry](https://docs.dev.pangea.cloud/docs/api/log-an-entry)
 
     The following information is needed:
         PANGEA_TOKEN - service token which can be found on the Pangea User
-            Console at [https://console.dev.pangea.cloud/project/tokens]
-            (https://console.dev.pangea.cloud/project/tokens)
+            Console at [https://console.dev.pangea.cloud/project/tokens](https://console.dev.pangea.cloud/project/tokens)
         AUDIT_CONFIG_ID - Configuration ID which can be found on the Pangea
-            User Console at [https://console.dev.pangea.cloud/service/audit]
-            (https://console.dev.pangea.cloud/service/audit)
+            User Console at [https://console.dev.pangea.cloud/service/audit](https://console.dev.pangea.cloud/service/audit)
 
     Examples:
         import os
@@ -96,15 +93,15 @@ class Audit(ServiceBase):
         Create a log entry in the Secure Audit Log.
 
         Args:
-            input (dict): A structured dict describing an auditable activity.
-            verify (bool):
+            event (dict): A structured dict describing an auditable activity.
+            verify (bool, optional):
+            sign (bool, optional):
 
         Returns:
             A PangeaResponse where the hash of event data and optional verbose
                 results are returned in the response.result field.
                 Available response fields can be found at:
-                [https://docs.dev.pangea.cloud/docs/api/audit#log-an-entry]
-                (https://docs.dev.pangea.cloud/docs/api/audit#log-an-entry)
+                [https://docs.dev.pangea.cloud/docs/api/audit#log-an-entry](https://docs.dev.pangea.cloud/docs/api/audit#log-an-entry)
 
         Examples:
             audit_data = {
@@ -117,7 +114,7 @@ class Audit(ServiceBase):
                 "source": "web",
             }
 
-            response = audit.log(input=audit_data)
+            response = audit.log(event=audit_data)
 
             \"\"\"
             response contains:
@@ -186,25 +183,31 @@ class Audit(ServiceBase):
 
         Args:
             query (str, optional): Natural search string; list of keywords with optional `<option>:<value>` qualifiers.
-            The following optional qualifiers are supported:
-            - action: - actor: - message: - new: - old: - status: - target:`
+                The following optional qualifiers are supported:
+                    - action: 
+                    - actor: 
+                    - message: 
+                    - new: 
+                    - old: 
+                    - status: 
+                    - target:
             restriction (dist, optional): A dict of field name/value pairs on which to restrict the search.
-            If empty or not provided, matches only the default source.
+                If empty or not provided, matches only the default source.
             limit (int, optional): Maximum number of records to return per page. Default is 20.
             start (str, optional): The start of the time range to perform the search on.
             end (str, optional): The end of the time range to perform the search on.
-            All records up to the latest if left out.
+                All records up to the latest if left out.
             order (str, optional): One of  "asc", "desc"
             order_by (str, optional): One of "actor", "action", "message", "received_at", "signature", "source", "status", "target", "timestamp"
             verify (bool, optional): If set, the consistency and membership proofs are validated for all
-            events returned by `search` and `results`. The fields `consistency_proof_verification` and
-            `membership_proof_verification` are added to each event, with the value `pass`, `fail` or `none`.
+                events returned by `search` and `results`. The fields `consistency_proof_verification` and
+                `membership_proof_verification` are added to each event, with the value `pass`, `fail` or `none`.
+            verify_signatures (bool, optional):
 
         Returns:
             A PangeaResponse where the list of matched events is returned in the
                 response.result field.  Available response fields can be found at:
-                [https://docs.dev.pangea.cloud/docs/api/audit#search-for-events]
-                (https://docs.dev.pangea.cloud/docs/api/audit#search-for-events)
+                [https://docs.dev.pangea.cloud/docs/api/audit#search-for-events](https://docs.dev.pangea.cloud/docs/api/audit#search-for-events)
 
         Examples:
             response = audit.search("Resume accepted", page_size=10)
@@ -305,6 +308,7 @@ class Audit(ServiceBase):
             id (string, required): the id of a search action, found in `response.result.id`
             limit (integer, optional): the maximum number of results to return, default is 20
             offset (integer, optional): the position of the first result to return, default is 0
+            verify_signatures (bool, optional): 
 
         """
 
@@ -381,9 +385,10 @@ class Audit(ServiceBase):
         return response
 
     def update_published_roots(self, pub_roots: t.Dict[int, t.Optional[JSONObject]], result: JSONObject):
-        """Fetches series of published root hashes from [Arweave](https://arweave.net).
+        """Fetches series of published root hashes from Arweave
 
-        This is used for subsequent calls to verify_consistency_proof().
+        This is used for subsequent calls to verify_consistency_proof(). Root hashes
+        are published on [Arweave](https://arweave.net).
 
         Args:
             pub_roots (dict): series of published root hashes.
@@ -420,7 +425,10 @@ class Audit(ServiceBase):
             pub_roots[tree_size] = pub_root
 
     def can_verify_membership_proof(self, event: JSONObject) -> bool:
-        """If a given event's membership within the tree can be proven.
+        """
+        Can verify membership proof
+
+        If a given event's membership within the tree can be proven.
 
         Read more at: [What is a membership proof?](https://docs.dev.pangea.cloud/docs/audit/tamperproof/tamperproof-audit-logs#what-is-a-membership-proof)
 
@@ -433,7 +441,10 @@ class Audit(ServiceBase):
         return event.get("membership_proof") is not None
 
     def verify_membership_proof(self, root: JSONObject, event: JSONObject) -> bool:
-        """Verifies an event's membership proof within the tree.
+        """
+        Verify membership proof
+        
+        Verifies an event's membership proof within the tree.
 
         Read more at: [What is a membership proof?](https://docs.dev.pangea.cloud/docs/audit/tamperproof/tamperproof-audit-logs#what-is-a-membership-proof)
 
@@ -459,7 +470,10 @@ class Audit(ServiceBase):
         return verify_membership_proof(node_hash, root_hash, proof)
 
     def can_verify_consistency_proof(self, event: JSONObject) -> bool:
-        """If a given event's consistency across time can be proven.
+        """
+        Can verify consistency proof
+
+        If a given event's consistency across time can be proven.
 
         Read more at: [Cryptographic Signatures](https://docs.dev.pangea.cloud/docs/audit/tamperproof/tamperproof-audit-logs#cryptographic-signatures)
 
@@ -474,7 +488,10 @@ class Audit(ServiceBase):
         return leaf_index is not None and leaf_index > 0
 
     def verify_consistency_proof(self, pub_roots: t.Dict[int, t.Optional[JSONObject]], event: JSONObject) -> bool:
-        """Checks the cryptographic consistency of the event across time.
+        """
+        Verify consistency proof
+
+        Checks the cryptographic consistency of the event across time.
 
         Read more at: [Cryptographic Signatures](https://docs.dev.pangea.cloud/docs/audit/tamperproof/tamperproof-audit-logs#cryptographic-signatures)
 
@@ -502,6 +519,15 @@ class Audit(ServiceBase):
         return verify_consistency_proof(curr_root_hash, prev_root_hash, proof)
 
     def verify_signature(self, audit_envelope: JSONObject) -> bool:
+        """
+        Verify signature
+
+        Args:
+            audit_envelope (obj):
+
+        Returns:
+          bool:
+        """
         event = audit_envelope.event
         sign_envelope = self.create_signed_envelope(event)
         return self.signing.verifyMessageJSON(event.signature, sign_envelope)
