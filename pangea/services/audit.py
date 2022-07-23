@@ -9,7 +9,11 @@ from pangea.signing import Signing
 
 from .audit_util import (
     decode_consistency_proof,
+    encode_hash,
     decode_hash,
+    b64encode,
+    b64encode_ascii,
+    b64decode,
     decode_membership_proof,
     get_arweave_published_roots,
     verify_consistency_proof,
@@ -132,14 +136,16 @@ class Audit(ServiceBase):
         if "message" not in data["event"]:
             raise Exception(f"Error: missing required field, no `message` provided")
 
-        sign_envelope = self.create_sign_envelope(data["event"])
-
         if sign:
+            sign_envelope = self.create_sign_envelope(data["event"])
             signature = self.sign.signMessageJSON(sign_envelope)
             if signature is not None:
                 data["event"]["signature"] = signature
             else:
                 raise Exception(f"Error: failure signing message")
+                
+            public_bytes = self.sign.getPublicKeyBytes()
+            data["event"]["public_key"] = b64encode_ascii(public_bytes)
 
         resp = self.request.post(endpoint_name, data=data)
         return resp
@@ -258,8 +264,10 @@ class Audit(ServiceBase):
             for audit_envelope in response.result.events:
                 event = audit_envelope.event
                 sign_envelope = self.create_sign_envelope(event)
+                public_key_b64 = event.get("public_key")
+                public_key_bytes = b64decode(public_key_b64)
 
-                if not self.sign.verifyMessageJSON(event.signature, sign_envelope):
+                if not self.sign.verifyMessageJSON(event.signature, sign_envelope, public_key_bytes):
                     raise Exception(f"Error: signature failed.")                 
 
         return self.handle_search_response(response)
@@ -300,8 +308,10 @@ class Audit(ServiceBase):
             for audit_envelope in response.result.events:
                 event = audit_envelope.event
                 sign_envelope = self.create_sign_envelope(event)
+                public_key_b64 = event.get("public_key")
+                public_key_bytes = b64decode(public_key_b64)
 
-                if not self.sign.verifyMessageJSON(event.signature, sign_envelope):
+                if not self.sign.verifyMessageJSON(event.signature, sign_envelope, public_key_bytes):
                     raise Exception(f"Error: signature failed.")  
 
         return self.handle_search_response(response)
@@ -457,7 +467,9 @@ class Audit(ServiceBase):
     def verify_signature(self, audit_envelope: JSONObject) -> bool:
         event = audit_envelope.event
         sign_envelope = self.create_sign_envelope(event)
-        return self.sign.verifyMessageJSON(event.signature, sign_envelope)
+        public_key_b64 = event.get("public_key")
+        public_key_bytes = b64decode(public_key_b64)
+        return self.sign.verifyMessageJSON(event.signature, sign_envelope, public_key_bytes)
 
     def root(self, tree_size: int = 0) -> PangeaResponse:
         """

@@ -52,13 +52,17 @@ class Signing:
                 raise Exception("Error: Failed generating public key.")
 
     # Returns the private key
-    def getPrivateKey(self):
-        if self._private_key is None:
+    def getPrivateKey(self, private_bytes: bytes = None):
+        if self._private_key is None and private_bytes is None:
             try:
                 self.generateKeys(self._overwrite_keys_if_exists)
                 with open(self._private_key_filename, "rb") as file:
                     private_bytes = file.read()
-                
+            except Exception:
+                raise Exception("Error: Failed loading private key.")
+
+        if private_bytes is not None:
+            try:        
                 self._private_key = serialization.load_pem_private_key(private_bytes, None)
             except Exception:
                 raise Exception("Error: Failed loading private key.")
@@ -69,12 +73,17 @@ class Signing:
         return self._private_key
 
     # Returns the public key
-    def getPublicKey(self):
-        if self._public_key is None:
+    def getPublicKey(self, public_bytes: bytes = None):
+        if self._public_key is None and public_bytes is None:
             try:
+                self.generateKeys(self._overwrite_keys_if_exists)
                 with open(self._public_key_filename, "rb") as file:
                     public_bytes = file.read()
+            except Exception:
+                raise Exception("Error: Failed loading public key.") 
 
+        if public_bytes is not None:
+            try:
                 self._public_key = serialization.load_ssh_public_key(public_bytes)
             except Exception:
                 raise Exception("Error: Failed loading public key.") 
@@ -82,16 +91,30 @@ class Signing:
             if not isinstance(self._public_key, ed25519.Ed25519PublicKey):
                 raise Exception("Public key is not using Ed25519 algorithm.")
 
-        return self._public_key
+        return self._public_key     
+
+    # Returns the private key bytes
+    def getPrivateKeyBytes(self):
+        if self._private_key is None:
+            self._private_key = self.getPrivateKey()
+
+        return self._private_key.private_bytes(encoding=serialization.Encoding.PEM, format=serialization.PrivateFormat.PKCS8, encryption_algorithm=serialization.NoEncryption())
+
+    # Returns the public key bytes
+    def getPublicKeyBytes(self):
+        if self._public_key is None:
+            self._public_key = self.getPublicKey()
+
+        return self._public_key.public_bytes(encoding=serialization.Encoding.OpenSSH, format=serialization.PublicFormat.OpenSSH)
 
     # Signs a string message using Ed25519 algorithm
-    def signMessageStr(self, message: str):
+    def signMessageStr(self, message: str, private_key_bytes: bytes = None):
         message_bytes = bytes(message, "utf8")
-        return self.signMessageBytes(message_bytes)
+        return self.signMessageBytes(message_bytes, private_key_bytes)
 
     # Signs a message in bytes using Ed25519 algorithm
-    def signMessageBytes(self, message_bytes: bytes):
-        private_key = self.getPrivateKey()
+    def signMessageBytes(self, message_bytes: bytes, private_key_bytes: bytes = None):
+        private_key = self.getPrivateKey(private_key_bytes)
         try:
             if self._hash_message:
                 digest = hashes.Hash(hashes.SHA256())
@@ -105,18 +128,18 @@ class Signing:
         return signature_b64
 
     # Signs a JSON message using Ed25519 algorithm
-    def signMessageJSON(self, messageJSON: dict):
+    def signMessageJSON(self, messageJSON: dict, private_key_bytes: bytes = None):
         message_bytes = canonicalize_json(messageJSON)
-        return self.signMessageBytes(message_bytes)
+        return self.signMessageBytes(message_bytes, private_key_bytes)
 
     # Verify a string message using Ed25519 algorithm
-    def verifyMessageStr(self, signature_b64: bytes, message: str) -> bool:
+    def verifyMessageStr(self, signature_b64: bytes, message: str, public_key_bytes: bytes = None) -> bool:
         message_bytes = bytes(message, "utf8")
-        return self.verifyMessageBytes(signature_b64, message_bytes)            
+        return self.verifyMessageBytes(signature_b64, message_bytes, public_key_bytes)            
 
     # Verify a message in bytes using Ed25519 algorithm
-    def verifyMessageBytes(self, signature_b64: bytes, message_bytes: bytes) -> bool:
-        public_key = self.getPublicKey()
+    def verifyMessageBytes(self, signature_b64: bytes, message_bytes: bytes, public_key_bytes: bytes = None) -> bool:
+        public_key = self.getPublicKey(public_key_bytes)
         try:
             if self._hash_message:
                 digest = hashes.Hash(hashes.SHA256())
@@ -130,6 +153,6 @@ class Signing:
         return True        
 
      # Verify a JSON message using Ed25519 algorithm
-    def verifyMessageJSON(self, signature_b64: bytes, messageJSON: dict) -> bool:
+    def verifyMessageJSON(self, signature_b64: bytes, messageJSON: dict, public_key_bytes: bytes = None) -> bool:
         message_bytes = canonicalize_json(messageJSON)
-        return self.verifyMessageBytes(signature_b64, message_bytes)
+        return self.verifyMessageBytes(signature_b64, message_bytes, public_key_bytes)
