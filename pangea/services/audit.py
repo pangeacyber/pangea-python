@@ -184,12 +184,12 @@ class Audit(ServiceBase):
         Args:
             query (str, optional): Natural search string; list of keywords with optional `<option>:<value>` qualifiers.
                 The following optional qualifiers are supported:
-                    - action: 
-                    - actor: 
-                    - message: 
-                    - new: 
-                    - old: 
-                    - status: 
+                    - action:
+                    - actor:
+                    - message:
+                    - new:
+                    - old:
+                    - status:
                     - target:
             restriction (dist, optional): A dict of field name/value pairs on which to restrict the search.
                 If empty or not provided, matches only the default source.
@@ -308,7 +308,7 @@ class Audit(ServiceBase):
             id (string, required): the id of a search action, found in `response.result.id`
             limit (integer, optional): the maximum number of results to return, default is 20
             offset (integer, optional): the position of the first result to return, default is 0
-            verify_signatures (bool, optional): 
+            verify_signatures (bool, optional):
 
         """
 
@@ -354,14 +354,14 @@ class Audit(ServiceBase):
 
                 # set verification flags for all events to `none`
                 for audit in response.result.events:
-                    audit.event.membership_proof_verification = "none"
-                    audit.event.consistency_proof_verification = "none"
+                    audit.event.membership_verification = "none"
+                    audit.event.consistency_verification = "none"
 
                 return response
 
-            for audit in response.result.events:
-                self.update_published_roots(self.pub_roots, response.result)
+            self.update_published_roots(self.pub_roots, response.result)
 
+            for audit in response.result.events:
                 # verify membership proofs
                 membership_verification = "none"
                 if self.can_verify_membership_proof(audit):
@@ -370,7 +370,7 @@ class Audit(ServiceBase):
                     else:
                         membership_verification = "fail"
 
-                audit.event.membership_proof_verification = membership_verification
+                audit.event.membership_verification = membership_verification
 
                 # verify consistency proofs
                 consistency_verification = "none"
@@ -380,7 +380,7 @@ class Audit(ServiceBase):
                     else:
                         consistency_verification = "fail"
 
-                audit.event.consistency_proof_verification = consistency_verification
+                audit.event.consistency_verification = consistency_verification
 
         return response
 
@@ -407,7 +407,7 @@ class Audit(ServiceBase):
 
         tree_sizes.difference_update(pub_roots.keys())
         if tree_sizes:
-            arweave_roots = get_arweave_published_roots(result.root.tree_name, list(tree_sizes) + [result.count])
+            arweave_roots = get_arweave_published_roots(result.root.tree_name, list(tree_sizes))  # + [result.count])
         else:
             arweave_roots = {}
 
@@ -443,7 +443,7 @@ class Audit(ServiceBase):
     def verify_membership_proof(self, root: JSONObject, event: JSONObject) -> bool:
         """
         Verify membership proof
-        
+
         Verifies an event's membership proof within the tree.
 
         Read more at: [What is a membership proof?](https://docs.dev.pangea.cloud/docs/audit/tamperproof/tamperproof-audit-logs#what-is-a-membership-proof)

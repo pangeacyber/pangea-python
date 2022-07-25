@@ -22,12 +22,12 @@ py_lint:
 testing:
   stage: unit_tests
   script:
-    - poetry run python -m unittest -v
+    - poetry run python -m unittest tests.unit
 
 integration:
   stage: integration_tests
   script:
-    - echo "Integration tests..."
+    - poetry run python -m unittest tests.integration
 
 building:
   stage: build
