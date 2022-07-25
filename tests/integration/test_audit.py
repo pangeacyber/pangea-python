@@ -43,10 +43,10 @@ class TestAudit(unittest.TestCase):
 
     def test_search_sort(self):
         timestamp = time.time()
-        query = "message:test-{timestamp}"
+        query = f"message:test-{timestamp}"
         authors = ["alex", "bob", "chris", "david", "evan"]
 
-        for idx in range(0, 4):
+        for idx in range(0, 5):
             data = {"message": f"test-{timestamp}", "actor": authors[idx]}
             resp = self.audit.log(data)
             self.assertEqual(resp.code, 200)
