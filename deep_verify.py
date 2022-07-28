@@ -179,13 +179,13 @@ def main():
                         exit_with_error(
                             f"failed hot tree leaf index check "
                             f"for {e}: {prev_index} != {hot_idx}")
-                print('-> Succefully validated events of '
+                print('-> Successfully validated events of '
                       f'leaf_index: {leaf_index}')
                 leaf_index = event['leaf_index']
                 grpByIdxEvents = [event]
             current_event = event
             bar()
-    print("Succefully validated all events - No missing events were detected")
+    print("Successfully validated all events - No missing events were detected")
     sys.exit(0)
 
 
