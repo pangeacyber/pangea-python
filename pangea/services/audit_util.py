@@ -124,8 +124,17 @@ def hash_str(data: str) -> str:
     return sha256(bytes(data, "utf8")).hexdigest()
 
 
-def hash_dict(data: dict) -> str:
-    return sha256(canonicalize_json(data)).hexdigest()
+def hash_dict(data: dict) -> bytes:
+    return sha256(canonicalize_json(data)).digest()
+
+
+def xor_bytes(data: bytes, key: bytes) -> bytes:
+    x = 0
+    ret = bytearray(data)
+    while x < len(data) and x < len(key):
+        ret[x] = data[x] ^ key[x]
+        x+=1
+    return bytes(ret)
 
 
 def xor_str(data: str, key: str) -> str:

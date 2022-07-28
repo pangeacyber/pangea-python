@@ -12,7 +12,7 @@ from .audit_util import (
     encode_hash,
     decode_hash,
     hash_dict,
-    xor_str,
+    xor_bytes,
     b64encode,
     b64encode_ascii,
     b64decode,
@@ -141,7 +141,7 @@ class Audit(ServiceBase):
 
         if signing:
             sign_envelope = self.create_sign_envelope(data["event"])
-            signature = sign.signMessage(hash_dict(sign_envelope))
+            signature = sign.signMessage(encode_hash(hash_dict(sign_envelope)))
             if signature is not None:
                 data["event"]["signature"] = signature
             else:
@@ -519,4 +519,4 @@ class Audit(ServiceBase):
         return sign_envelope       
 
     def get_unredacted_message(self, sign_envelope: dict, redact_mask: str = "") -> str:
-        return(xor_str(hash_dict(sign_envelope), redact_mask))
+        return(encode_hash(xor_bytes(hash_dict(sign_envelope), decode_hash(redact_mask))))
