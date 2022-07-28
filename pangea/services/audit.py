@@ -143,7 +143,7 @@ class Audit(ServiceBase):
                 data["event"]["signature"] = signature
             else:
                 raise Exception(f"Error: failure signing message")
-                
+
             public_bytes = self.sign.getPublicKeyBytes()
             data["event"]["public_key"] = b64encode_ascii(public_bytes)
 
