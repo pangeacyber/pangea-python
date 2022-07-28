@@ -268,7 +268,7 @@ class Audit(ServiceBase):
             "include_membership_proof": True,
             "include_hash": True,
             "include_root": True,
-            "limit": limit,
+            "max_results": limit,
         }
 
         if start:
