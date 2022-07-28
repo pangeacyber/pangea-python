@@ -20,11 +20,9 @@ data = {
 
 def main():
     print("Log Data...")
-    log_response = audit.log(data, sign = True)
+    log_response = audit.log(data)
     if log_response.success:
-        print(
-            f"Log Request ID: {log_response.request_id}, Success: {log_response.status}"
-        )
+        print(f"Log Request ID: {log_response.request_id}, Success: {log_response.status}")
     else:
         print(f"Log Request Error: {log_response.response.text}")
         if log_response.result and log_response.result.errors:
@@ -35,21 +33,17 @@ def main():
     print("Search Data...")
 
     page_size = 10
-    verify_signatures = False
 
     search_res = audit.search(
         query="message:test",
         restriction={"source": ["monitor"]},
         limit=page_size,
         verify=False,
-        verify_signatures = verify_signatures
     )
     if search_res.success:
         result_id = search_res.result.id
         count = search_res.result.count
-        print(
-            f"Search Request ID: {search_res.request_id}, Success: {search_res.status}, Results: {count}"
-        )
+        print(f"Search Request ID: {search_res.request_id}, Success: {search_res.status}, Results: {count}")
         pub_roots = {}
         offset = 0
 
@@ -58,7 +52,8 @@ def main():
             print_page_results(pub_roots, search_res, offset, count)
             offset += page_size
 
-            search_res = audit.results(result_id, limit=page_size, offset=offset, verify_signatures = verify_signatures)
+            if offset < count:
+                search_res = audit.results(result_id, limit=page_size, offset=offset)
 
     else:
         print("Search Failed:", search_res.code)
@@ -71,7 +66,7 @@ def membership_verification(audit, root, row):
     if not audit.can_verify_membership_proof(row):
         return "o"
     elif audit.verify_membership_proof(root, row):
-        return "."
+        return "✓"
     else:
         return "x"
 
@@ -80,14 +75,14 @@ def consistency_verification(audit, pub_roots, row):
     if not audit.can_verify_consistency_proof(row):
         return "o"
     elif audit.verify_consistency_proof(pub_roots, row):
-        return "."
+        return "✓"
     else:
         return "x"
 
 
 def signature_verification(row):
     if audit.verify_signature(row):
-        return "."
+        return "✓"
     else:
         return "x"
 
@@ -98,10 +93,10 @@ def print_page_results(pub_roots, search_res, offset, count):
     for row in search_res.result.events:
         membership = membership_verification(audit, root, row)
         consistency = consistency_verification(audit, pub_roots, row)
-        signature = signature_verification(row)        
+        # signature = signature_verification(row)
         print(
-            f"{row.event.message}\t{row.event.created}\t{row.event.source}"
-            f"\t{row.event.actor}\t\t{membership}{consistency}{signature}"
+            f"{row.event.received_at}\t{row.event.message}\t{row.event.source}"
+            f"\t{row.event.actor}\t\t{membership} {consistency}"
         )
     print(
         f"\nResults: {offset+1}-{offset+len(search_res.result.events)} of {count}",

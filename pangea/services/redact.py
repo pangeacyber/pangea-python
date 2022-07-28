@@ -19,16 +19,13 @@ class Redact(ServiceBase):
     """Redact service client.
 
     Provides the methods to interact with the Pangea Redact Service:
-        [https://docs.dev.pangea.cloud/docs/api/redact]
-        (https://docs.dev.pangea.cloud/docs/api/redact)
+        [https://docs.dev.pangea.cloud/docs/api/redact](https://docs.dev.pangea.cloud/docs/api/redact)
 
     The following information is needed:
         PANGEA_TOKEN - service token which can be found on the Pangea User
-            Console at [https://console.dev.pangea.cloud/project/tokens]
-            (https://console.dev.pangea.cloud/project/tokens)
+            Console at [https://console.dev.pangea.cloud/project/tokens](https://console.dev.pangea.cloud/project/tokens)
         REDACT_CONFIG_ID - Configuration ID which can be found on the Pangea
-            User Console at [https://console.dev.pangea.cloud/service/redact]
-            (https://console.dev.pangea.cloud/service/redact)
+            User Console at [https://console.dev.pangea.cloud/service/redact](https://console.dev.pangea.cloud/service/redact)
 
     Examples:
         import os
@@ -58,17 +55,18 @@ class Redact(ServiceBase):
 
     def redact(self, text: str, debug=False) -> PangeaResponse:
         """
+        Redact
+        
         Redacts the content of a single text string.
 
         Args:
             text (str): The text to be redacted
-            debug (bool, optional): Return debug output?
+            debug (bool, optional): Return debug output
 
         Returns:
             Pangea Response with redacted text in the response.result property,
                 available response fields can be found at:
-                [https://docs.dev.pangea.cloud/docs/api/redact#redact]
-                (https://docs.dev.pangea.cloud/docs/api/redact#redact)
+                [https://docs.dev.pangea.cloud/docs/api/redact#redact](https://docs.dev.pangea.cloud/docs/api/redact#redact)
 
         Examples:
             response = redact.redact("Jenny Jenny... 415-867-5309")
@@ -94,18 +92,19 @@ class Redact(ServiceBase):
         self, obj: t.Any, redact_format: RedactFormat = RedactFormat.JSON, debug=False
     ) -> PangeaResponse:
         """
-        Redacts text within a structured object
+        Redact structured
+
+        Redacts text within a structured object.
 
         Args:
             obj (obj): The object that should be redacted
             redact_format (RedactFormat, optional): The format of the passed data
-            debug (bool, optional): Return debug output?
+            debug (bool, optional): Return debug output
 
         Returns:
             Pangea Response with redacted data in the response.result field,
                 available response fields can be found at:
-                [https://docs.dev.pangea.cloud/docs/api/redact#redact]
-                (https://docs.dev.pangea.cloud/docs/api/redact#redact)
+                [https://docs.dev.pangea.cloud/docs/api/redact#redact](https://docs.dev.pangea.cloud/docs/api/redact#redact)
 
         Examples:
             response = redact.redact_structured(obj={ "number": "415-867-5309", "ip": "1.1.1.1" }, redact_format="json")

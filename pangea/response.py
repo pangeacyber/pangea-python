@@ -18,8 +18,11 @@ class JSONObject(dict):
         else:
             return value
 
-    def __getattr__(self, item):
-        return self.get(item)
+    def __getattr__(self, name: str):
+        return self.get(name)
+
+    def __setattr__(self, name: str, value) -> None:
+        self[name] = value
 
 
 class PangeaResponse(object):
@@ -27,8 +30,7 @@ class PangeaResponse(object):
 
     Properties:
         result (obj): "result" field of the API response as documented at:
-            [https://docs.dev.pangea.cloud/docs/api/#responses]
-            (https://docs.dev.pangea.cloud/docs/api/#responses)
+            [https://docs.dev.pangea.cloud/docs/api/#responses](https://docs.dev.pangea.cloud/docs/api/#responses)
         status (str): short description message, i.e. "OK"
         code (int): HTTP status code
         success (bool): true if call was successful

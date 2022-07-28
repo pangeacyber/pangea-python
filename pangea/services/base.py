@@ -6,10 +6,9 @@ from pangea.request import PangeaRequest
 
 
 class ServiceBase(object):
-    service_name = "base"
-    version = "v1"
-    service_config = None
-    config_id_header = ""
+    service_name: str = "base"
+    version: str = "v1"
+    config_id_header: str = ""
 
     def __init__(self, token, config=None):
         if not token:
@@ -25,9 +24,7 @@ class ServiceBase(object):
         )
 
         if self.config.config_id and self.config_id_header:
-            self.request.set_extra_headers(
-                {self.config_id_header: self.config.config_id}
-            )
+            self.request.set_extra_headers({self.config_id_header: self.config.config_id})
 
     @property
     def token(self):

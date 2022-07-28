@@ -13,11 +13,9 @@ class Embargo(ServiceBase):
 
     The following information is needed:
         PANGEA_TOKEN - service token which can be found on the Pangea User
-            Console at [https://console.dev.pangea.cloud/project/tokens]
-            (https://console.dev.pangea.cloud/project/tokens)
+            Console at [https://console.dev.pangea.cloud/project/tokens](https://console.dev.pangea.cloud/project/tokens)
         EMBARGO_CONFIG_ID - Configuration ID which can be found on the Pangea
-            User Console at [https://console.dev.pangea.cloud/service/embargo]
-            (https://console.dev.pangea.cloud/service/embargo)
+            User Console at [https://console.dev.pangea.cloud/service/embargo](https://console.dev.pangea.cloud/service/embargo)
 
     Examples:
         import os
@@ -39,9 +37,9 @@ class Embargo(ServiceBase):
     service_name = "embargo"
     version = "v1"
 
-    def check_ip(self, ip: str) -> PangeaResponse:
+    def ip_check(self, ip: str) -> PangeaResponse:
         """
-        Embargo
+        Check IP
 
         Check this IP against known sanction and trade embargo lists.
 
@@ -52,11 +50,10 @@ class Embargo(ServiceBase):
         Returns:
             A PangeaResponse where the sanctioned source(s) are in the
                 response.result field.  Available response fields can be found
-                at: [https://docs.dev.pangea.cloud/docs/api/embargo]
-                (https://docs.dev.pangea.cloud/docs/api/embargo)
+                at: [https://docs.dev.pangea.cloud/docs/api/embargo](https://docs.dev.pangea.cloud/docs/api/embargo)
 
         Examples:
-            response = embargo.check_ip("1.1.1.1")
+            response = embargo.ip_check("1.1.1.1")
 
             \"\"\"
             response contains:
@@ -89,11 +86,11 @@ class Embargo(ServiceBase):
             \"\"\"
         """
 
-        return self.request.post("check", data={"ip": ip})
+        return self.request.post("ip/check", data={"ip": ip})
 
-    def check_isocode(self, iso_code: str) -> PangeaResponse:
+    def iso_check(self, iso_code: str) -> PangeaResponse:
         """
-        Embargo
+        ISO Code Check
 
         Check this country against known sanction and trade embargo lists.
 
@@ -104,11 +101,10 @@ class Embargo(ServiceBase):
         Returns:
             A PangeaResponse where the sanctioned source(s) are in the
                 response.result field.  Available response fields can be found
-                at: [https://docs.dev.pangea.cloud/docs/api/embargo]
-                (https://docs.dev.pangea.cloud/docs/api/embargo)
+                at: [https://docs.dev.pangea.cloud/docs/api/embargo](https://docs.dev.pangea.cloud/docs/api/embargo)
 
         Examples:
-            response = embargo.check_isocode("FR")
+            response = embargo.lookup("FR")
 
             \"\"\"
             response contains:
@@ -127,4 +123,4 @@ class Embargo(ServiceBase):
             \"\"\"
         """
 
-        return self.request.post("check", data={"iso_code": iso_code})
+        return self.request.post("iso/check", data={"iso_code": iso_code})

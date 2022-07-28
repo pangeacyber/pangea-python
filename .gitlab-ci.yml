@@ -1,10 +1,23 @@
 image: python:3.7
 
+default:
+  tags:
+    - pangea-internal
+
 stages:
   - lint
   - unit_tests
   - integration_tests
   - build
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: always
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: always
+    - if: $CI_PIPELINE_SOURCE == "push" # don't run a pipeline on every push, only every MR
+      when: never
 
 before_script:
   - pip install poetry
@@ -18,12 +31,12 @@ py_lint:
 testing:
   stage: unit_tests
   script:
-    - poetry run python -m unittest -v
+    - poetry run python -m unittest tests
 
 integration:
   stage: integration_tests
   script:
-    - echo "Integration tests..."
+    - poetry run python -m unittest tests.integration
 
 building:
   stage: build
@@ -32,3 +45,5 @@ building:
   script:
     - poetry build
     - poetry publish --username __token__ --password $PYPI_SDK_TOKEN
+    - poetry config repositories.artifactory "https://builder.scranton.dev.pangea.cloud/artifactory/api/pypi/pypi"
+    - poetry publish --repository artifactory -u poetry -p "${ARTIFACTORY_PUBLISH_TOKEN}"
