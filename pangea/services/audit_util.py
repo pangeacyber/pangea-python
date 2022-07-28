@@ -116,8 +116,25 @@ def canonicalize_json(message : dict) -> bytes:
     ).encode("utf-8")
 
 
-def hash_data(data: bytes) -> str:
-    return sha256(data).hexdigest()
+def hash_bytes(data: bytes) -> bytes:
+    return sha256(data).digest()
+
+
+def hash_str(data: str) -> str:
+    return sha256(bytes(data, "utf8")).hexdigest()
+
+
+def hash_dict(data: dict) -> str:
+    return sha256(canonicalize_json(data)).hexdigest()
+
+
+def xor_str(data: str, key: str) -> str:
+    x = 0
+    ret = list(data)
+    while x < len(data) and x < len(key):
+        ret[x] = chr(ord(data[x]) ^ ord(key[x]))
+        x+=1
+    return "".join(ret)
 
 
 def base64url_decode(input_parameter):

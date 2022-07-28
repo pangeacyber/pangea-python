@@ -1,6 +1,7 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 import os
+import typing as t
 from base64 import b64encode, b64decode
 from os.path import exists
 from cryptography.hazmat.primitives.asymmetric import ed25519
@@ -20,13 +21,10 @@ class Signing:
     _overwrite_keys_if_exists = False
     _hash_message = False
 
-    def __init__(self, generate_keys: bool = True, overwrite_keys_if_exists: bool =  False, hash_message: bool = False) -> None:
-        self.generate_keys = generate_keys
+    def __init__(self, overwrite_keys_if_exists: bool =  False, hash_message: bool = False) -> None:
         self._hash_message = hash_message
         self._overwrite_keys_if_exists = overwrite_keys_if_exists
 
-        if self.generate_keys:
-            self.generateKeys(overwrite_keys_if_exists)
 
     # Generates key pairs, storing in local disk.
     def generateKeys(self, overwrite_if_exists: bool):
@@ -132,10 +130,20 @@ class Signing:
         message_bytes = canonicalize_json(messageJSON)
         return self.signMessageBytes(message_bytes, private_key_bytes)
 
+    def signMessage(self, message: t.Any, private_key_bytes: bytes = None):
+        if isinstance(message, str):
+            return self.signMessageStr(message, private_key_bytes)
+
+        if isinstance(message, dict):
+            return self.signMessageJSON(message, private_key_bytes)
+
+        if isinstance(message, bytes):
+            return self.signMessageBytes(message, private_key_bytes)
+
     # Verify a string message using Ed25519 algorithm
     def verifyMessageStr(self, signature_b64: bytes, message: str, public_key_bytes: bytes = None) -> bool:
         message_bytes = bytes(message, "utf8")
-        return self.verifyMessageBytes(signature_b64, message_bytes, public_key_bytes)            
+        return self.verifyMessageBytes(signature_b64, message_bytes, public_key_bytes)         
 
     # Verify a message in bytes using Ed25519 algorithm
     def verifyMessageBytes(self, signature_b64: bytes, message_bytes: bytes, public_key_bytes: bytes = None) -> bool:
@@ -156,3 +164,13 @@ class Signing:
     def verifyMessageJSON(self, signature_b64: bytes, messageJSON: dict, public_key_bytes: bytes = None) -> bool:
         message_bytes = canonicalize_json(messageJSON)
         return self.verifyMessageBytes(signature_b64, message_bytes, public_key_bytes)
+
+    def verifyMessage(self, signature_b64: bytes, message: t.Any, public_key_bytes: bytes = None) -> bool:
+        if isinstance(message, str):
+            return self.verifyMessageStr(signature_b64, message, public_key_bytes)
+
+        if isinstance(message, dict):
+            return self.verifyMessageJSON(signature_b64, message, public_key_bytes)
+
+        if isinstance(message, bytes):
+            return self.verifyMessageBytes(signature_b64, message, public_key_bytes)

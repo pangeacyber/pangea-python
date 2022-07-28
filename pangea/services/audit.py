@@ -11,6 +11,8 @@ from .audit_util import (
     decode_consistency_proof,
     encode_hash,
     decode_hash,
+    hash_dict,
+    xor_str,
     b64encode,
     b64encode_ascii,
     b64decode,
@@ -33,6 +35,8 @@ SupportedJSONFields = [
     "new",
     "old",
 ]
+
+sign = Signing(overwrite_keys_if_exists = False, hash_message = False)
 
 
 class Audit(ServiceBase):
@@ -66,7 +70,6 @@ class Audit(ServiceBase):
         audit = Audit(token=PANGEA_TOKEN, config=audit_config)
     """
 
-    sign = Signing(generate_keys = False, overwrite_keys_if_exists = False, hash_message = False)
     service_name = "audit"
     version = "v1"
     config_id_header = "X-Pangea-Audit-Config-ID"
@@ -75,7 +78,7 @@ class Audit(ServiceBase):
     # In case of Arweave failure, ask the server for the roots
     allow_server_roots = True
 
-    def log(self, event: dict, verify: bool = False, sign: bool = False) -> PangeaResponse:
+    def log(self, event: dict, verify: bool = False, signing: bool = False) -> PangeaResponse:
         """
         Log an entry
 
@@ -136,15 +139,15 @@ class Audit(ServiceBase):
         if "message" not in data["event"]:
             raise Exception(f"Error: missing required field, no `message` provided")
 
-        if sign:
+        if signing:
             sign_envelope = self.create_sign_envelope(data["event"])
-            signature = self.sign.signMessageJSON(sign_envelope)
+            signature = sign.signMessage(hash_dict(sign_envelope))
             if signature is not None:
                 data["event"]["signature"] = signature
             else:
                 raise Exception(f"Error: failure signing message")
                 
-            public_bytes = self.sign.getPublicKeyBytes()
+            public_bytes = sign.getPublicKeyBytes()
             data["event"]["public_key"] = b64encode_ascii(public_bytes)
 
         resp = self.request.post(endpoint_name, data=data)
@@ -264,10 +267,12 @@ class Audit(ServiceBase):
             for audit_envelope in response.result.events:
                 event = audit_envelope.event
                 sign_envelope = self.create_sign_envelope(event)
+                redact_mask = event.get("mask", "")
+                sign_envelope = self.get_unredacted_message(sign_envelope, redact_mask)                
                 public_key_b64 = event.get("public_key")
                 public_key_bytes = b64decode(public_key_b64)
 
-                if not self.sign.verifyMessageJSON(event.signature, sign_envelope, public_key_bytes):
+                if not sign.verifyMessage(event.signature, sign_envelope, public_key_bytes):
                     raise Exception(f"Error: signature failed.")                 
 
         return self.handle_search_response(response)
@@ -308,10 +313,12 @@ class Audit(ServiceBase):
             for audit_envelope in response.result.events:
                 event = audit_envelope.event
                 sign_envelope = self.create_sign_envelope(event)
+                redact_mask = event.get("mask", "")
+                sign_envelope = self.get_unredacted_message(sign_envelope, redact_mask)                
                 public_key_b64 = event.get("public_key")
                 public_key_bytes = b64decode(public_key_b64)
 
-                if not self.sign.verifyMessageJSON(event.signature, sign_envelope, public_key_bytes):
+                if not sign.verifyMessage(event.signature, sign_envelope, public_key_bytes):
                     raise Exception(f"Error: signature failed.")  
 
         return self.handle_search_response(response)
@@ -467,9 +474,11 @@ class Audit(ServiceBase):
     def verify_signature(self, audit_envelope: JSONObject) -> bool:
         event = audit_envelope.event
         sign_envelope = self.create_sign_envelope(event)
+        redact_mask = event.get("mask", "")
+        sign_envelope = self.get_unredacted_message(sign_envelope, redact_mask)
         public_key_b64 = event.get("public_key")
         public_key_bytes = b64decode(public_key_b64)
-        return self.sign.verifyMessageJSON(event.signature, sign_envelope, public_key_bytes)
+        return sign.verifyMessage(event.signature, sign_envelope, public_key_bytes)
 
     def root(self, tree_size: int = 0) -> PangeaResponse:
         """
@@ -507,4 +516,7 @@ class Audit(ServiceBase):
 			"target": event.get("target"),
             "timestamp": event.get("timestamp")                
         }
-        return sign_envelope        
+        return sign_envelope       
+
+    def get_unredacted_message(self, sign_envelope: dict, redact_mask: str = "") -> str:
+        return(xor_str(hash_dict(sign_envelope), redact_mask))
