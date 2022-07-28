@@ -268,7 +268,7 @@ class Audit(ServiceBase):
                 event = audit_envelope.event
                 sign_envelope = self.create_sign_envelope(event)
                 redact_mask = event.get("mask", "")
-                sign_envelope = self.get_unredacted_message(sign_envelope, redact_mask)                
+                sign_envelope = self.get_unredacted_message_hash(sign_envelope, redact_mask)                
                 public_key_b64 = event.get("public_key")
                 public_key_bytes = b64decode(public_key_b64)
 
@@ -314,7 +314,7 @@ class Audit(ServiceBase):
                 event = audit_envelope.event
                 sign_envelope = self.create_sign_envelope(event)
                 redact_mask = event.get("mask", "")
-                sign_envelope = self.get_unredacted_message(sign_envelope, redact_mask)                
+                sign_envelope = self.get_unredacted_message_hash(sign_envelope, redact_mask)                
                 public_key_b64 = event.get("public_key")
                 public_key_bytes = b64decode(public_key_b64)
 
@@ -475,7 +475,7 @@ class Audit(ServiceBase):
         event = audit_envelope.event
         sign_envelope = self.create_sign_envelope(event)
         redact_mask = event.get("mask", "")
-        sign_envelope = self.get_unredacted_message(sign_envelope, redact_mask)
+        sign_envelope = self.get_unredacted_message_hash(sign_envelope, redact_mask)
         public_key_b64 = event.get("public_key")
         public_key_bytes = b64decode(public_key_b64)
         return sign.verifyMessage(event.signature, sign_envelope, public_key_bytes)
@@ -518,5 +518,5 @@ class Audit(ServiceBase):
         }
         return sign_envelope       
 
-    def get_unredacted_message(self, sign_envelope: dict, redact_mask: str = "") -> str:
+    def get_unredacted_message_hash(self, sign_envelope: dict, redact_mask: str = "") -> str:
         return(encode_hash(xor_bytes(hash_dict(sign_envelope), decode_hash(redact_mask))))
