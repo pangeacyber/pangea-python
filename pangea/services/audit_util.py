@@ -44,14 +44,29 @@ ConsistencyProof = List[ConsistencyProofItem]
 def decode_hash(hexhash) -> Hash:
     return unhexlify(hexhash.encode("utf8"))
 
-
 def encode_hash(hash_: Hash) -> str:
     return hexlify(hash_).decode("utf8")
-
 
 def hash_pair(hash1: Hash, hash2: Hash) -> Hash:
     return sha256(hash1 + hash2).digest()
 
+def b64encode(data: bytes) -> bytes:
+    ret = None
+    if data is not None:    
+        ret = base64.b64encode(data)
+    return ret
+
+def b64encode_ascii(data: bytes) -> str:
+    ret = None
+    if data is not None:    
+        ret = base64.b64encode(data).decode("ascii")
+    return ret
+
+def b64decode(data) -> bytes:
+    ret = None
+    if data is not None:
+        ret = base64.b64decode(data)
+    return ret
 
 def decode_membership_proof(data: str) -> MembershipProof:
     proof: MembershipProof = []
