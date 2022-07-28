@@ -3,9 +3,10 @@ import sys
 import math
 import json
 import typing as t
+from alive_progress import alive_bar
+
 import pangea.services.audit_util as audit_util
 
-from alive_progress import alive_bar
 
 
 class Root(t.TypedDict):
@@ -117,6 +118,34 @@ def index_number(tree_height: int, membership_proof: str) -> int:
     return idx_number
 
 
+def verify_hash(data: dict, data_hash: str) -> bool:
+    """ Verify the hash of an event """
+    succeeded = False
+    try:
+        data_canon = audit_util.canonicalize_json(data)
+        computed_hash = audit_util.hash_data(data_canon)
+        computed_hash_dec = audit_util.decode_hash(computed_hash)
+        data_hash_dec = audit_util.decode_hash(data_hash)
+        if computed_hash_dec != data_hash_dec:
+            raise ValueError("Hash does not match")
+        succeeded = True
+    except Exception:
+        pass
+    return succeeded
+
+
+def verify_membership_proof(node_hash: str, root_hash: str, proof: str) -> bool:
+    succeeded = False
+    try:
+        root_hash_dec = audit_util.decode_hash(root_hash)
+        node_hash_dec = audit_util.decode_hash(node_hash)
+        proof_dec = audit_util.decode_membership_proof(proof)
+        succeeded = audit_util.verify_membership_proof(node_hash_dec, root_hash_dec, proof_dec)
+    except Exception:
+        pass
+    return succeeded
+
+
 def load_args():
     parser = argparse.ArgumentParser(
         description="Pangea Audit Event Deletion Verifier")
@@ -158,6 +187,7 @@ def main():
         bar()
         leaf_index = current_event['leaf_index']
         grpByIdxEvents = [current_event]
+        cnt = 0
         for event in events:
             if event['leaf_index'] == leaf_index:
                 grpByIdxEvents.append(event)
@@ -165,6 +195,19 @@ def main():
                 cold_path_size = get_path_size(t_size, leaf_index)
                 prev_index = None
                 for e in grpByIdxEvents:
+                    cnt += 1
+                    if not verify_hash(e["event"], e["hash"]):
+                        print(f"failed hash for event {cnt}")
+                        # exit_with_error(
+                        #     f"failed hash check "
+                        #     f"for {e}")
+
+                    elif not verify_membership_proof(e["hash"], root["root_hash"], e["membership_proof"]):
+                        print(f"failed membership_proof for event {cnt}")
+                        # exit_with_error(
+                        #     f"failed membership proof check "
+                        #     f"for {e}")
+
                     path = get_proof_path(e["membership_proof"])
                     hot_path = path[:-cold_path_size]
                     cold_path = path[-cold_path_size:]
