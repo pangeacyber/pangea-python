@@ -11,7 +11,6 @@ Datetimes should be in ISO 8601 format.
 import json
 import os
 import argparse
-import logging
 from typing import Optional
 from datetime import datetime, timezone
 from dateutil.parser import parse
@@ -31,47 +30,52 @@ def print_progress_bar(iteration, total, prefix="", suffix="", decimals=1, lengt
 
 def dump_audit(audit: Audit, fname: str, start: datetime, end: datetime) -> int:
     offset = 0
-    page_end: Optional[datetime] = start
+    page_end = start
     with open(f"{fname}.jsonl", "w") as file:
-        while page_end is not None and page_end < end:
-            page_end, page_offset = dump_page(audit, file, page_end, end)
-            offset += page_offset
+        while True:
+            page_end, page_size = dump_page(audit, file, page_end, end, first=offset == 0)
+            if page_size == 0:
+                break
+            offset += page_size
     return offset
 
 
-def dump_page(audit: Audit, file, start: datetime, end: datetime, dump_root: bool = False) -> tuple[Optional[datetime], int]:
+def dump_page(audit: Audit, file, start: datetime, end: datetime, first: bool = False) -> tuple[datetime, int]:
     print("Dumping...", end="\r")
     search_res = audit.search(
         start=start.isoformat(),
         end=end.isoformat(),
+        order="asc",
         verify=False,
-        limit=100
+        limit=1000
     )
     if not search_res.success:
         raise ValueError("Error fetching events")
-    print(f"Dumping... {search_res.result.count} events")
 
-    if dump_root:
+    msg = f"Dumping... {search_res.result.count} events"
+
+    if search_res.result.count == 0 or (not first and search_res.result.count == 1):
+        return end, 0
+
+    if first:
         with open(f"{file.name}.root.json", "w") as out_root:
             out_root.write(json.dumps(search_res.result.root))
 
+    offset = 0
     result_id = search_res.result.id
     count = search_res.result.count
-    offset = 0
     while offset < count:
         for row in search_res.result.events:
-            file.write(json.dumps(row) + "\n")
+            if first or offset > 0:
+                file.write(json.dumps(row) + "\n")
             offset += 1
-        search_res = audit.results(result_id, offset=offset)
-        if not search_res.success:
-            raise ValueError("Error fetching events")
-        print_progress_bar(offset, count, prefix="Progress:", suffix="Complete", length=50)
+        if offset < count:
+            search_res = audit.results(result_id, offset=offset)
+            if not search_res.success:
+                raise ValueError("Error fetching events")
+        print_progress_bar(offset, count, prefix=msg, suffix="Complete", length=50)
 
-    if row is None:
-        page_end = None
-    else:
-        print(row)
-        page_end = parse(row.event.received_at)
+    page_end = parse(row.event.received_at)
     return page_end, offset
 
 
@@ -112,7 +116,7 @@ def main():
 
     audit = init_audit(args.token, args.config_id, args.base_domain)
     dump_audit(audit, fname, start, end)
-    print("Done.")
+    print("\nDone.")
 
 
 if __name__ == "__main__":
