@@ -1,9 +1,11 @@
+import argparse
 import sys
 import math
 import json
 import typing as t
-
 import pangea.services.audit_util as audit_util
+
+from alive_progress import alive_bar
 
 
 class Root(t.TypedDict):
@@ -16,28 +18,32 @@ class Event(t.TypedDict):
     leaf_index: int
 
 
-def rootFromFile(file_path: str) -> Root:
+def rootFromFile(f: str) -> Root:
     """
     Reads a file containing a Root in JSON format with the following fields:
     - membership_proof: str
     - leaf_index: int
     """
-    with open(file_path) as f:
-        return json.load(f)
+    return json.load(f)
 
 
-def eventsInFile(file_path: str) -> t.Iterator[Event]:
+def eventsInFile(f) -> t.Iterator[Event]:
     """
     Reads a file containing Events in JSON format with the following fields:
     - membership_proof: str
     - leaf_index: int
     """
-    with open(file_path) as f:
-        for idx, line in enumerate(f):
-            try:
-                yield json.loads(line)
-            except json.JSONDecodeError as e:
-                exit_with_error(f"failed to parse line: {idx}: {e.msg}")
+    for idx, line in enumerate(f):
+        try:
+            yield json.loads(line)
+        except json.JSONDecodeError as e:
+            exit_with_error(f"failed to parse line: {idx}: {e.msg}")
+
+
+def lenOfFile(f) -> int:
+    res = sum(1 for _ in f)
+    f.seek(0)
+    return res
 
 
 def path2index(tree_size: int, path: str) -> int:
@@ -111,38 +117,75 @@ def index_number(tree_height: int, membership_proof: str) -> int:
     return idx_number
 
 
+def load_args():
+    parser = argparse.ArgumentParser(
+        description="Pangea Audit Event Deletion Verifier")
+    parser.add_argument(
+        "--events",
+        "-e",
+        type=argparse.FileType("r"),
+        metavar="PATH",
+        help="Event input file. Must be a collection of "
+             "JSON Objects separated by newlines",
+    )
+    parser.add_argument(
+        "--root",
+        "-r",
+        type=argparse.FileType("r"),
+        metavar="PATH",
+        help="root input file. Must be a JSON Object",
+    )
+    args = parser.parse_args()
+    if not args.events or not args.root:
+        parser.print_help(sys.stderr)
+        sys.exit(1)
+    return args.events, args.root
+
+
 def main():
-    root = rootFromFile("./root.txt")
+    events_file, root_file = load_args()
+
+    with alive_bar(1, title="Counting Events") as bar:
+        total_events = lenOfFile(events_file)
+        bar()
+
+    root = rootFromFile(root_file)
     t_size = root['size']
-    events = eventsInFile("./test.txt")
-    current_event = next(events)
-    leaf_index = current_event['leaf_index']
-    grpByIdxEvents = [current_event]
-    for event in events: 
-        if event['leaf_index'] == leaf_index:
-            grpByIdxEvents.append(event)
-        else:
-            cold_path_size = get_path_size(t_size, leaf_index)
-            prev_index = None
-            for e in grpByIdxEvents:
-                path = get_proof_path(e["membership_proof"])
-                hot_path = path[:-cold_path_size]
-                cold_path = path[-cold_path_size:]
-                if cold_idx := path2index(t_size, cold_path) != leaf_index:
-                    exit_with_error(
-                        f"failed cold tree leaf index check"
-                        f"for {e}: {cold_idx} != {leaf_index}")
-                hot_idx = path2index(len(grpByIdxEvents), hot_path)
-                if prev_index is None or prev_index + 1 == hot_idx:
-                    prev_index = hot_idx
-                else:
-                    exit_with_error(
-                        f"failed hot tree leaf index check "
-                        f"for {e}: {prev_index} != {hot_idx}")
-            leaf_index = event['leaf_index']
-            grpByIdxEvents = [event]
-        current_event = event
-    print("succefully verified all events")
+    events = eventsInFile(events_file)
+
+    with alive_bar(total_events, title="Validating Events") as bar:
+        current_event = next(events)
+        bar()
+        leaf_index = current_event['leaf_index']
+        grpByIdxEvents = [current_event]
+        for event in events:
+            if event['leaf_index'] == leaf_index:
+                grpByIdxEvents.append(event)
+            else:
+                cold_path_size = get_path_size(t_size, leaf_index)
+                prev_index = None
+                for e in grpByIdxEvents:
+                    path = get_proof_path(e["membership_proof"])
+                    hot_path = path[:-cold_path_size]
+                    cold_path = path[-cold_path_size:]
+                    if cold_idx := path2index(t_size, cold_path) != leaf_index:
+                        exit_with_error(
+                            f"failed cold tree leaf index check"
+                            f"for {e}: {cold_idx} != {leaf_index}")
+                    hot_idx = path2index(len(grpByIdxEvents), hot_path)
+                    if prev_index is None or prev_index + 1 == hot_idx:
+                        prev_index = hot_idx
+                    else:
+                        exit_with_error(
+                            f"failed hot tree leaf index check "
+                            f"for {e}: {prev_index} != {hot_idx}")
+                print('-> Succefully validated events of '
+                      f'leaf_index: {leaf_index}')
+                leaf_index = event['leaf_index']
+                grpByIdxEvents = [event]
+            current_event = event
+            bar()
+    print("Succefully validated all events - No missing events were detected")
     sys.exit(0)
 
 
