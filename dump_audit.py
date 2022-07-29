@@ -32,12 +32,65 @@ def dump_audit(audit: Audit, fname: str, start: datetime, end: datetime) -> int:
     offset = 0
     page_end = start
     with open(f"{fname}.jsonl", "w") as file:
+        found_any = dump_before(audit, file, start) > 0
         while True:
-            page_end, page_size = dump_page(audit, file, page_end, end, first=offset == 0)
+            page_end, page_size = dump_page(audit, file, page_end, end, first=not found_any)
             if page_size == 0:
                 break
             offset += page_size
+        dump_after(audit, file, end)
     return offset
+
+
+def dump_before(audit: Audit, file, start: datetime) -> int:
+    print("Dumping before...", end="\r")
+    search_res = audit.search(
+        start="2000-01-01T10:00:00Z",
+        end=start.isoformat(),
+        order="desc",
+        verify=False,
+        limit=1000,
+        max_results=1000
+    )
+    if not search_res.success:
+        raise ValueError("Error fetching events")
+
+    with open(f"{os.path.splitext(file.name)[0]}.root.json", "w") as out_root:
+        out_root.write(json.dumps(search_res.result.root))
+
+    cnt = 0
+    if search_res.result.count > 0:
+        leaf_index = search_res.result.events[0].leaf_index
+        for row in reversed(search_res.result.events):
+            if row.leaf_index != leaf_index:
+                break
+            file.write(json.dumps(row) + "\n")
+            cnt += 1
+    print(f"Dumping before... {cnt} events")
+    return cnt
+
+
+def dump_after(audit: Audit, file, start: datetime):
+    print("Dumping after...", end="\r")
+    search_res = audit.search(
+        start=start.isoformat(),
+        order="asc",
+        verify=False,
+        limit=1000,
+        max_results=1000
+    )
+    if not search_res.success:
+        raise ValueError("Error fetching events")
+
+    if search_res.result.count > 0:
+        cnt = 0
+        leaf_index = search_res.result.events[0].leaf_index
+        for row in search_res.result.events[1:]:
+            if row.leaf_index != leaf_index:
+                break
+            file.write(json.dumps(row) + "\n")
+            cnt += 1
+        print(f"Dumping after... {cnt} events")
 
 
 def dump_page(audit: Audit, file, start: datetime, end: datetime, first: bool = False) -> tuple[datetime, int]:
@@ -54,12 +107,8 @@ def dump_page(audit: Audit, file, start: datetime, end: datetime, first: bool = 
 
     msg = f"Dumping... {search_res.result.count} events"
 
-    if search_res.result.count == 0 or (not first and search_res.result.count == 1):
+    if search_res.result.count <= 1:
         return end, 0
-
-    if first:
-        with open(f"{file.name}.root.json", "w") as out_root:
-            out_root.write(json.dumps(search_res.result.root))
 
     offset = 0
     result_id = search_res.result.id
