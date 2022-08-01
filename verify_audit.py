@@ -16,7 +16,7 @@ import sys
 from typing import Dict, Optional
 
 from pangea.services.audit_util import (
-    canonicalize_log,
+    canonicalize_json,
     decode_consistency_proof,
     decode_hash,
     decode_membership_proof,
@@ -81,7 +81,7 @@ def _verify_hash(data: dict, data_hash: str) -> Optional[bool]:
     log_section("Checking data hash")
     try:
         logger.debug("Canonicalizing data")
-        data_canon = canonicalize_log(data)
+        data_canon = canonicalize_json(data)
         logger.debug("Calculating hash")
         computed_hash = hash_data(data_canon)
         computed_hash_dec = decode_hash(computed_hash)
