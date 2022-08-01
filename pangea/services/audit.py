@@ -13,13 +13,15 @@ from .audit_util import (
     decode_hash,
     hash_dict,
     xor_bytes,
-    b64encode,
     b64encode_ascii,
     b64decode,
     decode_membership_proof,
     get_arweave_published_roots,
     verify_consistency_proof,
     verify_membership_proof,
+    get_buffer_root,
+    set_buffer_root,
+    verify_hash
 )
 
 SupportedFields = [
@@ -141,7 +143,7 @@ class Audit(ServiceBase):
 
         if signing:
             sign_envelope = self.create_sign_envelope(data["event"])
-            signature = sign.signMessage(encode_hash(hash_dict(sign_envelope)))
+            signature = sign.signMessage(sign_envelope)
             if signature is not None:
                 data["event"]["signature"] = signature
             else:
@@ -150,8 +152,46 @@ class Audit(ServiceBase):
             public_bytes = sign.getPublicKeyBytes()
             data["event"]["public_key"] = b64encode_ascii(public_bytes)
 
-        resp = self.request.post(endpoint_name, data=data)
-        return resp
+        prev_buffer_root = None
+        if verify:
+            data["verbose"] = verify
+            data["return_hash"] = verify
+            data["return_proof"] = verify
+            prev_buffer_root = get_buffer_root()
+            if prev_buffer_root is not None:
+                data["prev_buffer_root"] = prev_buffer_root
+
+        response = self.request.post(endpoint_name, data=data)
+
+        return self.handle_log_response(response, verify=verify, prev_buffer_root=prev_buffer_root)
+
+    def handle_log_response(self, response: PangeaResponse, verify: bool, prev_buffer_root: bytes):
+        if not response.success:
+            return response
+
+        if verify:
+            new_buffer_root = response.result.get("buffer_root")
+            membership_proof = response.result.get("membership_proof")
+            consistency_proof = response.result.get("consistency_proof")
+            event = response.result.get("event")
+            event_hash = response.result.get("hash")
+
+            # verify event hash
+            if not verify_hash(hash_dict(event), decode_hash(event_hash)):
+                raise Exception(f"Error: Event hash failed.")
+
+            # verify membership proofs
+            if not verify_membership_proof(node_hash=event_hash, root_hash=new_buffer_root, proof=membership_proof):
+                raise Exception(f"Error: Membership proof failed.")
+
+            # verify consistency proofs (following events)
+            if consistency_proof:
+                if not verify_consistency_proof(new_root=new_buffer_root, prev_root=prev_buffer_root, proof=consistency_proof):
+                    raise Exception(f"Error: Consistency proof failed.")
+
+            set_buffer_root(new_buffer_root)
+
+        return response
 
     def search(
         self,
@@ -267,8 +307,6 @@ class Audit(ServiceBase):
             for audit_envelope in response.result.events:
                 event = audit_envelope.event
                 sign_envelope = self.create_sign_envelope(event)
-                redact_mask = event.get("mask", "")
-                sign_envelope = self.get_unredacted_message_hash(sign_envelope, redact_mask)                
                 public_key_b64 = event.get("public_key")
                 public_key_bytes = b64decode(public_key_b64)
 
@@ -313,15 +351,13 @@ class Audit(ServiceBase):
             for audit_envelope in response.result.events:
                 event = audit_envelope.event
                 sign_envelope = self.create_sign_envelope(event)
-                redact_mask = event.get("mask", "")
-                sign_envelope = self.get_unredacted_message_hash(sign_envelope, redact_mask)                
                 public_key_b64 = event.get("public_key")
                 public_key_bytes = b64decode(public_key_b64)
 
                 if not sign.verifyMessage(event.signature, sign_envelope, public_key_bytes):
                     raise Exception(f"Error: signature failed.")  
 
-        return self.handle_search_response(response)
+        return self.handle_search_response(response)   
 
     def handle_search_response(self, response: PangeaResponse):
         if not response.success:
@@ -474,8 +510,6 @@ class Audit(ServiceBase):
     def verify_signature(self, audit_envelope: JSONObject) -> bool:
         event = audit_envelope.event
         sign_envelope = self.create_sign_envelope(event)
-        redact_mask = event.get("mask", "")
-        sign_envelope = self.get_unredacted_message_hash(sign_envelope, redact_mask)
         public_key_b64 = event.get("public_key")
         public_key_bytes = b64decode(public_key_b64)
         return sign.verifyMessage(event.signature, sign_envelope, public_key_bytes)
@@ -517,6 +551,3 @@ class Audit(ServiceBase):
             "timestamp": event.get("timestamp")                
         }
         return sign_envelope       
-
-    def get_unredacted_message_hash(self, sign_envelope: dict, redact_mask: str = "") -> str:
-        return(encode_hash(xor_bytes(hash_dict(sign_envelope), decode_hash(redact_mask))))

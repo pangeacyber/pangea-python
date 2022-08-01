@@ -4,6 +4,7 @@
 import base64
 import json
 import logging
+import os
 from binascii import hexlify, unhexlify
 from dataclasses import dataclass
 from hashlib import sha256
@@ -49,6 +50,9 @@ def encode_hash(hash_: Hash) -> str:
 
 def hash_pair(hash1: Hash, hash2: Hash) -> Hash:
     return sha256(hash1 + hash2).digest()
+
+def verify_hash(hash1: Hash, hash2: Hash) -> bool:
+    return (hash1 == hash2)
 
 def b64encode(data: bytes) -> bytes:
     ret = None
@@ -249,3 +253,35 @@ def verify_consistency_proof(new_root: Hash, prev_root: Hash, proof: Consistency
             return False
 
     return True
+
+def get_root_filename():
+    token = os.getenv("PANGEA_TOKEN", "")
+    config_id = os.getenv("AUDIT_CONFIG_ID", "")
+
+    root_id = token + "-" + config_id
+    root_id_filename = hash_str(root_id)
+
+    return root_id_filename     
+
+def get_buffer_root():
+    buffer_root = None
+    root_id_filename = get_root_filename()
+
+    try:
+        with open(root_id_filename, "r") as file:
+            buffer_root = file.read()
+    except:
+        pass
+
+    return buffer_root   
+
+def set_buffer_root(new_buffer_root: str):
+    root_id_filename = get_root_filename()
+
+    try:
+        with open(root_id_filename, "w") as file:
+            file.write(new_buffer_root)                
+    except:
+        pass
+
+    return
