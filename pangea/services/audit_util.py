@@ -267,11 +267,12 @@ def get_buffer_root():
     buffer_root = None
     root_id_filename = get_root_filename()
 
-    try:
-        with open(root_id_filename, "r") as file:
-            buffer_root = file.read()
-    except:
-        pass
+    if os.path.exists(root_id_filename):
+        try:
+            with open(root_id_filename, "r") as file:
+                buffer_root = file.read()
+        except Exception:
+            raise Exception("Error: Failed loading root file from local disk.") 
 
     return buffer_root   
 
@@ -281,7 +282,7 @@ def set_buffer_root(new_buffer_root: str):
     try:
         with open(root_id_filename, "w") as file:
             file.write(new_buffer_root)                
-    except:
-        pass
+    except Exception:
+        raise Exception("Error: Failed saving root file to local disk.") 
 
     return
