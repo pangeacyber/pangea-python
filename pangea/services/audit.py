@@ -181,7 +181,7 @@ class Audit(ServiceBase):
             membership_proof = decode_membership_proof(membership_proof_enc)
 
             # verify event hash
-            if not verify_hash(hash_dict(event), decode_hash(event_hash)):
+            if not verify_hash(hash_dict(event), event_hash):
                 raise Exception(f"Error: Event hash failed.")
 
             # verify membership proofs
