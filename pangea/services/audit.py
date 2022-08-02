@@ -170,11 +170,15 @@ class Audit(ServiceBase):
             return response
 
         if verify:
-            new_buffer_root = response.result.get("buffer_root")
-            membership_proof = response.result.get("membership_proof")
-            consistency_proof = response.result.get("consistency_proof")
+            new_buffer_root_enc = response.result.get("buffer_root")
+            membership_proof_enc = response.result.get("membership_proof")
+            consistency_proof_enc = response.result.get("consistency_proof")
             event = response.result.get("event")
-            event_hash = response.result.get("hash")
+            event_hash_enc = response.result.get("hash")
+
+            new_buffer_root = decode_hash(new_buffer_root_enc)
+            event_hash = decode_hash(event_hash_enc)
+            membership_proof = decode_membership_proof(membership_proof_enc)
 
             # verify event hash
             if not verify_hash(hash_dict(event), decode_hash(event_hash)):
@@ -186,7 +190,10 @@ class Audit(ServiceBase):
 
             # verify consistency proofs (following events)
             if consistency_proof:
-                if not verify_consistency_proof(new_root=new_buffer_root, prev_root=prev_buffer_root, proof=consistency_proof):
+                prev_root_hash = decode_hash(prev_buffer_root)
+                consistency_proof = decode_consistency_proof(consistency_proof_enc)
+
+                if not verify_consistency_proof(new_root=new_buffer_root, prev_root=prev_root_hash, proof=consistency_proof):
                     raise Exception(f"Error: Consistency proof failed.")
 
             set_buffer_root(new_buffer_root)
