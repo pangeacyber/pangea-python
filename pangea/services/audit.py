@@ -1,8 +1,10 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+import os
 import json
 import typing as t
 
+from typing import List
 from pangea.response import JSONObject, PangeaResponse
 from .base import ServiceBase
 from pangea.signing import Signing
@@ -19,9 +21,10 @@ from .audit_util import (
     get_arweave_published_roots,
     verify_consistency_proof,
     verify_membership_proof,
-    get_buffer_root,
-    set_buffer_root,
-    verify_hash
+    verify_hash,
+    encode_buffer_root,
+    decode_buffer_root,
+    get_root_filename
 )
 
 SupportedFields = [
@@ -76,6 +79,9 @@ class Audit(ServiceBase):
     version = "v1"
     config_id_header = "X-Pangea-Audit-Config-ID"
     verify_response = False
+    cache_buffer: bool = False
+    buffer_data: str = None
+    root_id_filename: str = None
 
     # In case of Arweave failure, ask the server for the roots
     allow_server_roots = True
@@ -157,46 +163,79 @@ class Audit(ServiceBase):
             data["verbose"] = verify
             data["return_hash"] = verify
             data["return_proof"] = verify
-            prev_buffer_root = get_buffer_root()
-            if prev_buffer_root is not None:
-                data["prev_buffer_root"] = prev_buffer_root
+
+            if not self.buffer_data:
+                self.root_id_filename = get_root_filename()
+
+            buffer_data = self.get_buffer_data()
+            if buffer_data:
+                prev_buffer_root = buffer_data.get("last_root")
+                return_commit_proofs = buffer_data.get("pending_roots")
+
+                if prev_buffer_root:
+                    data["prev_buffer_root"] = prev_buffer_root
+
+                if return_commit_proofs:
+                    data["return_commit_proofs"] = return_commit_proofs
 
         response = self.request.post(endpoint_name, data=data)
 
-        return self.handle_log_response(response, verify=verify, prev_buffer_root=prev_buffer_root)
+        return self.handle_log_response(response, verify=verify, prev_buffer_root_enc=prev_buffer_root)
 
-    def handle_log_response(self, response: PangeaResponse, verify: bool, prev_buffer_root: bytes):
+    def handle_log_response(self, response: PangeaResponse, verify: bool, prev_buffer_root_enc: bytes):
         if not response.success:
             return response
 
         if verify:
             new_buffer_root_enc = response.result.get("buffer_root")
-            membership_proof_enc = response.result.get("membership_proof")
-            consistency_proof_enc = response.result.get("consistency_proof")
+            membership_proof_enc = response.result.get("buffer_membership_proof")
+            consistency_proof_enc = response.result.get("buffer_consistency_proof")
+            commit_proofs = response.result.get("buffer_commit_proofs")
             event = response.result.get("event")
             event_hash_enc = response.result.get("hash")
 
-            new_buffer_root = decode_hash(new_buffer_root_enc)
+            new_buffer_root = decode_buffer_root(new_buffer_root_enc)
             event_hash = decode_hash(event_hash_enc)
             membership_proof = decode_membership_proof(membership_proof_enc)
+            pending_roots = []
 
             # verify event hash
             if not verify_hash(hash_dict(event), event_hash):
                 raise Exception(f"Error: Event hash failed.")
 
             # verify membership proofs
-            if not verify_membership_proof(node_hash=event_hash, root_hash=new_buffer_root, proof=membership_proof):
+            if not verify_membership_proof(node_hash=event_hash, root_hash=new_buffer_root.root_hash, proof=membership_proof):
                 raise Exception(f"Error: Membership proof failed.")
 
             # verify consistency proofs (following events)
-            if consistency_proof:
-                prev_root_hash = decode_hash(prev_buffer_root)
+            if consistency_proof_enc:
+                prev_buffer_root = decode_buffer_root(prev_buffer_root_enc)
                 consistency_proof = decode_consistency_proof(consistency_proof_enc)
 
-                if not verify_consistency_proof(new_root=new_buffer_root, prev_root=prev_root_hash, proof=consistency_proof):
+                if not verify_consistency_proof(new_root=new_buffer_root.root_hash, prev_root=prev_buffer_root.root_hash, proof=consistency_proof):
                     raise Exception(f"Error: Consistency proof failed.")
 
-            set_buffer_root(new_buffer_root)
+            if commit_proofs:
+                # Get the root from the cold tree...
+                root_response = self.root()
+                if not root_response.success:
+                    return root_response                        
+
+                cold_root_hash_enc = root_response.result.data.get("root_hash")
+                if cold_root_hash_enc:
+                    cold_root_hash = decode_hash(cold_root_hash_enc)
+
+                    for buffer_root_enc, commit_proof_enc in commit_proofs.items():
+                        if commit_proof_enc is None:
+                            pending_roots.append(buffer_root_enc)
+                        else:
+                            buffer_root = decode_buffer_root(buffer_root_enc)
+                            commit_proof = decode_consistency_proof(commit_proof_enc)
+
+                            if not verify_consistency_proof(new_root=cold_root_hash, prev_root=buffer_root.root_hash, proof=commit_proof):
+                                raise Exception(f"Error: Consistency proof failed.")
+
+            self.set_buffer_data(last_root_enc=new_buffer_root_enc, pending_roots=pending_roots)
 
         return response
 
@@ -558,3 +597,30 @@ class Audit(ServiceBase):
             "timestamp": event.get("timestamp")                
         }
         return sign_envelope       
+
+    def get_buffer_data(self):
+        if not self.cache_buffer:
+            if os.path.exists(self.root_id_filename):
+                try:
+                    with open(self.root_id_filename, "r") as file:
+                        file_data = file.read()
+                    self.buffer_data = json.loads(file_data)
+                    self.cache_buffer = True 
+                except Exception:
+                    raise Exception("Error: Failed loading data file from local disk.") 
+
+        return self.buffer_data
+
+    def set_buffer_data(self, last_root_enc: str, pending_roots: List[str]):
+        buffer_dict = dict()
+        buffer_dict["last_root"] = last_root_enc
+        buffer_dict["pending_roots"] = pending_roots
+
+        try:
+            with open(self.root_id_filename, "w") as file:
+                file.write(json.dumps(buffer_dict))
+            self.cache_buffer = False 
+        except Exception:
+            raise Exception("Error: Failed saving data file to local disk.") 
+
+        return

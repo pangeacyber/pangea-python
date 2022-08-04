@@ -1,6 +1,5 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
-
 import base64
 import json
 import logging
@@ -42,6 +41,23 @@ class ConsistencyProofItem:
 ConsistencyProof = List[ConsistencyProofItem]
 
 
+@dataclass
+class BufferRoot:
+    tree_id: str
+    cold_tree_size: int
+    tree_size: int
+    root_hash: Hash
+
+
+def decode_buffer_root(enc_buffer_root: str) -> BufferRoot:
+    parts = enc_buffer_root.split(",")
+    return BufferRoot(
+        tree_id=parts[0], cold_tree_size=int(parts[1]), tree_size=int(parts[2]), root_hash=decode_hash(parts[3])
+    )
+
+def encode_buffer_root(buffer_root: BufferRoot) -> str:
+    return f"{buffer_root.tree_id},{buffer_root.cold_tree_size},{buffer_root.tree_size},{encode_hash(buffer_root.root_hash)}"
+    
 def decode_hash(hexhash) -> Hash:
     return unhexlify(hexhash.encode("utf8"))
 
@@ -74,27 +90,31 @@ def b64decode(data) -> bytes:
 
 def decode_membership_proof(data: str) -> MembershipProof:
     proof: MembershipProof = []
-    for item in data.split(","):
-        parts = item.split(":")
-        proof.append(
-            MembershipProofItem(
-                side="left" if parts[0] == "l" else "right",
-                node_hash=decode_hash(parts[1]),
+
+    if data:
+        for item in data.split(","):
+            parts = item.split(":")
+            proof.append(
+                MembershipProofItem(
+                    side="left" if parts[0] == "l" else "right",
+                    node_hash=decode_hash(parts[1]),
+                )
             )
-        )
     return proof
 
 
 def decode_consistency_proof(data: List[str]) -> ConsistencyProof:
     root_proof = []
-    for item in data:
-        ndx = item.index(",")
-        root_proof.append(
-            ConsistencyProofItem(
-                node_hash=decode_hash(item[:ndx].split(":")[1]),
-                proof=decode_membership_proof(item[ndx + 1 :]),
+
+    if data:
+        for item in data:
+            ndx = item.index(",")
+            root_proof.append(
+                ConsistencyProofItem(
+                    node_hash=decode_hash(item[:ndx].split(":")[1]),
+                    proof=decode_membership_proof(item[ndx + 1 :]),
+                )
             )
-        )
     return root_proof
 
 
@@ -262,27 +282,3 @@ def get_root_filename():
     root_id_filename = hash_str(root_id)
 
     return root_id_filename     
-
-def get_buffer_root():
-    buffer_root = None
-    root_id_filename = get_root_filename()
-
-    if os.path.exists(root_id_filename):
-        try:
-            with open(root_id_filename, "r") as file:
-                buffer_root = file.read()
-        except Exception:
-            raise Exception("Error: Failed loading root file from local disk.") 
-
-    return buffer_root   
-
-def set_buffer_root(new_buffer_root: str):
-    root_id_filename = get_root_filename()
-
-    try:
-        with open(root_id_filename, "w") as file:
-            file.write(new_buffer_root)                
-    except Exception:
-        raise Exception("Error: Failed saving root file to local disk.") 
-
-    return
