@@ -90,7 +90,7 @@ def _verify_hash(data: dict, data_hash: str) -> Optional[bool]:
         if computed_hash_dec != data_hash_dec:
             raise ValueError("Hash does not match")
         succeeded = True
-    except Exception as e:
+    except Exception:
         succeeded = False
         # logger.error(f"    ⌲ {str(e)}")
 

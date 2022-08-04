@@ -176,6 +176,7 @@ class Audit(ServiceBase):
         query: str = "",
         restriction: dict = {},
         limit: int = 20,
+        max_results: t.Optional[int] = None,
         start: str = "",
         end: str = "",
         order: str = "",
@@ -201,6 +202,7 @@ class Audit(ServiceBase):
             restriction (dist, optional): A dict of field name/value pairs on which to restrict the search.
                 If empty or not provided, matches only the default source.
             limit (int, optional): Maximum number of records to return per page. Default is 20.
+            max_results (int, optional): Maximum number of records in total. Default is 10000.
             start (str, optional): The start of the time range to perform the search on.
             end (str, optional): The end of the time range to perform the search on.
                 All records up to the latest if left out.
@@ -292,6 +294,9 @@ class Audit(ServiceBase):
 
         if order_by:
             data["order_by"] = order_by
+
+        if max_results:
+            data["max_results"] = max_results
 
         response = self.request.post(endpoint_name, data=data)
 
