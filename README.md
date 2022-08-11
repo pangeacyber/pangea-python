@@ -71,8 +71,7 @@ audit = Audit(token, config=config)
 # filtered on 'source=test', with 5 results per-page
 response = audit.search(
         query="message:prevented",
-        limit=5,
-        verify=False
+        limit=5
     )
 
 if response.success:
