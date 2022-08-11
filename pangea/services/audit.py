@@ -4,7 +4,7 @@ import os
 import json
 import typing as t
 
-from typing import Dict, Optional
+from typing import List, Dict, Optional
 from pangea.response import JSONObject, PangeaResponse
 from .base import ServiceBase
 from pangea.signing import Signing
@@ -14,7 +14,6 @@ from .audit_util import (
     encode_hash,
     decode_hash,
     hash_dict,
-    xor_bytes,
     b64encode_ascii,
     b64decode,
     decode_membership_proof,
@@ -608,7 +607,7 @@ class Audit(ServiceBase):
 
         return self.buffer_data
 
-    def set_buffer_data(self, last_root_enc: str, pending_roots: t.List[str]):
+    def set_buffer_data(self, last_root_enc: str, pending_roots: List[str]):
         buffer_dict = dict()
         buffer_dict["last_root"] = last_root_enc
         buffer_dict["pending_roots"] = pending_roots

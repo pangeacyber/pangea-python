@@ -152,24 +152,6 @@ def hash_dict(data: dict) -> bytes:
     return sha256(canonicalize_json(data)).digest()
 
 
-def xor_bytes(data: bytes, key: bytes) -> bytes:
-    x = 0
-    ret = bytearray(data)
-    while x < len(data) and x < len(key):
-        ret[x] = data[x] ^ key[x]
-        x+=1
-    return bytes(ret)
-
-
-def xor_str(data: str, key: str) -> str:
-    x = 0
-    ret = list(data)
-    while x < len(data) and x < len(key):
-        ret[x] = chr(ord(data[x]) ^ ord(key[x]))
-        x+=1
-    return "".join(ret)
-
-
 def base64url_decode(input_parameter):
     rem = len(input_parameter) % 4
     if rem > 0:
