@@ -4,7 +4,7 @@ import os
 import json
 import typing as t
 
-from typing import List
+from typing import Dict, Optional
 from pangea.response import JSONObject, PangeaResponse
 from .base import ServiceBase
 from pangea.signing import Signing
@@ -79,8 +79,7 @@ class Audit(ServiceBase):
     version = "v1"
     config_id_header = "X-Pangea-Audit-Config-ID"
     verify_response = False
-    cache_buffer: bool = False
-    buffer_data: str = None
+    buffer_data: Optional[str] = None
     root_id_filename: str = None
 
     # In case of Arweave failure, ask the server for the roots
@@ -164,10 +163,8 @@ class Audit(ServiceBase):
             data["return_hash"] = verify
             data["return_proof"] = verify
 
-            if not self.buffer_data:
-                self.root_id_filename = get_root_filename()
-
-            buffer_data = self.get_buffer_data()
+            buffer_data : dict = {}
+            buffer_data = json.loads(self.get_buffer_data())
             if buffer_data:
                 prev_buffer_root = buffer_data.get("last_root")
                 return_commit_proofs = buffer_data.get("pending_roots")
@@ -599,27 +596,30 @@ class Audit(ServiceBase):
         return sign_envelope       
 
     def get_buffer_data(self):
-        if not self.cache_buffer:
+        if not self.buffer_data:
+            self.root_id_filename = get_root_filename()
+
             if os.path.exists(self.root_id_filename):
                 try:
                     with open(self.root_id_filename, "r") as file:
-                        file_data = file.read()
-                    self.buffer_data = json.loads(file_data)
-                    self.cache_buffer = True 
+                        self.buffer_data = file.read()
                 except Exception:
                     raise Exception("Error: Failed loading data file from local disk.") 
 
         return self.buffer_data
 
-    def set_buffer_data(self, last_root_enc: str, pending_roots: List[str]):
+    def set_buffer_data(self, last_root_enc: str, pending_roots: t.List[str]):
         buffer_dict = dict()
         buffer_dict["last_root"] = last_root_enc
         buffer_dict["pending_roots"] = pending_roots
 
+        if not self.buffer_data:
+            self.root_id_filename = get_root_filename()
+
         try:
             with open(self.root_id_filename, "w") as file:
-                file.write(json.dumps(buffer_dict))
-            self.cache_buffer = False 
+                self.buffer_data = json.dumps(buffer_dict)
+                file.write(self.buffer_data)
         except Exception:
             raise Exception("Error: Failed saving data file to local disk.") 
 

@@ -25,6 +25,11 @@ class Signing:
         self._hash_message = hash_message
         self._overwrite_keys_if_exists = overwrite_keys_if_exists
 
+        if not private_key_filename:
+            raise Exception("No PRIVATE_KEY environment variable provided")
+
+        if not public_key_filename:
+            raise Exception("No PUBLIC_KEY environment variable provided")
 
     # Generates key pairs, storing in local disk.
     def generateKeys(self, overwrite_if_exists: bool):
