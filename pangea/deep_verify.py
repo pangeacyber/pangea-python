@@ -211,7 +211,8 @@ def main():
                     path = get_proof_path(e["membership_proof"])
                     hot_path = path[:-cold_path_size]
                     cold_path = path[-cold_path_size:]
-                    if cold_idx := path2index(t_size, cold_path) != leaf_index:
+                    cold_idx = path2index(t_size, cold_path)
+                    if cold_idx != leaf_index:
                         exit_with_error(
                             f"failed cold tree leaf index check"
                             f"for {e}: {cold_idx} != {leaf_index}")
