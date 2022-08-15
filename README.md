@@ -87,6 +87,38 @@ else:
     print("Search Failed:", response.code, response.status)
 ```
 
+### Secure Audit Service - Integrity Tools
+
+#### Verify audit data
+
+You can provide a single event (obtained from the PUC) or the result from a search call.
+In the latter case, all the events are verified.
+
+Vefify an existing audit log file, reads from stdin if no filename is provided.
+
+```
+python -m verify_audit [-f <filename>]
+```
+
+#### Bulk Download Audit Data
+
+Download all audit logs for a given time range.
+Datetimes must be in ISO 8601 format.
+Intended for use with the deep_verify tool
+
+```
+python -m dump_audit <datetime_from> <datetime_to>
+```
+
+#### Perform Exhaustive Verification of Audit Data
+
+Verify Audit data. This script does additional checking for any deleted entries.
+Use the dump_audit tool to download the events and root to be verified.
+
+```
+python -m deep_verify -e <events file> -r <root file>
+```
+
 ## Contributing
 
 Currently, the setup scripts only have support for Mac/ZSH environments.
