@@ -97,7 +97,7 @@ class Audit(ServiceBase):
         # In case of Arweave failure, ask the server for the roots
         self.allow_server_roots = True
 
-    def log(self, event: dict, verify: bool = False, signing: bool = False) -> PangeaResponse:
+    def log(self, event: dict, verify: bool = False, signing: bool = False, verbose: bool = False) -> PangeaResponse:
         """
         Log an entry
 
@@ -107,6 +107,7 @@ class Audit(ServiceBase):
             event (dict): A structured dict describing an auditable activity.
             verify (bool, optional):
             signing (bool, optional):
+            verbose (bool, optional):
 
         Returns:
             A PangeaResponse where the hash of event data and optional verbose
@@ -163,6 +164,9 @@ class Audit(ServiceBase):
 
         if "message" not in data["event"]:
             raise Exception(f"Error: missing required field, no `message` provided")
+
+        if verbose:
+            data["verbose"] = True
 
         if signing:
             sign_envelope = self.create_signed_envelope(data["event"])
@@ -235,7 +239,7 @@ class Audit(ServiceBase):
                 # Get the root from the cold tree...
                 root_response = self.root()
                 if not root_response.success:
-                    return root_response                        
+                    return root_response
 
                 cold_root_hash_enc = root_response.result.data.get("root_hash")
                 if cold_root_hash_enc:
@@ -392,7 +396,7 @@ class Audit(ServiceBase):
                 public_key_bytes = b64decode(public_key_b64)
 
                 if not self.sign.verifyMessage(event.signature, sign_envelope, public_key_bytes):
-                    raise Exception(f"Error: signature failed.")                 
+                    raise Exception(f"Error: signature failed.")
 
         return self.handle_search_response(response)
 
@@ -437,9 +441,9 @@ class Audit(ServiceBase):
                 public_key_bytes = b64decode(public_key_b64)
 
                 if not self.sign.verifyMessage(event.signature, sign_envelope, public_key_bytes):
-                    raise Exception(f"Error: signature failed.")  
+                    raise Exception(f"Error: signature failed.")
 
-        return self.handle_search_response(response)   
+        return self.handle_search_response(response)
 
     def handle_search_response(self, response: PangeaResponse):
         if not response.success:
@@ -670,7 +674,7 @@ class Audit(ServiceBase):
             "target": event.get("target"),
             "timestamp": event.get("timestamp"),
         }
-        return sign_envelope       
+        return sign_envelope
 
     def get_buffer_data(self):
         if not self.buffer_data:
@@ -679,7 +683,7 @@ class Audit(ServiceBase):
                     with open(self.root_id_filename, "r") as file:
                         self.buffer_data = file.read()
                 except Exception:
-                    raise Exception("Error: Failed loading data file from local disk.") 
+                    raise Exception("Error: Failed loading data file from local disk.")
 
         return self.buffer_data
 
@@ -693,7 +697,6 @@ class Audit(ServiceBase):
                 self.buffer_data = json.dumps(buffer_dict)
                 file.write(self.buffer_data)
         except Exception:
-            raise Exception("Error: Failed saving data file to local disk.") 
+            raise Exception("Error: Failed saving data file to local disk.")
 
         return
-
