@@ -105,17 +105,18 @@ def _parse_function(function, function_cache=set()) -> t.Optional[dict]:
         "summary": parsed_doc.short_description,
         "description": parsed_doc.long_description,
         "examples": [ex.description for ex in parsed_doc.examples],
-        "parameters": {},
+        "parameters": [],
         "returns": None,
         # "raises": parsed_fn.raises
     }
 
     for parameter in parsed_doc.params:
-        ret["parameters"][parameter.arg_name] = {
+        ret["parameters"].append({
+            "name": parameter.arg_name,
             "type": parameter.type_name,
             "optional": parameter.is_optional,
             "description": parameter.description,
-        }
+        })
 
     returns = parsed_doc.returns
     if returns:

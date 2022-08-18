@@ -125,7 +125,7 @@ def verify_membership_proof(node_hash: Hash, root_hash: Hash, proof: MembershipP
     return root_hash == node_hash
 
 
-def canonicalize_json(message : dict) -> bytes:
+def canonicalize_json(message: dict) -> bytes:
     """Convert log to valid JSON types and apply RFC-7159 (Canonical JSON)"""
 
     def _default(obj):
@@ -152,24 +152,6 @@ def hash_dict(data: dict) -> bytes:
     return sha256(canonicalize_json(data)).digest()
 
 
-def xor_bytes(data: bytes, key: bytes) -> bytes:
-    x = 0
-    ret = bytearray(data)
-    while x < len(data) and x < len(key):
-        ret[x] = data[x] ^ key[x]
-        x+=1
-    return bytes(ret)
-
-
-def xor_str(data: str, key: str) -> str:
-    x = 0
-    ret = list(data)
-    while x < len(data) and x < len(key):
-        ret[x] = chr(ord(data[x]) ^ ord(key[x]))
-        x+=1
-    return "".join(ret)
-
-
 def base64url_decode(input_parameter):
     rem = len(input_parameter) % 4
     if rem > 0:
@@ -178,7 +160,6 @@ def base64url_decode(input_parameter):
 
 
 def arweave_transaction_url(trans_id: str):
-    # return f"{ARWEAVE_BASE_URL}/tx/{trans_id}/data/"
     return f"{ARWEAVE_BASE_URL}/{trans_id}/"
 
 
@@ -231,6 +212,7 @@ def get_arweave_published_roots(tree_name: str, tree_sizes: List[int]) -> Dict[i
     ans: Dict[int, dict] = {}
     data = resp.json()
     tree_size = None
+
     for edge in data.get("data", {}).get("transactions", {}).get("edges", []):
         try:
             node_id = edge.get("node").get("id")
@@ -239,7 +221,6 @@ def get_arweave_published_roots(tree_name: str, tree_sizes: List[int]) -> Dict[i
             )
 
             url = arweave_transaction_url(node_id)
-            logger.debug(f"Fetching {url}")
 
             # TODO: do all the requests concurrently
             resp2 = requests.get(url)

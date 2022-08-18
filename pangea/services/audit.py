@@ -4,9 +4,8 @@ import os
 import json
 import typing as t
 
-from typing import List
+from typing import List, Dict, Optional
 from pangea.response import JSONObject, PangeaResponse
-from .base import ServiceBase
 from pangea.signing import Signing
 
 from .audit_util import (
@@ -14,7 +13,6 @@ from .audit_util import (
     encode_hash,
     decode_hash,
     hash_dict,
-    xor_bytes,
     b64encode_ascii,
     b64decode,
     decode_membership_proof,
@@ -26,6 +24,7 @@ from .audit_util import (
     decode_buffer_root,
     get_root_filename
 )
+from .base import ServiceBase
 
 SupportedFields = [
     "actor",
@@ -41,23 +40,18 @@ SupportedJSONFields = [
     "old",
 ]
 
-sign = Signing(overwrite_keys_if_exists = False, hash_message = False)
-
 
 class Audit(ServiceBase):
     """Audit service client.
 
     Provides methods to interact with Pangea Audit Service:
-        [https://docs.dev.pangea.cloud/docs/api/log-an-entry]
-        (https://docs.dev.pangea.cloud/docs/api/log-an-entry)
+        [https://docs.dev.pangea.cloud/docs/api/log-an-entry](https://docs.dev.pangea.cloud/docs/api/log-an-entry)
 
     The following information is needed:
         PANGEA_TOKEN - service token which can be found on the Pangea User
-            Console at [https://console.dev.pangea.cloud/project/tokens]
-            (https://console.dev.pangea.cloud/project/tokens)
+            Console at [https://console.dev.pangea.cloud/project/tokens](https://console.dev.pangea.cloud/project/tokens)
         AUDIT_CONFIG_ID - Configuration ID which can be found on the Pangea
-            User Console at [https://console.dev.pangea.cloud/service/audit]
-            (https://console.dev.pangea.cloud/service/audit)
+            User Console at [https://console.dev.pangea.cloud/service/audit](https://console.dev.pangea.cloud/service/audit)
 
     Examples:
         import os
@@ -75,16 +69,33 @@ class Audit(ServiceBase):
         audit = Audit(token=PANGEA_TOKEN, config=audit_config)
     """
 
-    service_name = "audit"
-    version = "v1"
-    config_id_header = "X-Pangea-Audit-Config-ID"
-    verify_response = False
-    cache_buffer: bool = False
-    buffer_data: str = None
-    root_id_filename: str = None
 
-    # In case of Arweave failure, ask the server for the roots
-    allow_server_roots = True
+    service_name: str = "audit"
+    version: str = "v1"
+    config_id_header: str = "X-Pangea-Audit-Config-ID"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.pub_roots: dict = {}
+        self.buffer_data: Optional[str] = None
+        self.root_id_filename: str = get_root_filename()
+
+        # TODO: Document signing options
+        self.verify_response: bool = kwargs.get("verify_response", False)
+        self.enable_signing: bool = kwargs.get("enable_signing", False)
+
+        if self.enable_signing:
+            overwrite_keys_if_exists = kwargs.get("overwrite_keys_if_exists", False)
+            hash_message = kwargs.get("hash_message", True)
+
+            self.sign = Signing(
+                overwrite_keys_if_exists=overwrite_keys_if_exists,
+                hash_message=hash_message,
+            )
+
+        # In case of Arweave failure, ask the server for the roots
+        self.allow_server_roots = True
 
     def log(self, event: dict, verify: bool = False, signing: bool = False) -> PangeaResponse:
         """
@@ -93,15 +104,15 @@ class Audit(ServiceBase):
         Create a log entry in the Secure Audit Log.
 
         Args:
-            input (dict): A structured dict describing an auditable activity.
-            verify (bool):
+            event (dict): A structured dict describing an auditable activity.
+            verify (bool, optional):
+            signing (bool, optional):
 
         Returns:
             A PangeaResponse where the hash of event data and optional verbose
                 results are returned in the response.result field.
                 Available response fields can be found at:
-                [https://docs.dev.pangea.cloud/docs/api/audit#log-an-entry]
-                (https://docs.dev.pangea.cloud/docs/api/audit#log-an-entry)
+                [https://docs.dev.pangea.cloud/docs/api/audit#log-an-entry](https://docs.dev.pangea.cloud/docs/api/audit#log-an-entry)
 
         Examples:
             audit_data = {
@@ -114,7 +125,7 @@ class Audit(ServiceBase):
                 "source": "web",
             }
 
-            response = audit.log(input=audit_data)
+            response = audit.log(event=audit_data)
 
             \"\"\"
             response contains:
@@ -134,6 +145,9 @@ class Audit(ServiceBase):
 
         endpoint_name = "log"
 
+        if signing and not self.enable_signing:
+            raise Exception("Error: the `signing` parameter set, but `enable_signing` is not set to True")
+
         data: t.Dict[str, t.Any] = {"event": {}, "return_hash": True}
 
         for name in SupportedFields:
@@ -142,20 +156,24 @@ class Audit(ServiceBase):
 
         for name in SupportedJSONFields:
             if name in event:
-                data["event"][name] = json.dumps(event[name])
+                if isinstance(event[name], dict):
+                    data["event"][name] = json.dumps(event[name])
+                else:
+                    data["event"][name] = event[name]
 
         if "message" not in data["event"]:
             raise Exception(f"Error: missing required field, no `message` provided")
 
         if signing:
-            sign_envelope = self.create_sign_envelope(data["event"])
-            signature = sign.signMessage(sign_envelope)
+            sign_envelope = self.create_signed_envelope(data["event"])
+            signature = self.sign.signMessage(sign_envelope)
             if signature is not None:
                 data["event"]["signature"] = signature
             else:
-                raise Exception(f"Error: failure signing message")
-                
-            public_bytes = sign.getPublicKeyBytes()
+
+                raise Exception("Error: failure signing message")
+
+            public_bytes = self.sign.getPublicKeyBytes()
             data["event"]["public_key"] = b64encode_ascii(public_bytes)
 
         prev_buffer_root = None
@@ -164,10 +182,8 @@ class Audit(ServiceBase):
             data["return_hash"] = verify
             data["return_proof"] = verify
 
-            if not self.buffer_data:
-                self.root_id_filename = get_root_filename()
-
-            buffer_data = self.get_buffer_data()
+            buffer_data : dict = {}
+            buffer_data = json.loads(self.get_buffer_data())
             if buffer_data:
                 prev_buffer_root = buffer_data.get("last_root")
                 return_commit_proofs = buffer_data.get("pending_roots")
@@ -244,11 +260,13 @@ class Audit(ServiceBase):
         query: str = "",
         restriction: dict = {},
         limit: int = 20,
+        max_results: t.Optional[int] = None,
         start: str = "",
         end: str = "",
-        last: str = "",
+        order: str = "",
+        order_by: str = "",
         verify: bool = False,
-        verify_signatures: bool = False,        
+        verify_signatures: bool = False,
     ) -> PangeaResponse:
         """
         Search for events
@@ -257,22 +275,32 @@ class Audit(ServiceBase):
 
         Args:
             query (str, optional): Natural search string; list of keywords with optional `<option>:<value>` qualifiers.
-            The following optional qualifiers are supported:
-            - action: - actor: - message: - new: - old: - status: - target:`
+                The following optional qualifiers are supported:
+                    - action:
+                    - actor:
+                    - message:
+                    - new:
+                    - old:
+                    - status:
+                    - target:
             restriction (dist, optional): A dict of field name/value pairs on which to restrict the search.
-            If empty or not provided, matches only the default source.
+                If empty or not provided, matches only the default source.
             limit (int, optional): Maximum number of records to return per page. Default is 20.
+            max_results (int, optional): Maximum number of records in total. Default is 10000.
             start (str, optional): The start of the time range to perform the search on.
             end (str, optional): The end of the time range to perform the search on.
-            All records up to the latest if left out.
-            last (str, optional): If set, the last value from the response to fetch the next page from.
-            verify (bool, optional):
+                All records up to the latest if left out.
+            order (str, optional): One of  "asc", "desc"
+            order_by (str, optional): One of "actor", "action", "message", "received_at", "signature", "source", "status", "target", "timestamp"
+            verify (bool, optional): If set, the consistency and membership proofs are validated for all
+                events returned by `search` and `results`. The fields `consistency_proof_verification` and
+                `membership_proof_verification` are added to each event, with the value `pass`, `fail` or `none`.
+            verify_signatures (bool, optional):
 
         Returns:
             A PangeaResponse where the list of matched events is returned in the
                 response.result field.  Available response fields can be found at:
-                [https://docs.dev.pangea.cloud/docs/api/audit#search-for-events]
-                (https://docs.dev.pangea.cloud/docs/api/audit#search-for-events)
+                [https://docs.dev.pangea.cloud/docs/api/audit#search-for-events](https://docs.dev.pangea.cloud/docs/api/audit#search-for-events)
 
         Examples:
             response = audit.search("Resume accepted", page_size=10)
@@ -327,6 +355,7 @@ class Audit(ServiceBase):
 
         self.verify_response = verify
 
+        # TODO: allow control of `include` flags
         data = {
             "query": query,
             "include_membership_proof": True,
@@ -341,22 +370,28 @@ class Audit(ServiceBase):
         if end:
             data["end"] = end
 
-        if last:
-            data["last"] = last
-
         if restriction:
             data["search_restriction"] = restriction
+
+        if order:
+            data["order"] = order
+
+        if order_by:
+            data["order_by"] = order_by
+
+        if max_results:
+            data["max_results"] = max_results
 
         response = self.request.post(endpoint_name, data=data)
 
         if verify_signatures:
             for audit_envelope in response.result.events:
                 event = audit_envelope.event
-                sign_envelope = self.create_sign_envelope(event)
+                sign_envelope = self.create_signed_envelope(event)
                 public_key_b64 = event.get("public_key")
                 public_key_bytes = b64decode(public_key_b64)
 
-                if not sign.verifyMessage(event.signature, sign_envelope, public_key_bytes):
+                if not self.sign.verifyMessage(event.signature, sign_envelope, public_key_bytes):
                     raise Exception(f"Error: signature failed.")                 
 
         return self.handle_search_response(response)
@@ -371,6 +406,7 @@ class Audit(ServiceBase):
             id (string, required): the id of a search action, found in `response.result.id`
             limit (integer, optional): the maximum number of results to return, default is 20
             offset (integer, optional): the position of the first result to return, default is 0
+            verify_signatures (bool, optional):
 
         """
 
@@ -382,8 +418,8 @@ class Audit(ServiceBase):
         if not (isinstance(limit, int) and limit > 0):
             raise Exception("The 'limit' argument must be a positive integer > 0")
 
-        if not (isinstance(offset, int) and offset > 0):
-            raise Exception("The 'offset' argument must be a positive integer > 0")
+        if not (isinstance(offset, int) and offset >= 0):
+            raise Exception("The 'offset' argument must be a positive integer")
 
         data = {
             "id": id,
@@ -396,11 +432,11 @@ class Audit(ServiceBase):
         if verify_signatures:
             for audit_envelope in response.result.events:
                 event = audit_envelope.event
-                sign_envelope = self.create_sign_envelope(event)
+                sign_envelope = self.create_signed_envelope(event)
                 public_key_b64 = event.get("public_key")
                 public_key_bytes = b64decode(public_key_b64)
 
-                if not sign.verifyMessage(event.signature, sign_envelope, public_key_bytes):
+                if not self.sign.verifyMessage(event.signature, sign_envelope, public_key_bytes):
                     raise Exception(f"Error: signature failed.")  
 
         return self.handle_search_response(response)   
@@ -411,30 +447,48 @@ class Audit(ServiceBase):
 
         root = response.result.root
 
-        # if there is no root, we don't have any record migrated to cold. We cannot verify any proof
-        if not root:
-            response.result.root = {}
-            response.result.published_roots = {}
-            return response
-
         if self.verify_response:
+            # if there is no root, we don't have any record migrated to cold. We cannot verify any proof
+            if not root:
+                response.result.root = {}
+
+                # set verification flags for all events to `none`
+                for audit in response.result.events:
+                    audit.event.membership_verification = "none"
+                    audit.event.consistency_verification = "none"
+
+                return response
+
+            self.update_published_roots(self.pub_roots, response.result)
+
             for audit in response.result.events:
                 # verify membership proofs
-                if not self.verify_membership_proof(response.result.root, audit):
-                    raise Exception(f"Error: Membership proof failed.")
+                membership_verification = "none"
+                if self.can_verify_membership_proof(audit):
+                    if self.verify_membership_proof(response.result.root, audit):
+                        membership_verification = "pass"
+                    else:
+                        membership_verification = "fail"
+
+                audit.event.membership_verification = membership_verification
 
                 # verify consistency proofs
-                if not self.verify_consistency_proof(response.result.root, audit):
-                    raise Exception(f"Error: Consistency proof failed.")
+                consistency_verification = "none"
+                if self.can_verify_consistency_proof(audit):
+                    if self.verify_consistency_proof(self.pub_roots, audit):
+                        consistency_verification = "pass"
+                    else:
+                        consistency_verification = "fail"
+
+                audit.event.consistency_verification = consistency_verification
 
         return response
 
-    def update_published_roots(
-        self, pub_roots: t.Dict[int, t.Optional[JSONObject]], result: JSONObject
-    ):
-        """Fetches series of published root hashes from [Arweave](https://arweave.net).
+    def update_published_roots(self, pub_roots: t.Dict[int, t.Optional[JSONObject]], result: JSONObject):
+        """Fetches series of published root hashes from Arweave
 
-        This is used for subsequent calls to verify_consistency_proof().
+        This is used for subsequent calls to verify_consistency_proof(). Root hashes
+        are published on [Arweave](https://arweave.net).
 
         Args:
             pub_roots (dict): series of published root hashes.
@@ -447,13 +501,13 @@ class Audit(ServiceBase):
                 tree_sizes.add(leaf_index + 1)
                 if leaf_index > 0:
                     tree_sizes.add(leaf_index)
-        tree_sizes.add(result.root.size)
+
+        if result.root:
+            tree_sizes.add(result.root.size)
 
         tree_sizes.difference_update(pub_roots.keys())
         if tree_sizes:
-            arweave_roots = get_arweave_published_roots(
-                result.root.tree_name, list(tree_sizes) + [result.root.size]
-            )
+            arweave_roots = get_arweave_published_roots(result.root.tree_name, list(tree_sizes))  # + [result.count])
         else:
             arweave_roots = {}
 
@@ -471,7 +525,10 @@ class Audit(ServiceBase):
             pub_roots[tree_size] = pub_root
 
     def can_verify_membership_proof(self, event: JSONObject) -> bool:
-        """If a given event's membership within the tree can be proven.
+        """
+        Can verify membership proof
+
+        If a given event's membership within the tree can be proven.
 
         Read more at: [What is a membership proof?](https://docs.dev.pangea.cloud/docs/audit/tamperproof/tamperproof-audit-logs#what-is-a-membership-proof)
 
@@ -484,7 +541,10 @@ class Audit(ServiceBase):
         return event.get("membership_proof") is not None
 
     def verify_membership_proof(self, root: JSONObject, event: JSONObject) -> bool:
-        """Verifies an event's membership proof within the tree.
+        """
+        Verify membership proof
+
+        Verifies an event's membership proof within the tree.
 
         Read more at: [What is a membership proof?](https://docs.dev.pangea.cloud/docs/audit/tamperproof/tamperproof-audit-logs#what-is-a-membership-proof)
 
@@ -504,11 +564,16 @@ class Audit(ServiceBase):
         node_hash_enc = event.hash
         node_hash = decode_hash(node_hash_enc)
         root_hash = decode_hash(root.root_hash)
+
         proof = decode_membership_proof(event.membership_proof)
+
         return verify_membership_proof(node_hash, root_hash, proof)
 
     def can_verify_consistency_proof(self, event: JSONObject) -> bool:
-        """If a given event's consistency across time can be proven.
+        """
+        Can verify consistency proof
+
+        If a given event's consistency across time can be proven.
 
         Read more at: [Cryptographic Signatures](https://docs.dev.pangea.cloud/docs/audit/tamperproof/tamperproof-audit-logs#cryptographic-signatures)
 
@@ -522,10 +587,11 @@ class Audit(ServiceBase):
 
         return leaf_index is not None and leaf_index > 0
 
-    def verify_consistency_proof(
-        self, pub_roots: t.Dict[int, t.Optional[JSONObject]], event: JSONObject
-    ) -> bool:
-        """Checks the cryptographic consistency of the event across time.
+    def verify_consistency_proof(self, pub_roots: t.Dict[int, t.Optional[JSONObject]], event: JSONObject) -> bool:
+        """
+        Verify consistency proof
+
+        Checks the cryptographic consistency of the event across time.
 
         Read more at: [Cryptographic Signatures](https://docs.dev.pangea.cloud/docs/audit/tamperproof/tamperproof-audit-logs#cryptographic-signatures)
 
@@ -543,22 +609,30 @@ class Audit(ServiceBase):
         if not curr_root or not prev_root:
             return False
 
-        if not self.allow_server_roots and (
-            curr_root.source != "arweave" or prev_root.source != "arweave"
-        ):
+        if not self.allow_server_roots and (curr_root.source != "arweave" or prev_root.source != "arweave"):
             return False
 
         curr_root_hash = decode_hash(curr_root.root_hash)
         prev_root_hash = decode_hash(prev_root.root_hash)
         proof = decode_consistency_proof(curr_root.consistency_proof)
+
         return verify_consistency_proof(curr_root_hash, prev_root_hash, proof)
 
     def verify_signature(self, audit_envelope: JSONObject) -> bool:
+        """
+        Verify signature
+
+        Args:
+            audit_envelope (obj):
+
+        Returns:
+          bool:
+        """
         event = audit_envelope.event
-        sign_envelope = self.create_sign_envelope(event)
+        sign_envelope = self.create_signed_envelope(event)
         public_key_b64 = event.get("public_key")
         public_key_bytes = b64decode(public_key_b64)
-        return sign.verifyMessage(event.signature, sign_envelope, public_key_bytes)
+        return self.sign.verifyMessage(event.signature, sign_envelope, public_key_bytes)
 
     def root(self, tree_size: int = 0) -> PangeaResponse:
         """
@@ -584,28 +658,26 @@ class Audit(ServiceBase):
 
         return self.request.post(endpoint_name, data=data)
 
-    def create_sign_envelope(self, event: dict) -> dict:
+    def create_signed_envelope(self, event: dict) -> dict:
         sign_envelope = {
-			"message": event.get("message"),
-			"actor": event.get("actor"),
-			"action": event.get("action"),
-			"new": event.get("new"),
-			"old": event.get("old"),
-			"source": event.get("source"),
-			"status": event.get("status"),
-			"target": event.get("target"),
-            "timestamp": event.get("timestamp")                
+            "message": event.get("message"),
+            "actor": event.get("actor"),
+            "action": event.get("action"),
+            "new": event.get("new"),
+            "old": event.get("old"),
+            "source": event.get("source"),
+            "status": event.get("status"),
+            "target": event.get("target"),
+            "timestamp": event.get("timestamp"),
         }
         return sign_envelope       
 
     def get_buffer_data(self):
-        if not self.cache_buffer:
+        if not self.buffer_data:
             if os.path.exists(self.root_id_filename):
                 try:
                     with open(self.root_id_filename, "r") as file:
-                        file_data = file.read()
-                    self.buffer_data = json.loads(file_data)
-                    self.cache_buffer = True 
+                        self.buffer_data = file.read()
                 except Exception:
                     raise Exception("Error: Failed loading data file from local disk.") 
 
@@ -618,9 +690,10 @@ class Audit(ServiceBase):
 
         try:
             with open(self.root_id_filename, "w") as file:
-                file.write(json.dumps(buffer_dict))
-            self.cache_buffer = False 
+                self.buffer_data = json.dumps(buffer_dict)
+                file.write(self.buffer_data)
         except Exception:
             raise Exception("Error: Failed saving data file to local disk.") 
 
         return
+
