@@ -1,0 +1,165 @@
+# Copyright 2022 Pangea Cyber Corporation
+# Author: Pangea Cyber Corporation
+
+import os
+import json
+import typing as t
+
+from typing import List
+from pangea.response import JSONObject, PangeaResponse
+from .base import ServiceBase
+
+
+class Secrets(ServiceBase):
+    """Secrets service client.
+
+    Provides methods to interact with Pangea Secrets Store Service:
+
+    The following information is needed:
+        PANGEA_TOKEN - service token which can be found on the Pangea User
+            Console at [https://console.dev.pangea.cloud/project/tokens]
+            (https://console.dev.pangea.cloud/project/tokens)
+
+    Examples:
+        import os
+
+        # Pangea SDK
+        from pangea.config import PangeaConfig
+        from pangea.services import Secrets
+
+        token = os.getenv("PANGEA_TOKEN")
+        config_id = os.getenv("AUDIT_CONFIG_ID")
+        config = PangeaConfig(base_domain="dev.pangea.cloud", config_id=config_id)        
+
+        # Setup Pangea Secrets service
+        secrets = Secrets(token, config=config)
+    """
+
+    service_name = "secretstore"
+    version = "v1"
+
+
+    def get(self, secret_id: str, secret_version: str = None) -> PangeaResponse:
+        """
+        Secrets
+
+        Get a Secret from the Secret Store.
+
+        Args:
+            secret_id (str): Secret Id.
+            secret_version (str) - (Optional): Secret Version.
+
+        Returns:
+            A PangeaResponse.
+
+        Examples:
+            response = secrets.get("test-a-secret-2", "AF7A1D2A-3A86-4142-A862-B5EE66C4474D")
+            response = secrets.get("test-a-secret-2")
+
+            \"\"\"
+            response contains:
+            {
+                {
+                    "request_id": "UNKNOWN",
+                    "request_time",
+                    "response_time",
+                    "status": ["success", "failed"],
+                    "status_code",
+                    "summary": ["secret found", "secret not found"],
+                    "result": {
+                        [
+                            {"secret_id",
+                            "secret_value",
+                            "secret_version"},
+                            null
+                        ]
+                    }
+                }
+            }
+            \"\"\"
+        """
+
+        return self.request.post("get", data={"secret_id": secret_id, "secret_version": secret_version})
+
+
+    def create(self, secret_id: str, secret_value: str) -> PangeaResponse:
+        """
+        Secrets
+
+        Create a Secret in the Secret Store.
+
+        Args:
+            secret_id (str): Secret Id.
+            secret_value (str): Secret Value.
+
+        Returns:
+            A PangeaResponse.
+
+        Examples:
+            response = secrets.create("test-a-secret-5", "test-secret-5_value")
+
+            \"\"\"
+            response contains:
+            {
+                "request_id": "UNKNOWN",
+                "request_time": "",
+                "response_time",
+                "status": ["success", "failed"],
+                "status_code",
+                "summary": ["secret created", "awsmanager.CreateSecret: unknown error kind"]
+                "result": {
+                    [
+                        {"secret_id",
+                        "secret_version"},
+                        "errors": [
+                            "code",
+                            "detail",
+                            "source"
+                        ]
+                    }]
+            }
+            \"\"\"
+        """
+
+        return self.request.post("create", data={"secret_id": secret_id, "secret_value": secret_value})
+
+
+    def update(self, secret_id: str, secret_value: str) -> PangeaResponse:
+        """
+        Secrets
+
+        Update a Secret in the Secret Store.
+
+        Args:
+            secret_id (str): Secret Id.
+            secret_value (str): Secret Value.
+
+        Returns:
+            A PangeaResponse.
+
+        Examples:
+            response = secrets.update("test-a-secret-5", "test-secret-5_value_updated")
+
+            \"\"\"
+            response contains:
+            {
+                {
+                    "request_id": "UNKNOWN",
+                    "request_time",
+                    "response_time",
+                    "status": ["success" ,"failed"],
+                    "status_code",
+                    "summary": ["secret updated", "awsmanager.UpdateSecret: unknown error kind"],
+                    "result": {
+                        [
+                            {"secret_id",
+                            "secret_version"},
+                            null
+                        ]
+                    }
+                }
+            }
+            \"\"\"
+        """
+
+        return self.request.post("update", data={"secret_id": secret_id, "secret_value": secret_value})
