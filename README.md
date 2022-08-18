@@ -1,11 +1,20 @@
 # Pangea python-sdk
 
+## Setup
+
+```
+pip3 install python-pangea
+# or
+poetry add python-pangea
+```
+
 ## Usage
 
 ### Secure Audit Service - Log Data
 
 ```
 import os
+from pangea.config import PangeaConfig
 from pangea.services import Audit
 
 # Read your access token from an env variable
@@ -34,7 +43,7 @@ event = {
     "message": "despicable act prevented",
 }
 
-response = audit.log(event=data)
+response = audit.log(event)
 
 print(response.result)
 ```
@@ -43,6 +52,7 @@ print(response.result)
 
 ```
 import os
+from pangea.config import PangeaConfig
 from pangea.services import Audit
 
 # Read your access token from an env variable
@@ -59,24 +69,54 @@ audit = Audit(token, config=config)
 
 # Search for 'message' containing 'reboot'
 # filtered on 'source=test', with 5 results per-page
-search_res = audit.search(
-        query="message:reboot",
-        sources=["test"],
-        page_size=5,
-        verify=False,
+response = audit.search(
+        query="message:prevented",
+        limit=5
     )
 
 if response.success:
     print("Search Request ID:", response.request_id, "\n")
 
     print(
-        f"Results: {response.count} of {response.total}",
+        f"Found {response.result.count} event(s)",
     )
     for row in response.result.events:
-        print(f"{row.created}\t{row.actor}\t{row.action}\t{row.target}\t{row.status}")
+        print(f"{row.event.received_at}\taction: {row.event.actor}\taction: {row.event.action}\ttarget: {row.event.target}\tstatus: {row.event.status}\tmessage: {row.event.message}")
 
 else:
     print("Search Failed:", response.code, response.status)
+```
+
+### Secure Audit Service - Integrity Tools
+
+#### Verify audit data
+
+You can provide a single event (obtained from the PUC) or the result from a search call.
+In the latter case, all the events are verified.
+
+Vefify an existing audit log file, reads from stdin if no filename is provided.
+
+```
+python -m verify_audit [-f <filename>]
+```
+
+#### Bulk Download Audit Data
+
+Download all audit logs for a given time range.
+Datetimes must be in ISO 8601 format.
+Intended for use with the deep_verify tool
+
+```
+python -m dump_audit <datetime_from> <datetime_to>
+```
+
+#### Perform Exhaustive Verification of Audit Data
+
+Verify Audit data. This script does additional checking for any deleted entries.
+Use the dump_audit tool to download the events and root to be verified.
+
+```
+python -m deep_verify -e <events file> -r <root file>
 ```
 
 ## Contributing

@@ -3,19 +3,18 @@
 import os
 import typing as t
 from base64 import b64encode, b64decode
-from os.path import exists
-from cryptography.hazmat.primitives.asymmetric import ed25519
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives import serialization
-from .services.audit_util import canonicalize_json
 
-private_key_filename = os.getenv("PRIVATE_KEY")
-public_key_filename = os.getenv("PUBLIC_KEY")
+from os.path import exists
+
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import ed25519
+
+from .services.audit_util import canonicalize_json
 
 
 class Signing:
-    _private_key_filename = private_key_filename
-    _public_key_filename = public_key_filename
+    _private_key_filename = ""
+    _public_key_filename = ""
     _private_key = None
     _public_key = None
     _overwrite_keys_if_exists = False
@@ -25,10 +24,13 @@ class Signing:
         self._hash_message = hash_message
         self._overwrite_keys_if_exists = overwrite_keys_if_exists
 
-        if not private_key_filename:
+        self._private_key_filename = os.getenv("PRIVATE_KEY")
+        self._public_key_filename = os.getenv("PUBLIC_KEY")
+
+        if not self._private_key_filename:
             raise Exception("No PRIVATE_KEY environment variable provided")
 
-        if not public_key_filename:
+        if not self._public_key_filename:
             raise Exception("No PUBLIC_KEY environment variable provided")
 
     # Generates key pairs, storing in local disk.
@@ -36,7 +38,11 @@ class Signing:
         if not exists(self._private_key_filename) or not exists(self._public_key_filename) or overwrite_if_exists:
             try:
                 private_key = ed25519.Ed25519PrivateKey.generate()
-                private_bytes = private_key.private_bytes(encoding=serialization.Encoding.PEM, format=serialization.PrivateFormat.PKCS8, encryption_algorithm=serialization.NoEncryption())
+                private_bytes = private_key.private_bytes(
+                    encoding=serialization.Encoding.PEM,
+                    format=serialization.PrivateFormat.PKCS8,
+                    encryption_algorithm=serialization.NoEncryption(),
+                )
 
                 with open(self._private_key_filename, "wb") as file:
                     file.write(private_bytes)
@@ -46,7 +52,9 @@ class Signing:
 
             try:
                 public_key = private_key.public_key()
-                public_bytes = public_key.public_bytes(encoding=serialization.Encoding.OpenSSH, format=serialization.PublicFormat.OpenSSH)
+                public_bytes = public_key.public_bytes(
+                    encoding=serialization.Encoding.OpenSSH, format=serialization.PublicFormat.OpenSSH
+                )
 
                 with open(self._public_key_filename, "wb") as file:
                     file.write(public_bytes)
@@ -89,7 +97,7 @@ class Signing:
             try:
                 self._public_key = serialization.load_ssh_public_key(public_bytes)
             except Exception:
-                raise Exception("Error: Failed loading public key.") 
+                raise Exception("Error: Failed loading public key.")
 
             if not isinstance(self._public_key, ed25519.Ed25519PublicKey):
                 raise Exception("Public key is not using Ed25519 algorithm.")
@@ -123,7 +131,7 @@ class Signing:
                 digest = hashes.Hash(hashes.SHA256())
                 digest.update(message_bytes)
                 message_bytes = digest.finalize()
-            signature = private_key.sign(message_bytes)  
+            signature = private_key.sign(message_bytes)
             signature_b64 = b64encode(signature).decode("ascii")
         except Exception:
             return None
@@ -157,13 +165,13 @@ class Signing:
             if self._hash_message:
                 digest = hashes.Hash(hashes.SHA256())
                 digest.update(message_bytes)
-                message_bytes = digest.finalize() 
+                message_bytes = digest.finalize()
             signature = b64decode(signature_b64)
             public_key.verify(signature, message_bytes)
         except Exception:
             return False
 
-        return True        
+        return True
 
      # Verify a JSON message using Ed25519 algorithm
     def verifyMessageJSON(self, signature_b64: bytes, messageJSON: dict, public_key_bytes: bytes = None) -> bool:
