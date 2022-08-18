@@ -1,8 +1,10 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+import os
 import json
 import typing as t
 
+from typing import List, Dict, Optional
 from pangea.response import JSONObject, PangeaResponse
 from pangea.signing import Signing
 
@@ -10,13 +12,17 @@ from .audit_util import (
     decode_consistency_proof,
     encode_hash,
     decode_hash,
-    b64encode,
+    hash_dict,
     b64encode_ascii,
     b64decode,
     decode_membership_proof,
     get_arweave_published_roots,
     verify_consistency_proof,
     verify_membership_proof,
+    verify_hash,
+    encode_buffer_root,
+    decode_buffer_root,
+    get_root_filename
 )
 from .base import ServiceBase
 
@@ -63,6 +69,7 @@ class Audit(ServiceBase):
         audit = Audit(token=PANGEA_TOKEN, config=audit_config)
     """
 
+
     service_name: str = "audit"
     version: str = "v1"
     config_id_header: str = "X-Pangea-Audit-Config-ID"
@@ -71,18 +78,18 @@ class Audit(ServiceBase):
         super().__init__(*args, **kwargs)
 
         self.pub_roots: dict = {}
+        self.buffer_data: Optional[str] = None
+        self.root_id_filename: str = get_root_filename()
 
         # TODO: Document signing options
         self.verify_response: bool = kwargs.get("verify_response", False)
         self.enable_signing: bool = kwargs.get("enable_signing", False)
 
         if self.enable_signing:
-            generate_keys = kwargs.get("generate_keys", True)
             overwrite_keys_if_exists = kwargs.get("overwrite_keys_if_exists", False)
             hash_message = kwargs.get("hash_message", True)
 
-            self.signing = Signing(
-                generate_keys=generate_keys,
+            self.sign = Signing(
                 overwrite_keys_if_exists=overwrite_keys_if_exists,
                 hash_message=hash_message,
             )
@@ -90,7 +97,7 @@ class Audit(ServiceBase):
         # In case of Arweave failure, ask the server for the roots
         self.allow_server_roots = True
 
-    def log(self, event: dict, verify: bool = False, sign: bool = False) -> PangeaResponse:
+    def log(self, event: dict, verify: bool = False, signing: bool = False) -> PangeaResponse:
         """
         Log an entry
 
@@ -99,7 +106,7 @@ class Audit(ServiceBase):
         Args:
             event (dict): A structured dict describing an auditable activity.
             verify (bool, optional):
-            sign (bool, optional):
+            signing (bool, optional):
 
         Returns:
             A PangeaResponse where the hash of event data and optional verbose
@@ -138,8 +145,8 @@ class Audit(ServiceBase):
 
         endpoint_name = "log"
 
-        if sign and not self.enable_signing:
-            raise Exception("Error: the `sign` parameter set, but `enable_signing` is not set to True")
+        if signing and not self.enable_signing:
+            raise Exception("Error: the `signing` parameter set, but `enable_signing` is not set to True")
 
         data: t.Dict[str, t.Any] = {"event": {}, "return_hash": True}
 
@@ -157,19 +164,96 @@ class Audit(ServiceBase):
         if "message" not in data["event"]:
             raise Exception(f"Error: missing required field, no `message` provided")
 
-        if sign:
-            sign_envelope = self.create_sign_envelope(data["event"])
-            signature = self.sign.signMessageJSON(sign_envelope)
+        if signing:
+            sign_envelope = self.create_signed_envelope(data["event"])
+            signature = self.sign.signMessage(sign_envelope)
             if signature is not None:
                 data["event"]["signature"] = signature
             else:
+
                 raise Exception("Error: failure signing message")
 
             public_bytes = self.sign.getPublicKeyBytes()
             data["event"]["public_key"] = b64encode_ascii(public_bytes)
 
-        resp = self.request.post(endpoint_name, data=data)
-        return resp
+        prev_buffer_root = None
+        if verify:
+            data["verbose"] = verify
+            data["return_hash"] = verify
+            data["return_proof"] = verify
+
+            buffer_data : dict = {}
+            buffer_data = json.loads(self.get_buffer_data())
+            if buffer_data:
+                prev_buffer_root = buffer_data.get("last_root")
+                return_commit_proofs = buffer_data.get("pending_roots")
+
+                if prev_buffer_root:
+                    data["prev_buffer_root"] = prev_buffer_root
+
+                if return_commit_proofs:
+                    data["return_commit_proofs"] = return_commit_proofs
+
+        response = self.request.post(endpoint_name, data=data)
+
+        return self.handle_log_response(response, verify=verify, prev_buffer_root_enc=prev_buffer_root)
+
+    def handle_log_response(self, response: PangeaResponse, verify: bool, prev_buffer_root_enc: bytes):
+        if not response.success:
+            return response
+
+        if verify:
+            new_buffer_root_enc = response.result.get("buffer_root")
+            membership_proof_enc = response.result.get("buffer_membership_proof")
+            consistency_proof_enc = response.result.get("buffer_consistency_proof")
+            commit_proofs = response.result.get("buffer_commit_proofs")
+            event = response.result.get("event")
+            event_hash_enc = response.result.get("hash")
+
+            new_buffer_root = decode_buffer_root(new_buffer_root_enc)
+            event_hash = decode_hash(event_hash_enc)
+            membership_proof = decode_membership_proof(membership_proof_enc)
+            pending_roots = []
+
+            # verify event hash
+            if not verify_hash(hash_dict(event), event_hash):
+                raise Exception(f"Error: Event hash failed.")
+
+            # verify membership proofs
+            if not verify_membership_proof(node_hash=event_hash, root_hash=new_buffer_root.root_hash, proof=membership_proof):
+                raise Exception(f"Error: Membership proof failed.")
+
+            # verify consistency proofs (following events)
+            if consistency_proof_enc:
+                prev_buffer_root = decode_buffer_root(prev_buffer_root_enc)
+                consistency_proof = decode_consistency_proof(consistency_proof_enc)
+
+                if not verify_consistency_proof(new_root=new_buffer_root.root_hash, prev_root=prev_buffer_root.root_hash, proof=consistency_proof):
+                    raise Exception(f"Error: Consistency proof failed.")
+
+            if commit_proofs:
+                # Get the root from the cold tree...
+                root_response = self.root()
+                if not root_response.success:
+                    return root_response                        
+
+                cold_root_hash_enc = root_response.result.data.get("root_hash")
+                if cold_root_hash_enc:
+                    cold_root_hash = decode_hash(cold_root_hash_enc)
+
+                    for buffer_root_enc, commit_proof_enc in commit_proofs.items():
+                        if commit_proof_enc is None:
+                            pending_roots.append(buffer_root_enc)
+                        else:
+                            buffer_root = decode_buffer_root(buffer_root_enc)
+                            commit_proof = decode_consistency_proof(commit_proof_enc)
+
+                            if not verify_consistency_proof(new_root=cold_root_hash, prev_root=buffer_root.root_hash, proof=commit_proof):
+                                raise Exception(f"Error: Consistency proof failed.")
+
+            self.set_buffer_data(last_root_enc=new_buffer_root_enc, pending_roots=pending_roots)
+
+        return response
 
     def search(
         self,
@@ -303,11 +387,11 @@ class Audit(ServiceBase):
         if verify_signatures:
             for audit_envelope in response.result.events:
                 event = audit_envelope.event
-                sign_envelope = self.create_sign_envelope(event)
+                sign_envelope = self.create_signed_envelope(event)
                 public_key_b64 = event.get("public_key")
                 public_key_bytes = b64decode(public_key_b64)
 
-                if not self.sign.verifyMessageJSON(event.signature, sign_envelope, public_key_bytes):
+                if not self.sign.verifyMessage(event.signature, sign_envelope, public_key_bytes):
                     raise Exception(f"Error: signature failed.")                 
 
         return self.handle_search_response(response)
@@ -348,14 +432,14 @@ class Audit(ServiceBase):
         if verify_signatures:
             for audit_envelope in response.result.events:
                 event = audit_envelope.event
-                sign_envelope = self.create_sign_envelope(event)
+                sign_envelope = self.create_signed_envelope(event)
                 public_key_b64 = event.get("public_key")
                 public_key_bytes = b64decode(public_key_b64)
 
-                if not self.sign.verifyMessageJSON(event.signature, sign_envelope, public_key_bytes):
+                if not self.sign.verifyMessage(event.signature, sign_envelope, public_key_bytes):
                     raise Exception(f"Error: signature failed.")  
 
-        return self.handle_search_response(response)
+        return self.handle_search_response(response)   
 
     def handle_search_response(self, response: PangeaResponse):
         if not response.success:
@@ -545,10 +629,10 @@ class Audit(ServiceBase):
           bool:
         """
         event = audit_envelope.event
-        sign_envelope = self.create_sign_envelope(event)
+        sign_envelope = self.create_signed_envelope(event)
         public_key_b64 = event.get("public_key")
         public_key_bytes = b64decode(public_key_b64)
-        return self.sign.verifyMessageJSON(event.signature, sign_envelope, public_key_bytes)
+        return self.sign.verifyMessage(event.signature, sign_envelope, public_key_bytes)
 
     def root(self, tree_size: int = 0) -> PangeaResponse:
         """
@@ -586,4 +670,30 @@ class Audit(ServiceBase):
             "target": event.get("target"),
             "timestamp": event.get("timestamp"),
         }
-        return sign_envelope
+        return sign_envelope       
+
+    def get_buffer_data(self):
+        if not self.buffer_data:
+            if os.path.exists(self.root_id_filename):
+                try:
+                    with open(self.root_id_filename, "r") as file:
+                        self.buffer_data = file.read()
+                except Exception:
+                    raise Exception("Error: Failed loading data file from local disk.") 
+
+        return self.buffer_data
+
+    def set_buffer_data(self, last_root_enc: str, pending_roots: List[str]):
+        buffer_dict = dict()
+        buffer_dict["last_root"] = last_root_enc
+        buffer_dict["pending_roots"] = pending_roots
+
+        try:
+            with open(self.root_id_filename, "w") as file:
+                self.buffer_data = json.dumps(buffer_dict)
+                file.write(self.buffer_data)
+        except Exception:
+            raise Exception("Error: Failed saving data file to local disk.") 
+
+        return
+

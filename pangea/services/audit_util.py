@@ -1,9 +1,9 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
-
 import base64
 import json
 import logging
+import os
 from binascii import hexlify, unhexlify
 from dataclasses import dataclass
 from hashlib import sha256
@@ -41,6 +41,23 @@ class ConsistencyProofItem:
 ConsistencyProof = List[ConsistencyProofItem]
 
 
+@dataclass
+class BufferRoot:
+    tree_id: str
+    cold_tree_size: int
+    tree_size: int
+    root_hash: Hash
+
+
+def decode_buffer_root(enc_buffer_root: str) -> BufferRoot:
+    parts = enc_buffer_root.split(",")
+    return BufferRoot(
+        tree_id=parts[0], cold_tree_size=int(parts[1]), tree_size=int(parts[2]), root_hash=decode_hash(parts[3])
+    )
+
+def encode_buffer_root(buffer_root: BufferRoot) -> str:
+    return f"{buffer_root.tree_id},{buffer_root.cold_tree_size},{buffer_root.tree_size},{encode_hash(buffer_root.root_hash)}"
+    
 def decode_hash(hexhash) -> Hash:
     return unhexlify(hexhash.encode("utf8"))
 
@@ -49,6 +66,9 @@ def encode_hash(hash_: Hash) -> str:
 
 def hash_pair(hash1: Hash, hash2: Hash) -> Hash:
     return sha256(hash1 + hash2).digest()
+
+def verify_hash(hash1: Hash, hash2: Hash) -> bool:
+    return (hash1 == hash2)
 
 def b64encode(data: bytes) -> bytes:
     ret = None
@@ -70,27 +90,31 @@ def b64decode(data) -> bytes:
 
 def decode_membership_proof(data: str) -> MembershipProof:
     proof: MembershipProof = []
-    for item in data.split(","):
-        parts = item.split(":")
-        proof.append(
-            MembershipProofItem(
-                side="left" if parts[0] == "l" else "right",
-                node_hash=decode_hash(parts[1]),
+
+    if data:
+        for item in data.split(","):
+            parts = item.split(":")
+            proof.append(
+                MembershipProofItem(
+                    side="left" if parts[0] == "l" else "right",
+                    node_hash=decode_hash(parts[1]),
+                )
             )
-        )
     return proof
 
 
 def decode_consistency_proof(data: List[str]) -> ConsistencyProof:
     root_proof = []
-    for item in data:
-        ndx = item.index(",")
-        root_proof.append(
-            ConsistencyProofItem(
-                node_hash=decode_hash(item[:ndx].split(":")[1]),
-                proof=decode_membership_proof(item[ndx + 1 :]),
+
+    if data:
+        for item in data:
+            ndx = item.index(",")
+            root_proof.append(
+                ConsistencyProofItem(
+                    node_hash=decode_hash(item[:ndx].split(":")[1]),
+                    proof=decode_membership_proof(item[ndx + 1 :]),
+                )
             )
-        )
     return root_proof
 
 
@@ -116,8 +140,16 @@ def canonicalize_json(message: dict) -> bytes:
     ).encode("utf-8")
 
 
-def hash_data(data: bytes) -> str:
-    return sha256(data).hexdigest()
+def hash_bytes(data: bytes) -> bytes:
+    return sha256(data).digest()
+
+
+def hash_str(data: str) -> str:
+    return sha256(bytes(data, "utf8")).hexdigest()
+
+
+def hash_dict(data: dict) -> bytes:
+    return sha256(canonicalize_json(data)).digest()
 
 
 def base64url_decode(input_parameter):
@@ -222,3 +254,12 @@ def verify_consistency_proof(new_root: Hash, prev_root: Hash, proof: Consistency
             return False
 
     return True
+
+def get_root_filename():
+    token = os.getenv("PANGEA_TOKEN", "")
+    config_id = os.getenv("AUDIT_CONFIG_ID", "")
+
+    root_id = token + "-" + config_id
+    root_id_filename = hash_str(root_id)
+
+    return root_id_filename     
