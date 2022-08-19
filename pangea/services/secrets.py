@@ -35,7 +35,7 @@ class Secrets(ServiceBase):
         secrets = Secrets(token, config=config)
     """
 
-    service_name = "secretstore-gea-1241-basic-secret-store"
+    service_name = "secretstore"
     version = "v1"
 
 
