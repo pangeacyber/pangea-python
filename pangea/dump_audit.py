@@ -29,15 +29,16 @@ def dump_audit(
     """
     offset = 0
     page_end = start
-    found_any = dump_before(audit, output, start) > 0
+    offset = dump_before(audit, output, start)
     while True:
         page_end, page_size = dump_page(
-            audit, output, page_end, end, first=not found_any
+            audit, output, page_end, end, first=offset == 0
         )
         if page_size == 0:
             break
         offset += page_size
-    dump_after(audit, output, end)
+    print()
+    offset += dump_after(audit, output, end)
     return offset
 
 
@@ -68,7 +69,7 @@ def dump_before(
     return cnt
 
 
-def dump_after(audit: Audit, output: io.TextIOWrapper, start: datetime):
+def dump_after(audit: Audit, output: io.TextIOWrapper, start: datetime) -> int:
     print("Dumping after...", end="\r")
     search_res = audit.search(
         start=start.isoformat(),
@@ -80,15 +81,16 @@ def dump_after(audit: Audit, output: io.TextIOWrapper, start: datetime):
     if not search_res.success:
         raise ValueError("Error fetching events")
 
+    cnt = 0
     if search_res.result.count > 0:
-        cnt = 0
         leaf_index = search_res.result.events[0].leaf_index
         for row in search_res.result.events[1:]:
             if row.leaf_index != leaf_index:
                 break
             dump_event(output, row, search_res)
             cnt += 1
-        print(f"Dumping after... {cnt} events")
+    print(f"Dumping after... {cnt} events")
+    return cnt
 
 
 def dump_page(
@@ -206,12 +208,14 @@ def main():
 
     try:
         audit = init_audit(args.token, args.base_domain, args.config_id)
-        dump_audit(audit, args.output, args.start, args.end)
+        cnt = dump_audit(audit, args.output, args.start, args.end)
+        print(f"\nFile {args.output.name} created with {cnt} events.")
+
     except Exception as e:
         print(f"{get_script_name()}: error: {str(e)}")
         sys.exit(-1)
 
-    print("\nDone.")
+    print("Done.")
     sys.exit(0)
 
 
