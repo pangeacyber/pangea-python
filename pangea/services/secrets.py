@@ -82,11 +82,11 @@ class Secrets(ServiceBase):
         return self.request.post("get", data={"secret_id": secret_id, "secret_version": secret_version})
 
 
-    def create(self, secret_id: str, secret_value: str) -> PangeaResponse:
+    def add(self, secret_id: str, secret_value: str) -> PangeaResponse:
         """
         Secrets
 
-        Create a Secret in the Secret Store.
+        Adds a Secret in the Secret Store.
 
         Args:
             secret_id (str): Secret Id.
@@ -96,7 +96,7 @@ class Secrets(ServiceBase):
             A PangeaResponse.
 
         Examples:
-            response = secrets.create("test-a-secret-5", "test-secret-5_value")
+            response = secrets.add("test-a-secret-5", "test-secret-5_value")
 
             \"\"\"
             response contains:
@@ -106,7 +106,7 @@ class Secrets(ServiceBase):
                 "response_time",
                 "status": ["success", "failed"],
                 "status_code",
-                "summary": ["secret created", "awsmanager.CreateSecret: unknown error kind"]
+                "summary": ["secret added", "awsmanager.AddSecret: unknown error kind"]
                 "result": {
                     [
                         {"secret_id",
@@ -121,7 +121,7 @@ class Secrets(ServiceBase):
             \"\"\"
         """
 
-        return self.request.post("create", data={"secret_id": secret_id, "secret_value": secret_value})
+        return self.request.post("add", data={"secret_id": secret_id, "secret_value": secret_value})
 
 
     def update(self, secret_id: str, secret_value: str) -> PangeaResponse:
