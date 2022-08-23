@@ -1,47 +1,32 @@
+# Copyright 2022 Pangea Cyber Corporation
+# Author: Pangea Cyber Corporation
+
 import argparse
 import sys
+import os
+import io
 import math
-import json
 import typing as t
-from alive_progress import alive_bar
+from itertools import groupby
 
 import pangea.services.audit_util as audit_util
+from pangea.tools_util import Event, exit_with_error, print_progress_bar, SequenceFollower, init_audit, file_events
+from pangea.services import Audit
 
 
-
-class Root(t.TypedDict):
-    size: int
-    tree_name: str
-
-
-class Event(t.TypedDict):
-    membership_proof: str
-    leaf_index: int
+class Errors(t.TypedDict):
+    hash: int
+    membership_proof: int
+    missing: int
+    not_persisted: int
+    wrong_buffer: int
+    buffer_missing: int
 
 
-def rootFromFile(f: str) -> Root:
-    """
-    Reads a file containing a Root in JSON format with the following fields:
-    - membership_proof: str
-    - leaf_index: int
-    """
-    return json.load(f)
+root_hashes: dict[int, str] = {}
 
 
-def eventsInFile(f) -> t.Iterator[Event]:
-    """
-    Reads a file containing Events in JSON format with the following fields:
-    - membership_proof: str
-    - leaf_index: int
-    """
-    for idx, line in enumerate(f):
-        try:
-            yield json.loads(line)
-        except json.JSONDecodeError as e:
-            exit_with_error(f"failed to parse line: {idx}: {e.msg}")
-
-
-def lenOfFile(f) -> int:
+def num_lines(f: io.TextIOWrapper) -> int:
     res = sum(1 for _ in f)
     f.seek(0)
     return res
@@ -100,11 +85,6 @@ def get_proof_path(proof: str) -> str:
     return "".join(elem[0] for elem in proof.split(","))
 
 
-def exit_with_error(message: str):
-    print(message)
-    sys.exit(1)
-
-
 def height(size: int) -> int:
     return int(math.log2(size)) + 1
 
@@ -123,8 +103,8 @@ def verify_hash(data: dict, data_hash: str) -> bool:
     succeeded = False
     try:
         data_canon = audit_util.canonicalize_json(data)
-        computed_hash = audit_util.hash_data(data_canon)
-        computed_hash_dec = audit_util.decode_hash(computed_hash)
+        computed_hash_dec = audit_util.hash_bytes(data_canon)
+        # computed_hash_dec = audit_util.decode_hash(computed_hash)
         data_hash_dec = audit_util.decode_hash(data_hash)
         if computed_hash_dec != data_hash_dec:
             raise ValueError("Hash does not match")
@@ -132,6 +112,11 @@ def verify_hash(data: dict, data_hash: str) -> bool:
     except Exception:
         pass
     return succeeded
+
+
+def get_tree_size(event: Event):
+    # TODO: other formats
+    return event["tree_size"]
 
 
 def verify_membership_proof(node_hash: str, root_hash: str, proof: str) -> bool:
@@ -146,90 +131,166 @@ def verify_membership_proof(node_hash: str, root_hash: str, proof: str) -> bool:
     return succeeded
 
 
-def load_args():
-    parser = argparse.ArgumentParser(
-        description="Pangea Audit Event Deletion Verifier")
+def get_root_hash(audit: Audit, tree_size: int) -> str:
+    resp = audit.root(tree_size)
+    if not resp.success:
+        raise ValueError(f"Error getting root: {resp.status}")
+    return resp.result.data.root_hash
+
+
+def print_error(msg: str, level: str = "error"):
+    if level == "warning":
+        dot = "🟡"
+    else:
+        dot = "🔴"
+    print(f"{dot} {msg:200s}", end="\r")
+
+
+def deep_verify(audit: Audit, file: io.TextIOWrapper) -> Errors:
+    print("Counting events...", end="\r")
+    total_events = num_lines(file)
+    print(f"Counting events... {total_events}")
+
+    cnt = 1
+
+    errors: Errors = {
+        "hash": 0,
+        "membership_proof": 0,
+        "buffer_missing": 0,
+        "missing": 0,
+        "not_persisted": 0,
+        "wrong_buffer": 0,
+    }
+
+    events = file_events(root_hashes, file)
+    events_by_idx: list[Event] | t.Iterator[Event]
+    cold_indexes = SequenceFollower()
+    for leaf_index, events_by_idx in groupby(events, lambda event: event["leaf_index"]):
+        events_by_idx = list(events_by_idx)
+        buffer_lines = (cnt, cnt+len(events_by_idx)-1)
+        if leaf_index is None:
+            print_error(f"Lines {buffer_lines[0]}-{buffer_lines[1]} ({buffer_lines[1]-buffer_lines[0]+1}): Buffer was not persisted")
+            errors["not_persisted"] += len(events_by_idx)
+            cnt += len(events_by_idx)
+            continue
+
+        cold_indexes.add(leaf_index)
+
+        cold_path_size: t.Optional[int] = None
+        hot_out_of_order: set[int] = set()
+        for i, event in enumerate(events_by_idx):
+            cnt += 1
+            tree_size = get_tree_size(event)
+            if tree_size not in root_hashes:
+                root_hashes[tree_size] = get_root_hash(audit, tree_size)
+            cold_path_size = cold_path_size or get_path_size(tree_size, leaf_index)
+
+            print_progress_bar(cnt, total_events, "Verifying events...")
+            if not verify_hash(event["event"], event["hash"]):
+                errors["hash"] += 1
+
+            elif not verify_membership_proof(event["hash"], root_hashes[tree_size], event.get("membership_proof")):
+                errors["membership_proof"] += 1
+
+            if "membership_proof" not in event:
+                # cannot continue without a membership proof
+                continue
+
+            path = get_proof_path(event["membership_proof"])
+            hot_path = path[:-cold_path_size]
+            cold_path = path[-cold_path_size:]
+
+            cold_idx = path2index(tree_size, cold_path)
+            if cold_idx != leaf_index:
+                errors["wrong_buffer"] += 1
+
+            hot_idx = path2index(len(events_by_idx), hot_path)
+            if hot_idx in hot_out_of_order:
+                hot_out_of_order.remove(hot_idx)
+            elif hot_idx != i:
+                hot_out_of_order.add(hot_idx)
+
+        if hot_out_of_order:
+            errors["missing"] += len(hot_out_of_order)
+            print_error(f"Lines {buffer_lines[0]}-{buffer_lines[1]} ({buffer_lines[1]-buffer_lines[0]}), Buffer #{cold_idx}: {len(hot_out_of_order)} event(s) missing")
+
+    cold_holes = cold_indexes.holes()
+    if cold_holes:
+        errors["buffer_missing"] += len(cold_holes)
+        print_error(f"{len(cold_holes)} buffer(s) missing")
+
+    print_progress_bar(total_events, total_events, "Verifying events...")
+    return errors
+
+
+def create_parser():
+    parser = argparse.ArgumentParser(description="Pangea Audit Event Deep Verifier")
     parser.add_argument(
-        "--events",
-        "-e",
-        type=argparse.FileType("r"),
-        metavar="PATH",
+        "--token",
+        "-t",
+        default=os.getenv("PANGEA_TOKEN"),
+        help="Pangea token (default: env PANGEA_TOKEN)"
+    )
+    parser.add_argument(
+        "--base-domain",
+        "-d",
+        default=os.getenv("PANGEA_DOMAIN"),
+        help="Pangea base domain (default: env PANGEA_DOMAIN)"
+    )
+    parser.add_argument(
+        "--config-id",
+        "-c",
+        default=os.getenv("PANGEA_AUDIT_CONFIG_ID"),
+        help="Audit config id (default: env PANGEA_AUDIT_CONFIG_ID)"
+    )
+    parser.add_argument(
+        "--file",
+        "-f",
+        required=True,
+        type=argparse.FileType('r'),
         help="Event input file. Must be a collection of "
              "JSON Objects separated by newlines",
     )
-    parser.add_argument(
-        "--root",
-        "-r",
-        type=argparse.FileType("r"),
-        metavar="PATH",
-        help="root input file. Must be a JSON Object",
-    )
+    return parser
+
+
+def parse_args(parser):
     args = parser.parse_args()
-    if not args.events or not args.root:
-        parser.print_help(sys.stderr)
-        sys.exit(1)
-    return args.events, args.root
+
+    if not args.token:
+        raise ValueError("token missing")
+
+    if not args.base_domain:
+        raise ValueError("base domain missing")
+
+    return args
 
 
 def main():
-    events_file, root_file = load_args()
+    parser = create_parser()
+    try:
+        args = parse_args(parser)
+    except Exception as e:
+        parser.print_usage()
+        exit_with_error(str(e))
 
-    with alive_bar(1, title="Counting Events") as bar:
-        total_events = lenOfFile(events_file)
-        bar()
+    print("Pangea Audit Event Deep Verifier\n")
+    
+    try:
+        audit = init_audit(args.token, args.base_domain, args.config_id)
+        errors = deep_verify(audit, args.file)
 
-    root = rootFromFile(root_file)
-    t_size = root['size']
-    events = eventsInFile(events_file)
+        print("\n\nTotal errors:")
+        for key, val in errors.items():
+            print(f"\t{key.title()}: {val}")
+        print()
 
-    with alive_bar(total_events, title="Validating Events") as bar:
-        current_event = next(events)
-        bar()
-        leaf_index = current_event['leaf_index']
-        grpByIdxEvents = [current_event]
-        cnt = 0
-        for event in events:
-            if event['leaf_index'] == leaf_index:
-                grpByIdxEvents.append(event)
-            else:
-                cold_path_size = get_path_size(t_size, leaf_index)
-                prev_index = None
-                for e in grpByIdxEvents:
-                    cnt += 1
-                    if not verify_hash(e["event"], e["hash"]):
-                        print(f"failed hash for event {cnt}")
-                        # exit_with_error(
-                        #     f"failed hash check "
-                        #     f"for {e}")
+    except Exception as e:
+        import traceback
+        print(traceback.format_exc())
+        exit_with_error(str(e))
 
-                    elif not verify_membership_proof(e["hash"], root["root_hash"], e["membership_proof"]):
-                        print(f"failed membership_proof for event {cnt}")
-                        # exit_with_error(
-                        #     f"failed membership proof check "
-                        #     f"for {e}")
-
-                    path = get_proof_path(e["membership_proof"])
-                    hot_path = path[:-cold_path_size]
-                    cold_path = path[-cold_path_size:]
-                    cold_idx = path2index(t_size, cold_path)
-                    if cold_idx != leaf_index:
-                        exit_with_error(
-                            f"failed cold tree leaf index check"
-                            f"for {e}: {cold_idx} != {leaf_index}")
-                    hot_idx = path2index(len(grpByIdxEvents), hot_path)
-                    if prev_index is None or prev_index + 1 == hot_idx:
-                        prev_index = hot_idx
-                    else:
-                        exit_with_error(
-                            f"failed hot tree leaf index check "
-                            f"for {e}: {prev_index} != {hot_idx}")
-                print('-> Successfully validated events of '
-                      f'leaf_index: {leaf_index}')
-                leaf_index = event['leaf_index']
-                grpByIdxEvents = [event]
-            current_event = event
-            bar()
-    print("Successfully validated all events - No missing events were detected")
+    print("Done.")
     sys.exit(0)
 
 

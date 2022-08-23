@@ -1,48 +1,49 @@
-"""
-Command-line tool for dumping audit events.
+# Copyright 2022 Pangea Cyber Corporation
+# Author: Pangea Cyber Corporation
 
-Usage: python dump_audit.py <datetime_from> <datetime_to> 
-
-    -f filename: output file prefix
-
-Datetimes should be in ISO 8601 format.
-"""
-
+import io
 import json
+import sys
 import os
 import argparse
-from typing import Optional
-from datetime import datetime, timezone
-from dateutil.parser import parse
+from datetime import datetime
+import dateutil.parser
 
-from pangea.config import PangeaConfig
+from pangea.response import PangeaResponse
 from pangea.services import Audit
+from pangea.tools_util import print_progress_bar, get_script_name, init_audit, make_aware_datetime
 
 
-def print_progress_bar(iteration, total, prefix="", suffix="", decimals=1, length=100):
-    percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
-    filledLength = int(length * iteration // total)
-    bar = "█" * filledLength + '-' * (length - filledLength)
-    print(f'\r{prefix} |{bar}| {percent}% {suffix}', end="\r")
-    if iteration == total:
-        print()
+def dump_event(output: io.TextIOWrapper, row: dict, resp: PangeaResponse):
+    if "root" in resp.result:
+        row.tree_size = resp.result.root.size
+    output.write(json.dumps(row) + "\n")
 
 
-def dump_audit(audit: Audit, fname: str, start: datetime, end: datetime) -> int:
+def dump_audit(
+    audit: Audit, output: io.TextIOWrapper, start: datetime, end: datetime
+) -> int:
+    """
+    Use the /search endpoint to download all the events from a range of time.
+    Also extend the range in both directions to cover full buffers.
+    """
     offset = 0
     page_end = start
-    with open(f"{fname}.jsonl", "w") as file:
-        found_any = dump_before(audit, file, start) > 0
-        while True:
-            page_end, page_size = dump_page(audit, file, page_end, end, first=not found_any)
-            if page_size == 0:
-                break
-            offset += page_size
-        dump_after(audit, file, end)
+    found_any = dump_before(audit, output, start) > 0
+    while True:
+        page_end, page_size = dump_page(
+            audit, output, page_end, end, first=not found_any
+        )
+        if page_size == 0:
+            break
+        offset += page_size
+    dump_after(audit, output, end)
     return offset
 
 
-def dump_before(audit: Audit, file, start: datetime) -> int:
+def dump_before(
+    audit: Audit, output: io.TextIOWrapper, start: datetime
+) -> int:
     print("Dumping before...", end="\r")
     search_res = audit.search(
         start="2000-01-01T10:00:00Z",
@@ -53,10 +54,7 @@ def dump_before(audit: Audit, file, start: datetime) -> int:
         max_results=1000
     )
     if not search_res.success:
-        raise ValueError("Error fetching events")
-
-    with open(f"{os.path.splitext(file.name)[0]}.root.json", "w") as out_root:
-        out_root.write(json.dumps(search_res.result.root))
+        raise ValueError(f"Error fetching events: {search_res.result}")
 
     cnt = 0
     if search_res.result.count > 0:
@@ -64,13 +62,13 @@ def dump_before(audit: Audit, file, start: datetime) -> int:
         for row in reversed(search_res.result.events):
             if row.leaf_index != leaf_index:
                 break
-            file.write(json.dumps(row) + "\n")
+            dump_event(output, row, search_res)
             cnt += 1
     print(f"Dumping before... {cnt} events")
     return cnt
 
 
-def dump_after(audit: Audit, file, start: datetime):
+def dump_after(audit: Audit, output: io.TextIOWrapper, start: datetime):
     print("Dumping after...", end="\r")
     search_res = audit.search(
         start=start.isoformat(),
@@ -88,22 +86,26 @@ def dump_after(audit: Audit, file, start: datetime):
         for row in search_res.result.events[1:]:
             if row.leaf_index != leaf_index:
                 break
-            file.write(json.dumps(row) + "\n")
+            dump_event(output, row, search_res)
             cnt += 1
         print(f"Dumping after... {cnt} events")
 
 
-def dump_page(audit: Audit, file, start: datetime, end: datetime, first: bool = False) -> tuple[datetime, int]:
+def dump_page(
+    audit: Audit, output: io.TextIOWrapper, start: datetime, end: datetime, first: bool = False
+) -> tuple[datetime, int]:
+
     print("Dumping...", end="\r")
     search_res = audit.search(
         start=start.isoformat(),
         end=end.isoformat(),
         order="asc",
+        order_by="received_at",
         verify=False,
         limit=1000
     )
     if not search_res.success:
-        raise ValueError("Error fetching events")
+        raise ValueError(f"Error fetching events: {search_res.result}")
 
     msg = f"Dumping... {search_res.result.count} events"
 
@@ -116,56 +118,101 @@ def dump_page(audit: Audit, file, start: datetime, end: datetime, first: bool = 
     while offset < count:
         for row in search_res.result.events:
             if first or offset > 0:
-                file.write(json.dumps(row) + "\n")
+                dump_event(output, row, search_res)
             offset += 1
         if offset < count:
             search_res = audit.results(result_id, offset=offset)
             if not search_res.success:
                 raise ValueError("Error fetching events")
-        print_progress_bar(offset, count, prefix=msg, suffix="Complete", length=50)
+        print_progress_bar(
+            offset, count, prefix=msg, suffix="Complete", length=50
+        )
 
-    page_end = parse(row.event.received_at)
+    page_end = dateutil.parser.parse(row.event.received_at)
     return page_end, offset
 
 
-def init_audit(token: Optional[str], config_id: Optional[str], base_domain: Optional[str]) -> Audit:
-    token = token or os.getenv("PANGEA_TOKEN")
-    if token is None:
-        raise ValueError("Missing pangea token")
+def create_parser():
+    parser = argparse.ArgumentParser(description="Pangea Audit Dump Tool")
+    parser.add_argument(
+        "--token",
+        "-t",
+        default=os.getenv("PANGEA_TOKEN"),
+        help="Pangea token (default: env PANGEA_TOKEN)"
+    )
+    parser.add_argument(
+        "--base-domain",
+        "-d",
+        default=os.getenv("PANGEA_DOMAIN"),
+        help="Pangea base domain (default: env PANGEA_DOMAIN)"
+    )
+    parser.add_argument(
+        "--config-id",
+        "-c",
+        default=os.getenv("PANGEA_AUDIT_CONFIG_ID"),
+        help="Audit config id (default: env PANGEA_AUDIT_CONFIG_ID)"
+    )
+    parser.add_argument(
+        "--output",
+        "-o",
+        type=argparse.FileType("w"),
+        help="Output file name. Default: stdout"
+    )
+    parser.add_argument(
+        "start",
+        type=dateutil.parser.parse,
+        help="Start timestamp. Supports a variety of formats, including ISO-8601"
+    )
+    parser.add_argument(
+        "end",
+        type=dateutil.parser.parse,
+        help="End timestamp. Supports a variety of formats, including ISO-8601"
+    )
 
-    config_id = config_id or os.getenv("AUDIT_CONFIG_ID")
-    # if config_id is None:
-    #     raise ValueError("Missing Audit Config ID")
+    return parser
 
-    base_domain = base_domain or os.getenv("PANGEA_BASE_DOMAIN", "dev.pangea.cloud")
 
-    config = PangeaConfig(base_domain=base_domain, config_id=config_id)
-    audit = Audit(token, config=config)
-    return audit
+def parse_args(parser):
+    args = parser.parse_args()
+
+    if not args.token:
+        raise ValueError("token missing")
+
+    if not args.base_domain:
+        raise ValueError("base domain missing")
+
+    if args.output is None:
+        args.output = open(f"dump-{datetime.now().strftime('%Y%m%d%H%M%S')}.jsonl", "w")
+
+    args.start = make_aware_datetime(args.start)
+    args.end = make_aware_datetime(args.end)
+
+    if args.start > args.end:
+        raise ValueError("start_date must be before than end_date")
+
+    return args
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Pangea Audit Dump")
-    parser.add_argument("--token", help="Pangea token")
-    parser.add_argument("--base-domain", help="Pangea base domain")
-    parser.add_argument("--config-id", help="Audit config id")
-    parser.add_argument("--file", "-f", default="dump", help="Output file name (without extension)")
-    parser.add_argument('start', help='start timestamp')
-    parser.add_argument('end', help='end timestamp')
-    args = parser.parse_args()
+    parser = create_parser()
+    try:
+        args = parse_args(parser)
+    except Exception as e:
+        parser.print_usage()
+        print(f"{get_script_name()}: error: {str(e)}")
+        sys.exit(-1)
 
-    start = parse(args.start)
-    if start.tzinfo is None:
-        start = start.astimezone(timezone.utc)
-    end = parse(args.end)
-    if end.tzinfo is None:
-        end = end.astimezone(timezone.utc)
+    print("Pangea Audit Dump Tool\n")
 
-    fname = args.file
+    try:
+        audit = init_audit(args.token, args.base_domain, args.config_id)
+        dump_audit(audit, args.output, args.start, args.end)
+    except Exception as e:
+        print(f"{get_script_name()}: error: {str(e)}")
+        sys.exit(-1)
 
-    audit = init_audit(args.token, args.config_id, args.base_domain)
-    dump_audit(audit, fname, start, end)
     print("\nDone.")
+    sys.exit(0)
 
 
 if __name__ == "__main__":
