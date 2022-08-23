@@ -21,6 +21,7 @@ data = {
 def main():
     print("Log Data...")
     log_response = audit.log(data)
+
     if log_response.success:
         print(f"Log Request ID: {log_response.request_id}, Success: {log_response.status}")
     else:
