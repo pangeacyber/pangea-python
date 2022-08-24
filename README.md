@@ -94,7 +94,7 @@ else:
 Verify that an event or a list of events has not been tampered. Usage:
 
 ```
-usage: verify_audit.py [-h] [--file PATH]
+usage: python -m pangea.verify_audit [-h] [--file PATH]
 
 Pangea Audit Verifier
 
@@ -120,7 +120,7 @@ a variety of formats is supported, including ISO-8601. The result is stored in a
 jsonl file (one json per line)
 
 ```
-usage: dump_audit.py [-h] [--token TOKEN] [--base-domain BASE_DOMAIN] [--config-id CONFIG_ID] [--output OUTPUT] start end
+usage: python -m pangea.dump_audit [-h] [--token TOKEN] [--base-domain BASE_DOMAIN] [--config-id CONFIG_ID] [--output OUTPUT] start end
 
 Pangea Audit Dump Tool
 
@@ -146,7 +146,7 @@ This script performs extensive verification on a range of events of the log stre
 and the membership proof, it checks that there is no omissions in the stream, i.e. all the events are present and properly located.
 
 ```
-usage: deep_verify.py [-h] [--token TOKEN] [--base-domain BASE_DOMAIN] [--config-id CONFIG_ID] --file FILE
+usage: python -m pangea.deep_verify [-h] [--token TOKEN] [--base-domain BASE_DOMAIN] [--config-id CONFIG_ID] --file FILE
 
 Pangea Audit Event Deep Verifier
 
