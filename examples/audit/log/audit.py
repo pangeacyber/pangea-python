@@ -1,4 +1,5 @@
 import os
+import json
 
 from pangea.config import PangeaConfig
 from pangea.services import Audit
@@ -16,7 +17,7 @@ data = {
 
 def main():
     print(f"Logging: {data['message']}")
-    log_response = audit.log(data)
+    log_response = audit.log(data, verbose=False)
 
     if log_response.success:
         print(f"Response: {log_response.result}")
