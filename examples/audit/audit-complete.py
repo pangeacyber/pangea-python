@@ -3,9 +3,10 @@ import os
 from pangea.config import PangeaConfig
 from pangea.services import Audit
 
-token = os.getenv("PANGEA_TOKEN")
+token = os.getenv("AUDIT_AUTH_TOKEN")
 config_id = os.getenv("AUDIT_CONFIG_ID")
-config = PangeaConfig(base_domain="dev.pangea.cloud", config_id=config_id)
+domain = os.getenv("PANGEA_DOMAIN")
+config = PangeaConfig(base_domain=domain, config_id=config_id)
 audit = Audit(token, config=config)
 
 data = {
