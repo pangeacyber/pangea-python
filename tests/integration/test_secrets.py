@@ -10,7 +10,8 @@ class TestRedact(unittest.TestCase):
     def setUp(self):
         token = os.getenv("PANGEA_TEST_INTEGRATION_TOKEN")
         config_id = os.getenv("SECRETS_INTEGRATION_CONFIG_ID")
-        config = PangeaConfig(base_domain="dev.pangea.cloud", config_id=config_id)
+        domain = os.getenv("PANGEA_TEST_INTEGRATION_ENDPOINT")
+        config = PangeaConfig(base_domain=domain, config_id=config_id)
         self.secrets = Secrets(token, config=config)
 
     def test_add_new_id(self):
@@ -79,11 +80,11 @@ class TestRedact(unittest.TestCase):
         secret_version = response.result.get("secret_version")
 
         response = self.secrets.update(secret_id, secret_value)
-        expected_id = secret_id      
+        expected_id = secret_id
 
         self.assertEqual(response.code, 200)
         self.assertEqual(response.result.get("secret_id"), expected_id)
-        self.assertNotEqual(response.result.get("secret_version"), secret_version)        
+        self.assertNotEqual(response.result.get("secret_version"), secret_version)
 
         old_version = response.result.get("secret_version")
         secret_value = secret_value + "_new"
@@ -96,6 +97,6 @@ class TestRedact(unittest.TestCase):
         secret_id = "test_" + str(random.randint(10, 10000000))
         secret_value = secret_id + "_value"
 
-        response = self.secrets.update(secret_id, secret_value)    
+        response = self.secrets.update(secret_id, secret_value)
 
         self.assertEqual(response.code, 500)

@@ -11,7 +11,8 @@ class TestEmbargo(unittest.TestCase):
     def setUp(self):
         token = os.getenv("PANGEA_TEST_INTEGRATION_TOKEN")
         config_id = os.getenv("EMBARGO_INTEGRATION_CONFIG_TOKEN")
-        config = PangeaConfig(base_domain="dev.pangea.cloud", config_id=config_id)
+        domain = os.getenv("PANGEA_TEST_INTEGRATION_ENDPOINT")
+        config = PangeaConfig(base_domain=domain, config_id=config_id)
         self.embargo = Embargo(token, config=config)
 
     def test_ip_check(self):
