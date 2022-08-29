@@ -84,7 +84,6 @@ def _verify_hash(data: dict, data_hash: str) -> t.Optional[bool]:
         data_canon = canonicalize_json(data)
         logger.debug("Calculating hash")
         computed_hash_dec = hash_bytes(data_canon)
-        # computed_hash_dec = decode_hash(computed_hash)
         data_hash_dec = decode_hash(data_hash)
         logger.debug("Comparing calculated hash with server hash")
         if computed_hash_dec != data_hash_dec:
