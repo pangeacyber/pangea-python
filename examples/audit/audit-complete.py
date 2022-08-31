@@ -3,11 +3,14 @@ import os
 from pangea.config import PangeaConfig
 from pangea.services import Audit
 
+# Enable this to test signatures
+signing = True
+
 token = os.getenv("AUDIT_AUTH_TOKEN")
 config_id = os.getenv("AUDIT_CONFIG_ID")
 domain = os.getenv("PANGEA_DOMAIN")
 config = PangeaConfig(base_domain=domain, config_id=config_id)
-audit = Audit(token, config=config)
+audit = Audit(token, config=config, enable_signing=signing)
 
 data = {
     "action": "reboot",
@@ -21,7 +24,7 @@ data = {
 
 def main():
     print("Log Data...")
-    log_response = audit.log(data)
+    log_response = audit.log(data, signing=signing)
 
     if log_response.success:
         print(f"Log Request ID: {log_response.request_id}, Success: {log_response.status}")
@@ -95,10 +98,10 @@ def print_page_results(pub_roots, search_res, offset, count):
     for row in search_res.result.events:
         membership = membership_verification(audit, root, row)
         consistency = consistency_verification(audit, pub_roots, row)
-        # signature = signature_verification(row)
+        signature = signature_verification(row) if signing else ""
         print(
             f"{row.event.received_at}\t{row.event.message}\t{row.event.source}"
-            f"\t{row.event.actor}\t\t{membership} {consistency}"
+            f"\t{row.event.actor}\t\t{membership} {consistency} {signature}"
         )
     print(
         f"\nResults: {offset+1}-{offset+len(search_res.result.events)} of {count}",

@@ -20,7 +20,6 @@ from .audit_util import (
     verify_consistency_proof,
     verify_membership_proof,
     verify_hash,
-    encode_buffer_root,
     decode_buffer_root,
     get_root_filename
 )
@@ -69,13 +68,12 @@ class Audit(ServiceBase):
         audit = Audit(token=PANGEA_TOKEN, config=audit_config)
     """
 
-
     service_name: str = "audit"
     version: str = "v1"
     config_id_header: str = "X-Pangea-Audit-Config-ID"
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, token, config=None, **kwargs):
+        super().__init__(token, config)
 
         self.pub_roots: dict = {}
         self.buffer_data: Optional[str] = None
@@ -172,13 +170,13 @@ class Audit(ServiceBase):
             sign_envelope = self.create_signed_envelope(data["event"])
             signature = self.sign.signMessage(sign_envelope)
             if signature is not None:
-                data["event"]["signature"] = signature
+                data["signature"] = signature
             else:
 
                 raise Exception("Error: failure signing message")
 
             public_bytes = self.sign.getPublicKeyBytes()
-            data["event"]["public_key"] = b64encode_ascii(public_bytes)
+            data["public_key"] = b64encode_ascii(public_bytes)
 
         prev_buffer_root = None
         if verify:
@@ -186,7 +184,7 @@ class Audit(ServiceBase):
             data["return_hash"] = verify
             data["return_proof"] = verify
 
-            buffer_data : dict = {}
+            buffer_data: dict = {}
             buffer_data = json.loads(self.get_buffer_data())
             if buffer_data:
                 prev_buffer_root = buffer_data.get("last_root")
@@ -295,7 +293,7 @@ class Audit(ServiceBase):
             end (str, optional): The end of the time range to perform the search on.
                 All records up to the latest if left out.
             order (str, optional): One of  "asc", "desc"
-            order_by (str, optional): One of "actor", "action", "message", "received_at", "signature", "source", "status", "target", "timestamp"
+            order_by (str, optional): One of "actor", "action", "message", "received_at", "source", "status", "target", "timestamp"
             verify (bool, optional): If set, the consistency and membership proofs are validated for all
                 events returned by `search` and `results`. The fields `consistency_proof_verification` and
                 `membership_proof_verification` are added to each event, with the value `pass`, `fail` or `none`.
@@ -390,13 +388,8 @@ class Audit(ServiceBase):
 
         if verify_signatures:
             for audit_envelope in response.result.events:
-                event = audit_envelope.event
-                sign_envelope = self.create_signed_envelope(event)
-                public_key_b64 = event.get("public_key")
-                public_key_bytes = b64decode(public_key_b64)
-
-                if not self.sign.verifyMessage(event.signature, sign_envelope, public_key_bytes):
-                    raise Exception(f"Error: signature failed.")
+                if not self.verify_signature(audit_envelope):
+                    raise Exception("signature failed")
 
         return self.handle_search_response(response)
 
@@ -435,13 +428,8 @@ class Audit(ServiceBase):
 
         if verify_signatures:
             for audit_envelope in response.result.events:
-                event = audit_envelope.event
-                sign_envelope = self.create_signed_envelope(event)
-                public_key_b64 = event.get("public_key")
-                public_key_bytes = b64decode(public_key_b64)
-
-                if not self.sign.verifyMessage(event.signature, sign_envelope, public_key_bytes):
-                    raise Exception(f"Error: signature failed.")
+                if not self.verify_signature(audit_envelope):
+                    raise Exception("signature failed")
 
         return self.handle_search_response(response)
 
@@ -634,9 +622,9 @@ class Audit(ServiceBase):
         """
         event = audit_envelope.event
         sign_envelope = self.create_signed_envelope(event)
-        public_key_b64 = event.get("public_key")
+        public_key_b64 = audit_envelope.public_key
         public_key_bytes = b64decode(public_key_b64)
-        return self.sign.verifyMessage(event.signature, sign_envelope, public_key_bytes)
+        return self.sign.verifyMessage(audit_envelope.signature, sign_envelope, public_key_bytes)
 
     def root(self, tree_size: int = 0) -> PangeaResponse:
         """
