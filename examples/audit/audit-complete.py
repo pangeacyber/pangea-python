@@ -4,7 +4,7 @@ from pangea.config import PangeaConfig
 from pangea.services import Audit
 
 # Enable this to test signatures
-signing = True
+signing = False
 
 token = os.getenv("AUDIT_AUTH_TOKEN")
 config_id = os.getenv("AUDIT_CONFIG_ID")
