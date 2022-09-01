@@ -13,21 +13,21 @@ import argparse
 import json
 import logging
 import sys
-from typing import Dict, Optional
+import typing as t
 
 from pangea.services.audit_util import (
     canonicalize_json,
     decode_consistency_proof,
     decode_hash,
+    hash_bytes,
     decode_membership_proof,
     get_arweave_published_roots,
-    hash_data,
     verify_consistency_proof,
     verify_membership_proof,
 )
 
 logger = logging.getLogger("audit")
-pub_roots: Dict[int, dict] = {}
+pub_roots: t.Dict[int, dict] = {}
 
 
 class VerifierLogFormatter(logging.Formatter):
@@ -60,7 +60,7 @@ class VerifierLogFormatter(logging.Formatter):
             return f"{pre}{record.msg}"
 
 
-def log_result(msg: str, succeeded: Optional[bool]):
+def log_result(msg: str, succeeded: t.Optional[bool]):
     if succeeded is True:
         msg += " succeeded"
     elif succeeded is False:
@@ -77,14 +77,13 @@ def log_section(msg: str):
 formatter = VerifierLogFormatter()
 
 
-def _verify_hash(data: dict, data_hash: str) -> Optional[bool]:
+def _verify_hash(data: dict, data_hash: str) -> t.Optional[bool]:
     log_section("Checking data hash")
     try:
         logger.debug("Canonicalizing data")
         data_canon = canonicalize_json(data)
         logger.debug("Calculating hash")
-        computed_hash = hash_data(data_canon)
-        computed_hash_dec = decode_hash(computed_hash)
+        computed_hash_dec = hash_bytes(data_canon)
         data_hash_dec = decode_hash(data_hash)
         logger.debug("Comparing calculated hash with server hash")
         if computed_hash_dec != data_hash_dec:
@@ -99,7 +98,7 @@ def _verify_hash(data: dict, data_hash: str) -> Optional[bool]:
     return succeeded
 
 
-def _verify_membership_proof(tree_name: str, tree_size: int, node_hash: str, proof: Optional[str]) -> Optional[bool]:
+def _verify_membership_proof(tree_name: str, tree_size: int, node_hash: str, proof: t.Optional[str]) -> t.Optional[bool]:
     global pub_roots
 
     log_section("Checking membership proof")
@@ -130,7 +129,7 @@ def _verify_membership_proof(tree_name: str, tree_size: int, node_hash: str, pro
     return succeeded
 
 
-def _verify_consistency_proof(tree_name: str, leaf_index: Optional[int]) -> Optional[bool]:
+def _verify_consistency_proof(tree_name: str, leaf_index: t.Optional[int]) -> t.Optional[bool]:
     global pub_roots
 
     log_section("Checking consistency proof")
@@ -168,7 +167,7 @@ def _verify_consistency_proof(tree_name: str, leaf_index: Optional[int]) -> Opti
     return succeeded
 
 
-def verify_multiple(root: dict, events: list[dict]) -> Optional[bool]:
+def verify_multiple(root: dict, events: list[dict]) -> t.Optional[bool]:
     """
     Verify a list of events.
     Returns a status.
@@ -181,7 +180,7 @@ def verify_multiple(root: dict, events: list[dict]) -> Optional[bool]:
     return not any(event_succeeded is False for event_succeeded in succeeded)
 
 
-def verify_single(data: dict, counter: Optional[int] = None) -> Optional[bool]:
+def verify_single(data: dict, counter: t.Optional[int] = None) -> t.Optional[bool]:
     """
     Verify a single event.
     Returns a status.
