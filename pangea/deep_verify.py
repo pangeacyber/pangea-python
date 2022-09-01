@@ -104,7 +104,6 @@ def verify_hash(data: dict, data_hash: str) -> bool:
     try:
         data_canon = audit_util.canonicalize_json(data)
         computed_hash_dec = audit_util.hash_bytes(data_canon)
-        # computed_hash_dec = audit_util.decode_hash(computed_hash)
         data_hash_dec = audit_util.decode_hash(data_hash)
         if computed_hash_dec != data_hash_dec:
             raise ValueError("Hash does not match")
