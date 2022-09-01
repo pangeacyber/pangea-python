@@ -82,17 +82,15 @@ class FileIntel(ServiceBase):
         """
 
         data = {
-            "parameters": {
-                "hash": file_hash,
-                "hash_type": hash_type,
-            }
+            "hash": file_hash,
+            "hash_type": hash_type,
         }
         if provider:
             data["provider"] = provider
         if verbose:
-            data["parameters"]["verbose"] = verbose
+            data["verbose"] = verbose
         if raw:
-            data["parameters"]["raw"] = raw
+            data["raw"] = raw
 
         return self.request.post("lookup", data=data)
 
@@ -169,16 +167,14 @@ class IpIntel(ServiceBase):
         """
 
         data = {
-            "parameters": {
-                "ip": ip,
-            }
+            "ip": ip,
         }
         if provider:
             data["provider"] = provider
         if verbose:
-            data["parameters"]["verbose"] = verbose
+            data["verbose"] = verbose
         if raw:
-            data["parameters"]["raw"] = raw
+            data["raw"] = raw
 
         return self.request.post("lookup", data=data)
 
@@ -255,16 +251,14 @@ class UrlIntel(ServiceBase):
         """
 
         data = {
-            "parameters": {
-                "url": url,
-            }
+            "url": url,
         }
         if provider:
             data["provider"] = provider
         if verbose:
-            data["parameters"]["verbose"] = verbose
+            data["verbose"] = verbose
         if raw:
-            data["parameters"]["raw"] = raw
+            data["raw"] = raw
 
         return self.request.post("lookup", data=data)
 
@@ -324,16 +318,14 @@ class DomainIntel(ServiceBase):
         """
 
         data = {
-            "parameters": {
-                "domain": domain,
-            }
+            "domain": domain,
         }
         if provider:
             data["provider"] = provider
         if verbose:
-            data["parameters"]["verbose"] = verbose
+            data["verbose"] = verbose
         if raw:
-            data["parameters"]["raw"] = raw
+            data["raw"] = raw
 
         return self.request.post("lookup", data=data)
 
