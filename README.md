@@ -1,4 +1,23 @@
-# Pangea python-sdk
+<p>
+  <br />
+  <a href="https://pangea.cloud?utm_source=github&utm_medium=node-sdk" target="_blank" rel="noopener noreferrer">
+    <img src="https://pangea-marketing.s3.us-west-2.amazonaws.com/pangea-color.svg" alt="Pangea Logo" height="40">
+  </a>
+  <br />
+</p>
+
+<p>
+<br />
+
+[![documentation](https://img.shields.io/badge/documentation-pangea-blue?style=for-the-badge&labelColor=551B76)](https://pangea.cloud/docs/sdk/python/)
+[![Slack](https://img.shields.io/badge/Slack-4A154B?style=for-the-badge&logo=slack&logoColor=white)](https://pangea-builders.slack.com/ssb/redirect)
+
+<br />
+</p>
+
+# Pangea Python SDK
+
+A Python SDK for integrating with Pangea Services.
 
 ## Setup
 
@@ -17,6 +36,9 @@ import os
 from pangea.config import PangeaConfig
 from pangea.services import Audit
 
+# Read your project domain from an env variable
+domain = os.getenv("PANGEA_DOMAIN)
+
 # Read your access token from an env variable
 token = os.getenv("PANGEA_TOKEN")
 
@@ -25,7 +47,7 @@ token = os.getenv("PANGEA_TOKEN")
 config_id = os.getenv("AUDIT_CONFIG_ID")
 
 # Create a Config object contain the Audit Config ID
-config = PangeaConfig(config_id=config_id)
+config = PangeaConfig(base_domain=domain, config_id=config_id)
 
 # Initialize an Audit instance using the config object
 audit = Audit(token, config=config)
