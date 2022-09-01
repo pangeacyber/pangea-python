@@ -22,3 +22,4 @@ env/
 
 # editors
 .idea
+.vscode
