@@ -14,6 +14,8 @@ import json
 import logging
 import sys
 import typing as t
+from base64 import b64decode
+
 
 from pangea.services.audit_util import (
     canonicalize_json,
@@ -25,6 +27,7 @@ from pangea.services.audit_util import (
     verify_consistency_proof,
     verify_membership_proof,
 )
+from pangea.signing import Signing
 
 logger = logging.getLogger("audit")
 pub_roots: t.Dict[int, dict] = {}
@@ -91,7 +94,6 @@ def _verify_hash(data: dict, data_hash: str) -> t.Optional[bool]:
         succeeded = True
     except Exception:
         succeeded = False
-        # logger.error(f"    ⌲ {str(e)}")
 
     log_result("Data hash verification", succeeded)
     logger.info("")
@@ -167,6 +169,45 @@ def _verify_consistency_proof(tree_name: str, leaf_index: t.Optional[int]) -> t.
     return succeeded
 
 
+def create_signed_envelope(event: dict) -> dict:
+    sign_envelope = {
+        "message": event.get("message"),
+        "actor": event.get("actor"),
+        "action": event.get("action"),
+        "new": event.get("new"),
+        "old": event.get("old"),
+        "source": event.get("source"),
+        "status": event.get("status"),
+        "target": event.get("target"),
+        "timestamp": event.get("timestamp"),
+    }
+    return {k: v for k, v in sign_envelope.items() if v is not None}
+
+
+def _verify_signature(data: dict) -> t.Optional[bool]:
+    log_section("Checking signature")
+    if "signature" not in data:
+        logger.debug("Signature is not present")
+        succeeded = None
+    else:
+        try:
+            logger.debug("Obtaining signature and public key from the event")
+            sign_envelope = create_signed_envelope(data["event"])
+            public_key_b64 = data["public_key"]
+            public_key_bytes = b64decode(public_key_b64)
+            sign = Signing(hash_message=True)
+            logger.debug("Checking the signature")
+            if not sign.verifyMessage(data["signature"], sign_envelope, public_key_bytes):
+                raise ValueError("Signature is invalid")                
+            succeeded = True
+        except Exception:
+            succeeded = False
+
+    log_result("Data signature verification", succeeded)
+    logger.info("")
+    return succeeded
+
+
 def verify_multiple(root: dict, events: list[dict]) -> t.Optional[bool]:
     """
     Verify a list of events.
@@ -190,6 +231,7 @@ def verify_single(data: dict, counter: t.Optional[int] = None) -> t.Optional[boo
         formatter.indent = 4
 
     ok_hash = _verify_hash(data["event"], data["hash"])
+    ok_signature = _verify_signature(data)
     ok_membership = _verify_membership_proof(
         data["root"]["tree_name"],
         data["root"]["size"],
@@ -197,9 +239,8 @@ def verify_single(data: dict, counter: t.Optional[int] = None) -> t.Optional[boo
         data.get("membership_proof"),
     )
     ok_consistency = _verify_consistency_proof(data["root"]["tree_name"], data["leaf_index"])
-
-    all_ok = ok_hash is True and ok_membership is True and ok_consistency is True
-    any_failed = ok_hash is False or ok_membership is False or ok_consistency is False
+    all_ok = ok_hash is True and ok_signature is True and ok_membership is True and ok_consistency is True
+    any_failed = ok_hash is False or ok_signature is False or ok_membership is False or ok_consistency is False
 
     if counter:
         formatter.indent = 0
