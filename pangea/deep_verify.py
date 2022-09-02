@@ -164,7 +164,7 @@ def deep_verify(audit: Audit, file: io.TextIOWrapper) -> Errors:
     events = file_events(root_hashes, file)
     events_by_idx: list[Event] | t.Iterator[Event]
     cold_indexes = SequenceFollower()
-    for leaf_index, events_by_idx in groupby(events, lambda event: event["leaf_index"]):
+    for leaf_index, events_by_idx in groupby(events, lambda event: event.get("leaf_index")):
         events_by_idx = list(events_by_idx)
         buffer_lines = (cnt, cnt+len(events_by_idx)-1)
         if leaf_index is None:
@@ -185,7 +185,7 @@ def deep_verify(audit: Audit, file: io.TextIOWrapper) -> Errors:
             cold_path_size = cold_path_size or get_path_size(tree_size, leaf_index)
 
             print_progress_bar(cnt, total_events, "Verifying events...")
-            if not verify_hash(event["event"], event["hash"]):
+            if not verify_hash(event["envelope"], event["hash"]):
                 errors["hash"] += 1
 
             elif not verify_membership_proof(event["hash"], root_hashes[tree_size], event.get("membership_proof")):

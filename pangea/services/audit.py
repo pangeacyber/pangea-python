@@ -446,8 +446,8 @@ class Audit(ServiceBase):
 
                 # set verification flags for all events to `none`
                 for audit in response.result.events:
-                    audit.event.membership_verification = "none"
-                    audit.event.consistency_verification = "none"
+                    audit.envelope.membership_verification = "none"
+                    audit.envelope.consistency_verification = "none"
 
                 return response
 
@@ -462,7 +462,7 @@ class Audit(ServiceBase):
                     else:
                         membership_verification = "fail"
 
-                audit.event.membership_verification = membership_verification
+                audit.envelope.membership_verification = membership_verification
 
                 # verify consistency proofs
                 consistency_verification = "none"
@@ -472,7 +472,7 @@ class Audit(ServiceBase):
                     else:
                         consistency_verification = "fail"
 
-                audit.event.consistency_verification = consistency_verification
+                audit.envelope.consistency_verification = consistency_verification
 
         return response
 
@@ -620,11 +620,10 @@ class Audit(ServiceBase):
         Returns:
           bool:
         """
-        event = audit_envelope.event
-        sign_envelope = self.create_signed_envelope(event)
-        public_key_b64 = audit_envelope.public_key
+        sign_envelope = self.create_signed_envelope(audit_envelope.envelope.event)
+        public_key_b64 = audit_envelope.envelope.public_key
         public_key_bytes = b64decode(public_key_b64)
-        return self.sign.verifyMessage(audit_envelope.signature, sign_envelope, public_key_bytes)
+        return self.sign.verifyMessage(audit_envelope.envelope.signature, sign_envelope, public_key_bytes)
 
     def root(self, tree_size: int = 0) -> PangeaResponse:
         """
@@ -651,18 +650,7 @@ class Audit(ServiceBase):
         return self.request.post(endpoint_name, data=data)
 
     def create_signed_envelope(self, event: dict) -> dict:
-        sign_envelope = {
-            "message": event.get("message"),
-            "actor": event.get("actor"),
-            "action": event.get("action"),
-            "new": event.get("new"),
-            "old": event.get("old"),
-            "source": event.get("source"),
-            "status": event.get("status"),
-            "target": event.get("target"),
-            "timestamp": event.get("timestamp"),
-        }
-        return {key: val for key, val in sign_envelope.items() if val is not None}
+        return {key: val for key, val in event.items() if val is not None}
 
     def get_buffer_data(self):
         if not self.buffer_data:
