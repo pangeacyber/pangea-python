@@ -130,7 +130,7 @@ def dump_page(
             offset, count, prefix=msg, suffix="Complete", length=50
         )
 
-    page_end = dateutil.parser.parse(row.event.received_at)
+    page_end = dateutil.parser.parse(row.envelope.received_at)
     return page_end, offset
 
 

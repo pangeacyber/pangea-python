@@ -61,7 +61,7 @@ def file_events(root_hashes: dict[int, str], f: io.TextIOWrapper) -> t.Iterator[
     for idx, line in enumerate(f):
         try:
             data = json.loads(line)
-            if "event" in data:
+            if "envelope" in data:
                 # single event (from PUC or dump file in jsonl format)
                 if "root" in data:
                     # artifact from PUC
