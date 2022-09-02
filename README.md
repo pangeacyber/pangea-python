@@ -47,7 +47,7 @@ token = os.getenv("PANGEA_TOKEN")
 config_id = os.getenv("AUDIT_CONFIG_ID")
 
 # Create a Config object contain the Audit Config ID
-config = PangeaConfig(base_domain=domain, config_id=config_id)
+config = PangeaConfig(domain=domain, config_id=config_id)
 
 # Initialize an Audit instance using the config object
 audit = Audit(token, config=config)
@@ -137,7 +137,7 @@ curl -H "Authorization: Bearer ${PANGEA_TOKEN}" -H "X-Pangea-Audit-Config-Id=${A
 
 #### Bulk Download Audit Data
 
-Download all audit logs for a given time range. Start and end date should be provided, 
+Download all audit logs for a given time range. Start and end date should be provided,
 a variety of formats is supported, including ISO-8601. The result is stored in a
 jsonl file (one json per line)
 

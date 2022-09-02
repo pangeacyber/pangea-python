@@ -29,7 +29,7 @@ class Secrets(ServiceBase):
 
         token = os.getenv("PANGEA_TOKEN")
         config_id = os.getenv("AUDIT_CONFIG_ID")
-        config = PangeaConfig(base_domain="dev.pangea.cloud", config_id=config_id)        
+        config = PangeaConfig(domain="pangea.cloud", config_id=config_id)        
 
         # Setup Pangea Secrets service
         secrets = Secrets(token, config=config)

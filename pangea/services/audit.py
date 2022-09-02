@@ -62,7 +62,7 @@ class Audit(ServiceBase):
         PANGEA_TOKEN = os.getenv("PANGEA_TOKEN")
         AUDIT_CONFIG_ID = os.getenv("AUDIT_CONFIG_ID")
 
-        audit_config = PangeaConfig(base_domain="dev.pangea.cloud", config_id=AUDIT_CONFIG_ID)
+        audit_config = PangeaConfig(domain="pangea.cloud", config_id=AUDIT_CONFIG_ID)
 
         # Setup Pangea Audit service
         audit = Audit(token=PANGEA_TOKEN, config=audit_config)

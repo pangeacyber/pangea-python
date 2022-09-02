@@ -6,8 +6,9 @@ from pangea.services import Redact
 token = os.getenv("REDACT_AUTH_TOKEN")
 config_id = os.getenv("REDACT_CONFIG_ID")
 domain = os.getenv("PANGEA_DOMAIN")
-config = PangeaConfig(base_domain=domain, config_id=config_id)
+config = PangeaConfig(domain=domain, config_id=config_id)
 redact = Redact(token, config=config)
+
 
 def main():
     text = "Hello, my phone number is 123-456-7890"
