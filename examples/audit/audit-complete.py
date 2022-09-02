@@ -100,8 +100,8 @@ def print_page_results(pub_roots, search_res, offset, count):
         consistency = consistency_verification(audit, pub_roots, row)
         signature = signature_verification(row) if signing else ""
         print(
-            f"{row.event.received_at}\t{row.event.message}\t{row.event.source}"
-            f"\t{row.event.actor}\t\t{membership} {consistency} {signature}"
+            f"{row.envelope.received_at}\t{row.envelope.event.message}\t{row.envelope.event.source}"
+            f"\t{row.envelope.event.actor}\t\t{membership} {consistency} {signature}"
         )
     print(
         f"\nResults: {offset+1}-{offset+len(search_res.result.events)} of {count}",

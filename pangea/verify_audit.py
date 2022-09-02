@@ -170,18 +170,7 @@ def _verify_consistency_proof(tree_name: str, leaf_index: t.Optional[int]) -> t.
 
 
 def create_signed_envelope(event: dict) -> dict:
-    sign_envelope = {
-        "message": event.get("message"),
-        "actor": event.get("actor"),
-        "action": event.get("action"),
-        "new": event.get("new"),
-        "old": event.get("old"),
-        "source": event.get("source"),
-        "status": event.get("status"),
-        "target": event.get("target"),
-        "timestamp": event.get("timestamp"),
-    }
-    return {k: v for k, v in sign_envelope.items() if v is not None}
+    return {k: v for k, v in event.items() if v is not None}
 
 
 def _verify_signature(data: dict) -> t.Optional[bool]:
@@ -230,15 +219,15 @@ def verify_single(data: dict, counter: t.Optional[int] = None) -> t.Optional[boo
         logger.info(f"Checking event number {counter}...")
         formatter.indent = 4
 
-    ok_hash = _verify_hash(data["event"], data["hash"])
-    ok_signature = _verify_signature(data)
+    ok_hash = _verify_hash(data["envelope"], data["hash"])
+    ok_signature = _verify_signature(data["envelope"])
     ok_membership = _verify_membership_proof(
         data["root"]["tree_name"],
         data["root"]["size"],
         data["hash"],
         data.get("membership_proof"),
     )
-    ok_consistency = _verify_consistency_proof(data["root"]["tree_name"], data["leaf_index"])
+    ok_consistency = _verify_consistency_proof(data["root"]["tree_name"], data["envelope"].get("leaf_index"))
     all_ok = ok_hash is True and ok_signature is True and ok_membership is True and ok_consistency is True
     any_failed = ok_hash is False or ok_signature is False or ok_membership is False or ok_consistency is False
 
