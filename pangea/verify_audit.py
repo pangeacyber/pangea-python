@@ -191,10 +191,12 @@ def _verify_signature(data: dict) -> t.Optional[bool]:
         succeeded = None
     else:
         try:
+            logger.debug("Obtaining signature and public key from the event")
             sign_envelope = create_signed_envelope(data["event"])
             public_key_b64 = data["public_key"]
             public_key_bytes = b64decode(public_key_b64)
             sign = Signing(hash_message=True)
+            logger.debug("Checking the signature")
             if not sign.verifyMessage(data["signature"], sign_envelope, public_key_bytes):
                 raise ValueError("Signature is invalid")                
             succeeded = True
