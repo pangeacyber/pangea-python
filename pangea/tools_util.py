@@ -82,8 +82,8 @@ def file_events(root_hashes: dict[int, str], f: io.TextIOWrapper) -> t.Iterator[
             exit_with_error(f"failed to parse line {idx}: {str(e)}")
 
 
-def init_audit(token: str, base_domain: str, config_id: str = "") -> Audit:
-    config = PangeaConfig(base_domain=base_domain, config_id=config_id)
+def init_audit(token: str, domain: str, config_id: str = "") -> Audit:
+    config = PangeaConfig(domain=domain, config_id=config_id)
     audit = Audit(token, config=config)
     return audit
 

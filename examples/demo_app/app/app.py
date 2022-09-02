@@ -18,14 +18,15 @@ REDACT_CONFIG_ID = os.getenv("REDACT_CONFIG_ID")
 AUDIT_CONFIG_ID = os.getenv("AUDIT_CONFIG_ID")
 PANGEA_CSP = os.getenv("PANGEA_CSP")
 
+
 class App:
     """Demo app showing usage of Pangea SDK"""
 
     def __init__(self):
         self._db = self._db_instance()
-        self._embargo_config = PangeaConfig(base_domain=f"{PANGEA_CSP}.pangea.cloud", config_id=EMBARGO_CONFIG_ID)
-        self._redact_config = PangeaConfig(base_domain=f"{PANGEA_CSP}.pangea.cloud", config_id=REDACT_CONFIG_ID)
-        self._audit_config = PangeaConfig(base_domain=f"{PANGEA_CSP}.pangea.cloud", config_id=AUDIT_CONFIG_ID)
+        self._embargo_config = PangeaConfig(domain=f"{PANGEA_CSP}.pangea.cloud", config_id=EMBARGO_CONFIG_ID)
+        self._redact_config = PangeaConfig(domain=f"{PANGEA_CSP}.pangea.cloud", config_id=REDACT_CONFIG_ID)
+        self._audit_config = PangeaConfig(domain=f"{PANGEA_CSP}.pangea.cloud", config_id=AUDIT_CONFIG_ID)
 
         # Setup Pangea Audit service
         self._pangea_audit = Audit(token=PANGEA_TOKEN, config=self._audit_config)

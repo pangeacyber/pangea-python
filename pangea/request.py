@@ -157,9 +157,9 @@ class PangeaRequest(object):
     def _url(self, path: str) -> str:
         protocol = "http://" if self.config.insecure else "https://"
         domain = (
-            self.config.base_domain
+            self.config.domain
             if self.config.environment == "local"
-            else f"{self.service}.{self.config.base_domain}"
+            else f"{self.service}.{self.config.domain}"
         )
 
         url = f"{protocol}{domain}/{ str(self.version) + '/' if self.version else '' }{path}"

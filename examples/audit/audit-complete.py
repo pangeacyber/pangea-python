@@ -9,7 +9,7 @@ signing = False
 token = os.getenv("AUDIT_AUTH_TOKEN")
 config_id = os.getenv("AUDIT_CONFIG_ID")
 domain = os.getenv("PANGEA_DOMAIN")
-config = PangeaConfig(base_domain=domain, config_id=config_id)
+config = PangeaConfig(domain=domain, config_id=config_id)
 audit = Audit(token, config=config, enable_signing=signing)
 
 data = {

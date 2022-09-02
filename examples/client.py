@@ -4,7 +4,8 @@ from pangea.client import PangeaClient
 from pangea.config import PangeaConfig
 
 token = os.getenv("PANGEA_TOKEN")
-config = PangeaConfig(base_domain="dev.pangea.cloud")
+domain = os.getenv("PANGEA_DOMAIN")
+config = PangeaConfig(domain=domain)
 client = PangeaClient(token=token)
 
 # Search the audit log

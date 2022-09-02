@@ -11,7 +11,7 @@ class TestAudit(unittest.TestCase):
         token = os.getenv("PANGEA_TEST_INTEGRATION_TOKEN")
         config_id = os.getenv("AUDIT_INTEGRATION_CONFIG_TOKEN")
         domain = os.getenv("PANGEA_TEST_INTEGRATION_ENDPOINT")
-        config = PangeaConfig(base_domain=domain, config_id=config_id)
+        config = PangeaConfig(domain=domain, config_id=config_id)
         self.audit = Audit(token, config=config)
 
     def test_log(self):

@@ -259,7 +259,7 @@ def parse_args(parser):
     if not args.token:
         raise ValueError("token missing")
 
-    if not args.base_domain:
+    if not args.domain:
         raise ValueError("base domain missing")
 
     return args
@@ -276,7 +276,7 @@ def main():
     print("Pangea Audit Event Deep Verifier\n")
     
     try:
-        audit = init_audit(args.token, args.base_domain, args.config_id)
+        audit = init_audit(args.token, args.domain, args.config_id)
         errors = deep_verify(audit, args.file)
 
         print("\n\nTotal errors:")

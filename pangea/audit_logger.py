@@ -126,7 +126,7 @@ def getLogger(name, level=logging.DEBUG):
 
     """
     audit_config = PangeaConfig(
-        base_domain=f'{CSP}.pangea.cloud',
+        domain=f'{CSP}.pangea.cloud',
         config_id=AUDIT_CONFIG_ID)
 
     auditor = Audit(
