@@ -662,7 +662,7 @@ class Audit(ServiceBase):
             "target": event.get("target"),
             "timestamp": event.get("timestamp"),
         }
-        return sign_envelope
+        return {key: val for key, val in sign_envelope.items() if val is not None}
 
     def get_buffer_data(self):
         if not self.buffer_data:
