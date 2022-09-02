@@ -446,8 +446,8 @@ class Audit(ServiceBase):
 
                 # set verification flags for all events to `none`
                 for audit in response.result.events:
-                    audit.event.membership_verification = "none"
-                    audit.event.consistency_verification = "none"
+                    audit.envelope.membership_verification = "none"
+                    audit.envelope.consistency_verification = "none"
 
                 return response
 
@@ -462,7 +462,7 @@ class Audit(ServiceBase):
                     else:
                         membership_verification = "fail"
 
-                audit.event.membership_verification = membership_verification
+                audit.envelope.membership_verification = membership_verification
 
                 # verify consistency proofs
                 consistency_verification = "none"
@@ -472,7 +472,7 @@ class Audit(ServiceBase):
                     else:
                         consistency_verification = "fail"
 
-                audit.event.consistency_verification = consistency_verification
+                audit.envelope.consistency_verification = consistency_verification
 
         return response
 
