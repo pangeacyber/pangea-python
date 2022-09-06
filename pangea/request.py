@@ -9,6 +9,7 @@ import requests
 from requests.adapters import HTTPAdapter, Retry
 
 import pangea
+from pangea import exceptions
 from pangea.config import PangeaConfig
 from pangea.response import PangeaResponse
 
@@ -90,9 +91,7 @@ class PangeaRequest(object):
         """
         url = self._url(endpoint)
 
-        requests_response = self.request.post(
-            url, headers=self._headers(), data=json.dumps(data)
-        )
+        requests_response = self.request.post(url, headers=self._headers(), data=json.dumps(data))
 
         if self._queued_retry_enabled and requests_response.status_code == 202:
             response_json = requests_response.json()
@@ -105,6 +104,7 @@ class PangeaRequest(object):
         else:
             pangea_response = PangeaResponse(requests_response)
 
+        self._check_response(pangea_response)
         return pangea_response
 
     def get(self, endpoint: str, path: str) -> PangeaResponse:
@@ -123,8 +123,12 @@ class PangeaRequest(object):
         requests_response = self.request.get(url, headers=self._headers())
 
         pangea_response = PangeaResponse(requests_response)
-
+        self._check_response(pangea_response)
         return pangea_response
+
+    def _to_response(self, response: requests.Response) -> PangeaResponse:
+        resp = PangeaResponse(response)
+        return resp
 
     def _handle_queued(self, request_id: str) -> PangeaResponse:
         retry_count = 1
@@ -156,11 +160,7 @@ class PangeaRequest(object):
 
     def _url(self, path: str) -> str:
         protocol = "http://" if self.config.insecure else "https://"
-        domain = (
-            self.config.domain
-            if self.config.environment == "local"
-            else f"{self.service}.{self.config.domain}"
-        )
+        domain = self.config.domain if self.config.environment == "local" else f"{self.service}.{self.config.domain}"
 
         url = f"{protocol}{domain}/{ str(self.version) + '/' if self.version else '' }{path}"
         return url
@@ -176,3 +176,31 @@ class PangeaRequest(object):
             headers.update(self._extra_headers)
 
         return headers
+
+    def _check_response(self, response: PangeaResponse):
+        status = response.status
+        summary = response._data.get("summary")
+
+        if status == "Success":
+            return
+        elif status == "ValidationError":
+            raise exceptions.ValidationException(summary, response.result["errors"])
+        elif status == "TooManyRequests":
+            raise exceptions.RateLimitException(summary)
+        elif status == "NoCredit":
+            raise exceptions.NoCreditException(summary)
+        elif status == "Unauthorized":
+            raise exceptions.Unauthorized(self.service)
+        elif status == "ServiceNotEnabled":
+            raise exceptions.ServiceNotEnabledException(self.service)
+        elif status == "ProviderError":
+            raise exceptions.ProviderErrorException(summary)
+        elif status in ("MissingConfigIDScope", "MissongConfigID"):
+            raise exceptions.MissingConfigID(self.service)
+        elif status == "ServiceNotAvailable":
+            raise exceptions.ServiceNotAvailableException(summary)
+        elif status == "TreeNotFound":
+            raise exceptions.TreeNotFoundException(summary)
+        elif status == "IPNotFound":
+            raise exceptions.IPNotFoundException(summary)
+        raise exceptions.PangeaAPIException(f"{status}: {summary}")
