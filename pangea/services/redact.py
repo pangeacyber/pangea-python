@@ -56,12 +56,15 @@ class Redact(ServiceBase):
     def redact(self, text: str, debug=False) -> PangeaResponse:
         """
         Redact
-        
+
         Redacts the content of a single text string.
 
         Args:
             text (str): The text to be redacted
             debug (bool, optional): Return debug output
+
+        Raises:
+            PangeaAPIException: If an API Error happens
 
         Returns:
             Pangea Response with redacted text in the response.result property,
@@ -100,6 +103,9 @@ class Redact(ServiceBase):
             obj (obj): The object that should be redacted
             redact_format (RedactFormat, optional): The format of the passed data
             debug (bool, optional): Return debug output
+
+        Raises:
+            PangeaAPIException: If an API Error happens
 
         Returns:
             Pangea Response with redacted data in the response.result field,

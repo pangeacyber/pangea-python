@@ -47,6 +47,10 @@ class Embargo(ServiceBase):
             ip (str): Geolocate this IP and check the corresponding country
                 against the enabled embargo lists.  Accepts both IPV4 and IPV6 strings.
 
+        Raises:
+            EmbargoException: If an embargo based api exception happens
+            PangeaAPIException: If an API Error happens
+
         Returns:
             A PangeaResponse where the sanctioned source(s) are in the
                 response.result field.  Available response fields can be found
@@ -97,6 +101,10 @@ class Embargo(ServiceBase):
         Args:
             iso_code (str): Check this two character country ISO-code against
                 the enabled embargo lists.
+
+        Raises:
+            EmbargoException: If an embargo based api exception happens
+            PangeaAPIException: If an API Error happens
 
         Returns:
             A PangeaResponse where the sanctioned source(s) are in the

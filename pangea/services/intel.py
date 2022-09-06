@@ -37,7 +37,9 @@ class FileIntel(ServiceBase):
     service_name = "file-intel"
     version = "v1"
 
-    def lookup(self, file_hash: str, hash_type: str, provider: str = None, verbose: bool = False, raw: bool = False) -> PangeaResponse:
+    def lookup(
+        self, file_hash: str, hash_type: str, provider: str = None, verbose: bool = False, raw: bool = False
+    ) -> PangeaResponse:
         """
         Lookup file reputation by hash.
 
@@ -49,6 +51,9 @@ class FileIntel(ServiceBase):
             provider (str, optional): Provider of the reputation information. ("reversinglabs" or "crowdstrike"). Default provider defined by the configuration.
             verbose (bool, optional): Echo back the parameters of the API in the response
             raw (bool, optional): Return additional details from the provider.
+
+        Raises:
+            PangeaAPIException: If an API Error happens
 
         Returns:
             A PangeaResponse where the sanctioned source(s) are in the
@@ -94,6 +99,7 @@ class FileIntel(ServiceBase):
 
         return self.request.post("lookup", data=data)
 
+
 class IpIntel(ServiceBase):
     """IP Intel service client.
 
@@ -135,6 +141,9 @@ class IpIntel(ServiceBase):
             provider (str, optional): Provider of the reputation information. ("crowdstrike"). Default provider defined by the configuration.
             verbose (bool, optional): Echo back the parameters of the API in the response
             raw (bool, optional): Return additional details from the provider.
+
+        Raises:
+            PangeaAPIException: If an API Error happens
 
         Returns:
             A PangeaResponse where the sanctioned source(s) are in the
@@ -178,6 +187,7 @@ class IpIntel(ServiceBase):
 
         return self.request.post("lookup", data=data)
 
+
 class UrlIntel(ServiceBase):
     """URL Intel service client.
 
@@ -219,6 +229,9 @@ class UrlIntel(ServiceBase):
             provider (str, optional): Provider of the reputation information. ("crowdstrike"). Default provider defined by the configuration.
             verbose (bool, optional): Echo back the parameters of the API in the response
             raw (bool, optional): Return additional details from the provider.
+
+        Raises:
+            PangeaAPIException: If an API Error happens
 
         Returns:
             A PangeaResponse where the sanctioned source(s) are in the
@@ -262,6 +275,7 @@ class UrlIntel(ServiceBase):
 
         return self.request.post("lookup", data=data)
 
+
 class DomainIntel(ServiceBase):
     """Domain Intel service client.
 
@@ -304,6 +318,9 @@ class DomainIntel(ServiceBase):
             verbose (bool, optional): Echo back the parameters of the API in the response
             raw (bool, optional): Return additional details from the provider.
 
+        Raises:
+            PangeaAPIException: If an API Error happens
+
         Returns:
             A PangeaResponse where the sanctioned source(s) are in the
                 response.result field.  Available response fields can be found
@@ -328,4 +345,3 @@ class DomainIntel(ServiceBase):
             data["raw"] = raw
 
         return self.request.post("lookup", data=data)
-

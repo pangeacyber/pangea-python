@@ -1,27 +1,27 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
-import os
 import json
+import os
 import typing as t
+from typing import Dict, List, Optional
 
-from typing import List, Dict, Optional
 from pangea.response import JSONObject, PangeaResponse
 from pangea.signing import Signing
 
 from .audit_util import (
-    decode_consistency_proof,
-    encode_hash,
-    decode_hash,
-    hash_dict,
-    b64encode_ascii,
     b64decode,
-    decode_membership_proof,
-    get_arweave_published_roots,
-    verify_consistency_proof,
-    verify_membership_proof,
-    verify_hash,
+    b64encode_ascii,
     decode_buffer_root,
-    get_root_filename
+    decode_consistency_proof,
+    decode_hash,
+    decode_membership_proof,
+    encode_hash,
+    get_arweave_published_roots,
+    get_root_filename,
+    hash_dict,
+    verify_consistency_proof,
+    verify_hash,
+    verify_membership_proof,
 )
 from .base import ServiceBase
 
@@ -105,6 +105,10 @@ class Audit(ServiceBase):
             verify (bool, optional):
             signing (bool, optional):
             verbose (bool, optional):
+
+        Raises:
+            AuditException: If an audit based api exception happens
+            PangeaAPIException: If an API Error happens
 
         Returns:
             A PangeaResponse where the hash of event data and optional verbose
@@ -220,7 +224,9 @@ class Audit(ServiceBase):
                 raise Exception(f"Error: Event hash failed.")
 
             # verify membership proofs
-            if not verify_membership_proof(node_hash=event_hash, root_hash=new_buffer_root.root_hash, proof=membership_proof):
+            if not verify_membership_proof(
+                node_hash=event_hash, root_hash=new_buffer_root.root_hash, proof=membership_proof
+            ):
                 raise Exception(f"Error: Membership proof failed.")
 
             # verify consistency proofs (following events)
@@ -228,7 +234,9 @@ class Audit(ServiceBase):
                 prev_buffer_root = decode_buffer_root(prev_buffer_root_enc)
                 consistency_proof = decode_consistency_proof(consistency_proof_enc)
 
-                if not verify_consistency_proof(new_root=new_buffer_root.root_hash, prev_root=prev_buffer_root.root_hash, proof=consistency_proof):
+                if not verify_consistency_proof(
+                    new_root=new_buffer_root.root_hash, prev_root=prev_buffer_root.root_hash, proof=consistency_proof
+                ):
                     raise Exception(f"Error: Consistency proof failed.")
 
             if commit_proofs:
@@ -248,7 +256,9 @@ class Audit(ServiceBase):
                             buffer_root = decode_buffer_root(buffer_root_enc)
                             commit_proof = decode_consistency_proof(commit_proof_enc)
 
-                            if not verify_consistency_proof(new_root=cold_root_hash, prev_root=buffer_root.root_hash, proof=commit_proof):
+                            if not verify_consistency_proof(
+                                new_root=cold_root_hash, prev_root=buffer_root.root_hash, proof=commit_proof
+                            ):
                                 raise Exception(f"Error: Consistency proof failed.")
 
             self.set_buffer_data(last_root_enc=new_buffer_root_enc, pending_roots=pending_roots)
@@ -295,6 +305,10 @@ class Audit(ServiceBase):
                 events returned by `search` and `results`. The fields `consistency_proof_verification` and
                 `membership_proof_verification` are added to each event, with the value `pass`, `fail` or `none`.
             verify_signatures (bool, optional):
+
+        Raises:
+            AuditException: If an audit based api exception happens
+            PangeaAPIException: If an API Error happens
 
         Returns:
             A PangeaResponse where the first page of matched events is returned in the
@@ -400,6 +414,10 @@ class Audit(ServiceBase):
             offset (integer, optional): the position of the first result to return, default is 0
             verify_signatures (bool, optional):
 
+        Raises:
+            AuditException: If an audit based api exception happens
+            PangeaAPIException: If an API Error happens
+
         """
 
         endpoint_name = "results"
@@ -480,6 +498,11 @@ class Audit(ServiceBase):
         Args:
             pub_roots (dict): series of published root hashes.
             result (obj): PangeaResponse object from previous call to audit.search()
+
+        Raises:
+            AuditException: If an audit based api exception happens
+            PangeaAPIException: If an API Error happens
+
         """
         tree_sizes = set()
         for audit in result.events:
@@ -631,6 +654,10 @@ class Audit(ServiceBase):
 
         Returns:
             An PangeaResponse.
+
+        Raises:
+            AuditException: If an audit based api exception happens
+            PangeaAPIException: If an API Error happens
 
         Examples:
             response = audit.root(tree_size=7)
