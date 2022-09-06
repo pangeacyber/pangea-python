@@ -26,6 +26,8 @@ class Event(t.TypedDict):
 
 
 def print_progress_bar(iteration, total, prefix="", suffix="", decimals=1, length=100):
+    if not total:
+        return 100
     iteration = min(iteration, total)
     percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
     filledLength = int(length * iteration // total)
