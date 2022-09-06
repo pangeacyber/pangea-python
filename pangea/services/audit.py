@@ -43,8 +43,7 @@ SupportedJSONFields = [
 class Audit(ServiceBase):
     """Audit service client.
 
-    Provides methods to interact with Pangea Audit Service:
-        [https://docs.dev.pangea.cloud/docs/api/log-an-entry](https://docs.dev.pangea.cloud/docs/api/log-an-entry)
+    Provides methods to interact with the [Pangea Audit Service](/docs/api/audit).
 
     The following information is needed:
         PANGEA_TOKEN - service token which can be found on the Pangea User
@@ -110,8 +109,7 @@ class Audit(ServiceBase):
         Returns:
             A PangeaResponse where the hash of event data and optional verbose
                 results are returned in the response.result field.
-                Available response fields can be found at:
-                [https://docs.dev.pangea.cloud/docs/api/audit#log-an-entry](https://docs.dev.pangea.cloud/docs/api/audit#log-an-entry)
+                Available response fields can be found in our [API documentation](/docs/api/audit#log-an-entry).
 
         Examples:
             audit_data = {
@@ -285,8 +283,7 @@ class Audit(ServiceBase):
                     - old:
                     - status:
                     - target:
-            restriction (dist, optional): A dict of field name/value pairs on which to restrict the search.
-                If empty or not provided, matches only the default source.
+            restriction (dict, optional): A dict of field name/value pairs on which to restrict the search.
             limit (int, optional): Maximum number of records to return per page. Default is 20.
             max_results (int, optional): Maximum number of records in total. Default is 10000.
             start (str, optional): The start of the time range to perform the search on.
@@ -300,52 +297,50 @@ class Audit(ServiceBase):
             verify_signatures (bool, optional):
 
         Returns:
-            A PangeaResponse where the list of matched events is returned in the
-                response.result field.  Available response fields can be found at:
-                [https://docs.dev.pangea.cloud/docs/api/audit#search-for-events](https://docs.dev.pangea.cloud/docs/api/audit#search-for-events)
+            A PangeaResponse where the first page of matched events is returned in the
+                response.result field. Available response fields can be found in our [API documentation](/docs/api/audit#search-for-events).
+                Pagination can be found in the [search results endpoint](/docs/api/audit#search-results).
 
         Examples:
             response = audit.search("Resume accepted", page_size=10)
 
             \"\"\"
-            response contains:
+            response.result contains:
             {
-                "request_id": "prq_cdrlelm2xm66kyeughcyokpg6y5mcewv",
-                "request_time": "2022-07-06T23:49:09.034Z",
-                "response_time": "2022-07-06T23:49:09.044Z",
-                "status_code": 200,
-                "status": "success",
-                "result": {
-                    "events": [
-                        {
-                            "event": {
-                                "action": "update_employee",
-                                "actor": "manager@acme.co",
-                                "message": "\"{updating employee}\"",
-                                "received_at": "2022-06-29T15:25:00.547967+00:00",
-                                "source": "web",
-                                "status": "pending",
-                                "target": "jane.smith@gmail.com"
+                'count': 1,
+                'events': [
+                    {
+                        'envelope': {
+                            'event': {
+                                'action': 'reboot',
+                                'actor': 'villain',o
+                                'message': 'test',
+                                'source': 'monitor',
+                                'status': 'error',
+                                'target': 'world'
                             },
-                            "hash": "df91bf7cc7500160525dc0959ef1c5387a998d1f68851058f427f5ac7ac8d4fb",
-                            "leaf_index": 5,
-                            "membership_proof": "r:34d9eb62de1d039870abd4a62d7e08be2ed4065c66b435f19a973beea53fefef,r:12bb5ab67c4a8a44439bfddbd93edc656f6bdddf6d61754364ba4eb845125aa4,r:47ea9cb1c54c3357ba1680d48c1ad33d29af53dcef5077d4f6d48ed7705fc09c,r:317b823fa5ca93e3d67d537863c9abe133128e9d26b5112b72be2ff8dafa6ceb,l:89ec1a955393bf1b5eefe29415eec8738bb00b974279a5d96bcbe9b5826f1905,l:c7610ea9a181ab9263d9ec0c0bb307480eb2f6a28c3065d1a02ba89f2268a934"
-                        }
-                    ],
-                    "last": "1|1|",
-                    "root": {
-                    "consistency_proof": [
-                        "x:89ec1a955393bf1b5eefe29415eec8738bb00b974279a5d96bcbe9b5826f1905,r:730315ba3fe23d9724bab2375105934c9097f08e12567d33aaf3ba36ef7eb750,l:c7610ea9a181ab9263d9ec0c0bb307480eb2f6a28c3065d1a02ba89f2268a934",
-                        "x:c7610ea9a181ab9263d9ec0c0bb307480eb2f6a28c3065d1a02ba89f2268a934,r:639b0b5694aaeb70aa75380956f88b10e3507a67b94fb58c96986cf34b705344"
-                    ],
-                    "published_at": "2022-06-29T16:25:11.110758Z",
-                    "root_hash": "d2da009f4778cd29b5bfec823f0952ee63bd1585139c4c09ddafb330ee84c27f",
-                    "size": 6,
-                    "tree_name": "ffaba963b14d03a695714c39f2d324c1ed8c482fcdcd224c57f5040867567de4",
-                    "url": "https://arweave.net/tx/vUe6aAH4761WIeC8FMMSd1_51X6KLlGzJjuWYAa0u5g/data/"
+                            'received_at': '2022-09-03T02:24:46.554034+00:00',
+                            'membership_verification': 'pass',
+                            'consistency_verification': 'pass'
+                        },
+                        'hash': '735b4c5d5fdbf49a680fe82b5447ca454f8bf37a607dbce9b51c45855528475b',
+                        'leaf_index': 5,
+                        'membership_proof': 'l:3a78ee8f8a4720dc6a832c96531a9287327b2e615f0272361211e40ff8a5431e,l:744fe2bcd44de81d96360b8839f0166dd7c400b9d283df2a089a962d41cef994,l:caeffdf1a19e3273227969f9332eb48c96e937e753d9d95ccf14902b06336c48,l:25d8e95b8392130c455d2bf8e709225891c554773f30aacf0b9ea35848d0f201'
                     }
-                },
-                "summary": "Found 1 record(s)"
+                ],
+                'expires_at': '2022-09-08T15:57:52.474234Z',
+                'id': 'pit_kgr66t3yluqqexahxzdldqatirommhbt',
+                'root': {
+                    'consistency_proof': [
+                        'x:caeffdf1a19e3273227969f9332eb48c96e937e753d9d95ccf14902b06336c48,r:59b722c11cfd1435e2a9538091022d995d0311d3f5379118dfda3fa1f04ef175,l:25d8e95b8392130c455d2bf8e709225891c554773f30aacf0b9ea35848d0f201',
+                        'x:25d8e95b8392130c455d2bf8e709225891c554773f30aacf0b9ea35848d0f201,r:cd666f188d4fd8b51b3df33b65c5d2e5b9a269b9d7d324ba344cdaa62541675b'
+                    ],
+                    'published_at': '2022-09-03T03:02:13.848781Z',
+                    'root_hash': 'dbfd18fa07ddb1210d80c428e9087e5daf4f360ac7c16b68a0b9757551ff9290',
+                    'size': 6,
+                    'tree_name': 'a6d48322aa88e25ede9cbac403110bf12580f11fe4cae6a8a4539950f5c236b1',
+                    'url': 'https://arweave.net/P18k8w7uRt9uDMCTJ9dlvSQta1DsbOYCefboHEjzlM8'
+                }
             }
             \"\"\"
         """
@@ -522,7 +517,7 @@ class Audit(ServiceBase):
 
         If a given event's membership within the tree can be proven.
 
-        Read more at: [What is a membership proof?](https://docs.dev.pangea.cloud/docs/audit/tamperproof/tamperproof-audit-logs#what-is-a-membership-proof)
+        Read more at: [What is a membership proof?](/docs/audit/merkle-trees#what-is-a-membership-proof)
 
         Args:
             event (obj): The audit event to be verified
@@ -538,7 +533,7 @@ class Audit(ServiceBase):
 
         Verifies an event's membership proof within the tree.
 
-        Read more at: [What is a membership proof?](https://docs.dev.pangea.cloud/docs/audit/tamperproof/tamperproof-audit-logs#what-is-a-membership-proof)
+        Read more at: [What is a membership proof?](/docs/audit/merkle-trees#what-is-a-membership-proof)
 
         Args:
             root (obj): The root node used for verification
@@ -567,7 +562,7 @@ class Audit(ServiceBase):
 
         If a given event's consistency across time can be proven.
 
-        Read more at: [Cryptographic Signatures](https://docs.dev.pangea.cloud/docs/audit/tamperproof/tamperproof-audit-logs#cryptographic-signatures)
+        Read more at: [What is a consistency proof?](/docs/audit/merkle-trees#what-is-a-consistency-proof)
 
         Args:
             event (obj): The audit event to be verified.
@@ -585,7 +580,7 @@ class Audit(ServiceBase):
 
         Checks the cryptographic consistency of the event across time.
 
-        Read more at: [Cryptographic Signatures](https://docs.dev.pangea.cloud/docs/audit/tamperproof/tamperproof-audit-logs#cryptographic-signatures)
+        Read more at: [What is a consistency proof?](/docs/audit/merkle-trees#what-is-a-consistency-proof)
 
         Args:
             pub_roots (dict): list of published root hashes across time

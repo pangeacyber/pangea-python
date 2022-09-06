@@ -43,7 +43,7 @@ def main():
         query="message:test",
         restriction={"source": ["monitor"]},
         limit=page_size,
-        verify=False,
+        verify=True,
     )
     if search_res.success:
         result_id = search_res.result.id
