@@ -1,12 +1,13 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 
-import sys
-import os
-import typing as t
 import io
 import json
+import os
+import sys
+import typing as t
 from datetime import datetime, timezone
+
 from pangea.config import PangeaConfig
 from pangea.services import Audit
 
@@ -24,21 +25,12 @@ class Event(t.TypedDict):
     tree_size: t.Optional[int]
 
 
-def print_progress_bar(
-    iteration,
-    total,
-    prefix="",
-    suffix="",
-    decimals=1,
-    length=100
-):
+def print_progress_bar(iteration, total, prefix="", suffix="", decimals=1, length=100):
     iteration = min(iteration, total)
-    percent = ("{0:." + str(decimals) + "f}").format(
-        100 * (iteration / float(total))
-    )
+    percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
     filledLength = int(length * iteration // total)
-    bar = "█" * filledLength + '-' * (length - filledLength)
-    print(f'\r{prefix} |{bar}| {percent}% {suffix}', end="\r")
+    bar = "█" * filledLength + "-" * (length - filledLength)
+    print(f"\r{prefix} |{bar}| {percent}% {suffix}", end="\r")
     # if iteration == total:
     #     print()
 
@@ -99,6 +91,7 @@ class SequenceFollower:
     """
     Follows an unordered sequence of integers, looking for holes
     """
+
     def __init__(self):
         self.numbers = set()
 
@@ -107,13 +100,16 @@ class SequenceFollower:
         self._reduce()
 
     def _reduce(self):
-        """ remove consecutive numbers from the left """
+        """remove consecutive numbers from the left"""
         min_val = min(self.numbers)
         while min_val + 1 in self.numbers:
             self.numbers.remove(min_val)
             min_val += 1
 
     def holes(self) -> list[int]:
+        if not self.numbers:
+            return []
+
         min_val = min(self.numbers)
         max_val = max(self.numbers)
         return [val for val in range(min_val, max_val) if val not in self.numbers]
