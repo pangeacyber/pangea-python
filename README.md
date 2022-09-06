@@ -142,7 +142,7 @@ a variety of formats is supported, including ISO-8601. The result is stored in a
 jsonl file (one json per line)
 
 ```
-usage: python -m pangea.dump_audit [-h] [--token TOKEN] [--base-domain BASE_DOMAIN] [--config-id CONFIG_ID] [--output OUTPUT] start end
+usage: python -m pangea.dump_audit [-h] [--token TOKEN] [--domain DOMAIN] [--config-id CONFIG_ID] [--output OUTPUT] start end
 
 Pangea Audit Dump Tool
 
@@ -154,7 +154,7 @@ options:
   -h, --help            show this help message and exit
   --token TOKEN, -t TOKEN
                         Pangea token (default: env PANGEA_TOKEN)
-  --base-domain BASE_DOMAIN, -d BASE_DOMAIN
+  --domain DOMAIN, -d DOMAIN
                         Pangea base domain (default: env PANGEA_DOMAIN)
   --config-id CONFIG_ID, -c CONFIG_ID
                         Audit config id (default: env PANGEA_AUDIT_CONFIG_ID)
@@ -168,7 +168,7 @@ This script performs extensive verification on a range of events of the log stre
 and the membership proof, it checks that there is no omissions in the stream, i.e. all the events are present and properly located.
 
 ```
-usage: python -m pangea.deep_verify [-h] [--token TOKEN] [--base-domain BASE_DOMAIN] [--config-id CONFIG_ID] --file FILE
+usage: python -m pangea.deep_verify [-h] [--token TOKEN] [--domain DOMAIN] [--config-id CONFIG_ID] --file FILE
 
 Pangea Audit Event Deep Verifier
 
@@ -176,7 +176,7 @@ options:
   -h, --help            show this help message and exit
   --token TOKEN, -t TOKEN
                         Pangea token (default: env PANGEA_TOKEN)
-  --base-domain BASE_DOMAIN, -d BASE_DOMAIN
+  --domain DOMAIN, -d DOMAIN
                         Pangea base domain (default: env PANGEA_DOMAIN)
   --config-id CONFIG_ID, -c CONFIG_ID
                         Audit config id (default: env PANGEA_AUDIT_CONFIG_ID)

@@ -2,16 +2,16 @@
 # Author: Pangea Cyber Corporation
 
 import argparse
-import sys
-import os
 import io
 import math
+import os
+import sys
 import typing as t
 from itertools import groupby
 
 import pangea.services.audit_util as audit_util
-from pangea.tools_util import Event, exit_with_error, print_progress_bar, SequenceFollower, init_audit, file_events
 from pangea.services import Audit
+from pangea.tools_util import Event, SequenceFollower, exit_with_error, file_events, init_audit, print_progress_bar
 
 
 class Errors(t.TypedDict):
@@ -75,10 +75,10 @@ def get_path_size(tree_size: int, leaf_index: int) -> int:
 
 
 def _tree_size_left(tree_size: int) -> int:
-    """ if the tree has size tree_size, return the size of the left child """
+    """if the tree has size tree_size, return the size of the left child"""
     if tree_size <= 1:
         return 0
-    return 2**(math.ceil(math.log2(tree_size)) - 1)
+    return 2 ** (math.ceil(math.log2(tree_size)) - 1)
 
 
 def get_proof_path(proof: str) -> str:
@@ -93,13 +93,13 @@ def index_number(tree_height: int, membership_proof: str) -> int:
     decoded_proof = audit_util.decode_membership_proof(membership_proof)
     idx_number: int = 0
     for idx, proof in enumerate(decoded_proof):
-        if proof.side == 'left':
+        if proof.side == "left":
             idx_number += round(2 ** (tree_height - idx - 1))
     return idx_number
 
 
 def verify_hash(data: dict, data_hash: str) -> bool:
-    """ Verify the hash of an event """
+    """Verify the hash of an event"""
     succeeded = False
     try:
         data_canon = audit_util.canonicalize_json(data)
@@ -166,9 +166,11 @@ def deep_verify(audit: Audit, file: io.TextIOWrapper) -> Errors:
     cold_indexes = SequenceFollower()
     for leaf_index, events_by_idx in groupby(events, lambda event: event.get("leaf_index")):
         events_by_idx = list(events_by_idx)
-        buffer_lines = (cnt, cnt+len(events_by_idx)-1)
+        buffer_lines = (cnt, cnt + len(events_by_idx) - 1)
         if leaf_index is None:
-            print_error(f"Lines {buffer_lines[0]}-{buffer_lines[1]} ({buffer_lines[1]-buffer_lines[0]+1}): Buffer was not persisted")
+            print_error(
+                f"Lines {buffer_lines[0]}-{buffer_lines[1]} ({buffer_lines[1]-buffer_lines[0]+1}): Buffer was not persisted"
+            )
             errors["not_persisted"] += len(events_by_idx)
             cnt += len(events_by_idx)
             continue
@@ -211,7 +213,9 @@ def deep_verify(audit: Audit, file: io.TextIOWrapper) -> Errors:
 
         if hot_out_of_order:
             errors["missing"] += len(hot_out_of_order)
-            print_error(f"Lines {buffer_lines[0]}-{buffer_lines[1]} ({buffer_lines[1]-buffer_lines[0]}), Buffer #{cold_idx}: {len(hot_out_of_order)} event(s) missing")
+            print_error(
+                f"Lines {buffer_lines[0]}-{buffer_lines[1]} ({buffer_lines[1]-buffer_lines[0]}), Buffer #{cold_idx}: {len(hot_out_of_order)} event(s) missing"
+            )
 
     cold_holes = cold_indexes.holes()
     if cold_holes:
@@ -225,30 +229,23 @@ def deep_verify(audit: Audit, file: io.TextIOWrapper) -> Errors:
 def create_parser():
     parser = argparse.ArgumentParser(description="Pangea Audit Event Deep Verifier")
     parser.add_argument(
-        "--token",
-        "-t",
-        default=os.getenv("PANGEA_TOKEN"),
-        help="Pangea token (default: env PANGEA_TOKEN)"
+        "--token", "-t", default=os.getenv("PANGEA_TOKEN"), help="Pangea token (default: env PANGEA_TOKEN)"
     )
     parser.add_argument(
-        "--base-domain",
-        "-d",
-        default=os.getenv("PANGEA_DOMAIN"),
-        help="Pangea base domain (default: env PANGEA_DOMAIN)"
+        "--domain", "-d", default=os.getenv("PANGEA_DOMAIN"), help="Pangea domain (default: env PANGEA_DOMAIN)"
     )
     parser.add_argument(
         "--config-id",
         "-c",
         default=os.getenv("PANGEA_AUDIT_CONFIG_ID"),
-        help="Audit config id (default: env PANGEA_AUDIT_CONFIG_ID)"
+        help="Audit config id (default: env PANGEA_AUDIT_CONFIG_ID)",
     )
     parser.add_argument(
         "--file",
         "-f",
         required=True,
-        type=argparse.FileType('r'),
-        help="Event input file. Must be a collection of "
-             "JSON Objects separated by newlines",
+        type=argparse.FileType("r"),
+        help="Event input file. Must be a collection of " "JSON Objects separated by newlines",
     )
     return parser
 
@@ -260,7 +257,7 @@ def parse_args(parser):
         raise ValueError("token missing")
 
     if not args.domain:
-        raise ValueError("base domain missing")
+        raise ValueError("domain missing")
 
     return args
 
@@ -274,7 +271,7 @@ def main():
         exit_with_error(str(e))
 
     print("Pangea Audit Event Deep Verifier\n")
-    
+
     try:
         audit = init_audit(args.token, args.domain, args.config_id)
         errors = deep_verify(audit, args.file)
@@ -286,6 +283,7 @@ def main():
 
     except Exception as e:
         import traceback
+
         print(traceback.format_exc())
         exit_with_error(str(e))
 
