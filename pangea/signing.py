@@ -79,7 +79,9 @@ class Signer:
 
 class Verifier:
     # verify message with signature and public key bytes
-    def verifyMessage(self, signature_b64: bytes, message: str | dict | bytes, public_key_bytes: bytes = None) -> bool:
+    def verifyMessage(
+        self, signature_b64: bytes, message: t.Union[str, dict, bytes], public_key_bytes: bytes = None
+    ) -> bool:
         public_key = ed25519.Ed25519PublicKey.from_public_bytes(public_key_bytes)
 
         if isinstance(message, str):
