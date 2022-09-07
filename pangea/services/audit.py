@@ -3,8 +3,8 @@
 import json
 import os
 import typing as t
-from typing import Dict, List, Optional
 
+from pangea.exceptions import AuditException
 from pangea.response import JSONObject, PangeaResponse
 from pangea.signing import Signing
 
@@ -75,7 +75,7 @@ class Audit(ServiceBase):
         super().__init__(token, config)
 
         self.pub_roots: dict = {}
-        self.buffer_data: Optional[str] = None
+        self.buffer_data: t.Optional[str] = None
         self.root_id_filename: str = get_root_filename()
 
         # TODO: Document signing options
@@ -147,7 +147,7 @@ class Audit(ServiceBase):
         endpoint_name = "log"
 
         if signing and not self.enable_signing:
-            raise Exception("Error: the `signing` parameter set, but `enable_signing` is not set to True")
+            raise AuditException("Error: the `signing` parameter set, but `enable_signing` is not set to True")
 
         data: t.Dict[str, t.Any] = {"event": {}, "return_hash": True}
 
@@ -163,7 +163,7 @@ class Audit(ServiceBase):
                     data["event"][name] = event[name]
 
         if "message" not in data["event"]:
-            raise Exception(f"Error: missing required field, no `message` provided")
+            raise AuditException(f"Error: missing required field, no `message` provided")
 
         if verbose:
             data["verbose"] = True
@@ -175,7 +175,7 @@ class Audit(ServiceBase):
                 data["signature"] = signature
             else:
 
-                raise Exception("Error: failure signing message")
+                raise AuditException("Error: failure signing message")
 
             public_bytes = self.sign.getPublicKeyBytes()
             data["public_key"] = b64encode_ascii(public_bytes)
@@ -221,13 +221,13 @@ class Audit(ServiceBase):
 
             # verify event hash
             if not verify_hash(hash_dict(event), event_hash):
-                raise Exception(f"Error: Event hash failed.")
+                raise AuditException(f"Error: Event hash failed.")
 
             # verify membership proofs
             if not verify_membership_proof(
                 node_hash=event_hash, root_hash=new_buffer_root.root_hash, proof=membership_proof
             ):
-                raise Exception(f"Error: Membership proof failed.")
+                raise AuditException(f"Error: Membership proof failed.")
 
             # verify consistency proofs (following events)
             if consistency_proof_enc:
@@ -237,7 +237,7 @@ class Audit(ServiceBase):
                 if not verify_consistency_proof(
                     new_root=new_buffer_root.root_hash, prev_root=prev_buffer_root.root_hash, proof=consistency_proof
                 ):
-                    raise Exception(f"Error: Consistency proof failed.")
+                    raise AuditException(f"Error: Consistency proof failed.")
 
             if commit_proofs:
                 # Get the root from the cold tree...
@@ -259,7 +259,7 @@ class Audit(ServiceBase):
                             if not verify_consistency_proof(
                                 new_root=cold_root_hash, prev_root=buffer_root.root_hash, proof=commit_proof
                             ):
-                                raise Exception(f"Error: Consistency proof failed.")
+                                raise AuditException(f"Error: Consistency proof failed.")
 
             self.set_buffer_data(last_root_enc=new_buffer_root_enc, pending_roots=pending_roots)
 
@@ -362,7 +362,7 @@ class Audit(ServiceBase):
         endpoint_name = "search"
 
         if not (isinstance(limit, int) and limit > 0):
-            raise Exception("The 'limit' argument must be a positive integer > 0")
+            raise AuditException("The 'limit' argument must be a positive integer > 0")
 
         self.verify_response = verify
 
@@ -398,7 +398,7 @@ class Audit(ServiceBase):
         if verify_signatures:
             for audit_envelope in response.result.events:
                 if not self.verify_signature(audit_envelope):
-                    raise Exception("signature failed")
+                    raise AuditException("signature failed")
 
         return self.handle_search_response(response)
 
@@ -423,13 +423,13 @@ class Audit(ServiceBase):
         endpoint_name = "results"
 
         if not id:
-            raise Exception("An 'id' parameter is required")
+            raise AuditException("An 'id' parameter is required")
 
         if not (isinstance(limit, int) and limit > 0):
-            raise Exception("The 'limit' argument must be a positive integer > 0")
+            raise AuditException("The 'limit' argument must be a positive integer > 0")
 
         if not (isinstance(offset, int) and offset >= 0):
-            raise Exception("The 'offset' argument must be a positive integer")
+            raise AuditException("The 'offset' argument must be a positive integer")
 
         data = {
             "id": id,
@@ -442,7 +442,7 @@ class Audit(ServiceBase):
         if verify_signatures:
             for audit_envelope in response.result.events:
                 if not self.verify_signature(audit_envelope):
-                    raise Exception("signature failed")
+                    raise AuditException("signature failed")
 
         return self.handle_search_response(response)
 
@@ -681,11 +681,11 @@ class Audit(ServiceBase):
                     with open(self.root_id_filename, "r") as file:
                         self.buffer_data = file.read()
                 except Exception:
-                    raise Exception("Error: Failed loading data file from local disk.")
+                    raise AuditException("Error: Failed loading data file from local disk.")
 
         return self.buffer_data
 
-    def set_buffer_data(self, last_root_enc: str, pending_roots: List[str]):
+    def set_buffer_data(self, last_root_enc: str, pending_roots: t.List[str]):
         buffer_dict = dict()
         buffer_dict["last_root"] = last_root_enc
         buffer_dict["pending_roots"] = pending_roots
@@ -695,6 +695,6 @@ class Audit(ServiceBase):
                 self.buffer_data = json.dumps(buffer_dict)
                 file.write(self.buffer_data)
         except Exception:
-            raise Exception("Error: Failed saving data file to local disk.")
+            raise AuditException("Error: Failed saving data file to local disk.")
 
         return

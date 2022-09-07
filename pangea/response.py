@@ -43,8 +43,8 @@ class PangeaResponse(object):
     """
 
     def __init__(self, requests_response: requests.Response):
-        data = status = requests_response.json()
-        status: str = data["status"]
+        data = requests_response.json()
+        status = data["status"]
         self._status = status
         self._data = JSONObject(data)
         self._success = status == "Success"
