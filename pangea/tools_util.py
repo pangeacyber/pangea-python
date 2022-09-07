@@ -26,10 +26,15 @@ class Event(t.TypedDict):
 
 
 def print_progress_bar(iteration, total, prefix="", suffix="", decimals=1, length=100):
-    if not total:
-        return 100
+    if length <= 0:
+        length = 100
 
-    iteration = min(iteration, total)
+    if iteration < 0 or total <= 0:
+        iteration = 1
+        total = 1
+    else:
+        iteration = min(iteration, total)
+
     percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
     filledLength = int(length * iteration // total)
     bar = "█" * filledLength + "-" * (length - filledLength)
@@ -110,6 +115,9 @@ class SequenceFollower:
             min_val += 1
 
     def holes(self) -> list[int]:
+        if not self.numbers:
+            return []
+
         min_val = min(self.numbers)
         max_val = max(self.numbers)
         return [val for val in range(min_val, max_val) if val not in self.numbers]
