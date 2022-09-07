@@ -205,10 +205,10 @@ class Audit(ServiceBase):
             return response
 
         if verify:
-            new_buffer_root_enc = response.result.get("buffer_root")
-            membership_proof_enc = response.result.get("buffer_membership_proof")
-            consistency_proof_enc = response.result.get("buffer_consistency_proof")
-            commit_proofs = response.result.get("buffer_commit_proofs")
+            new_buffer_root_enc = response.result.get("unpublished_root")
+            membership_proof_enc = response.result.get("membership_proof")
+            consistency_proof_enc = response.result.get("consistency_proof")
+            commit_proofs = response.result.get("commit_proofs")
             event = response.result.get("event")
             event_hash_enc = response.result.get("hash")
 
