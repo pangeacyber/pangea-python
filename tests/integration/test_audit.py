@@ -30,15 +30,16 @@ class TestAudit(unittest.TestCase):
         )
 
         msg = "sigtest100"
-        event = {}
-        event["message"] = msg
-        event["actor"] = "Actor"
-        event["action"] = "Action"
-        event["source"] = "Source"
-        event["status"] = "Status"
-        event["target"] = "Target"
-        event["new"] = "New"
-        event["old"] = "Old"
+        event = {
+            "message": msg,
+            "actor": "Actor",
+            "action": "Action",
+            "source": "Source",
+            "status": "Status",
+            "target": "Target",
+            "new": "New",
+            "old": "Old",
+        }
 
         response = audit.log(event, signing=True, verbose=True)
         self.assertEqual(response.code, 200)
