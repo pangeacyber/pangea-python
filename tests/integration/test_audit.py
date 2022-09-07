@@ -30,11 +30,21 @@ class TestAudit(unittest.TestCase):
         )
 
         msg = "sigtest100"
-        event = {"message": msg}
+        event = {}
+        event["message"] = msg
+        event["actor"] = "Actor"
+        event["action"] = "Action"
+        event["source"] = "Source"
+        event["status"] = "Status"
+        event["target"] = "Target"
+        event["new"] = "New"
+        event["old"] = "Old"
+
         response = audit.log(event, signing=True, verbose=True)
         self.assertEqual(response.code, 200)
 
         print(f'Event signature: {response.result["envelope"]["signature"]}')
+        print(f'Encoded public key: {response.result["envelope"]["public_key"]}')
 
         response_search = audit.search(query=f"message: {msg}", verify_signatures=True, limit=1)
         self.assertEqual(response_search.code, 200)
