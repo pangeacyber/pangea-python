@@ -8,16 +8,29 @@ from pangea.services import Audit
 
 class TestAudit(unittest.TestCase):
     def setUp(self):
-        token = os.getenv("PANGEA_TEST_INTEGRATION_TOKEN")
+        self.token = os.getenv("PANGEA_TEST_INTEGRATION_TOKEN")
         config_id = os.getenv("AUDIT_INTEGRATION_CONFIG_TOKEN")
         domain = os.getenv("PANGEA_TEST_INTEGRATION_ENDPOINT")
-        config = PangeaConfig(domain=domain, config_id=config_id)
-        self.audit = Audit(token, config=config)
+        self.config = PangeaConfig(domain=domain, config_id=config_id)
+        self.audit = Audit(self.token, config=self.config)
 
     def test_log(self):
         timestamp = time.time()
         event = {"message": f"test-log-{timestamp}"}
         response = self.audit.log(event)
+        self.assertEqual(response.code, 200)
+
+    def test_log_signature(self):
+        timestamp = time.time()
+        audit = Audit(
+            self.token,
+            config=self.config,
+            enable_signing=True,
+            private_key_file="./tests/testdata/privkey",
+            verify_response=True,
+        )
+        event = {"message": f"test-log-{timestamp}"}
+        response = audit.log(event, signing=True)
         self.assertEqual(response.code, 200)
 
     def test_search_results(self):

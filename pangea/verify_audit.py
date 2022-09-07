@@ -16,18 +16,17 @@ import sys
 import typing as t
 from base64 import b64decode
 
-
 from pangea.services.audit_util import (
     canonicalize_json,
     decode_consistency_proof,
     decode_hash,
-    hash_bytes,
     decode_membership_proof,
     get_arweave_published_roots,
+    hash_bytes,
     verify_consistency_proof,
     verify_membership_proof,
 )
-from pangea.signing import Signing
+from pangea.signing import Signer
 
 logger = logging.getLogger("audit")
 pub_roots: t.Dict[int, dict] = {}
@@ -100,7 +99,9 @@ def _verify_hash(data: dict, data_hash: str) -> t.Optional[bool]:
     return succeeded
 
 
-def _verify_membership_proof(tree_name: str, tree_size: int, node_hash: str, proof: t.Optional[str]) -> t.Optional[bool]:
+def _verify_membership_proof(
+    tree_name: str, tree_size: int, node_hash: str, proof: t.Optional[str]
+) -> t.Optional[bool]:
     global pub_roots
 
     log_section("Checking membership proof")
@@ -184,10 +185,10 @@ def _verify_signature(data: dict) -> t.Optional[bool]:
             sign_envelope = create_signed_envelope(data["event"])
             public_key_b64 = data["public_key"]
             public_key_bytes = b64decode(public_key_b64)
-            sign = Signing(hash_message=True)
+            sign = Signer(hash_message=True)
             logger.debug("Checking the signature")
             if not sign.verifyMessage(data["signature"], sign_envelope, public_key_bytes):
-                raise ValueError("Signature is invalid")                
+                raise ValueError("Signature is invalid")
             succeeded = True
         except Exception:
             succeeded = False

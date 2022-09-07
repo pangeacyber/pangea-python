@@ -1,27 +1,27 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
-import os
 import json
+import os
 import typing as t
+from typing import Dict, List, Optional
 
-from typing import List, Dict, Optional
 from pangea.response import JSONObject, PangeaResponse
-from pangea.signing import Signing
+from pangea.signing import Signer
 
 from .audit_util import (
-    decode_consistency_proof,
-    encode_hash,
-    decode_hash,
-    hash_dict,
-    b64encode_ascii,
     b64decode,
-    decode_membership_proof,
-    get_arweave_published_roots,
-    verify_consistency_proof,
-    verify_membership_proof,
-    verify_hash,
+    b64encode_ascii,
     decode_buffer_root,
-    get_root_filename
+    decode_consistency_proof,
+    decode_hash,
+    decode_membership_proof,
+    encode_hash,
+    get_arweave_published_roots,
+    get_root_filename,
+    hash_dict,
+    verify_consistency_proof,
+    verify_hash,
+    verify_membership_proof,
 )
 from .base import ServiceBase
 
@@ -82,14 +82,11 @@ class Audit(ServiceBase):
         self.verify_response: bool = kwargs.get("verify_response", False)
         self.enable_signing: bool = kwargs.get("enable_signing", False)
 
-        if self.enable_signing:
-            overwrite_keys_if_exists = kwargs.get("overwrite_keys_if_exists", False)
-            hash_message = kwargs.get("hash_message", True)
+        # FIXME: Should inform empty parameter
+        private_key_file: str = kwargs.get("private_key_file", "")
 
-            self.sign = Signing(
-                overwrite_keys_if_exists=overwrite_keys_if_exists,
-                hash_message=hash_message,
-            )
+        if self.enable_signing:
+            self.signer = Signer(private_key_file)
 
         # In case of Arweave failure, ask the server for the roots
         self.allow_server_roots = True
@@ -166,14 +163,14 @@ class Audit(ServiceBase):
 
         if signing:
             sign_envelope = self.create_signed_envelope(data["event"])
-            signature = self.sign.signMessage(sign_envelope)
+            signature = self.signer.signMessage(sign_envelope)
             if signature is not None:
                 data["signature"] = signature
             else:
 
                 raise Exception("Error: failure signing message")
 
-            public_bytes = self.sign.getPublicKeyBytes()
+            public_bytes = self.signer.getPublicKeyBytes()
             data["public_key"] = b64encode_ascii(public_bytes)
 
         prev_buffer_root = None
@@ -220,7 +217,9 @@ class Audit(ServiceBase):
                 raise Exception(f"Error: Event hash failed.")
 
             # verify membership proofs
-            if not verify_membership_proof(node_hash=event_hash, root_hash=new_buffer_root.root_hash, proof=membership_proof):
+            if not verify_membership_proof(
+                node_hash=event_hash, root_hash=new_buffer_root.root_hash, proof=membership_proof
+            ):
                 raise Exception(f"Error: Membership proof failed.")
 
             # verify consistency proofs (following events)
@@ -228,7 +227,9 @@ class Audit(ServiceBase):
                 prev_buffer_root = decode_buffer_root(prev_buffer_root_enc)
                 consistency_proof = decode_consistency_proof(consistency_proof_enc)
 
-                if not verify_consistency_proof(new_root=new_buffer_root.root_hash, prev_root=prev_buffer_root.root_hash, proof=consistency_proof):
+                if not verify_consistency_proof(
+                    new_root=new_buffer_root.root_hash, prev_root=prev_buffer_root.root_hash, proof=consistency_proof
+                ):
                     raise Exception(f"Error: Consistency proof failed.")
 
             if commit_proofs:
@@ -248,7 +249,9 @@ class Audit(ServiceBase):
                             buffer_root = decode_buffer_root(buffer_root_enc)
                             commit_proof = decode_consistency_proof(commit_proof_enc)
 
-                            if not verify_consistency_proof(new_root=cold_root_hash, prev_root=buffer_root.root_hash, proof=commit_proof):
+                            if not verify_consistency_proof(
+                                new_root=cold_root_hash, prev_root=buffer_root.root_hash, proof=commit_proof
+                            ):
                                 raise Exception(f"Error: Consistency proof failed.")
 
             self.set_buffer_data(last_root_enc=new_buffer_root_enc, pending_roots=pending_roots)
@@ -618,7 +621,7 @@ class Audit(ServiceBase):
         sign_envelope = self.create_signed_envelope(audit_envelope.envelope.event)
         public_key_b64 = audit_envelope.envelope.public_key
         public_key_bytes = b64decode(public_key_b64)
-        return self.sign.verifyMessage(audit_envelope.envelope.signature, sign_envelope, public_key_bytes)
+        return self.signer.verifyMessage(audit_envelope.envelope.signature, sign_envelope, public_key_bytes)
 
     def root(self, tree_size: int = 0) -> PangeaResponse:
         """
