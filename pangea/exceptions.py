@@ -80,7 +80,7 @@ class TreeNotFoundException(AuditException):
 
 # Embargo specific exceptions
 class EmbargoException(PangeaException):
-    """Audit service specific exceptions"""
+    """Embargo service specific exceptions"""
 
 
 class IPNotFoundException(EmbargoException):
