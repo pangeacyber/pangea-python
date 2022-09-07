@@ -6,10 +6,12 @@ import typing as t
 from typing import Dict, List, Optional
 
 from pangea.response import JSONObject, PangeaResponse
-from pangea.signing import Signer
+from pangea.signing import Signer, Verifier
 
 from .audit_util import (
     b64decode,
+    b64decode_ascii,
+    b64encode,
     b64encode_ascii,
     decode_buffer_root,
     decode_consistency_proof,
@@ -167,7 +169,6 @@ class Audit(ServiceBase):
             if signature is not None:
                 data["signature"] = signature
             else:
-
                 raise Exception("Error: failure signing message")
 
             public_bytes = self.signer.getPublicKeyBytes()
@@ -620,8 +621,9 @@ class Audit(ServiceBase):
         """
         sign_envelope = self.create_signed_envelope(audit_envelope.envelope.event)
         public_key_b64 = audit_envelope.envelope.public_key
-        public_key_bytes = b64decode(public_key_b64)
-        return self.signer.verifyMessage(audit_envelope.envelope.signature, sign_envelope, public_key_bytes)
+        public_key_bytes = b64decode_ascii(public_key_b64)
+        v = Verifier()
+        return v.verifyMessage(audit_envelope.envelope.signature, sign_envelope, public_key_bytes)
 
     def root(self, tree_size: int = 0) -> PangeaResponse:
         """

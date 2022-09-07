@@ -21,7 +21,6 @@ class TestAudit(unittest.TestCase):
         self.assertEqual(response.code, 200)
 
     def test_log_signature(self):
-        timestamp = time.time()
         audit = Audit(
             self.token,
             config=self.config,
@@ -29,9 +28,16 @@ class TestAudit(unittest.TestCase):
             private_key_file="./tests/testdata/privkey",
             verify_response=True,
         )
-        event = {"message": f"test-log-{timestamp}"}
-        response = audit.log(event, signing=True)
+
+        msg = "sigtest100"
+        event = {"message": msg}
+        response = audit.log(event, signing=True, verbose=True)
         self.assertEqual(response.code, 200)
+
+        print(f'Event signature: {response.result["envelope"]["signature"]}')
+
+        response_search = audit.search(query=f"message: {msg}", verify_signatures=True, limit=1)
+        self.assertEqual(response_search.code, 200)
 
     def test_search_results(self):
         response_search = self.audit.search(query="")

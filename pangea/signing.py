@@ -75,7 +75,7 @@ class Signer:
         return (
             self.__getPrivateKey()
             .public_key()
-            .public_bytes(encoding=serialization.Encoding.OpenSSH, format=serialization.PublicFormat.OpenSSH)
+            .public_bytes(encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw)
         )
 
 
