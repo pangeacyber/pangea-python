@@ -73,7 +73,14 @@ class Audit(ServiceBase):
     version: str = "v1"
     config_id_header: str = "X-Pangea-Audit-Config-ID"
 
-    def __init__(self, token, config=None, **kwargs):
+    def __init__(
+        self,
+        token,
+        config=None,
+        verify_response: bool = False,
+        enable_signing: bool = False,
+        private_key_file: str = "",
+    ):
         super().__init__(token, config)
 
         self.pub_roots: dict = {}
@@ -81,11 +88,8 @@ class Audit(ServiceBase):
         self.root_id_filename: str = get_root_filename()
 
         # TODO: Document signing options
-        self.verify_response: bool = kwargs.get("verify_response", False)
-        self.enable_signing: bool = kwargs.get("enable_signing", False)
-
-        # FIXME: Should inform empty parameter
-        private_key_file: str = kwargs.get("private_key_file", "")
+        self.verify_response: bool = verify_response
+        self.enable_signing: bool = enable_signing
 
         if self.enable_signing:
             self.signer = Signer(private_key_file)
