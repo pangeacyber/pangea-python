@@ -55,38 +55,54 @@ def decode_buffer_root(enc_buffer_root: str) -> BufferRoot:
         tree_id=parts[0], cold_tree_size=int(parts[1]), tree_size=int(parts[2]), root_hash=decode_hash(parts[3])
     )
 
+
 def encode_buffer_root(buffer_root: BufferRoot) -> str:
     return f"{buffer_root.tree_id},{buffer_root.cold_tree_size},{buffer_root.tree_size},{encode_hash(buffer_root.root_hash)}"
-    
+
+
 def decode_hash(hexhash) -> Hash:
     return unhexlify(hexhash.encode("utf8"))
+
 
 def encode_hash(hash_: Hash) -> str:
     return hexlify(hash_).decode("utf8")
 
+
 def hash_pair(hash1: Hash, hash2: Hash) -> Hash:
     return sha256(hash1 + hash2).digest()
 
+
 def verify_hash(hash1: Hash, hash2: Hash) -> bool:
-    return (hash1 == hash2)
+    return hash1 == hash2
+
 
 def b64encode(data: bytes) -> bytes:
     ret = None
-    if data is not None:    
+    if data is not None:
         ret = base64.b64encode(data)
     return ret
 
+
 def b64encode_ascii(data: bytes) -> str:
     ret = None
-    if data is not None:    
+    if data is not None:
         ret = base64.b64encode(data).decode("ascii")
     return ret
+
+
+def b64decode_ascii(data: str) -> bytes:
+    ret = None
+    if data is not None:
+        ret = base64.b64decode(data.encode("ascii"))
+    return ret
+
 
 def b64decode(data) -> bytes:
     ret = None
     if data is not None:
         ret = base64.b64decode(data)
     return ret
+
 
 def decode_membership_proof(data: str) -> MembershipProof:
     proof: MembershipProof = []
@@ -255,6 +271,7 @@ def verify_consistency_proof(new_root: Hash, prev_root: Hash, proof: Consistency
 
     return True
 
+
 def get_root_filename():
     token = os.getenv("PANGEA_TOKEN", "")
     config_id = os.getenv("AUDIT_CONFIG_ID", "")
@@ -262,4 +279,4 @@ def get_root_filename():
     root_id = token + "-" + config_id
     root_id_filename = hash_str(root_id)
 
-    return root_id_filename     
+    return root_id_filename
