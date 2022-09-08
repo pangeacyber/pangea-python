@@ -1,7 +1,7 @@
 import os
 import unittest
 
-from pangea import PangeaConfig
+from pangea import PangeaConfig, exceptions
 from pangea.services import Redact
 
 
@@ -33,5 +33,5 @@ class TestRedact(unittest.TestCase):
     def test_redact_with_structured_data(self):
         data = {"phone": "415-867-5309"}
 
-        response = self.redact.redact(data)
-        self.assertEqual(response.code, 400)
+        with self.assertRaises(exceptions.ValidationException):
+            self.redact.redact(data)  # type: ignore

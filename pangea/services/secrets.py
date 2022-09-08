@@ -1,12 +1,13 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 
-import os
 import json
+import os
 import typing as t
-
 from typing import List
+
 from pangea.response import JSONObject, PangeaResponse
+
 from .base import ServiceBase
 
 
@@ -29,7 +30,7 @@ class Secrets(ServiceBase):
 
         token = os.getenv("PANGEA_TOKEN")
         config_id = os.getenv("AUDIT_CONFIG_ID")
-        config = PangeaConfig(domain="pangea.cloud", config_id=config_id)        
+        config = PangeaConfig(domain="pangea.cloud", config_id=config_id)
 
         # Setup Pangea Secrets service
         secrets = Secrets(token, config=config)
@@ -37,7 +38,6 @@ class Secrets(ServiceBase):
 
     service_name = "secretstore"
     version = "v1"
-
 
     def get(self, secret_id: str, secret_version: str = None) -> PangeaResponse:
         """
@@ -48,6 +48,9 @@ class Secrets(ServiceBase):
         Args:
             secret_id (str): Secret Id.
             secret_version (str) - (Optional): Secret Version.
+
+        Raises:
+            PangeaAPIException: If an API Error happens
 
         Returns:
             A PangeaResponse.
@@ -81,7 +84,6 @@ class Secrets(ServiceBase):
 
         return self.request.post("get", data={"secret_id": secret_id, "secret_version": secret_version})
 
-
     def add(self, secret_id: str, secret_value: str) -> PangeaResponse:
         """
         Secrets
@@ -91,6 +93,9 @@ class Secrets(ServiceBase):
         Args:
             secret_id (str): Secret Id.
             secret_value (str): Secret Value.
+
+        Raises:
+            PangeaAPIException: If an API Error happens
 
         Returns:
             A PangeaResponse.
@@ -123,7 +128,6 @@ class Secrets(ServiceBase):
 
         return self.request.post("add", data={"secret_id": secret_id, "secret_value": secret_value})
 
-
     def update(self, secret_id: str, secret_value: str) -> PangeaResponse:
         """
         Secrets
@@ -133,6 +137,9 @@ class Secrets(ServiceBase):
         Args:
             secret_id (str): Secret Id.
             secret_value (str): Secret Value.
+
+        Raises:
+            PangeaAPIException: If an API Error happens
 
         Returns:
             A PangeaResponse.
