@@ -6,10 +6,12 @@ import typing as t
 from typing import Dict, List, Optional
 
 from pangea.response import JSONObject, PangeaResponse
-from pangea.signing import Signing
+from pangea.signing import Signer, Verifier
 
 from .audit_util import (
     b64decode,
+    b64decode_ascii,
+    b64encode,
     b64encode_ascii,
     decode_buffer_root,
     decode_consistency_proof,
@@ -71,7 +73,14 @@ class Audit(ServiceBase):
     version: str = "v1"
     config_id_header: str = "X-Pangea-Audit-Config-ID"
 
-    def __init__(self, token, config=None, **kwargs):
+    def __init__(
+        self,
+        token,
+        config=None,
+        verify_response: bool = False,
+        enable_signing: bool = False,
+        private_key_file: str = "",
+    ):
         super().__init__(token, config)
 
         self.pub_roots: dict = {}
@@ -79,17 +88,11 @@ class Audit(ServiceBase):
         self.root_id_filename: str = get_root_filename()
 
         # TODO: Document signing options
-        self.verify_response: bool = kwargs.get("verify_response", False)
-        self.enable_signing: bool = kwargs.get("enable_signing", False)
+        self.verify_response: bool = verify_response
+        self.enable_signing: bool = enable_signing
 
         if self.enable_signing:
-            overwrite_keys_if_exists = kwargs.get("overwrite_keys_if_exists", False)
-            hash_message = kwargs.get("hash_message", True)
-
-            self.sign = Signing(
-                overwrite_keys_if_exists=overwrite_keys_if_exists,
-                hash_message=hash_message,
-            )
+            self.signer = Signer(private_key_file)
 
         # In case of Arweave failure, ask the server for the roots
         self.allow_server_roots = True
@@ -166,14 +169,13 @@ class Audit(ServiceBase):
 
         if signing:
             sign_envelope = self.create_signed_envelope(data["event"])
-            signature = self.sign.signMessage(sign_envelope)
+            signature = self.signer.signMessage(sign_envelope)
             if signature is not None:
                 data["signature"] = signature
             else:
-
                 raise Exception("Error: failure signing message")
 
-            public_bytes = self.sign.getPublicKeyBytes()
+            public_bytes = self.signer.getPublicKeyBytes()
             data["public_key"] = b64encode_ascii(public_bytes)
 
         prev_buffer_root = None
@@ -623,8 +625,9 @@ class Audit(ServiceBase):
         """
         sign_envelope = self.create_signed_envelope(audit_envelope.envelope.event)
         public_key_b64 = audit_envelope.envelope.public_key
-        public_key_bytes = b64decode(public_key_b64)
-        return self.sign.verifyMessage(audit_envelope.envelope.signature, sign_envelope, public_key_bytes)
+        public_key_bytes = b64decode_ascii(public_key_b64)
+        v = Verifier()
+        return v.verifyMessage(audit_envelope.envelope.signature, sign_envelope, public_key_bytes)
 
     def root(self, tree_size: int = 0) -> PangeaResponse:
         """

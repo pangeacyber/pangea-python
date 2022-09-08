@@ -8,17 +8,47 @@ from pangea.services import Audit
 
 class TestAudit(unittest.TestCase):
     def setUp(self):
-        token = os.getenv("PANGEA_TEST_INTEGRATION_TOKEN")
+        self.token = os.getenv("PANGEA_TEST_INTEGRATION_TOKEN")
         config_id = os.getenv("AUDIT_INTEGRATION_CONFIG_TOKEN")
         domain = os.getenv("PANGEA_TEST_INTEGRATION_ENDPOINT")
-        config = PangeaConfig(domain=domain, config_id=config_id)
-        self.audit = Audit(token, config=config)
+        self.config = PangeaConfig(domain=domain, config_id=config_id)
+        self.audit = Audit(self.token, config=self.config)
 
     def test_log(self):
         timestamp = time.time()
         event = {"message": f"test-log-{timestamp}"}
         response = self.audit.log(event)
         self.assertEqual(response.code, 200)
+
+    def test_log_signature(self):
+        audit = Audit(
+            self.token,
+            config=self.config,
+            enable_signing=True,
+            private_key_file="./tests/testdata/privkey",
+            verify_response=True,
+        )
+
+        msg = "sigtest100"
+        event = {
+            "message": msg,
+            "actor": "Actor",
+            "action": "Action",
+            "source": "Source",
+            "status": "Status",
+            "target": "Target",
+            "new": "New",
+            "old": "Old",
+        }
+
+        response = audit.log(event, signing=True, verbose=True)
+        self.assertEqual(response.code, 200)
+
+        print(f'Event signature: {response.result["envelope"]["signature"]}')
+        print(f'Encoded public key: {response.result["envelope"]["public_key"]}')
+
+        response_search = audit.search(query=f"message: {msg}", verify_signatures=True, limit=1)
+        self.assertEqual(response_search.code, 200)
 
     def test_search_results(self):
         response_search = self.audit.search(query="")
