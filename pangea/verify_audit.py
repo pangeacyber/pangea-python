@@ -29,7 +29,7 @@ from pangea.services.audit_util import (
 from pangea.signing import Signer
 
 logger = logging.getLogger("audit")
-pub_roots: t.Dict[int, dict] = {}
+pub_roots: t.Dict[int, t.Dict] = {}
 
 
 class VerifierLogFormatter(logging.Formatter):
@@ -79,7 +79,7 @@ def log_section(msg: str):
 formatter = VerifierLogFormatter()
 
 
-def _verify_hash(data: dict, data_hash: str) -> t.Optional[bool]:
+def _verify_hash(data: t.Dict, data_hash: str) -> t.Optional[bool]:
     log_section("Checking data hash")
     try:
         logger.debug("Canonicalizing data")
@@ -170,11 +170,11 @@ def _verify_consistency_proof(tree_name: str, leaf_index: t.Optional[int]) -> t.
     return succeeded
 
 
-def create_signed_envelope(event: dict) -> dict:
+def create_signed_envelope(event: t.Dict) -> t.Dict:
     return {k: v for k, v in event.items() if v is not None}
 
 
-def _verify_signature(data: dict) -> t.Optional[bool]:
+def _verify_signature(data: t.Dict) -> t.Optional[bool]:
     log_section("Checking signature")
     if "signature" not in data:
         logger.debug("Signature is not present")
@@ -198,7 +198,7 @@ def _verify_signature(data: dict) -> t.Optional[bool]:
     return succeeded
 
 
-def verify_multiple(root: dict, events: list[dict]) -> t.Optional[bool]:
+def verify_multiple(root: t.Dict, events: t.List[t.Dict]) -> t.Optional[bool]:
     """
     Verify a list of events.
     Returns a status.
@@ -211,7 +211,7 @@ def verify_multiple(root: dict, events: list[dict]) -> t.Optional[bool]:
     return not any(event_succeeded is False for event_succeeded in succeeded)
 
 
-def verify_single(data: dict, counter: t.Optional[int] = None) -> t.Optional[bool]:
+def verify_single(data: t.Dict, counter: t.Optional[int] = None) -> t.Optional[bool]:
     """
     Verify a single event.
     Returns a status.
