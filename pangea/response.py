@@ -52,6 +52,10 @@ class PangeaResponse(object):
         self._status_code = requests_response.status_code
 
     @property
+    def data(self) -> JSONObject:
+        return self._data
+
+    @property
     def result(self) -> t.Optional[dict]:
         return self._data.result
 
