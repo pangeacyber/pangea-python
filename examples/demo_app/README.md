@@ -13,7 +13,7 @@ Set the following environment variables:
 - `EMBARGO_CONFIG_ID`
 - `REDACT_CONFIG_ID`
 - `AUDIT_CONFIG_ID`
-- `PANGEA_CSP` (ex: "aws" for AWS)
+- `PANGEA_DOMAIN` (ex: "aws.us.pangea.cloud")
 
 ### API Documentation
 

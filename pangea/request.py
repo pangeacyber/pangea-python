@@ -190,7 +190,7 @@ class PangeaRequest(object):
         elif status == "NoCredit":
             raise exceptions.NoCreditException(summary)
         elif status == "Unauthorized":
-            raise exceptions.Unauthorized(self.service)
+            raise exceptions.UnauthorizedException(self.service)
         elif status == "ServiceNotEnabled":
             raise exceptions.ServiceNotEnabledException(self.service)
         elif status == "ProviderError":

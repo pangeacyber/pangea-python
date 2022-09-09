@@ -36,8 +36,8 @@ class NoCreditException(PangeaAPIException):
 class UnauthorizedException(PangeaAPIException):
     """User is not authorized to access a given resource"""
 
-    def __init__(self, service_name: str, path: str):
-        message = f"User is not authorized to access path {path} for service {service_name}"
+    def __init__(self, service_name: str):
+        message = f"User is not authorized to access service {service_name}"
         super(UnauthorizedException, self).__init__(message)
 
 
