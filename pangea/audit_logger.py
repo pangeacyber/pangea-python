@@ -2,31 +2,25 @@
 # Author: Pangea Cyber Corporation
 import logging
 
-from pangea.services import Audit
 from pangea.config import PangeaConfig
+from pangea.services import Audit
 
-SupportedFields = [
-    "actor",
-    "action",
-    "status",
-    "source",
-    "target",
-    "new",
-    "old"
-]
+SupportedFields = ["actor", "action", "status", "source", "target", "new", "old"]
 
-CSP = ''
-PANGEA_TOKEN = ''
-AUDIT_CONFIG_ID = ''
+DOMAIN = ""
+PANGEA_TOKEN = ""
+AUDIT_CONFIG_ID = ""
+
 
 class AuditLogger(logging.Logger):
     """Extends Python logger to add the `audit` function to send messages to
     Pangea Audit Service
     """
+
     def __init__(self, *args, **kwargs):
         super(AuditLogger, self).__init__(*args, **kwargs)
 
-    def set_auditor(self, auditor : Audit):
+    def set_auditor(self, auditor: Audit):
         """Sets the internal Pangea Audit Service client instance
 
         Args:
@@ -47,7 +41,7 @@ class AuditLogger(logging.Logger):
         Examples:
             logger.audit("John updated a record in the employees table.")
 
-            logger.audit("Updated a record in the employees table", 
+            logger.audit("Updated a record in the employees table",
                 actor="John",
                 target="employees table")
 
@@ -60,10 +54,10 @@ class AuditLogger(logging.Logger):
 
         """
         if not self.auditor:
-            raise Exception('Audit instance not set')
+            raise Exception("Audit instance not set")
 
-        audit_record = { 
-            'message' : message, # required
+        audit_record = {
+            "message": message,  # required
         }
 
         for name in SupportedFields:
@@ -75,13 +69,14 @@ class AuditLogger(logging.Logger):
         if resp.success:
             pass
         else:
-            raise Exception(f'Pangea Audit error: {resp.response.text}')
+            raise Exception(f"Pangea Audit error: {resp.response.text}")
 
-def initLogging(csp: str, token: str, config_id: str):
+
+def initLogging(domain: str, token: str, config_id: str):
     """Initializes Audit logging environment
 
     Args:
-        csp (string) : the Pangea CSP to use, i.e. "aws"
+        domain (string) : the Pangea domain to use, i.e. "aws.us.pangea.cloud"
         token (string) : the Pangea Audit Service token
         config_id (string) : the Configuration ID associated with Audit Service profile
 
@@ -96,11 +91,12 @@ def initLogging(csp: str, token: str, config_id: str):
 
         initLogging(PANGEA_CSP, PANGEA_TOKEN, AUDIT_CONFIG_ID)
     """
-    global CSP, PANGEA_TOKEN, AUDIT_CONFIG_ID
+    global DOMAIN, PANGEA_TOKEN, AUDIT_CONFIG_ID
 
-    CSP = csp
+    DOMAIN = domain
     PANGEA_TOKEN = token
     AUDIT_CONFIG_ID = config_id
+
 
 def getLogger(name, level=logging.DEBUG):
     """Gets an instance of the AuditLogger
@@ -125,13 +121,9 @@ def getLogger(name, level=logging.DEBUG):
         logger.audit("hello world")
 
     """
-    audit_config = PangeaConfig(
-        domain=f'{CSP}.pangea.cloud',
-        config_id=AUDIT_CONFIG_ID)
+    audit_config = PangeaConfig(domain=DOMAIN, config_id=AUDIT_CONFIG_ID)
 
-    auditor = Audit(
-        token=PANGEA_TOKEN,
-        config=audit_config)
+    auditor = Audit(token=PANGEA_TOKEN, config=audit_config)
 
     logging.basicConfig(level=level)
 

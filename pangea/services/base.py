@@ -11,7 +11,7 @@ class ServiceBase(object):
     config_id_header: str = ""
 
     def __init__(self, token, config=None):
-        if not token:
+        if not token or token == "":
             raise Exception("No token provided")
 
         self.config = config if config else PangeaConfig()
