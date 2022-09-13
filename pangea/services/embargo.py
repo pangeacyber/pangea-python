@@ -1,8 +1,62 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+from dataclasses import dataclass
+from typing import Dict, List, Optional
+
+from pydantic import BaseModel
+
 from pangea.response import PangeaResponse
 
 from .base import ServiceBase
+
+
+@dataclass
+class IPCheckInput(BaseModel):
+    """
+    Input class to perform a IP check request
+
+    Arguments:
+    IP -- IP to check against the enabled embargo lists. Accepts both IPV4 and IPV6 strings.
+    """
+
+    IP: str
+
+
+@dataclass
+class ISOCheckInput(BaseModel):
+    """
+    Input class to perform a ISO check
+
+    Arguments:
+    ISOCode -- Check this two character country ISO-code against the enabled embargo lists.
+    """
+
+    ISOCode: str
+
+
+@dataclass
+class Sanction(BaseModel):
+    """
+    TODO: complete
+    """
+
+    embargo_country_ISO_code: str
+    issuing_country: str
+    list_name: str
+    embargoed_country_name: str
+    annotations: dict[str][any]
+
+
+@dataclass
+class CheckOutput(BaseModel):
+    """
+    Class returned after check request
+
+    TODO: complete
+    """
+
+    count: int
+    sancions: List[Sanction]
 
 
 class Embargo(ServiceBase):

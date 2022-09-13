@@ -1,26 +1,25 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+import datetime
 import json
 import os
 import typing as t
-from typing import Dict, List, Optional
+from dataclasses import dataclass
+from typing import List, Optional
 
+from pydantic import BaseModel
 
 from pangea.exceptions import AuditException
-
 from pangea.response import JSONObject, PangeaResponse
 from pangea.signing import Signer, Verifier
 
 from .audit_util import (
-    b64decode,
     b64decode_ascii,
-    b64encode,
     b64encode_ascii,
     decode_buffer_root,
     decode_consistency_proof,
     decode_hash,
     decode_membership_proof,
-    encode_hash,
     get_arweave_published_roots,
     get_root_filename,
     hash_dict,
@@ -43,6 +42,252 @@ SupportedJSONFields = [
     "new",
     "old",
 ]
+
+
+@dataclass
+class Event(BaseModel):
+    """Event to perform an auditable activity
+
+    Arguments:
+    message -- A message describing a detailed account of what happened.
+    actor -- who performed the auditable activity.
+    action -- auditable action that occurred.
+    new -- The value of a record after it was changed.
+    old -- The value of a record before it was changed.
+    source -- Used to record the location from where an activity occurred.
+    status -- Record whether or not the activity was successful.
+    target -- Used to record the specific record that was targeted by the auditable activity.
+    timestamp -- An optional client-supplied timestamp.
+    """
+
+    message: str | dict
+    actor: Optional[str] = None
+    action: Optional[str] = None
+    new: Optional[str] = None
+    old: Optional[str] = None
+    source: Optional[str] = None
+    status: Optional[str] = None
+    target: Optional[str] = None
+    timestamp: Optional[str] = None
+
+
+@dataclass
+class EventEnvelope(BaseModel):
+    """
+    Contain extra information about an event.
+
+    Arguments:
+    event -- Event describing auditable activity.
+    signature -- An optional client-side signature for forgery protection.
+    public_key -- The base64-encoded ed25519 public key used for the signature, if one is provided
+    received_at -- A server-supplied timestamp
+    """
+
+    event: Event
+    signature: Optional[str]
+    public_key: Optional[str]
+    received_at: Optional[str]
+
+
+@dataclass
+class LogOutput(BaseModel):
+    """
+    Result class after an audit log action
+
+    envelope -- Event envelope information.
+    hash -- Event envelope hash.
+    canonical_event_base64 -- A base64 encoded canonical JSON form of the event, used for hashing.
+    """
+
+    envelope: EventEnvelope
+    hash: str
+    canonical_event_base64: str
+
+
+@dataclass
+class SearchRestriction(BaseModel):
+    """
+    Set of restrictions when perform an audit search action
+
+    Arguments:
+    actor -- List of actors to include in search. If empty include all.
+    source -- List of sourcers to include in search. If empty include all.
+    target -- List of targets to include in search. If empty include all.
+    """
+
+    actor: List[str] = []
+    source: List[str] = []
+    target: List[str] = []
+
+
+@dataclass
+class SearchInput(BaseModel):
+    """
+    Input class to perform an audit search action
+
+    Arguments:
+
+        #: Query is a required field.
+        #: The following optional qualifiers are supported:
+        #:	* action:
+        #:	* actor:
+        #:	* message:
+        #:	* new:
+        #:	* old:
+        #:	* status:
+        #:	* target:
+    query -- Natural search string; list of keywords with optional `<option>:<value>` qualifiers.
+    order -- Specify the sort order of the response. "asc" or "desc".
+    order_by -- Name of column to sort the results by. "message", "actor", "status", etc.
+    last -- If set, the last value from the response to fetch the next page from.
+    start -- The start of the time range to perform the search on.
+    end -- The end of the time range to perform the search on. All records up to the latest if left out.
+    limit -- Number of audit records to include from the first page of the results.
+    max_results -- Maximum number of results to return.
+    include_memebership_proof -- If true, include membership proofs for each record in the first page.
+    include_hash -- If true, include hashes for each record in the first page.
+    include_root -- If true, include the Merkle root hash of the tree in the first page.
+    search_restriction -- A list of keys to restrict the search results to. Useful for partitioning data available to the query string.
+    """
+
+    query: str
+    order: Optional[str] = None
+    order_by: Optional[str] = None
+    last: Optional[str] = None
+    start: Optional[datetime.time] = None
+    end: Optional[datetime.time] = None
+    limit: Optional[int] = None
+    max_results: Optional[int] = None
+    include_membership_proof: Optional[bool] = None
+    include_hash: Optional[bool] = None
+    include_root: Optional[bool] = None
+    search_restriction: Optional[SearchRestriction] = None
+
+
+@dataclass
+class RootInput(BaseModel):
+    """
+    Input class to perform a root request action
+
+    Arguments:
+
+    tree_size -- The size of the tree (the number of records).
+    """
+
+    tree_size: int
+
+
+@dataclass
+class Root(BaseModel):
+    """
+    Tree root information
+
+    Arguments:
+    tree_name -- The name of the Merkle Tree.
+    size -- The size of the tree (the number of records).
+    root_hash -- the root hash.
+    url -- the URL where this root has been published.
+    published_at -- The date/time when this root was published.
+    consistency_proof -- Consistency proof to verify that this root is a continuation of the previous one.
+    """
+
+    tree_name: str
+    size: int
+    root_hash: str
+    url: str
+    published_at: datetime.time
+    consistency_proof: List[str]
+
+
+@dataclass
+class RootOutput(BaseModel):
+    """
+    Result class after a root request
+    """
+
+    data: Root
+
+
+@dataclass
+class SearchEvent(BaseModel):
+    """
+    Event information received after a search request
+
+    Arguments:
+    envelope -- Event related information.
+    hash -- The record's hash.
+    leaf_index -- The index of the leaf of the Merkle Tree where this record was inserted.
+    membership_proof -- A cryptographic proof that the record has been persisted in the log.
+    consistency_verification -- Consistency verification calculated if required.
+    membership_verification -- Membership verification calculated if required.
+    signature_verification -- Signature verification calculated if required.
+    """
+
+    envelope: EventEnvelope
+    hash: str
+    leaf_index: int
+    membership_proof: str
+    consistency_verification: str = "none"
+    membership_verification: str = "none"
+    signature_verification: str = "none"
+
+
+@dataclass
+class SearchOutput(BaseModel):
+    """
+    Result class after an audit search action
+
+    Arguments:
+    id -- Identifier to supply to search_results API to fetch/paginate through search results. ID is always populated on a successful response.
+    expires_at -- The time when the results will no longer be available to page through via the results API.
+    count -- The total number of results that were returned by the search.
+    root -- A root of a Merkle Tree.
+    events -- A list of matching audit records.
+    """
+
+    id: str
+    expires_at: datetime.time
+    count: int
+    root: Root
+    events: List[SearchEvent]
+
+
+@dataclass
+class SearchResultInput(BaseModel):
+    """
+    Class used to paginate search results
+
+    Arguments:
+    id -- A search results identifier returned by the search call.
+    include_membership_proof -- If true, include membership proofs for each record in the first page.
+    include_hash -- If true, include hashes for each record in the first page.
+    include_root -- If true, include the Merkle root hash of the tree in the first page.
+    limit -- Number of audit records to include from the first page of the results.
+    offset -- Offset from the start of the result set to start returning results from.
+    """
+
+    id: str
+    include_membership_proof: Optional[bool] = None
+    include_hash: Optional[bool] = None
+    include_root: Optional[bool] = None
+    limit: Optional[int] = None
+    offset: Optional[int] = None
+
+
+@dataclass
+class SearchResultOutput(BaseModel):
+    """
+    Return class after a pagination search
+
+    Arguments:
+    count -- The total number of results that were returned by the search.
+    events -- A list of matching audit records.
+    root -- A root of a Merkle Tree.
+    """
+
+    count: int
+    events: List[SearchEvent]
+    root: Root
 
 
 class Audit(ServiceBase):
@@ -182,7 +427,6 @@ class Audit(ServiceBase):
             else:
                 raise AuditException("Error: failure signing message")
 
-
             public_bytes = self.signer.getPublicKeyBytes()
             data["public_key"] = b64encode_ascii(public_bytes)
 
@@ -235,7 +479,6 @@ class Audit(ServiceBase):
             ):
                 raise AuditException(f"Error: Membership proof failed.")
 
-
             # verify consistency proofs (following events)
             if consistency_proof_enc:
                 prev_buffer_root = decode_buffer_root(prev_buffer_root_enc)
@@ -245,7 +488,6 @@ class Audit(ServiceBase):
                     new_root=new_buffer_root.root_hash, prev_root=prev_buffer_root.root_hash, proof=consistency_proof
                 ):
                     raise AuditException(f"Error: Consistency proof failed.")
-
 
             if commit_proofs:
                 # Get the root from the cold tree...

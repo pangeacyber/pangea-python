@@ -1,6 +1,6 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
-import typing as t
+from typing import Generic, Optional, TypeVar
 
 import requests
 
@@ -28,7 +28,10 @@ class JSONObject(dict):
         self[name] = value
 
 
-class PangeaResponse(object):
+T = TypeVar("T")
+
+
+class PangeaResponse(Generic[T], object):
     """An object containing Pangea Service API response.
 
     Properties:
@@ -50,13 +53,14 @@ class PangeaResponse(object):
         self._success = status == "Success"
         self._response = requests_response
         self._status_code = requests_response.status_code
+        self._result: Optional[T] = None
 
     @property
     def data(self) -> JSONObject:
         return self._data
 
     @property
-    def result(self) -> t.Optional[dict]:
+    def result(self) -> Optional[T]:
         return self._data.result
 
     @property
@@ -68,7 +72,7 @@ class PangeaResponse(object):
         return self._success
 
     @property
-    def request_id(self) -> t.Optional[str]:
+    def request_id(self) -> Optional[str]:
         return self._data.get("request_id", None)
 
     @property

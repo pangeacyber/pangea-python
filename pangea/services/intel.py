@@ -1,8 +1,150 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+from dataclasses import dataclass
+from typing import Dict, List, Optional
+
+from pydantic import BaseModel
+
 from pangea.response import PangeaResponse
 
 from .base import ServiceBase
+
+
+@dataclass
+class FileLookupInput(BaseModel):
+    """
+    TODO: complete
+    """
+
+    hash: str
+    hash_type: str
+    verbose: Optional[bool] = None
+    raw: Optional[bool] = None
+    provider: Optional[str] = None
+
+
+@dataclass
+class FileLookupData(BaseModel):
+    """
+    TODO: complete
+    """
+
+    category: List[str]
+    score: int
+    verdict: str
+
+
+@dataclass
+class FileLookupOutput(BaseModel):
+    """
+    TODO: complete
+    """
+
+    data: FileLookupData
+    parameters: Optional[Dict] = None
+    raw_data: Optional[Dict] = None
+
+
+@dataclass
+class IPLookupInput(BaseModel):
+    """
+    TODO: complete
+    """
+
+    ip: str
+    verbose: Optional[bool] = None
+    raw: Optional[bool] = None
+    provider: Optional[str] = None
+
+
+@dataclass
+class IPLookupData(BaseModel):
+    """
+    TODO: complete
+    """
+
+    category: List[str]
+    score: int
+    verdict: str
+
+
+@dataclass
+class IPLookupOutput(BaseModel):
+    """
+    TODO: complete
+    """
+
+    data: IPLookupData
+    parameters: Optional[Dict] = None
+    raw_data: Optional[Dict] = None
+
+
+@dataclass
+class DomainLookupInput(BaseModel):
+    """
+    TODO: complete
+    """
+
+    domain: str
+    verbose: Optional[bool] = None
+    raw: Optional[bool] = None
+    provider: Optional[str] = None
+
+
+@dataclass
+class DomainLookupData(BaseModel):
+    """
+    TODO: complete
+    """
+
+    category: List[str]
+    score: int
+    verdict: str
+
+
+@dataclass
+class DomainLookupOutput(BaseModel):
+    """
+    TODO: complete
+    """
+
+    data: DomainLookupData
+    parameters: Optional[Dict] = None
+    raw_data: Optional[Dict] = None
+
+
+@dataclass
+class URLLookupInput(BaseModel):
+    """
+    TODO: complete
+    """
+
+    url: str
+    verbose: Optional[bool] = None
+    raw: Optional[bool] = None
+    provider: Optional[str] = None
+
+
+@dataclass
+class URLLookupData(BaseModel):
+    """
+    TODO: complete
+    """
+
+    category: List[str]
+    score: int
+    verdict: str
+
+
+@dataclass
+class URLLookupOutput(BaseModel):
+    """
+    TODO: complete
+    """
+
+    data: URLLookupData
+    parameters: Optional[Dict] = None
+    raw_data: Optional[Dict] = None
 
 
 class FileIntel(ServiceBase):

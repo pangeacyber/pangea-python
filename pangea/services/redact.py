@@ -2,13 +2,112 @@
 # Author: Pangea Cyber Corporation
 
 import enum
-import typing as t
+from dataclasses import dataclass
+from typing import Any, Dict, List, Optional
+
+from pydantic import BaseModel
 
 from pangea.response import PangeaResponse
 
 from .base import ServiceBase
 
 ConfigIDHeaderName = "X-Pangea-Redact-Config-ID"
+
+
+class RedactFormat(str, enum.Enum):
+    JSON = "json"
+
+
+@dataclass
+class TextInput(BaseModel):
+    """
+    Input class to make a redact request
+
+    Arguments:
+    text -- Text to apply redact functionality
+    debug -- Setting this value to true will provide a detailed analysis of the redacted data and the rules that caused redaction.
+    """
+
+    text: str
+    debug: bool
+
+
+@dataclass
+class RecognizerResult(BaseModel):
+    """
+    TODO: complete
+
+    Arguments:
+    field_type --
+    score --
+    text --
+    start --
+    end --
+    redacted --
+    data_ket --
+    """
+
+    field_type: str
+    score: int
+    text: str
+    start: int
+    end: int
+    redacted: bool
+    data_key: Optional[str]
+
+
+@dataclass
+class DebugReport(BaseModel):
+    """
+    TODO: complete
+
+    """
+
+    summary_counts: Dict[str][int]
+    recognizer_results: List[RecognizerResult]
+
+
+@dataclass
+class TextOutput(BaseModel):
+    """
+    Result class after a redact request
+
+    Arguments:
+    redact_text -- Redacted text result
+    report -- TODO: complete
+    """
+
+    redact_text: str
+    report: DebugReport
+
+
+@dataclass
+class StructuredInput(BaseModel):
+    """
+    Class input to redact structured data request
+
+    Arguments:
+    data -- Structured data to redact
+    jsonp -- JSON path(s) used to identify the specific JSON fields to redact in the structured data. Note: If jsonp parameter is used, the data parameter must be in JSON format.
+    format -- The format of the structured data to redact. (default is JSON)
+    debug -- Setting this value to true will provide a detailed analysis of the redacted data and the rules that caused redaction.
+    """
+
+    data: dict | str
+    jsonp: Optional[List[str]] = None
+    format: Optional[RedactFormat] = None
+    debug: Optional[bool] = None
+
+
+@dataclass
+class StructuredOutput(BaseModel):
+    """
+    TODO: complete
+
+    """
+
+    redacted_data: str | Dict  # FIXME: this should be raw json
+    report: DebugReport
 
 
 class RedactFormat(str, enum.Enum):
@@ -92,7 +191,7 @@ class Redact(ServiceBase):
         return self.request.post("redact", data={"text": text, "debug": debug})
 
     def redact_structured(
-        self, obj: t.Any, redact_format: RedactFormat = RedactFormat.JSON, debug=False
+        self, obj: Any, redact_format: RedactFormat = RedactFormat.JSON, debug=False
     ) -> PangeaResponse:
         """
         Redact structured
