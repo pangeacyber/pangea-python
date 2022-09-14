@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel
+from pydantic.dataclasses import dataclass
 
 from pangea.response import PangeaResponse
 
@@ -14,11 +15,15 @@ from .base import ServiceBase
 ConfigIDHeaderName = "X-Pangea-Redact-Config-ID"
 
 
+class DataclassConfig:
+    arbitrary_types_allowed = True
+
+
 class RedactFormat(str, enum.Enum):
     JSON = "json"
 
 
-@dataclass
+@dataclass(config=DataclassConfig)
 class TextInput(BaseModel):
     """
     Input class to make a redact request
@@ -32,7 +37,7 @@ class TextInput(BaseModel):
     debug: bool
 
 
-@dataclass
+@dataclass(config=DataclassConfig)
 class RecognizerResult(BaseModel):
     """
     TODO: complete
@@ -56,18 +61,18 @@ class RecognizerResult(BaseModel):
     data_key: Optional[str]
 
 
-@dataclass
+@dataclass(config=DataclassConfig)
 class DebugReport(BaseModel):
     """
     TODO: complete
 
     """
 
-    summary_counts: Dict[str][int]
+    summary_counts: Dict[str, int]
     recognizer_results: List[RecognizerResult]
 
 
-@dataclass
+@dataclass(config=DataclassConfig)
 class TextOutput(BaseModel):
     """
     Result class after a redact request
@@ -81,7 +86,7 @@ class TextOutput(BaseModel):
     report: DebugReport
 
 
-@dataclass
+@dataclass(config=DataclassConfig)
 class StructuredInput(BaseModel):
     """
     Class input to redact structured data request
@@ -99,7 +104,7 @@ class StructuredInput(BaseModel):
     debug: Optional[bool] = None
 
 
-@dataclass
+@dataclass(config=DataclassConfig)
 class StructuredOutput(BaseModel):
     """
     TODO: complete

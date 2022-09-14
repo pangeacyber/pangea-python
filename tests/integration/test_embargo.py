@@ -5,6 +5,7 @@ from schema import And, Schema
 
 from pangea import PangeaConfig
 from pangea.services import Embargo
+from pangea.services.embargo import IPCheckInput, ISOCheckInput
 
 
 class TestEmbargo(unittest.TestCase):
@@ -16,35 +17,26 @@ class TestEmbargo(unittest.TestCase):
         self.embargo = Embargo(token, config=config)
 
     def test_ip_check(self):
-        schema = Schema(
-            {
-                "list_name": "ITAR",
-                "embargoed_country_name": "Russia",
-                "embargoed_country_iso_code": "RU",
-                "issuing_country": "US",
-                "annotations": dict,
-            }
-        )
-
-        response = self.embargo.ip_check("213.24.238.26")
-        self.assertEqual(response.code, 200)
+        response = self.embargo.ip_check(IPCheckInput(ip="213.24.238.26"))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status, "Success")
+        self.assertGreaterEqual(len(response.result.sanctions), 1)
 
         sanction = response.result.sanctions[0]
-        self.assertTrue(schema.is_valid(sanction))
+        self.assertEqual(sanction.list_name, "ITAR")
+        self.assertEqual(sanction.embargoed_country_name, "Russia")
+        self.assertEqual(sanction.embargoed_country_iso_code, "RU")
+        self.assertEqual(sanction.issuing_country, "US")
 
     def test_iso_check(self):
-        schema = Schema(
-            {
-                "list_name": "ITAR",
-                "embargoed_country_name": "Cuba",
-                "embargoed_country_iso_code": "CU",
-                "issuing_country": "US",
-                "annotations": dict,
-            }
-        )
+        response = self.embargo.iso_check(ISOCheckInput(iso_code="CU"))
 
-        response = self.embargo.iso_check("CU")
-        self.assertEqual(response.code, 200)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status, "Success")
+        self.assertGreaterEqual(len(response.result.sanctions), 1)
 
         sanction = response.result.sanctions[0]
-        self.assertTrue(schema.is_valid(sanction))
+        self.assertEqual(sanction.list_name, "ITAR")
+        self.assertEqual(sanction.embargoed_country_name, "Cuba")
+        self.assertEqual(sanction.embargoed_country_iso_code, "CU")
+        self.assertEqual(sanction.issuing_country, "US")

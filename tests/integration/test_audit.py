@@ -3,7 +3,18 @@ import time
 import unittest
 
 from pangea import PangeaConfig
+from pangea.response import PangeaResponse, ResponseStatus
 from pangea.services import Audit
+from pangea.services.audit import (
+    Event,
+    LogOutput,
+    RootInput,
+    SearchInput,
+    SearchOrder,
+    SearchOrderBy,
+    SearchOutput,
+    SearchResultInput,
+)
 
 
 class TestAudit(unittest.TestCase):
@@ -15,10 +26,12 @@ class TestAudit(unittest.TestCase):
         self.audit = Audit(self.token, config=self.config)
 
     def test_log(self):
+        # TODO: complete all field for example
         timestamp = time.time()
         event = {"message": f"test-log-{timestamp}"}
-        response = self.audit.log(event)
-        self.assertEqual(response.code, 200)
+        response = self.audit.log(event, verbose=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
 
     def test_log_signature(self):
         audit = Audit(
@@ -30,65 +43,90 @@ class TestAudit(unittest.TestCase):
         )
 
         msg = "sigtest100"
-        event = {
-            "message": msg,
-            "actor": "Actor",
-            "action": "Action",
-            "source": "Source",
-            "status": "Status",
-            "target": "Target",
-            "new": "New",
-            "old": "Old",
-        }
+        event = Event(
+            message=msg,
+            actor="Actor",
+            action="Action",
+            source="Source",
+            status="Status",
+            target="Target",
+            new="New",
+            old="Old",
+        )
 
         response = audit.log(event, signing=True, verbose=True)
-        self.assertEqual(response.code, 200)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
 
-        print(f'Event signature: {response.result["envelope"]["signature"]}')
-        print(f'Encoded public key: {response.result["envelope"]["public_key"]}')
+        print(f"Event signature: {response.result.envelope.signature}")
+        print(f"Encoded public key: {response.result.envelope.public_key}")
 
-        response_search = audit.search(query=f"message: {msg}", verify_signatures=True, limit=1)
-        self.assertEqual(response_search.code, 200)
+        search_input = SearchInput(query=f"message: {msg}", limit=1)
+
+        response_search = audit.search(search_input, verify_signatures=True)
+        self.assertEqual(response_search.status_code, 200)
+        self.assertEqual(response_search.status, ResponseStatus.SUCCESS)
 
     def test_search_results(self):
-        response_search = self.audit.search(query="")
-        self.assertEqual(response_search.code, 200)
+        response_search = self.audit.search(input=SearchInput(query="", limit=10))
+        self.assertEqual(response_search.status_code, 200)
+        self.assertEqual(response_search.status, ResponseStatus.SUCCESS)
 
-        response_results = self.audit.results(id=response_search.result.id)
-        self.assertEqual(response_results.code, 200)
+        response_results = self.audit.results(input=SearchResultInput(id=response_search.result.id))
+        self.assertEqual(response_results.status_code, 200)
+        self.assertEqual(response_results.status, ResponseStatus.SUCCESS)
+
+        # TODO: check something...
 
     def test_root(self):
-        response = self.audit.root()
-        self.assertEqual(response.code, 200)
+        response = self.audit.root(input=RootInput(tree_size=4))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
 
         # TODO: Check for a root value
 
     def test_search_verify(self):
         query = "message:test"
         restriction = {"source": ["monitor"]}
-        response = self.audit.search(query=query, restriction=restriction, verify=True)
+        input = SearchInput(query=query, search_restriction=restriction)
+        response = self.audit.search(input=input, verify=True)
 
-        self.assertEqual(response.code, 200)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
 
         # TODO: Check membership/consistency verification
 
     def test_search_sort(self):
         timestamp = time.time()
-        query = f"message:test-{timestamp}"
+        msg = f"test-{timestamp}"
         authors = ["alex", "bob", "chris", "david", "evan"]
 
-        for idx in range(0, 5):
-            data = {"message": f"test-{timestamp}", "actor": authors[idx]}
-            resp = self.audit.log(data)
-            self.assertEqual(resp.code, 200)
+        for idx in range(0, len(authors)):
+            event = Event(message=msg, actor=authors[idx])
+            resp = self.audit.log(event)
+            self.assertEqual(resp.status_code, 200)
+            self.assertEqual(resp.status, ResponseStatus.SUCCESS)
 
-        response_desc = self.audit.search(query=query, order="desc", order_by="actor")
-        self.assertEqual(response_desc.code, 200)
+        query = "message:" + msg
+        search_input = SearchInput(
+            query=query, order=SearchOrder.DESC, order_by=SearchOrderBy.RECEIVED_AT, limit=len(authors)
+        )
+        r_desc: PangeaResponse[SearchOutput] = self.audit.search(input=search_input)
+        self.assertEqual(r_desc.status_code, 200)
+        self.assertEqual(r_desc.status, ResponseStatus.SUCCESS)
+        self.assertEqual(len(r_desc.result.events), len(authors))
 
-        response_asc = self.audit.search(query=query, order="asc", order_by="actor")
-        self.assertEqual(response_asc.code, 200)
+        for idx in range(0, len(authors)):
+            self.assertEqual(r_desc.result.events[idx].envelope.event.actor, authors[idx])
 
-        # TODO: check order of events desc vs asc
+        search_input.order = SearchOrder.ASC
+        r_asc = self.audit.search(input=search_input)
+        self.assertEqual(r_asc.status_code, 200)
+        self.assertEqual(r_asc.status, ResponseStatus.SUCCESS)
+        self.assertEqual(len(r_asc.result.events), len(authors))
+
+        for idx in range(0, len(authors)):
+            self.assertEqual(r_asc.result.events[len(authors) - 1 - idx].envelope.event.actor, authors[idx])
 
 
 if __name__ == "__main__":

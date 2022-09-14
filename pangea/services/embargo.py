@@ -1,17 +1,24 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
-from dataclasses import dataclass
-from typing import Dict, List, Optional
+from typing import Any, List
 
-from pydantic import BaseModel
+from pydantic import BaseModel, dataclasses
 
 from pangea.response import PangeaResponse
 
 from .base import ServiceBase
 
 
-@dataclass
-class IPCheckInput(BaseModel):
+class BaseModelConfig(BaseModel):
+    class Config:
+        arbitrary_types_allowed = True
+
+
+class Config:
+    arbitrary_types_allowed = True
+
+
+class IPCheckInput(BaseModelConfig):
     """
     Input class to perform a IP check request
 
@@ -19,11 +26,10 @@ class IPCheckInput(BaseModel):
     IP -- IP to check against the enabled embargo lists. Accepts both IPV4 and IPV6 strings.
     """
 
-    IP: str
+    ip: str
 
 
-@dataclass
-class ISOCheckInput(BaseModel):
+class ISOCheckInput(BaseModelConfig):
     """
     Input class to perform a ISO check
 
@@ -31,24 +37,22 @@ class ISOCheckInput(BaseModel):
     ISOCode -- Check this two character country ISO-code against the enabled embargo lists.
     """
 
-    ISOCode: str
+    iso_code: str
 
 
-@dataclass
-class Sanction(BaseModel):
+class Sanction(BaseModelConfig):
     """
     TODO: complete
     """
 
-    embargo_country_ISO_code: str
+    embargoed_country_iso_code: str
     issuing_country: str
     list_name: str
     embargoed_country_name: str
-    annotations: dict[str][any]
+    annotations: dict[str, Any]
 
 
-@dataclass
-class CheckOutput(BaseModel):
+class CheckOutput(BaseModelConfig):
     """
     Class returned after check request
 
@@ -56,7 +60,7 @@ class CheckOutput(BaseModel):
     """
 
     count: int
-    sancions: List[Sanction]
+    sanctions: List[Sanction]
 
 
 class Embargo(ServiceBase):
@@ -91,7 +95,7 @@ class Embargo(ServiceBase):
     service_name = "embargo"
     version = "v1"
 
-    def ip_check(self, ip: str) -> PangeaResponse:
+    def ip_check(self, input: IPCheckInput) -> PangeaResponse[CheckOutput]:
         """
         Check IP
 
@@ -143,10 +147,12 @@ class Embargo(ServiceBase):
             }
             \"\"\"
         """
+        response = self.request.post("ip/check", data=input.dict())
+        result = CheckOutput(**response.result)
+        response.result = result
+        return response
 
-        return self.request.post("ip/check", data={"ip": ip})
-
-    def iso_check(self, iso_code: str) -> PangeaResponse:
+    def iso_check(self, input: ISOCheckInput) -> PangeaResponse[CheckOutput]:
         """
         ISO Code Check
 
@@ -185,4 +191,6 @@ class Embargo(ServiceBase):
             \"\"\"
         """
 
-        return self.request.post("iso/check", data={"iso_code": iso_code})
+        response = self.request.post("iso/check", data=input.dict())
+        response.result = CheckOutput(**response.result)
+        return response

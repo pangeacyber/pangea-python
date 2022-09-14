@@ -1,11 +1,12 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 import datetime
+import enum
 import json
 import os
-import typing as t
-from dataclasses import dataclass
-from typing import List, Optional
+from csv import excel
+from sre_constants import SUCCESS
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel
 
@@ -44,8 +45,12 @@ SupportedJSONFields = [
 ]
 
 
-@dataclass
-class Event(BaseModel):
+class BaseModelConfig(BaseModel):
+    class Config:
+        arbitrary_types_allowed = True
+
+
+class Event(BaseModelConfig):
     """Event to perform an auditable activity
 
     Arguments:
@@ -63,16 +68,15 @@ class Event(BaseModel):
     message: str | dict
     actor: Optional[str] = None
     action: Optional[str] = None
-    new: Optional[str] = None
-    old: Optional[str] = None
+    new: Optional[str | dict] = None
+    old: Optional[str | dict] = None
     source: Optional[str] = None
     status: Optional[str] = None
     target: Optional[str] = None
     timestamp: Optional[str] = None
 
 
-@dataclass
-class EventEnvelope(BaseModel):
+class EventEnvelope(BaseModelConfig):
     """
     Contain extra information about an event.
 
@@ -89,8 +93,26 @@ class EventEnvelope(BaseModel):
     received_at: Optional[str]
 
 
-@dataclass
-class LogOutput(BaseModel):
+class LogInput(BaseModelConfig):
+    """
+    Input class to perform a log action
+
+    Arguments:
+        event -- A structured event describing an auditable activity.
+    return_hash -- Return the event's hash with response.
+    verbose -- If true, be verbose in the response; include canonical events, create time, hashes, etc.
+    signature -- An optional client-side signature for forgery protection.
+    public_key -- The base64-encoded ed25519 public key used for the signature, if one is provided.
+    """
+
+    event: Event
+    return_hash: Optional[bool] = None
+    verbose: Optional[bool] = None
+    signature: Optional[str] = None
+    public_key: Optional[str] = None
+
+
+class LogOutput(BaseModelConfig):
     """
     Result class after an audit log action
 
@@ -99,13 +121,12 @@ class LogOutput(BaseModel):
     canonical_event_base64 -- A base64 encoded canonical JSON form of the event, used for hashing.
     """
 
-    envelope: EventEnvelope
-    hash: str
-    canonical_event_base64: str
+    envelope: Optional[EventEnvelope] = None
+    hash: Optional[str] = None
+    canonical_event_base64: Optional[str]
 
 
-@dataclass
-class SearchRestriction(BaseModel):
+class SearchRestriction(BaseModelConfig):
     """
     Set of restrictions when perform an audit search action
 
@@ -120,8 +141,23 @@ class SearchRestriction(BaseModel):
     target: List[str] = []
 
 
-@dataclass
-class SearchInput(BaseModel):
+class SearchOrder(str, enum.Enum):
+    ASC = "desc"
+    DESC = "asc"
+
+
+class SearchOrderBy(str, enum.Enum):
+    ACTOR = "actor"
+    ACTION = "action"
+    MESSAGE = "message"
+    RECEIVED_AT = "received_at"
+    SOURCE = "source"
+    STATUS = "status"
+    TARGET = "target"
+    TIMESTAMP = "timestamp"
+
+
+class SearchInput(BaseModelConfig):
     """
     Input class to perform an audit search action
 
@@ -151,8 +187,8 @@ class SearchInput(BaseModel):
     """
 
     query: str
-    order: Optional[str] = None
-    order_by: Optional[str] = None
+    order: Optional[SearchOrder] = None
+    order_by: Optional[SearchOrderBy] = None
     last: Optional[str] = None
     start: Optional[datetime.time] = None
     end: Optional[datetime.time] = None
@@ -164,8 +200,7 @@ class SearchInput(BaseModel):
     search_restriction: Optional[SearchRestriction] = None
 
 
-@dataclass
-class RootInput(BaseModel):
+class RootInput(BaseModelConfig):
     """
     Input class to perform a root request action
 
@@ -177,8 +212,7 @@ class RootInput(BaseModel):
     tree_size: int
 
 
-@dataclass
-class Root(BaseModel):
+class Root(BaseModelConfig):
     """
     Tree root information
 
@@ -199,8 +233,7 @@ class Root(BaseModel):
     consistency_proof: List[str]
 
 
-@dataclass
-class RootOutput(BaseModel):
+class RootOutput(BaseModelConfig):
     """
     Result class after a root request
     """
@@ -208,8 +241,13 @@ class RootOutput(BaseModel):
     data: Root
 
 
-@dataclass
-class SearchEvent(BaseModel):
+class EventVerification(str, enum.Enum):
+    NONE = "none"
+    PASS = "pass"
+    FAIL = "fail"
+
+
+class SearchEvent(BaseModelConfig):
     """
     Event information received after a search request
 
@@ -225,15 +263,14 @@ class SearchEvent(BaseModel):
 
     envelope: EventEnvelope
     hash: str
-    leaf_index: int
-    membership_proof: str
-    consistency_verification: str = "none"
-    membership_verification: str = "none"
-    signature_verification: str = "none"
+    leaf_index: Optional[int] = None
+    membership_proof: Optional[str] = None  # FIXME: Check membership and others class
+    consistency_verification: EventVerification = EventVerification.NONE
+    membership_verification: EventVerification = EventVerification.NONE
+    signature_verification: EventVerification = EventVerification.NONE
 
 
-@dataclass
-class SearchOutput(BaseModel):
+class SearchOutput(BaseModelConfig):
     """
     Result class after an audit search action
 
@@ -245,15 +282,14 @@ class SearchOutput(BaseModel):
     events -- A list of matching audit records.
     """
 
-    id: str
-    expires_at: datetime.time
     count: int
-    root: Root
     events: List[SearchEvent]
+    id: Optional[str] = None
+    expires_at: Optional[str] = None
+    root: Optional[Root] = None
 
 
-@dataclass
-class SearchResultInput(BaseModel):
+class SearchResultInput(BaseModelConfig):
     """
     Class used to paginate search results
 
@@ -267,15 +303,14 @@ class SearchResultInput(BaseModel):
     """
 
     id: str
+    limit: Optional[int] = 20
+    offset: Optional[int] = 0
     include_membership_proof: Optional[bool] = None
     include_hash: Optional[bool] = None
     include_root: Optional[bool] = None
-    limit: Optional[int] = None
-    offset: Optional[int] = None
 
 
-@dataclass
-class SearchResultOutput(BaseModel):
+class SearchResultOutput(BaseModelConfig):
     """
     Return class after a pagination search
 
@@ -332,7 +367,7 @@ class Audit(ServiceBase):
         super().__init__(token, config)
 
         self.pub_roots: dict = {}
-        self.buffer_data: t.Optional[str] = None
+        self.buffer_data: Optional[str] = None
         self.root_id_filename: str = get_root_filename()
 
         # TODO: Document signing options
@@ -345,14 +380,16 @@ class Audit(ServiceBase):
         # In case of Arweave failure, ask the server for the roots
         self.allow_server_roots = True
 
-    def log(self, event: dict, verify: bool = False, signing: bool = False, verbose: bool = False) -> PangeaResponse:
+    def log(
+        self, event: Event, verify: bool = False, signing: bool = False, verbose: bool = False
+    ) -> PangeaResponse[LogOutput]:
         """
         Log an entry
 
         Create a log entry in the Secure Audit Log.
 
         Args:
-            event (dict): A structured dict describing an auditable activity.
+            event (Event): A structured dict describing an auditable activity.
             verify (bool, optional):
             signing (bool, optional):
             verbose (bool, optional):
@@ -400,157 +437,138 @@ class Audit(ServiceBase):
         if signing and not self.enable_signing:
             raise AuditException("Error: the `signing` parameter set, but `enable_signing` is not set to True")
 
-        data: t.Dict[str, t.Any] = {"event": {}, "return_hash": True}
+        input = LogInput(event=event, verbose=verbose, return_hash=True)
 
-        for name in SupportedFields:
-            if name in event:
-                data["event"][name] = event[name]
+        # FIXME: How do we solve this with dataclasses? check using message with dictionary
+        # for name in SupportedFields:
+        #     if name in event:
+        #         data["event"][name] = event[name]
 
-        for name in SupportedJSONFields:
-            if name in event:
-                if isinstance(event[name], dict):
-                    data["event"][name] = json.dumps(event[name])
-                else:
-                    data["event"][name] = event[name]
-
-        if "message" not in data["event"]:
-            raise AuditException(f"Error: missing required field, no `message` provided")
-
-        if verbose:
-            data["verbose"] = True
+        # for name in SupportedJSONFields:
+        #     if name in event:
+        #         if isinstance(event[name], dict):
+        #             data["event"][name] = json.dumps(event[name])
+        #         else:
+        #             data["event"][name] = event[name]
 
         if signing:
-            sign_envelope = self.create_signed_envelope(data["event"])
-            signature = self.signer.signMessage(sign_envelope)
+            data2sign = event.dict(exclude_none=True)
+            signature = self.signer.signMessage(data2sign)
             if signature is not None:
-                data["signature"] = signature
+                input.signature = signature
             else:
                 raise AuditException("Error: failure signing message")
 
             public_bytes = self.signer.getPublicKeyBytes()
-            data["public_key"] = b64encode_ascii(public_bytes)
+            input.public_key = b64encode_ascii(public_bytes)
 
         prev_buffer_root = None
         if verify:
-            data["verbose"] = verify
-            data["return_hash"] = verify
-            data["return_proof"] = verify
+            pass
+            # FIXME: Fix this later
+            # data["verbose"] = verify
+            # data["return_hash"] = verify
+            # data["return_proof"] = verify
 
-            buffer_data: dict = {}
-            buffer_data = json.loads(self.get_buffer_data())
-            if buffer_data:
-                prev_buffer_root = buffer_data.get("last_root")
-                return_commit_proofs = buffer_data.get("pending_roots")
+            # buffer_data: dict = {}
+            # buffer_data = json.loads(self.get_buffer_data())
+            # if buffer_data:
+            #     prev_buffer_root = buffer_data.get("last_root")
+            #     return_commit_proofs = buffer_data.get("pending_roots")
 
-                if prev_buffer_root:
-                    data["prev_buffer_root"] = prev_buffer_root
+            #     if prev_buffer_root:
+            #         data["prev_buffer_root"] = prev_buffer_root
 
-                if return_commit_proofs:
-                    data["return_commit_proofs"] = return_commit_proofs
+            #     if return_commit_proofs:
+            #         data["return_commit_proofs"] = return_commit_proofs
 
-        response = self.request.post(endpoint_name, data=data)
+        response = self.request.post(endpoint_name, data=input.dict(exclude_none=True))
 
         return self.handle_log_response(response, verify=verify, prev_buffer_root_enc=prev_buffer_root)
 
-    def handle_log_response(self, response: PangeaResponse, verify: bool, prev_buffer_root_enc: bytes):
+    def handle_log_response(
+        self, response: PangeaResponse[Dict], verify: bool, prev_buffer_root_enc: bytes
+    ) -> PangeaResponse[LogOutput]:
         if not response.success:
             return response
 
+        response.result = LogOutput(**response.result)
+
         if verify:
-            new_buffer_root_enc = response.result.get("unpublished_root")
-            membership_proof_enc = response.result.get("membership_proof")
-            consistency_proof_enc = response.result.get("consistency_proof")
-            commit_proofs = response.result.get("commit_proofs")
-            event = response.result.get("event")
-            event_hash_enc = response.result.get("hash")
+            pass
+            # FIXME: check fields positions
+            # new_buffer_root_enc = response.result.get("unpublished_root")
+            # membership_proof_enc = response.result.get("membership_proof")
+            # consistency_proof_enc = response.result.get("consistency_proof")
+            # commit_proofs = response.result.get("commit_proofs")
+            # event = response.result.get("event")
+            # event_hash_enc = response.result.get("hash")
 
-            new_buffer_root = decode_buffer_root(new_buffer_root_enc)
-            event_hash = decode_hash(event_hash_enc)
-            membership_proof = decode_membership_proof(membership_proof_enc)
-            pending_roots = []
+            # new_buffer_root = decode_buffer_root(new_buffer_root_enc)
+            # event_hash = decode_hash(event_hash_enc)
+            # membership_proof = decode_membership_proof(membership_proof_enc)
+            # pending_roots = []
 
-            # verify event hash
-            if not verify_hash(hash_dict(event), event_hash):
-                raise AuditException(f"Error: Event hash failed.")
+            # # verify event hash
+            # if not verify_hash(hash_dict(event), event_hash):
+            #     raise AuditException(f"Error: Event hash failed.")
 
-            # verify membership proofs
-            if not verify_membership_proof(
-                node_hash=event_hash, root_hash=new_buffer_root.root_hash, proof=membership_proof
-            ):
-                raise AuditException(f"Error: Membership proof failed.")
+            # # verify membership proofs
+            # if not verify_membership_proof(
+            #     node_hash=event_hash, root_hash=new_buffer_root.root_hash, proof=membership_proof
+            # ):
+            #     raise AuditException(f"Error: Membership proof failed.")
 
-            # verify consistency proofs (following events)
-            if consistency_proof_enc:
-                prev_buffer_root = decode_buffer_root(prev_buffer_root_enc)
-                consistency_proof = decode_consistency_proof(consistency_proof_enc)
+            # # verify consistency proofs (following events)
+            # if consistency_proof_enc:
+            #     prev_buffer_root = decode_buffer_root(prev_buffer_root_enc)
+            #     consistency_proof = decode_consistency_proof(consistency_proof_enc)
 
-                if not verify_consistency_proof(
-                    new_root=new_buffer_root.root_hash, prev_root=prev_buffer_root.root_hash, proof=consistency_proof
-                ):
-                    raise AuditException(f"Error: Consistency proof failed.")
+            #     if not verify_consistency_proof(
+            #         new_root=new_buffer_root.root_hash, prev_root=prev_buffer_root.root_hash, proof=consistency_proof
+            #     ):
+            #         raise AuditException(f"Error: Consistency proof failed.")
 
-            if commit_proofs:
-                # Get the root from the cold tree...
-                root_response = self.root()
-                if not root_response.success:
-                    return root_response
+            # if commit_proofs:
+            #     # Get the root from the cold tree...
+            #     # FIXME: This should be on LogOutput by default
+            #     root_response = self.root()
+            #     if not root_response.success:
+            #         return root_response
 
-                cold_root_hash_enc = root_response.result.data.get("root_hash")
-                if cold_root_hash_enc:
-                    cold_root_hash = decode_hash(cold_root_hash_enc)
+            #     cold_root_hash_enc = root_response.result.data.get("root_hash")
+            #     if cold_root_hash_enc:
+            #         cold_root_hash = decode_hash(cold_root_hash_enc)
 
-                    for buffer_root_enc, commit_proof_enc in commit_proofs.items():
-                        if commit_proof_enc is None:
-                            pending_roots.append(buffer_root_enc)
-                        else:
-                            buffer_root = decode_buffer_root(buffer_root_enc)
-                            commit_proof = decode_consistency_proof(commit_proof_enc)
+            #         for buffer_root_enc, commit_proof_enc in commit_proofs.items():
+            #             if commit_proof_enc is None:
+            #                 pending_roots.append(buffer_root_enc)
+            #             else:
+            #                 buffer_root = decode_buffer_root(buffer_root_enc)
+            #                 commit_proof = decode_consistency_proof(commit_proof_enc)
 
-                            if not verify_consistency_proof(
-                                new_root=cold_root_hash, prev_root=buffer_root.root_hash, proof=commit_proof
-                            ):
-                                raise AuditException(f"Error: Consistency proof failed.")
+            #                 if not verify_consistency_proof(
+            #                     new_root=cold_root_hash, prev_root=buffer_root.root_hash, proof=commit_proof
+            #                 ):
+            #                     raise AuditException(f"Error: Consistency proof failed.")
 
-            self.set_buffer_data(last_root_enc=new_buffer_root_enc, pending_roots=pending_roots)
+            # self.set_buffer_data(last_root_enc=new_buffer_root_enc, pending_roots=pending_roots)
 
         return response
 
     def search(
         self,
-        query: str = "",
-        restriction: dict = {},
-        limit: int = 20,
-        max_results: t.Optional[int] = None,
-        start: str = "",
-        end: str = "",
-        order: str = "",
-        order_by: str = "",
+        input: SearchInput,
         verify: bool = False,
         verify_signatures: bool = False,
-    ) -> PangeaResponse:
+    ) -> PangeaResponse[SearchOutput]:
         """
         Search for events
 
         Search for events that match the provided search criteria.
 
         Args:
-            query (str, optional): Natural search string; list of keywords with optional `<option>:<value>` qualifiers.
-                The following optional qualifiers are supported:
-                    - action:
-                    - actor:
-                    - message:
-                    - new:
-                    - old:
-                    - status:
-                    - target:
-            restriction (dict, optional): A dict of field name/value pairs on which to restrict the search.
-            limit (int, optional): Maximum number of records to return per page. Default is 20.
-            max_results (int, optional): Maximum number of records in total. Default is 10000.
-            start (str, optional): The start of the time range to perform the search on.
-            end (str, optional): The end of the time range to perform the search on.
-                All records up to the latest if left out.
-            order (str, optional): One of  "asc", "desc"
-            order_by (str, optional): One of "actor", "action", "message", "received_at", "source", "status", "target", "timestamp"
+            input (SearchInput): Input class with search query parameters
             verify (bool, optional): If set, the consistency and membership proofs are validated for all
                 events returned by `search` and `results`. The fields `consistency_proof_verification` and
                 `membership_proof_verification` are added to each event, with the value `pass`, `fail` or `none`.
@@ -611,48 +629,17 @@ class Audit(ServiceBase):
 
         endpoint_name = "search"
 
-        if not (isinstance(limit, int) and limit > 0):
-            raise AuditException("The 'limit' argument must be a positive integer > 0")
-
         self.verify_response = verify
 
-        # TODO: allow control of `include` flags
-        data = {
-            "query": query,
-            "include_membership_proof": True,
-            "include_hash": True,
-            "include_root": True,
-            "limit": limit,
-        }
+        # FIXME: Check why this and improve
+        input.include_hash = True
+        input.include_hash = True
+        input.include_membership_proof = True
 
-        if start:
-            data["start"] = start
+        response = self.request.post(endpoint_name, data=input.dict(exclude_none=True))
+        return self.handle_search_response(response, verify_signatures)
 
-        if end:
-            data["end"] = end
-
-        if restriction:
-            data["search_restriction"] = restriction
-
-        if order:
-            data["order"] = order
-
-        if order_by:
-            data["order_by"] = order_by
-
-        if max_results:
-            data["max_results"] = max_results
-
-        response = self.request.post(endpoint_name, data=data)
-
-        if verify_signatures:
-            for audit_envelope in response.result.events:
-                if not self.verify_signature(audit_envelope):
-                    raise AuditException("signature failed")
-
-        return self.handle_search_response(response)
-
-    def results(self, id: str, limit: int = 20, offset: int = 0, verify_signatures: bool = False):
+    def results(self, input: SearchResultInput, verify_signatures: bool = False):
         """
         Results of a Search
 
@@ -672,33 +659,28 @@ class Audit(ServiceBase):
 
         endpoint_name = "results"
 
-        if not id:
-            raise AuditException("An 'id' parameter is required")
-
-        if not (isinstance(limit, int) and limit > 0):
+        if input.limit <= 0:
             raise AuditException("The 'limit' argument must be a positive integer > 0")
 
-        if not (isinstance(offset, int) and offset >= 0):
+        if input.offset < 0:
             raise AuditException("The 'offset' argument must be a positive integer")
 
-        data = {
-            "id": id,
-            "limit": limit,
-            "offset": offset,
-        }
+        response = self.request.post(endpoint_name, data=input.dict(exclude_none=True))
+        return self.handle_search_response(response, verify_signatures)
 
-        response = self.request.post(endpoint_name, data=data)
-
-        if verify_signatures:
-            for audit_envelope in response.result.events:
-                if not self.verify_signature(audit_envelope):
-                    raise AuditException("signature failed")
-
-        return self.handle_search_response(response)
-
-    def handle_search_response(self, response: PangeaResponse):
+    def handle_search_response(
+        self, response: PangeaResponse[dict], verify_signatures=False
+    ) -> PangeaResponse[SearchOutput]:
         if not response.success:
             return response
+
+        response.result = SearchOutput(**response.result)
+
+        if verify_signatures:
+            for event_search in response.result.events:
+                event_search.signature_verification = (
+                    EventVerification.PASS if self.verify_signature(event_search.envelope) else EventVerification.FAIL
+                )
 
         root = response.result.root
 
@@ -707,39 +689,32 @@ class Audit(ServiceBase):
             if not root:
                 response.result.root = {}
 
-                # set verification flags for all events to `none`
-                for audit in response.result.events:
-                    audit.envelope.membership_verification = "none"
-                    audit.envelope.consistency_verification = "none"
-
                 return response
 
             self.update_published_roots(self.pub_roots, response.result)
 
-            for audit in response.result.events:
+            for search_event in response.result.events:
                 # verify membership proofs
-                membership_verification = "none"
-                if self.can_verify_membership_proof(audit):
-                    if self.verify_membership_proof(response.result.root, audit):
-                        membership_verification = "pass"
+                if self.can_verify_membership_proof(search_event):
+                    if self.verify_membership_proof(response.result.root, search_event):
+                        search_event.membership_verification = EventVerification.PASS
                     else:
-                        membership_verification = "fail"
-
-                audit.envelope.membership_verification = membership_verification
+                        search_event.membership_verification = EventVerification.FAIL
 
                 # verify consistency proofs
                 consistency_verification = "none"
-                if self.can_verify_consistency_proof(audit):
-                    if self.verify_consistency_proof(self.pub_roots, audit):
+                if self.can_verify_consistency_proof(search_event):
+                    if self.verify_consistency_proof(self.pub_roots, search_event):
                         consistency_verification = "pass"
                     else:
                         consistency_verification = "fail"
 
-                audit.envelope.consistency_verification = consistency_verification
+                search_event.envelope.consistency_verification = consistency_verification
 
         return response
 
-    def update_published_roots(self, pub_roots: t.Dict[int, t.Optional[JSONObject]], result: JSONObject):
+    def update_published_roots(self, pub_roots: Dict[int, Optional[JSONObject]], result: JSONObject):
+        # FIXME: Update classes
         """Fetches series of published root hashes from Arweave
 
         This is used for subsequent calls to verify_consistency_proof(). Root hashes
@@ -784,7 +759,7 @@ class Audit(ServiceBase):
                     pub_root.source = "pangea"
             pub_roots[tree_size] = pub_root
 
-    def can_verify_membership_proof(self, event: JSONObject) -> bool:
+    def can_verify_membership_proof(self, event: SearchEvent) -> bool:
         """
         Can verify membership proof
 
@@ -798,9 +773,10 @@ class Audit(ServiceBase):
         Returns:
             bool: True if membership proof is available, False otherwise
         """
-        return event.get("membership_proof") is not None
+        return event.membership_proof is not None
 
     def verify_membership_proof(self, root: JSONObject, event: JSONObject) -> bool:
+        # FIXME: update classes
         """
         Verify membership proof
 
@@ -829,7 +805,7 @@ class Audit(ServiceBase):
 
         return verify_membership_proof(node_hash, root_hash, proof)
 
-    def can_verify_consistency_proof(self, event: JSONObject) -> bool:
+    def can_verify_consistency_proof(self, event: SearchEvent) -> bool:
         """
         Can verify consistency proof
 
@@ -843,11 +819,11 @@ class Audit(ServiceBase):
         Returns:
             bool: True if the consistency can be verifed, False otherwise
         """
-        leaf_index = event.get("leaf_index")
-
+        leaf_index = event.leaf_index
         return leaf_index is not None and leaf_index > 0
 
-    def verify_consistency_proof(self, pub_roots: t.Dict[int, t.Optional[JSONObject]], event: JSONObject) -> bool:
+    def verify_consistency_proof(self, pub_roots: Dict[int, Optional[JSONObject]], event: JSONObject) -> bool:
+        # FIXME: Update classes
         """
         Verify consistency proof
 
@@ -878,7 +854,7 @@ class Audit(ServiceBase):
 
         return verify_consistency_proof(curr_root_hash, prev_root_hash, proof)
 
-    def verify_signature(self, audit_envelope: JSONObject) -> bool:
+    def verify_signature(self, audit_envelope: EventEnvelope) -> bool:
         """
         Verify signature
 
@@ -888,13 +864,15 @@ class Audit(ServiceBase):
         Returns:
           bool:
         """
-        sign_envelope = self.create_signed_envelope(audit_envelope.envelope.event)
-        public_key_b64 = audit_envelope.envelope.public_key
-        public_key_bytes = b64decode_ascii(public_key_b64)
         v = Verifier()
-        return v.verifyMessage(audit_envelope.envelope.signature, sign_envelope, public_key_bytes)
+        if audit_envelope.signature and audit_envelope.public_key:
+            return v.verifyMessage(
+                audit_envelope.signature, audit_envelope.event.dict(exclude_none=True), audit_envelope.public_key
+            )
+        else:
+            return False
 
-    def root(self, tree_size: int = 0) -> PangeaResponse:
+    def root(self, input: RootInput) -> PangeaResponse:
         """
         Retrieve tamperproof verification
 
@@ -914,16 +892,7 @@ class Audit(ServiceBase):
             response = audit.root(tree_size=7)
         """
         endpoint_name = "root"
-
-        data = {}
-
-        if tree_size > 0:
-            data["tree_size"] = tree_size
-
-        return self.request.post(endpoint_name, data=data)
-
-    def create_signed_envelope(self, event: dict) -> dict:
-        return {key: val for key, val in event.items() if val is not None}
+        return self.request.post(endpoint_name, data=input.dict(exclude_none=True))
 
     def get_buffer_data(self):
         if not self.buffer_data:
@@ -936,7 +905,7 @@ class Audit(ServiceBase):
 
         return self.buffer_data
 
-    def set_buffer_data(self, last_root_enc: str, pending_roots: t.List[str]):
+    def set_buffer_data(self, last_root_enc: str, pending_roots: List[str]):
         buffer_dict = dict()
         buffer_dict["last_root"] = last_root_enc
         buffer_dict["pending_roots"] = pending_roots

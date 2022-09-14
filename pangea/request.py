@@ -4,6 +4,7 @@
 import json
 import logging
 import time
+from typing import Dict
 
 import requests
 from requests.adapters import HTTPAdapter, Retry
@@ -74,7 +75,7 @@ class PangeaRequest(object):
 
         return self._queued_retry_enabled
 
-    def post(self, endpoint: str = "", data: dict = {}) -> PangeaResponse:
+    def post(self, endpoint: str = "", data: dict = {}) -> PangeaResponse[dict]:
         """Makes the POST call to a Pangea Service endpoint.
 
         If queued_support mode is enabled, progress checks will be made for
@@ -102,12 +103,12 @@ class PangeaRequest(object):
 
             pangea_response = self._handle_queued(request_id)
         else:
-            pangea_response = PangeaResponse(requests_response)
+            pangea_response = PangeaResponse[Dict](requests_response)
 
         self._check_response(pangea_response)
         return pangea_response
 
-    def get(self, endpoint: str, path: str) -> PangeaResponse:
+    def get(self, endpoint: str, path: str) -> PangeaResponse[dict]:
         """Makes the GET call to a Pangea Service endpoint.
 
         Args:
@@ -122,15 +123,17 @@ class PangeaRequest(object):
 
         requests_response = self.request.get(url, headers=self._headers())
 
-        pangea_response = PangeaResponse(requests_response)
+        pangea_response = PangeaResponse[Dict](requests_response)
+
         self._check_response(pangea_response)
         return pangea_response
 
-    def _to_response(self, response: requests.Response) -> PangeaResponse:
-        resp = PangeaResponse(response)
-        return resp
+    # TODO: Remove deprecated
+    # def _to_response(self, response: requests.Response) -> PangeaResponse:
+    #     resp = PangeaResponse(response)
+    #     return resp
 
-    def _handle_queued(self, request_id: str) -> PangeaResponse:
+    def _handle_queued(self, request_id: str) -> PangeaResponse[dict]:
         retry_count = 1
 
         while True:
@@ -177,13 +180,14 @@ class PangeaRequest(object):
 
         return headers
 
-    def _check_response(self, response: PangeaResponse):
+    def _check_response(self, response: PangeaResponse[dict]):
         status = response.status
-        summary = response._data.get("summary")
+        summary = response.summary
 
         if status == "Success":
             return
         elif status == "ValidationError":
+            # FIXME: check this case. It's sure we have 'errors'?
             raise exceptions.ValidationException(summary, response.result["errors"])
         elif status == "TooManyRequests":
             raise exceptions.RateLimitException(summary)
