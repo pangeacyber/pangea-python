@@ -2,11 +2,9 @@
 # Author: Pangea Cyber Corporation
 
 import enum
-from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel
-from pydantic.dataclasses import dataclass
 
 from pangea.response import PangeaResponse
 
@@ -15,16 +13,16 @@ from .base import ServiceBase
 ConfigIDHeaderName = "X-Pangea-Redact-Config-ID"
 
 
-class DataclassConfig:
-    arbitrary_types_allowed = True
+class BaseModelConfig(BaseModel):
+    class Config:
+        arbitrary_types_allowed = True
 
 
 class RedactFormat(str, enum.Enum):
     JSON = "json"
 
 
-@dataclass(config=DataclassConfig)
-class TextInput(BaseModel):
+class RedactInput(BaseModelConfig):
     """
     Input class to make a redact request
 
@@ -34,11 +32,10 @@ class TextInput(BaseModel):
     """
 
     text: str
-    debug: bool
+    debug: bool = False
 
 
-@dataclass(config=DataclassConfig)
-class RecognizerResult(BaseModel):
+class RecognizerResult(BaseModelConfig):
     """
     TODO: complete
 
@@ -61,8 +58,7 @@ class RecognizerResult(BaseModel):
     data_key: Optional[str]
 
 
-@dataclass(config=DataclassConfig)
-class DebugReport(BaseModel):
+class DebugReport(BaseModelConfig):
     """
     TODO: complete
 
@@ -72,8 +68,7 @@ class DebugReport(BaseModel):
     recognizer_results: List[RecognizerResult]
 
 
-@dataclass(config=DataclassConfig)
-class TextOutput(BaseModel):
+class RedactOutput(BaseModelConfig):
     """
     Result class after a redact request
 
@@ -82,12 +77,11 @@ class TextOutput(BaseModel):
     report -- TODO: complete
     """
 
-    redact_text: str
-    report: DebugReport
+    redacted_text: str
+    report: Optional[DebugReport] = None
 
 
-@dataclass(config=DataclassConfig)
-class StructuredInput(BaseModel):
+class StructuredInput(BaseModelConfig):
     """
     Class input to redact structured data request
 
@@ -104,15 +98,14 @@ class StructuredInput(BaseModel):
     debug: Optional[bool] = None
 
 
-@dataclass(config=DataclassConfig)
-class StructuredOutput(BaseModel):
+class StructuredOutput(BaseModelConfig):
     """
     TODO: complete
 
     """
 
     redacted_data: str | Dict  # FIXME: this should be raw json
-    report: DebugReport
+    report: Optional[DebugReport] = None
 
 
 class RedactFormat(str, enum.Enum):
@@ -157,7 +150,7 @@ class Redact(ServiceBase):
         if self.config.config_id:
             self.request.set_extra_headers({ConfigIDHeaderName: self.config.config_id})
 
-    def redact(self, text: str, debug=False) -> PangeaResponse:
+    def redact(self, input: RedactInput) -> PangeaResponse[RedactOutput]:
         """
         Redact
 
@@ -176,7 +169,7 @@ class Redact(ServiceBase):
                 [https://docs.dev.pangea.cloud/docs/api/redact#redact](https://docs.dev.pangea.cloud/docs/api/redact#redact)
 
         Examples:
-            response = redact.redact("Jenny Jenny... 415-867-5309")
+            response = redact.redact(RedactInput(text="Jenny Jenny... 415-867-5309"))
 
             \"\"\"
             response contains:
@@ -193,11 +186,11 @@ class Redact(ServiceBase):
             }
             \"\"\"
         """
-        return self.request.post("redact", data={"text": text, "debug": debug})
+        response = self.request.post("redact", data=input.dict(exclude_none=True))
+        response.result = RedactOutput(**response.result)
+        return response
 
-    def redact_structured(
-        self, obj: Any, redact_format: RedactFormat = RedactFormat.JSON, debug=False
-    ) -> PangeaResponse:
+    def redact_structured(self, input: StructuredInput) -> PangeaResponse[StructuredOutput]:
         """
         Redact structured
 
@@ -237,7 +230,6 @@ class Redact(ServiceBase):
             }
             \"\"\"
         """
-        return self.request.post(
-            "redact_structured",
-            data={"data": obj, "format": redact_format, "debug": debug},
-        )
+        response = self.request.post("redact_structured", data=input.dict(exclude_none=True))
+        response.result = StructuredOutput(**response.result)
+        return response

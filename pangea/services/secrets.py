@@ -1,14 +1,13 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 
-import json
-import os
-import typing as t
-from typing import List
+from typing import Dict, List
 
-from pangea.response import JSONObject, PangeaResponse
+from pangea.response import PangeaResponse
 
 from .base import ServiceBase
+
+# FIXME: update this SDK once service is ready
 
 
 class Secrets(ServiceBase):
@@ -39,7 +38,7 @@ class Secrets(ServiceBase):
     service_name = "secretstore"
     version = "v1"
 
-    def get(self, secret_id: str, secret_version: str = None) -> PangeaResponse:
+    def get(self, secret_id: str, secret_version: str = None) -> PangeaResponse[Dict]:
         """
         Secrets
 
@@ -84,7 +83,7 @@ class Secrets(ServiceBase):
 
         return self.request.post("get", data={"secret_id": secret_id, "secret_version": secret_version})
 
-    def add(self, secret_id: str, secret_value: str) -> PangeaResponse:
+    def add(self, secret_id: str, secret_value: str) -> PangeaResponse[Dict]:
         """
         Secrets
 
@@ -128,7 +127,7 @@ class Secrets(ServiceBase):
 
         return self.request.post("add", data={"secret_id": secret_id, "secret_value": secret_value})
 
-    def update(self, secret_id: str, secret_value: str) -> PangeaResponse:
+    def update(self, secret_id: str, secret_value: str) -> PangeaResponse[Dict]:
         """
         Secrets
 
