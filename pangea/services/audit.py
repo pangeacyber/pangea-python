@@ -4,9 +4,7 @@ import datetime
 import enum
 import json
 import os
-from csv import excel
-from sre_constants import SUCCESS
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 
 from pydantic import BaseModel
 
@@ -15,7 +13,6 @@ from pangea.response import JSONObject, PangeaResponse
 from pangea.signing import Signer, Verifier
 
 from .audit_util import (
-    b64decode_ascii,
     b64encode_ascii,
     decode_buffer_root,
     decode_consistency_proof,
@@ -48,6 +45,12 @@ SupportedJSONFields = [
 class BaseModelConfig(BaseModel):
     class Config:
         arbitrary_types_allowed = True
+
+
+class EventVerification(str, enum.Enum):
+    NONE = "none"
+    PASS = "pass"
+    FAIL = "fail"
 
 
 class Event(BaseModelConfig):
@@ -98,11 +101,13 @@ class LogInput(BaseModelConfig):
     Input class to perform a log action
 
     Arguments:
-        event -- A structured event describing an auditable activity.
+    event -- A structured event describing an auditable activity.
     return_hash -- Return the event's hash with response.
     verbose -- If true, be verbose in the response; include canonical events, create time, hashes, etc.
     signature -- An optional client-side signature for forgery protection.
     public_key -- The base64-encoded ed25519 public key used for the signature, if one is provided.
+    return_proof -- If true returns the unpublished root hash of the tree, membership proof of the message in the tree, and consistency proof from the prev_root specified.
+    prev_root -- Unpublished root hash that was returned from the last log API call that was made. If the user does not provide prev_root, the consistency proof from the last known unpublished root will be provided.
     """
 
     event: Event
@@ -110,6 +115,8 @@ class LogInput(BaseModelConfig):
     verbose: Optional[bool] = None
     signature: Optional[str] = None
     public_key: Optional[str] = None
+    return_proof: Optional[bool] = None
+    prev_root: Optional[str] = None
 
 
 class LogOutput(BaseModelConfig):
@@ -118,12 +125,21 @@ class LogOutput(BaseModelConfig):
 
     envelope -- Event envelope information.
     hash -- Event envelope hash.
-    canonical_event_base64 -- A base64 encoded canonical JSON form of the event, used for hashing.
+    canonical_envelope_base64 -- A base64 encoded canonical JSON form of the event envelope, used for hashing.
+    unpublished_root -- The current unpublished root.
+    membership_proof -- A proof for verifying the unpublished root.
+    consistency_proof -- If prev_root was present in the request, this proof verifies that the new unpublished root is a continuation of the prev_root
     """
 
     envelope: Optional[EventEnvelope] = None
     hash: Optional[str] = None
-    canonical_event_base64: Optional[str]
+    canonical_envelope_base64: Optional[str]
+    unpublished_root: Optional[str] = None
+    membership_proof: Optional[str] = None
+    consistency_proof: Optional[List[str]] = None
+    consistency_verification: EventVerification = EventVerification.NONE
+    membership_verification: EventVerification = EventVerification.NONE
+    signature_verification: EventVerification = EventVerification.NONE
 
 
 class SearchRestriction(BaseModelConfig):
@@ -229,7 +245,7 @@ class Root(BaseModelConfig):
     size: int
     root_hash: str
     url: str
-    published_at: datetime.time
+    published_at: str
     consistency_proof: List[str]
 
 
@@ -239,12 +255,6 @@ class RootOutput(BaseModelConfig):
     """
 
     data: Root
-
-
-class EventVerification(str, enum.Enum):
-    NONE = "none"
-    PASS = "pass"
-    FAIL = "fail"
 
 
 class SearchEvent(BaseModelConfig):
@@ -439,7 +449,7 @@ class Audit(ServiceBase):
 
         input = LogInput(event=event, verbose=verbose, return_hash=True)
 
-        # FIXME: How do we solve this with dataclasses? check using message with dictionary
+        # FIXME: How do we solve when ussing dataclasses? check using message with dictionary
         # for name in SupportedFields:
         #     if name in event:
         #         data["event"][name] = event[name]
@@ -464,23 +474,21 @@ class Audit(ServiceBase):
 
         prev_buffer_root = None
         if verify:
-            pass
-            # FIXME: Fix this later
-            # data["verbose"] = verify
-            # data["return_hash"] = verify
-            # data["return_proof"] = verify
+            input.verbose = True
+            input.return_hash = True
+            input.return_proof = True
 
-            # buffer_data: dict = {}
-            # buffer_data = json.loads(self.get_buffer_data())
-            # if buffer_data:
-            #     prev_buffer_root = buffer_data.get("last_root")
-            #     return_commit_proofs = buffer_data.get("pending_roots")
+            local_data: dict = {}
+            local_data = json.loads(self.get_buffer_data())
+            if local_data:
+                prev_buffer_root = local_data.get("last_root")
+                # peding_roots = buffer_data.get("pending_roots")
 
-            #     if prev_buffer_root:
-            #         data["prev_buffer_root"] = prev_buffer_root
+                if prev_buffer_root:
+                    input.prev_root = prev_buffer_root
 
-            #     if return_commit_proofs:
-            #         data["return_commit_proofs"] = return_commit_proofs
+                # if peding_roots:
+                #     input.return_commit_proofs = peding_roots
 
         response = self.request.post(endpoint_name, data=input.dict(exclude_none=True))
 
@@ -495,40 +503,43 @@ class Audit(ServiceBase):
         response.result = LogOutput(**response.result)
 
         if verify:
-            pass
-            # FIXME: check fields positions
-            # new_buffer_root_enc = response.result.get("unpublished_root")
-            # membership_proof_enc = response.result.get("membership_proof")
-            # consistency_proof_enc = response.result.get("consistency_proof")
+            new_buffer_root_enc = response.result.unpublished_root
+            membership_proof_enc = response.result.membership_proof
+            consistency_proof_enc = response.result.consistency_proof
             # commit_proofs = response.result.get("commit_proofs")
-            # event = response.result.get("event")
-            # event_hash_enc = response.result.get("hash")
+            event_hash_enc = response.result.hash
 
-            # new_buffer_root = decode_buffer_root(new_buffer_root_enc)
-            # event_hash = decode_hash(event_hash_enc)
-            # membership_proof = decode_membership_proof(membership_proof_enc)
-            # pending_roots = []
+            new_buffer_root = decode_buffer_root(new_buffer_root_enc)
+            event_hash = decode_hash(event_hash_enc)
+            membership_proof = decode_membership_proof(membership_proof_enc)
+            pending_roots = []
 
-            # # verify event hash
-            # if not verify_hash(hash_dict(event), event_hash):
-            #     raise AuditException(f"Error: Event hash failed.")
+            # verify event hash
+            if not verify_hash(hash_dict(response.result.envelope.dict(exclude_none=True)), event_hash):
+                # it's a extreme case, it's OK to raise an exception
+                raise AuditException(f"Error: Event hash failed.")
 
-            # # verify membership proofs
-            # if not verify_membership_proof(
-            #     node_hash=event_hash, root_hash=new_buffer_root.root_hash, proof=membership_proof
-            # ):
-            #     raise AuditException(f"Error: Membership proof failed.")
+            # verify membership proofs
+            if verify_membership_proof(
+                node_hash=event_hash, root_hash=new_buffer_root.root_hash, proof=membership_proof
+            ):
+                response.result.membership_verification = EventVerification.PASS
+            else:
+                response.result.membership_verification = EventVerification.FAIL
 
-            # # verify consistency proofs (following events)
-            # if consistency_proof_enc:
-            #     prev_buffer_root = decode_buffer_root(prev_buffer_root_enc)
-            #     consistency_proof = decode_consistency_proof(consistency_proof_enc)
+            # verify consistency proofs (following events)
+            if consistency_proof_enc:
+                prev_buffer_root = decode_buffer_root(prev_buffer_root_enc)
+                consistency_proof = decode_consistency_proof(consistency_proof_enc)
 
-            #     if not verify_consistency_proof(
-            #         new_root=new_buffer_root.root_hash, prev_root=prev_buffer_root.root_hash, proof=consistency_proof
-            #     ):
-            #         raise AuditException(f"Error: Consistency proof failed.")
+                if verify_consistency_proof(
+                    new_root=new_buffer_root.root_hash, prev_root=prev_buffer_root.root_hash, proof=consistency_proof
+                ):
+                    response.result.consistency_verification = EventVerification.PASS
+                else:
+                    response.result.consistency_verification = EventVerification.FAIL
 
+            # TODO: commit proofs pending yet
             # if commit_proofs:
             #     # Get the root from the cold tree...
             #     # FIXME: This should be on LogOutput by default
@@ -552,7 +563,7 @@ class Audit(ServiceBase):
             #                 ):
             #                     raise AuditException(f"Error: Consistency proof failed.")
 
-            # self.set_buffer_data(last_root_enc=new_buffer_root_enc, pending_roots=pending_roots)
+            self.set_buffer_data(last_root_enc=new_buffer_root_enc, pending_roots=pending_roots)
 
         return response
 
