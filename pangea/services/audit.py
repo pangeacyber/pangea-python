@@ -52,6 +52,12 @@ class EventVerification(str, enum.Enum):
     PASS = "pass"
     FAIL = "fail"
 
+    def __str__(self):
+        return str(self.value)
+
+    def __repr__(self):
+        return str(self.value)
+
 
 class Event(BaseModelConfig):
     """Event to perform an auditable activity
@@ -479,16 +485,18 @@ class Audit(ServiceBase):
             input.return_proof = True
 
             local_data: dict = {}
-            local_data = json.loads(self.get_buffer_data())
-            if local_data:
-                prev_buffer_root = local_data.get("last_root")
-                # peding_roots = buffer_data.get("pending_roots")
+            raw_local_data = self.get_local_data()
+            if raw_local_data:
+                local_data = json.loads(raw_local_data)
+                if local_data:
+                    prev_buffer_root = local_data.get("last_root")
+                    # peding_roots = buffer_data.get("pending_roots")
 
-                if prev_buffer_root:
-                    input.prev_root = prev_buffer_root
+                    if prev_buffer_root:
+                        input.prev_root = prev_buffer_root
 
-                # if peding_roots:
-                #     input.return_commit_proofs = peding_roots
+                    # if peding_roots:
+                    #     input.return_commit_proofs = peding_roots
 
         response = self.request.post(endpoint_name, data=input.dict(exclude_none=True))
 
@@ -563,7 +571,7 @@ class Audit(ServiceBase):
             #                 ):
             #                     raise AuditException(f"Error: Consistency proof failed.")
 
-            self.set_buffer_data(last_root_enc=new_buffer_root_enc, pending_roots=pending_roots)
+            self.set_local_data(last_root_enc=new_buffer_root_enc, pending_roots=pending_roots)
 
         return response
 
@@ -650,7 +658,7 @@ class Audit(ServiceBase):
         response = self.request.post(endpoint_name, data=input.dict(exclude_none=True))
         return self.handle_search_response(response, verify_signatures)
 
-    def results(self, input: SearchResultInput, verify_signatures: bool = False):
+    def results(self, input: SearchResultInput, verify_signatures: bool = False) -> PangeaResponse[SearchResultOutput]:
         """
         Results of a Search
 
@@ -689,9 +697,7 @@ class Audit(ServiceBase):
 
         if verify_signatures:
             for event_search in response.result.events:
-                event_search.signature_verification = (
-                    EventVerification.PASS if self.verify_signature(event_search.envelope) else EventVerification.FAIL
-                )
+                event_search.signature_verification = self.verify_signature(event_search.envelope)
 
         root = response.result.root
 
@@ -713,18 +719,15 @@ class Audit(ServiceBase):
                         search_event.membership_verification = EventVerification.FAIL
 
                 # verify consistency proofs
-                consistency_verification = "none"
                 if self.can_verify_consistency_proof(search_event):
                     if self.verify_consistency_proof(self.pub_roots, search_event):
-                        consistency_verification = "pass"
+                        search_event.envelope.consistency_verification = EventVerification.PASS
                     else:
-                        consistency_verification = "fail"
-
-                search_event.envelope.consistency_verification = consistency_verification
+                        search_event.envelope.consistency_verification = EventVerification.FAIL
 
         return response
 
-    def update_published_roots(self, pub_roots: Dict[int, Optional[JSONObject]], result: JSONObject):
+    def update_published_roots(self, pub_roots: Dict[int, Optional[JSONObject]], result: SearchOutput):
         # FIXME: Update classes
         """Fetches series of published root hashes from Arweave
 
@@ -865,23 +868,26 @@ class Audit(ServiceBase):
 
         return verify_consistency_proof(curr_root_hash, prev_root_hash, proof)
 
-    def verify_signature(self, audit_envelope: EventEnvelope) -> bool:
+    def verify_signature(self, audit_envelope: EventEnvelope) -> EventVerification:
         """
         Verify signature
 
         Args:
-            audit_envelope (obj):
+            audit_envelope (EventEnvelope): Object to verify
 
         Returns:
-          bool:
+          EventVerification: PASS, FAIL or None in case that there is not enough information to verify it
         """
         v = Verifier()
         if audit_envelope.signature and audit_envelope.public_key:
-            return v.verifyMessage(
+            if v.verifyMessage(
                 audit_envelope.signature, audit_envelope.event.dict(exclude_none=True), audit_envelope.public_key
-            )
+            ):
+                return EventVerification.PASS
+            else:
+                return EventVerification.FAIL
         else:
-            return False
+            return EventVerification.NONE
 
     def root(self, input: RootInput) -> PangeaResponse:
         """
@@ -905,7 +911,7 @@ class Audit(ServiceBase):
         endpoint_name = "root"
         return self.request.post(endpoint_name, data=input.dict(exclude_none=True))
 
-    def get_buffer_data(self):
+    def get_local_data(self):
         if not self.buffer_data:
             if os.path.exists(self.root_id_filename):
                 try:
@@ -916,7 +922,7 @@ class Audit(ServiceBase):
 
         return self.buffer_data
 
-    def set_buffer_data(self, last_root_enc: str, pending_roots: List[str]):
+    def set_local_data(self, last_root_enc: str, pending_roots: List[str]):
         buffer_dict = dict()
         buffer_dict["last_root"] = last_root_enc
         buffer_dict["pending_roots"] = pending_roots
