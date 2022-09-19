@@ -177,7 +177,6 @@ class Redact(ServiceBase):
                 "request_id": "prq_2aonw26nr3n5hjovo476252npmekem4u",
                 "request_time": "2022-07-06T23:34:46.666Z",
                 "response_time": "2022-07-06T23:34:46.679Z",
-                "status_code": 200,
                 "status": "success",
                 "result": {
                     "redacted_text": "\"<PERSON>... <PHONE_NUMBER>\""
@@ -218,7 +217,6 @@ class Redact(ServiceBase):
                 "request_id": "prq_m2z76gv4mcsbysy4ssu4covympg3sske",
                 "request_time": "2022-07-06T23:35:41.524Z",
                 "response_time": "2022-07-06T23:35:41.543Z",
-                "status_code": 200,
                 "status": "success",
                 "result": {
                     "redacted_data": {

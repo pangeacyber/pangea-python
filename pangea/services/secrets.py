@@ -66,7 +66,6 @@ class Secrets(ServiceBase):
                     "request_time",
                     "response_time",
                     "status": ["success", "failed"],
-                    "status_code",
                     "summary": ["secret found", "secret not found"],
                     "result": {
                         [
@@ -109,7 +108,6 @@ class Secrets(ServiceBase):
                 "request_time": "",
                 "response_time",
                 "status": ["success", "failed"],
-                "status_code",
                 "summary": ["secret added", "awsmanager.AddSecret: unknown error kind"]
                 "result": {
                     [
@@ -154,7 +152,6 @@ class Secrets(ServiceBase):
                     "request_time",
                     "response_time",
                     "status": ["success" ,"failed"],
-                    "status_code",
                     "summary": ["secret updated", "awsmanager.UpdateSecret: unknown error kind"],
                     "result": {
                         [

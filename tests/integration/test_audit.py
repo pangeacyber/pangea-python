@@ -30,7 +30,6 @@ class TestAudit(unittest.TestCase):
         timestamp = time.time()
         event = {"message": f"test-log-{timestamp}"}
         response: PangeaResponse[LogOutput] = self.audit.log(event, verbose=True)
-        self.assertEqual(response.status_code, 200)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         print(type(response.result.envelope.received_at))
 
@@ -56,7 +55,6 @@ class TestAudit(unittest.TestCase):
         )
 
         response = audit.log(event, signing=True, verbose=True)
-        self.assertEqual(response.status_code, 200)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
 
         print(f"Event signature: {response.result.envelope.signature}")
@@ -65,23 +63,19 @@ class TestAudit(unittest.TestCase):
         search_input = SearchInput(query=f"message: {msg}", limit=1)
 
         response_search = audit.search(search_input, verify_signatures=True)
-        self.assertEqual(response_search.status_code, 200)
         self.assertEqual(response_search.status, ResponseStatus.SUCCESS)
 
     def test_search_results(self):
         response_search = self.audit.search(input=SearchInput(query="", limit=10))
-        self.assertEqual(response_search.status_code, 200)
         self.assertEqual(response_search.status, ResponseStatus.SUCCESS)
 
         response_results = self.audit.results(input=SearchResultInput(id=response_search.result.id))
-        self.assertEqual(response_results.status_code, 200)
         self.assertEqual(response_results.status, ResponseStatus.SUCCESS)
 
         # TODO: check something...
 
     def test_root(self):
         response = self.audit.root(input=RootInput(tree_size=4))
-        self.assertEqual(response.status_code, 200)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
 
         # TODO: Check for a root value
@@ -92,7 +86,6 @@ class TestAudit(unittest.TestCase):
         input = SearchInput(query=query, search_restriction=restriction)
         response = self.audit.search(input=input, verify=True)
 
-        self.assertEqual(response.status_code, 200)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
 
         # TODO: Check membership/consistency verification
@@ -105,7 +98,6 @@ class TestAudit(unittest.TestCase):
         for idx in range(0, len(authors)):
             event = Event(message=msg, actor=authors[idx])
             resp = self.audit.log(event)
-            self.assertEqual(resp.status_code, 200)
             self.assertEqual(resp.status, ResponseStatus.SUCCESS)
 
         query = "message:" + msg
@@ -113,7 +105,6 @@ class TestAudit(unittest.TestCase):
             query=query, order=SearchOrder.DESC, order_by=SearchOrderBy.RECEIVED_AT, limit=len(authors)
         )
         r_desc: PangeaResponse[SearchOutput] = self.audit.search(input=search_input)
-        self.assertEqual(r_desc.status_code, 200)
         self.assertEqual(r_desc.status, ResponseStatus.SUCCESS)
         self.assertEqual(len(r_desc.result.events), len(authors))
 
@@ -122,7 +113,6 @@ class TestAudit(unittest.TestCase):
 
         search_input.order = SearchOrder.ASC
         r_asc = self.audit.search(input=search_input)
-        self.assertEqual(r_asc.status_code, 200)
         self.assertEqual(r_asc.status, ResponseStatus.SUCCESS)
         self.assertEqual(len(r_asc.result.events), len(authors))
 

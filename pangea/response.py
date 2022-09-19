@@ -83,7 +83,6 @@ class ResponseHeader(BaseModelConfig):
 
 
 class PangeaResponse(Generic[T], ResponseHeader):
-    status_code: Optional[int] = None
     raw_result: Optional[Dict[str, Any]] = None
     raw_response: Optional[requests.Response] = None
     result: Optional[T] = None
@@ -92,7 +91,6 @@ class PangeaResponse(Generic[T], ResponseHeader):
     def __init__(self, response: requests.Response):
         json = response.json()
         super(PangeaResponse, self).__init__(**json)
-        self.status_code = response.status_code
         self.raw_response = response
         self.raw_result = json["result"]
         self.result = (

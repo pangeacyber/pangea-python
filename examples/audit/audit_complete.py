@@ -69,7 +69,7 @@ def main():
                 search_res = audit.results(input=res_input, verify_signatures=True)
 
     else:
-        print("Search Failed:", search_res.status_code)
+        print("Search Failed:", search_res.status)
         # FIXME: check what info we do have when fails
         for err in search_res.result.errors:
             print(f"\t{err.detail}")

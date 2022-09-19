@@ -18,7 +18,6 @@ class TestEmbargo(unittest.TestCase):
 
     def test_ip_check(self):
         response = self.embargo.ip_check(IPCheckInput(ip="213.24.238.26"))
-        self.assertEqual(response.status_code, 200)
         self.assertEqual(response.status, "Success")
         self.assertGreaterEqual(len(response.result.sanctions), 1)
 
@@ -31,7 +30,6 @@ class TestEmbargo(unittest.TestCase):
     def test_iso_check(self):
         response = self.embargo.iso_check(ISOCheckInput(iso_code="CU"))
 
-        self.assertEqual(response.status_code, 200)
         self.assertEqual(response.status, "Success")
         self.assertGreaterEqual(len(response.result.sanctions), 1)
 

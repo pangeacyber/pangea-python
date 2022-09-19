@@ -438,7 +438,6 @@ class Audit(ServiceBase):
                 "request_id": "prq_ttd3wa7pm4fbut73tlc2r7gi5tcelfcq",
                 "request_time": "2022-07-06T23:46:57.537Z",
                 "response_time": "2022-07-06T23:46:57.556Z",
-                "status_code": 200,
                 "status": "success",
                 "result": {
                     "hash": "eba9cd62d2f765a462b6a1c246e18dcb20411c5ee6f6ba4b6d315f455fdfb38a"

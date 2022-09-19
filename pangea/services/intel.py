@@ -218,7 +218,6 @@ class FileIntel(ServiceBase):
                 "request_time": "2022-08-23T02:43:17.614Z",
                 "response_time": "2022-08-23T02:43:18.607Z",
                 "status": "success",
-                "status_code": 200,
                 "summary": "Hash was found",
                 "result": {
                     "data": {
@@ -294,7 +293,6 @@ class IpIntel(ServiceBase):
                 "request_time": "2022-08-23T03:28:20.225Z",
                 "response_time": "2022-08-23T03:28:20.244Z",
                 "status": "success",
-                "status_code": 200,
                 "summary": "IP was found",
                 "result": {
                     "data": {
@@ -369,7 +367,6 @@ class UrlIntel(ServiceBase):
                 "request_time": "2022-08-23T03:40:03.549Z",
                 "response_time": "2022-08-23T03:40:03.694Z",
                 "status": "success",
-                "status_code": 200,
                 "summary": "Url was found",
                 "result": {
                     "data": {

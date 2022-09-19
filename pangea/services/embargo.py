@@ -124,7 +124,6 @@ class Embargo(ServiceBase):
                 "request_time": "2022-07-06T23:37:36.952Z",
                 "response_time": "2022-07-06T23:37:37.104Z",
                 "status": "success",
-                "status_code": 200,
                 "summary": "Found country in 1 embargo list(s)",
                 "result": {
                     "sanctions": [
@@ -181,7 +180,6 @@ class Embargo(ServiceBase):
                 "request_time": "2022-07-06T23:44:29.248Z",
                 "response_time": "2022-07-06T23:44:29.357Z",
                 "status": "success",
-                "status_code": 200,
                 "summary": "Found country in 0 embargo list(s)",
                 "result": {
                     "sanctions": null,
