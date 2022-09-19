@@ -1,8 +1,7 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 
-import dataclasses
-import typing as t
+from pangea.response import PangeaResponse
 
 
 class PangeaException(Exception):
@@ -16,13 +15,15 @@ class PangeaException(Exception):
 class PangeaAPIException(PangeaException):
     """Exceptions raised during API calls"""
 
+    response: PangeaResponse
+
+    def __init__(self, message: str, response: PangeaResponse):
+        super(PangeaAPIException, self).__init__(message)
+        self.response = response
+
 
 class ValidationException(PangeaAPIException):
     """Pangea Validation Errors denoting issues with an API request"""
-
-    def __init__(self, message: str, field_errors: t.List["FieldError"]):
-        super(ValidationException, self).__init__(message)
-        self.field_errors = field_errors
 
 
 class RateLimitException(PangeaAPIException):
@@ -36,23 +37,24 @@ class NoCreditException(PangeaAPIException):
 class UnauthorizedException(PangeaAPIException):
     """User is not authorized to access a given resource"""
 
-    def __init__(self, service_name: str):
+    def __init__(self, service_name: str, response: PangeaResponse):
         message = f"User is not authorized to access service {service_name}"
-        super(UnauthorizedException, self).__init__(message)
+        super(UnauthorizedException, self).__init__(message, response)
 
 
 class ServiceNotEnabledException(PangeaAPIException):
-    def __init__(self, service_name: str):
+    def __init__(self, service_name: str, response: PangeaResponse):
         message = f"{service_name} is not enabled. Go to console.pangea.cloud/service/{service_name} to enable"
-        super(ServiceNotEnabledException, self).__init__(message)
+        super(ServiceNotEnabledException, self).__init__(message, response)
 
 
 class MissingConfigID(PangeaAPIException):
     """No config ID was provided in either token scopes or explicitly"""
 
-    def __init__(self, service_name: str):
+    def __init__(self, service_name: str, response: PangeaResponse):
         super(MissingConfigID, self).__init__(
-            f"Token did not contain a config scope for service {service_name}. Create a new token or provide a config ID explicitly in the service base"
+            f"Token did not contain a config scope for service {service_name}. Create a new token or provide a config ID explicitly in the service base",
+            response,
         )
 
 
@@ -85,22 +87,3 @@ class EmbargoException(PangeaException):
 
 class IPNotFoundException(EmbargoException):
     """IP address was not found"""
-
-
-@dataclasses.dataclass
-class FieldError:
-    """
-    Field errors denote errors in fields provided in request payloads
-
-    Fields:
-        code(str): The field code
-        detail(str): A human readable detail explaining the error
-        source(str): A JSON pointer where the error occurred
-        path(str): If verbose mode was enabled, a path to the JSON Schema used
-            to validate the field
-    """
-
-    code: str
-    detail: str
-    source: str
-    path: t.Optional[str] = None

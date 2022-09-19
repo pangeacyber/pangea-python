@@ -4,7 +4,6 @@
 import json
 import logging
 import time
-from typing import Dict
 
 import requests
 from requests.adapters import HTTPAdapter, Retry
@@ -12,7 +11,7 @@ from requests.adapters import HTTPAdapter, Retry
 import pangea
 from pangea import exceptions
 from pangea.config import PangeaConfig
-from pangea.response import PangeaResponse, PangeaResponseResult
+from pangea.response import PangeaError, PangeaResponse
 
 logger = logging.getLogger(__name__)
 
@@ -181,25 +180,28 @@ class PangeaRequest(object):
 
         if status == "Success":
             return
-        elif status == "ValidationError":
-            # FIXME: check this case. It's sure we have 'errors'?
-            raise exceptions.ValidationException(summary, response.result["errors"])
+        else:
+            response.result = None
+            response.errors = PangeaError(**response.raw_result)
+
+        if status == "ValidationError":
+            raise exceptions.ValidationException(summary, response)
         elif status == "TooManyRequests":
-            raise exceptions.RateLimitException(summary)
+            raise exceptions.RateLimitException(summary, response)
         elif status == "NoCredit":
-            raise exceptions.NoCreditException(summary)
+            raise exceptions.NoCreditException(summary, response)
         elif status == "Unauthorized":
-            raise exceptions.UnauthorizedException(self.service)
+            raise exceptions.UnauthorizedException(self.service, response)
         elif status == "ServiceNotEnabled":
-            raise exceptions.ServiceNotEnabledException(self.service)
+            raise exceptions.ServiceNotEnabledException(self.service, response)
         elif status == "ProviderError":
-            raise exceptions.ProviderErrorException(summary)
+            raise exceptions.ProviderErrorException(summary, response)
         elif status in ("MissingConfigIDScope", "MissongConfigID"):
-            raise exceptions.MissingConfigID(self.service)
+            raise exceptions.MissingConfigID(self.service, response)
         elif status == "ServiceNotAvailable":
-            raise exceptions.ServiceNotAvailableException(summary)
+            raise exceptions.ServiceNotAvailableException(summary, response)
         elif status == "TreeNotFound":
-            raise exceptions.TreeNotFoundException(summary)
+            raise exceptions.TreeNotFoundException(summary, response)
         elif status == "IPNotFound":
-            raise exceptions.IPNotFoundException(summary)
-        raise exceptions.PangeaAPIException(f"{status}: {summary}")
+            raise exceptions.IPNotFoundException(summary, response)
+        raise exceptions.PangeaAPIException(f"{status}: {summary}", response)

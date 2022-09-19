@@ -43,11 +43,18 @@ class BaseModelConfig(BaseModel):
         arbitrary_types_allowed = True
 
 
-class PangeaResponseResult(BaseModelConfig):
-    pass
-
-
 class ErrorField(BaseModelConfig):
+    """
+    Field errors denote errors in fields provided in request payloads
+
+    Fields:
+        code(str): The field code
+        detail(str): A human readable detail explaining the error
+        source(str): A JSON pointer where the error occurred
+        path(str): If verbose mode was enabled, a path to the JSON Schema used
+            to validate the field
+    """
+
     code: str
     detail: str
     source: str
@@ -55,7 +62,11 @@ class ErrorField(BaseModelConfig):
 
 
 class PangeaError(BaseModelConfig):
-    errors: List[ErrorField]
+    errors: List[ErrorField] = []
+
+
+class PangeaResponseResult(BaseModelConfig):
+    pass
 
 
 class ResponseStatus(str, enum.Enum):
