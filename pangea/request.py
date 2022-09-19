@@ -12,7 +12,7 @@ from requests.adapters import HTTPAdapter, Retry
 import pangea
 from pangea import exceptions
 from pangea.config import PangeaConfig
-from pangea.response import PangeaResponse
+from pangea.response import PangeaResponse, PangeaResponseResult
 
 logger = logging.getLogger(__name__)
 
@@ -75,7 +75,7 @@ class PangeaRequest(object):
 
         return self._queued_retry_enabled
 
-    def post(self, endpoint: str = "", data: dict = {}) -> PangeaResponse[dict]:
+    def post(self, endpoint: str = "", data: dict = {}) -> PangeaResponse:
         """Makes the POST call to a Pangea Service endpoint.
 
         If queued_support mode is enabled, progress checks will be made for
@@ -103,12 +103,12 @@ class PangeaRequest(object):
 
             pangea_response = self._handle_queued(request_id)
         else:
-            pangea_response = PangeaResponse[Dict](requests_response)
+            pangea_response = PangeaResponse(requests_response)
 
         self._check_response(pangea_response)
         return pangea_response
 
-    def get(self, endpoint: str, path: str) -> PangeaResponse[dict]:
+    def get(self, endpoint: str, path: str) -> PangeaResponse:
         """Makes the GET call to a Pangea Service endpoint.
 
         Args:
@@ -123,17 +123,12 @@ class PangeaRequest(object):
 
         requests_response = self.request.get(url, headers=self._headers())
 
-        pangea_response = PangeaResponse[Dict](requests_response)
+        pangea_response = PangeaResponse(requests_response)
 
         self._check_response(pangea_response)
         return pangea_response
 
-    # TODO: Remove deprecated
-    # def _to_response(self, response: requests.Response) -> PangeaResponse:
-    #     resp = PangeaResponse(response)
-    #     return resp
-
-    def _handle_queued(self, request_id: str) -> PangeaResponse[dict]:
+    def _handle_queued(self, request_id: str) -> PangeaResponse:
         retry_count = 1
 
         while True:
@@ -180,7 +175,7 @@ class PangeaRequest(object):
 
         return headers
 
-    def _check_response(self, response: PangeaResponse[dict]):
+    def _check_response(self, response: PangeaResponse):
         status = response.status
         summary = response.summary
 

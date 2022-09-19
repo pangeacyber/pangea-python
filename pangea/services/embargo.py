@@ -2,9 +2,9 @@
 # Author: Pangea Cyber Corporation
 from typing import Any, List
 
-from pydantic import BaseModel, dataclasses
+from pydantic import BaseModel
 
-from pangea.response import PangeaResponse
+from pangea.response import PangeaResponse, PangeaResponseResult
 
 from .base import ServiceBase
 
@@ -52,7 +52,7 @@ class Sanction(BaseModelConfig):
     annotations: dict[str, Any]
 
 
-class CheckOutput(BaseModelConfig):
+class EmbargoOutput(PangeaResponseResult):
     """
     Class returned after check request
 
@@ -95,7 +95,7 @@ class Embargo(ServiceBase):
     service_name = "embargo"
     version = "v1"
 
-    def ip_check(self, input: IPCheckInput) -> PangeaResponse[CheckOutput]:
+    def ip_check(self, input: IPCheckInput) -> PangeaResponse[EmbargoOutput]:
         """
         Check IP
 
@@ -148,11 +148,11 @@ class Embargo(ServiceBase):
             \"\"\"
         """
         response = self.request.post("ip/check", data=input.dict())
-        result = CheckOutput(**response.result)
+        result = EmbargoOutput(**response.raw_result)
         response.result = result
         return response
 
-    def iso_check(self, input: ISOCheckInput) -> PangeaResponse[CheckOutput]:
+    def iso_check(self, input: ISOCheckInput) -> PangeaResponse[EmbargoOutput]:
         """
         ISO Code Check
 
@@ -192,5 +192,5 @@ class Embargo(ServiceBase):
         """
 
         response = self.request.post("iso/check", data=input.dict())
-        response.result = CheckOutput(**response.result)
+        response.result = EmbargoOutput(**response.raw_result)
         return response

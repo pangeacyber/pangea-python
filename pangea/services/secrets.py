@@ -38,7 +38,7 @@ class Secrets(ServiceBase):
     service_name = "secretstore"
     version = "v1"
 
-    def get(self, secret_id: str, secret_version: str = None) -> PangeaResponse[Dict]:
+    def get(self, secret_id: str, secret_version: str = None) -> PangeaResponse:
         """
         Secrets
 
@@ -83,7 +83,7 @@ class Secrets(ServiceBase):
 
         return self.request.post("get", data={"secret_id": secret_id, "secret_version": secret_version})
 
-    def add(self, secret_id: str, secret_value: str) -> PangeaResponse[Dict]:
+    def add(self, secret_id: str, secret_value: str) -> PangeaResponse:
         """
         Secrets
 
@@ -127,7 +127,7 @@ class Secrets(ServiceBase):
 
         return self.request.post("add", data={"secret_id": secret_id, "secret_value": secret_value})
 
-    def update(self, secret_id: str, secret_value: str) -> PangeaResponse[Dict]:
+    def update(self, secret_id: str, secret_value: str) -> PangeaResponse:
         """
         Secrets
 

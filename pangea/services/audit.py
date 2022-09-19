@@ -4,12 +4,12 @@ import datetime
 import enum
 import json
 import os
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 from pydantic import BaseModel
 
 from pangea.exceptions import AuditException
-from pangea.response import JSONObject, PangeaResponse
+from pangea.response import JSONObject, PangeaResponse, PangeaResponseResult
 from pangea.signing import Signer, Verifier
 
 from .audit_util import (
@@ -74,15 +74,15 @@ class Event(BaseModelConfig):
     timestamp -- An optional client-supplied timestamp.
     """
 
-    message: str | dict
+    message: Union[str, dict]
     actor: Optional[str] = None
     action: Optional[str] = None
-    new: Optional[str | dict] = None
-    old: Optional[str | dict] = None
+    new: Optional[Union[str, dict]] = None
+    old: Optional[Union[str, dict]] = None
     source: Optional[str] = None
     status: Optional[str] = None
     target: Optional[str] = None
-    timestamp: Optional[str] = None
+    timestamp: Optional[datetime.datetime] = None
 
 
 class EventEnvelope(BaseModelConfig):
@@ -99,7 +99,7 @@ class EventEnvelope(BaseModelConfig):
     event: Event
     signature: Optional[str]
     public_key: Optional[str]
-    received_at: Optional[str]
+    received_at: datetime.datetime
 
 
 class LogInput(BaseModelConfig):
@@ -125,7 +125,7 @@ class LogInput(BaseModelConfig):
     prev_root: Optional[str] = None
 
 
-class LogOutput(BaseModelConfig):
+class LogOutput(PangeaResponseResult):
     """
     Result class after an audit log action
 
@@ -139,7 +139,7 @@ class LogOutput(BaseModelConfig):
 
     envelope: Optional[EventEnvelope] = None
     hash: Optional[str] = None
-    canonical_envelope_base64: Optional[str]
+    canonical_envelope_base64: Optional[str] = None
     unpublished_root: Optional[str] = None
     membership_proof: Optional[str] = None
     consistency_proof: Optional[List[str]] = None
@@ -252,10 +252,10 @@ class Root(BaseModelConfig):
     root_hash: str
     url: str
     published_at: str
-    consistency_proof: List[str]
+    consistency_proof: Optional[List[str]] = None
 
 
-class RootOutput(BaseModelConfig):
+class RootOutput(PangeaResponseResult):
     """
     Result class after a root request
     """
@@ -278,7 +278,7 @@ class SearchEvent(BaseModelConfig):
     """
 
     envelope: EventEnvelope
-    hash: str
+    hash: Optional[str] = None
     leaf_index: Optional[int] = None
     membership_proof: Optional[str] = None  # FIXME: Check membership and others class
     consistency_verification: EventVerification = EventVerification.NONE
@@ -286,7 +286,7 @@ class SearchEvent(BaseModelConfig):
     signature_verification: EventVerification = EventVerification.NONE
 
 
-class SearchOutput(BaseModelConfig):
+class SearchOutput(PangeaResponseResult):
     """
     Result class after an audit search action
 
@@ -301,7 +301,7 @@ class SearchOutput(BaseModelConfig):
     count: int
     events: List[SearchEvent]
     id: Optional[str] = None
-    expires_at: Optional[str] = None
+    expires_at: Optional[datetime.datetime] = None
     root: Optional[Root] = None
 
 
@@ -326,7 +326,7 @@ class SearchResultInput(BaseModelConfig):
     include_root: Optional[bool] = None
 
 
-class SearchResultOutput(BaseModelConfig):
+class SearchResultOutput(PangeaResponseResult):
     """
     Return class after a pagination search
 
@@ -338,7 +338,7 @@ class SearchResultOutput(BaseModelConfig):
 
     count: int
     events: List[SearchEvent]
-    root: Root
+    root: Optional[Root] = None
 
 
 class Audit(ServiceBase):
@@ -503,12 +503,12 @@ class Audit(ServiceBase):
         return self.handle_log_response(response, verify=verify, prev_buffer_root_enc=prev_buffer_root)
 
     def handle_log_response(
-        self, response: PangeaResponse[Dict], verify: bool, prev_buffer_root_enc: bytes
+        self, response: PangeaResponse, verify: bool, prev_buffer_root_enc: bytes
     ) -> PangeaResponse[LogOutput]:
         if not response.success:
             return response
 
-        response.result = LogOutput(**response.result)
+        response.result = LogOutput(**response.raw_result)
 
         if verify:
             new_buffer_root_enc = response.result.unpublished_root
@@ -687,13 +687,11 @@ class Audit(ServiceBase):
         response = self.request.post(endpoint_name, data=input.dict(exclude_none=True))
         return self.handle_search_response(response, verify_signatures)
 
-    def handle_search_response(
-        self, response: PangeaResponse[dict], verify_signatures=False
-    ) -> PangeaResponse[SearchOutput]:
+    def handle_search_response(self, response: PangeaResponse, verify_signatures=False) -> PangeaResponse[SearchOutput]:
         if not response.success:
             return response
 
-        response.result = SearchOutput(**response.result)
+        response.result = SearchOutput(**response.raw_result)
 
         if verify_signatures:
             for event_search in response.result.events:

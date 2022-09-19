@@ -5,7 +5,7 @@ from typing import Dict, List, Optional
 
 from pydantic import BaseModel
 
-from pangea.response import PangeaResponse
+from pangea.response import PangeaResponse, PangeaResponseResult
 
 from .base import ServiceBase
 
@@ -43,7 +43,7 @@ class FileLookupData(BaseModelConfig):
     verdict: str
 
 
-class FileLookupOutput(BaseModelConfig):
+class FileLookupOutput(PangeaResponseResult):
     """
     TODO: complete
     """
@@ -79,7 +79,7 @@ class IPLookupData(BaseModelConfig):
     verdict: str
 
 
-class IPLookupOutput(BaseModelConfig):
+class IPLookupOutput(PangeaResponseResult):
     """
     TODO: complete
     """
@@ -115,7 +115,7 @@ class DomainLookupData(BaseModelConfig):
     verdict: str
 
 
-class DomainLookupOutput(BaseModelConfig):
+class DomainLookupOutput(PangeaResponseResult):
     """
     TODO: complete
     """
@@ -151,7 +151,7 @@ class URLLookupData(BaseModelConfig):
     verdict: str
 
 
-class URLLookupOutput(BaseModelConfig):
+class URLLookupOutput(PangeaResponseResult):
     """
     TODO: complete
     """
@@ -385,7 +385,7 @@ class UrlIntel(ServiceBase):
         """
 
         response = self.request.post("lookup", data=input.dict(exclude_none=True))
-        response.result = URLLookupOutput(**response.result)
+        response.result = URLLookupOutput(**response.raw_result)
         return response
 
 
@@ -443,5 +443,5 @@ class DomainIntel(ServiceBase):
         """
 
         response = self.request.post("lookup", data=input.dict(exclude_none=True))
-        response.result = DomainLookupOutput(**response.result)
+        response.result = DomainLookupOutput(**response.raw_result)
         return response

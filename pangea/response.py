@@ -1,11 +1,10 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 import enum
-from typing import Any, Dict, Generic, Optional, TypeVar
+from typing import Any, Dict, Generic, List, Optional, TypeVar, Union
 
 import requests
 from pydantic import BaseModel
-from pydantic.dataclasses import dataclass
 
 
 class JSONObject(dict):
@@ -44,6 +43,21 @@ class BaseModelConfig(BaseModel):
         arbitrary_types_allowed = True
 
 
+class PangeaResponseResult(BaseModelConfig):
+    pass
+
+
+class ErrorField(BaseModelConfig):
+    code: str
+    detail: str
+    source: str
+    path: Optional[str] = None
+
+
+class PangeaError(BaseModelConfig):
+    errors: List[ErrorField]
+
+
 class ResponseStatus(str, enum.Enum):
     SUCCESS = "Success"
     FAILED = "Failed"
@@ -70,9 +84,10 @@ class ResponseHeader(BaseModelConfig):
 
 class PangeaResponse(Generic[T], ResponseHeader):
     status_code: Optional[int] = None
-    raw_result: Optional[Dict[str, Any] | str] = None
+    raw_result: Optional[Dict[str, Any]] = None
     raw_response: Optional[requests.Response] = None
     result: Optional[T] = None
+    errors: Optional[PangeaError] = None
 
     def __init__(self, response: requests.Response):
         json = response.json()
@@ -80,66 +95,10 @@ class PangeaResponse(Generic[T], ResponseHeader):
         self.status_code = response.status_code
         self.raw_response = response
         self.raw_result = json["result"]
-        self.result = T(**json["result"]) if callable(T) else json["result"]
+        self.result = (
+            T(**json["result"]) if issubclass(type(T), PangeaResponseResult) and self.status == "Success" else None
+        )
 
     @property
     def success(self) -> bool:
         return self.status == "Success"
-
-
-# class PangeaResponse(Generic[T], object):
-#     """An object containing Pangea Service API response.
-
-#     Properties:
-#         result (T): "result" field of the API response as documented at:
-#             [https://docs.dev.pangea.cloud/docs/api/#responses](https://docs.dev.pangea.cloud/docs/api/#responses)
-#         status (str): Pangea status code
-#         status_code(int): HTTP Status Code
-#         success (bool): true if call was successful
-#         request_id (str): the ID of the request as tracked by Pangea
-#         response (obj): the entire API response payload
-#         FIXME: complete docs
-#     """
-
-#     def __init__(self, requests_response: requests.Response):
-#         data = requests_response.json()
-#         status = data["status"]
-#         self._status = status
-#         self._data = JSONObject(data)
-#         self._success = status == "Success"
-#         self._response = requests_response
-#         self._status_code = requests_response.status_code
-#         self._result: Optional[T | str] = None
-#         if self._success:
-#             self._result = T(**data["result"])
-#         else:
-#             self._result = data["result"]
-
-
-#     @property
-#     def data(self) -> JSONObject:
-#         return self._data
-
-#     @property
-#     def result(self) -> Optional[T]:
-#         return self._result
-
-#     @property
-#     def status(self) -> str:
-#         return self._status
-
-#     @property
-#     def success(self) -> bool:
-#         return self._success
-
-#     @property
-#     def request_id(self) -> Optional[str]:
-#         return self._data.get("request_id", None)
-
-#     @property
-#     def response(self) -> requests.Response:
-#         return self._response
-
-#     @property
-#     def code(self) -> int:
-#         return self._status_code

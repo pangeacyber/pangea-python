@@ -29,9 +29,10 @@ class TestAudit(unittest.TestCase):
         # TODO: complete all field for example
         timestamp = time.time()
         event = {"message": f"test-log-{timestamp}"}
-        response = self.audit.log(event, verbose=True)
+        response: PangeaResponse[LogOutput] = self.audit.log(event, verbose=True)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        print(type(response.result.envelope.received_at))
 
     def test_log_signature(self):
         audit = Audit(

@@ -2,11 +2,11 @@
 # Author: Pangea Cyber Corporation
 
 import enum
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 
 from pydantic import BaseModel
 
-from pangea.response import PangeaResponse
+from pangea.response import PangeaResponse, PangeaResponseResult
 
 from .base import ServiceBase
 
@@ -68,7 +68,7 @@ class DebugReport(BaseModelConfig):
     recognizer_results: List[RecognizerResult]
 
 
-class RedactOutput(BaseModelConfig):
+class RedactOutput(PangeaResponseResult):
     """
     Result class after a redact request
 
@@ -98,7 +98,7 @@ class StructuredInput(BaseModelConfig):
     debug: Optional[bool] = None
 
 
-class StructuredOutput(BaseModelConfig):
+class StructuredOutput(PangeaResponseResult):
     """
     TODO: complete
 
@@ -187,7 +187,7 @@ class Redact(ServiceBase):
             \"\"\"
         """
         response = self.request.post("redact", data=input.dict(exclude_none=True))
-        response.result = RedactOutput(**response.result)
+        response.result = RedactOutput(**response.raw_result)
         return response
 
     def redact_structured(self, input: StructuredInput) -> PangeaResponse[StructuredOutput]:
@@ -231,5 +231,5 @@ class Redact(ServiceBase):
             \"\"\"
         """
         response = self.request.post("redact_structured", data=input.dict(exclude_none=True))
-        response.result = StructuredOutput(**response.result)
+        response.result = StructuredOutput(**response.raw_result)
         return response
