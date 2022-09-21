@@ -196,7 +196,7 @@ class PangeaRequest(object):
             raise exceptions.ServiceNotEnabledException(self.service, response)
         elif status == "ProviderError":
             raise exceptions.ProviderErrorException(summary, response)
-        elif status in ("MissingConfigIDScope", "MissongConfigID"):
+        elif status in ("MissingConfigIDScope", "MissingConfigID"):
             raise exceptions.MissingConfigID(self.service, response)
         elif status == "ServiceNotAvailable":
             raise exceptions.ServiceNotAvailableException(summary, response)
