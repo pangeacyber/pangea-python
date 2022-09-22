@@ -1,6 +1,6 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
-from typing import Any, List
+from typing import Any, Dict, List
 
 from pydantic import BaseModel
 
@@ -49,7 +49,7 @@ class Sanction(BaseModelConfig):
     issuing_country: str
     list_name: str
     embargoed_country_name: str
-    annotations: dict[str, Any]
+    annotations: Dict[str, Any]
 
 
 class EmbargoOutput(PangeaResponseResult):
