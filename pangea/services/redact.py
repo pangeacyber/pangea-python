@@ -2,7 +2,7 @@
 # Author: Pangea Cyber Corporation
 
 import enum
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 from pydantic import BaseModel
 
@@ -55,7 +55,7 @@ class RecognizerResult(BaseModelConfig):
     start: int
     end: int
     redacted: bool
-    data_key: Optional[str]
+    data_key: Optional[str] = None
 
 
 class DebugReport(BaseModelConfig):
@@ -92,7 +92,7 @@ class StructuredInput(BaseModelConfig):
     debug -- Setting this value to true will provide a detailed analysis of the redacted data and the rules that caused redaction.
     """
 
-    data: dict | str
+    data: Union[Dict, str]
     jsonp: Optional[List[str]] = None
     format: Optional[RedactFormat] = None
     debug: Optional[bool] = None
@@ -104,7 +104,7 @@ class StructuredOutput(PangeaResponseResult):
 
     """
 
-    redacted_data: str | Dict  # FIXME: this should be raw json
+    redacted_data: Union[Dict, str]  # FIXME: this should be raw json
     report: Optional[DebugReport] = None
 
 

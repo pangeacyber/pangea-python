@@ -1,7 +1,7 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
-import typing as t
 from base64 import b64decode, b64encode
+from typing import Dict, Union
 
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ed25519
@@ -57,7 +57,7 @@ class Signer:
         message_bytes = canonicalize_json(messageJSON)
         return self._signMessageBytes(message_bytes, private_key)
 
-    def signMessage(self, message: str | dict | bytes):
+    def signMessage(self, message: Union[str, Dict, bytes]):
         private_key = self._getPrivateKey()
 
         if isinstance(message, str):
@@ -81,7 +81,7 @@ class Signer:
 
 class Verifier:
     # verify message with signature and public key bytes
-    def verifyMessage(self, signature_b64: str, message: t.Union[str, dict, bytes], public_key_b64: str = None) -> bool:
+    def verifyMessage(self, signature_b64: str, message: Union[str, dict, bytes], public_key_b64: str = None) -> bool:
         public_key_bytes = b64decode_ascii(public_key_b64)
         public_key = ed25519.Ed25519PublicKey.from_public_bytes(public_key_bytes)
 

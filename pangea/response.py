@@ -72,6 +72,17 @@ class PangeaResponseResult(BaseModelConfig):
 class ResponseStatus(str, enum.Enum):
     SUCCESS = "Success"
     FAILED = "Failed"
+    VALIDATION_ERR = "ValidationError"
+    TOO_MANY_REQUESTS = "TooManyRequests"
+    NO_CREDIT = "NoCredit"
+    UNAUTHORIZED = "Unauthorized"
+    SERVICE_NOT_ENABLED = "ServiceNotEnabled"
+    PROVIDER_ERR = "ProviderError"
+    MISSING_CONFIG_ID_SCOPE = "MissingConfigIDScope"
+    MISSING_CONFIG_ID = "MissingConfigID"
+    SERVICE_NOT_AVAILABLE = "ServiceNotAvailable"
+    TREE_NOT_FOUND = "TreeNotFound"
+    IP_NOT_FOUND = "IPNotFound"
 
 
 class ResponseHeader(BaseModelConfig):
@@ -82,7 +93,7 @@ class ResponseHeader(BaseModelConfig):
     request_id -- The request ID.
     request_time -- The time the request was issued, ISO8601.
     response_time -- The time the response was issued, ISO8601.
-    status -- The HTTP status code msg.
+    status -- Pangea response status
     summary -- The summary of the response.
     """
 
@@ -105,7 +116,9 @@ class PangeaResponse(Generic[T], ResponseHeader):
         self.raw_response = response
         self.raw_result = json["result"]
         self.result = (
-            T(**json["result"]) if issubclass(type(T), PangeaResponseResult) and self.status == "Success" else None
+            T(**json["result"])
+            if issubclass(type(T), PangeaResponseResult) and self.status == ResponseStatus.SUCCESS.value
+            else None
         )
 
     @property

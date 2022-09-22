@@ -97,8 +97,8 @@ class EventEnvelope(BaseModelConfig):
     """
 
     event: Event
-    signature: Optional[str]
-    public_key: Optional[str]
+    signature: Optional[str] = None
+    public_key: Optional[str] = None
     received_at: datetime.datetime
 
 
@@ -154,12 +154,16 @@ class SearchRestriction(BaseModelConfig):
 
     Arguments:
     actor -- List of actors to include in search. If empty include all.
+    action -- List of action to include in search. If empty include all.
     source -- List of sourcers to include in search. If empty include all.
+    status -- List of status to include in search. If empty include all.
     target -- List of targets to include in search. If empty include all.
     """
 
     actor: List[str] = []
+    action: List[str] = []
     source: List[str] = []
+    status: List[str] = []
     target: List[str] = []
 
 
@@ -231,7 +235,7 @@ class RootInput(BaseModelConfig):
     tree_size -- The size of the tree (the number of records).
     """
 
-    tree_size: int
+    tree_size: Optional[int] = None
 
 
 class Root(BaseModelConfig):

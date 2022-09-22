@@ -11,7 +11,7 @@ from requests.adapters import HTTPAdapter, Retry
 import pangea
 from pangea import exceptions
 from pangea.config import PangeaConfig
-from pangea.response import PangeaError, PangeaResponse
+from pangea.response import PangeaError, PangeaResponse, ResponseStatus
 
 logger = logging.getLogger(__name__)
 
@@ -178,30 +178,30 @@ class PangeaRequest(object):
         status = response.status
         summary = response.summary
 
-        if status == "Success":
+        if status == ResponseStatus.SUCCESS.value:
             return
         else:
             response.result = None
             response.errors = PangeaError(**response.raw_result)
 
-        if status == "ValidationError":
+        if status == ResponseStatus.VALIDATION_ERR.value:
             raise exceptions.ValidationException(summary, response)
-        elif status == "TooManyRequests":
+        elif status == ResponseStatus.TOO_MANY_REQUESTS.value:
             raise exceptions.RateLimitException(summary, response)
-        elif status == "NoCredit":
+        elif status == ResponseStatus.NO_CREDIT.value:
             raise exceptions.NoCreditException(summary, response)
-        elif status == "Unauthorized":
+        elif status == ResponseStatus.UNAUTHORIZED.value:
             raise exceptions.UnauthorizedException(self.service, response)
-        elif status == "ServiceNotEnabled":
+        elif status == ResponseStatus.SERVICE_NOT_ENABLED.value:
             raise exceptions.ServiceNotEnabledException(self.service, response)
-        elif status == "ProviderError":
+        elif status == ResponseStatus.PROVIDER_ERR.value:
             raise exceptions.ProviderErrorException(summary, response)
-        elif status in ("MissingConfigIDScope", "MissingConfigID"):
+        elif status in (ResponseStatus.MISSING_CONFIG_ID_SCOPE.value, ResponseStatus.MISSING_CONFIG_ID.value):
             raise exceptions.MissingConfigID(self.service, response)
-        elif status == "ServiceNotAvailable":
+        elif status == ResponseStatus.SERVICE_NOT_AVAILABLE.value:
             raise exceptions.ServiceNotAvailableException(summary, response)
-        elif status == "TreeNotFound":
+        elif status == ResponseStatus.TREE_NOT_FOUND.value:
             raise exceptions.TreeNotFoundException(summary, response)
-        elif status == "IPNotFound":
+        elif status == ResponseStatus.IP_NOT_FOUND.value:
             raise exceptions.IPNotFoundException(summary, response)
         raise exceptions.PangeaAPIException(f"{status}: {summary}", response)
