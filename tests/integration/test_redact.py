@@ -1,8 +1,12 @@
 import os
 import unittest
 
-from pangea import PangeaConfig, exceptions
+import pydantic
+
+from pangea import PangeaConfig
+from pangea.response import ResponseStatus
 from pangea.services import Redact
+from pangea.services.redact import RedactInput, StructuredInput
 
 
 class TestRedact(unittest.TestCase):
@@ -14,24 +18,24 @@ class TestRedact(unittest.TestCase):
         self.redact = Redact(token, config=config)
 
     def test_redact(self):
-        data = "Jenny Jenny... 415-867-5309"
-        expected = {"redacted_text": "<PERSON>... <PHONE_NUMBER>"}
+        text = "Jenny Jenny... 415-867-5309"
+        expected = "<PERSON>... <PHONE_NUMBER>"
 
-        response = self.redact.redact(data)
-        self.assertEqual(response.code, 200)
-        self.assertEqual(response.result, expected)
+        response = self.redact.redact(RedactInput(text=text))
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertEqual(response.result.redacted_text, expected)
 
     def test_redact_structured(self):
         data = {"phone": "415-867-5309"}
-        expected = {"redacted_data": {"phone": "<PHONE_NUMBER>"}}
+        expected = {"phone": "<PHONE_NUMBER>"}
 
-        response = self.redact.redact_structured(data)
-        self.assertEqual(response.code, 200)
-        self.assertEqual(response.result, expected)
+        response = self.redact.redact_structured(StructuredInput(data=data))
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertEqual(response.result.redacted_data, expected)
 
     # call plain redact with structured data, should throw a 400
     def test_redact_with_structured_data(self):
         data = {"phone": "415-867-5309"}
 
-        with self.assertRaises(exceptions.ValidationException):
-            self.redact.redact(data)  # type: ignore
+        with self.assertRaises(pydantic.ValidationError):
+            self.redact.redact(RedactInput(text=data))  # type: ignore

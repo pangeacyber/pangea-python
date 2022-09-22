@@ -11,7 +11,7 @@ from requests.adapters import HTTPAdapter, Retry
 import pangea
 from pangea import exceptions
 from pangea.config import PangeaConfig
-from pangea.response import PangeaResponse
+from pangea.response import PangeaError, PangeaResponse, ResponseStatus
 
 logger = logging.getLogger(__name__)
 
@@ -123,12 +123,9 @@ class PangeaRequest(object):
         requests_response = self.request.get(url, headers=self._headers())
 
         pangea_response = PangeaResponse(requests_response)
+
         self._check_response(pangea_response)
         return pangea_response
-
-    def _to_response(self, response: requests.Response) -> PangeaResponse:
-        resp = PangeaResponse(response)
-        return resp
 
     def _handle_queued(self, request_id: str) -> PangeaResponse:
         retry_count = 1
@@ -179,28 +176,32 @@ class PangeaRequest(object):
 
     def _check_response(self, response: PangeaResponse):
         status = response.status
-        summary = response._data.get("summary")
+        summary = response.summary
 
-        if status == "Success":
+        if status == ResponseStatus.SUCCESS.value:
             return
-        elif status == "ValidationError":
-            raise exceptions.ValidationException(summary, response.result["errors"])
-        elif status == "TooManyRequests":
-            raise exceptions.RateLimitException(summary)
-        elif status == "NoCredit":
-            raise exceptions.NoCreditException(summary)
-        elif status == "Unauthorized":
-            raise exceptions.UnauthorizedException(self.service)
-        elif status == "ServiceNotEnabled":
-            raise exceptions.ServiceNotEnabledException(self.service)
-        elif status == "ProviderError":
-            raise exceptions.ProviderErrorException(summary)
-        elif status in ("MissingConfigIDScope", "MissongConfigID"):
-            raise exceptions.MissingConfigID(self.service)
-        elif status == "ServiceNotAvailable":
-            raise exceptions.ServiceNotAvailableException(summary)
-        elif status == "TreeNotFound":
-            raise exceptions.TreeNotFoundException(summary)
-        elif status == "IPNotFound":
-            raise exceptions.IPNotFoundException(summary)
-        raise exceptions.PangeaAPIException(f"{status}: {summary}")
+        else:
+            response.result = None
+            response.errors = PangeaError(**response.raw_result)
+
+        if status == ResponseStatus.VALIDATION_ERR.value:
+            raise exceptions.ValidationException(summary, response)
+        elif status == ResponseStatus.TOO_MANY_REQUESTS.value:
+            raise exceptions.RateLimitException(summary, response)
+        elif status == ResponseStatus.NO_CREDIT.value:
+            raise exceptions.NoCreditException(summary, response)
+        elif status == ResponseStatus.UNAUTHORIZED.value:
+            raise exceptions.UnauthorizedException(self.service, response)
+        elif status == ResponseStatus.SERVICE_NOT_ENABLED.value:
+            raise exceptions.ServiceNotEnabledException(self.service, response)
+        elif status == ResponseStatus.PROVIDER_ERR.value:
+            raise exceptions.ProviderErrorException(summary, response)
+        elif status in (ResponseStatus.MISSING_CONFIG_ID_SCOPE.value, ResponseStatus.MISSING_CONFIG_ID.value):
+            raise exceptions.MissingConfigID(self.service, response)
+        elif status == ResponseStatus.SERVICE_NOT_AVAILABLE.value:
+            raise exceptions.ServiceNotAvailableException(summary, response)
+        elif status == ResponseStatus.TREE_NOT_FOUND.value:
+            raise exceptions.TreeNotFoundException(summary, response)
+        elif status == ResponseStatus.IP_NOT_FOUND.value:
+            raise exceptions.IPNotFoundException(summary, response)
+        raise exceptions.PangeaAPIException(f"{status}: {summary}", response)

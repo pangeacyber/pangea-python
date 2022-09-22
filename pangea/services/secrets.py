@@ -1,14 +1,13 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 
-import json
-import os
-import typing as t
-from typing import List
+from typing import Dict, List
 
-from pangea.response import JSONObject, PangeaResponse
+from pangea.response import PangeaResponse
 
 from .base import ServiceBase
+
+# FIXME: update this SDK once service is ready
 
 
 class Secrets(ServiceBase):
@@ -67,7 +66,6 @@ class Secrets(ServiceBase):
                     "request_time",
                     "response_time",
                     "status": ["success", "failed"],
-                    "status_code",
                     "summary": ["secret found", "secret not found"],
                     "result": {
                         [
@@ -110,7 +108,6 @@ class Secrets(ServiceBase):
                 "request_time": "",
                 "response_time",
                 "status": ["success", "failed"],
-                "status_code",
                 "summary": ["secret added", "awsmanager.AddSecret: unknown error kind"]
                 "result": {
                     [
@@ -155,7 +152,6 @@ class Secrets(ServiceBase):
                     "request_time",
                     "response_time",
                     "status": ["success" ,"failed"],
-                    "status_code",
                     "summary": ["secret updated", "awsmanager.UpdateSecret: unknown error kind"],
                     "result": {
                         [

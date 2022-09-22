@@ -1,8 +1,10 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
-import typing as t
+import enum
+from typing import Any, Dict, Generic, List, Optional, TypeVar, Union
 
 import requests
+from pydantic import BaseModel
 
 
 class JSONObject(dict):
@@ -28,53 +30,97 @@ class JSONObject(dict):
         self[name] = value
 
 
-class PangeaResponse(object):
-    """An object containing Pangea Service API response.
+class DataclassConfig:
+    arbitrary_types_allowed = True
+    extra = "ignore"
 
-    Properties:
-        result (obj): "result" field of the API response as documented at:
-            [https://docs.dev.pangea.cloud/docs/api/#responses](https://docs.dev.pangea.cloud/docs/api/#responses)
-        status (str): Pangea status code
-        status_code(int): HTTP Status Code
-        success (bool): true if call was successful
-        request_id (str): the ID of the request as tracked by Pangea
-        response (obj): the entire API response payload
 
+T = TypeVar("T")
+
+
+class BaseModelConfig(BaseModel):
+    class Config:
+        arbitrary_types_allowed = True
+
+
+class ErrorField(BaseModelConfig):
+    """
+    Field errors denote errors in fields provided in request payloads
+
+    Fields:
+        code(str): The field code
+        detail(str): A human readable detail explaining the error
+        source(str): A JSON pointer where the error occurred
+        path(str): If verbose mode was enabled, a path to the JSON Schema used
+            to validate the field
     """
 
-    def __init__(self, requests_response: requests.Response):
-        data = requests_response.json()
-        status = data["status"]
-        self._status = status
-        self._data = JSONObject(data)
-        self._success = status == "Success"
-        self._response = requests_response
-        self._status_code = requests_response.status_code
+    code: str
+    detail: str
+    source: str
+    path: Optional[str] = None
 
-    @property
-    def data(self) -> JSONObject:
-        return self._data
 
-    @property
-    def result(self) -> t.Optional[dict]:
-        return self._data.result
+class PangeaError(BaseModelConfig):
+    errors: List[ErrorField] = []
 
-    @property
-    def status(self) -> str:
-        return self._status
+
+class PangeaResponseResult(BaseModelConfig):
+    pass
+
+
+class ResponseStatus(str, enum.Enum):
+    SUCCESS = "Success"
+    FAILED = "Failed"
+    VALIDATION_ERR = "ValidationError"
+    TOO_MANY_REQUESTS = "TooManyRequests"
+    NO_CREDIT = "NoCredit"
+    UNAUTHORIZED = "Unauthorized"
+    SERVICE_NOT_ENABLED = "ServiceNotEnabled"
+    PROVIDER_ERR = "ProviderError"
+    MISSING_CONFIG_ID_SCOPE = "MissingConfigIDScope"
+    MISSING_CONFIG_ID = "MissingConfigID"
+    SERVICE_NOT_AVAILABLE = "ServiceNotAvailable"
+    TREE_NOT_FOUND = "TreeNotFound"
+    IP_NOT_FOUND = "IPNotFound"
+
+
+class ResponseHeader(BaseModelConfig):
+    """
+    TODO: complete
+
+    Arguments:
+    request_id -- The request ID.
+    request_time -- The time the request was issued, ISO8601.
+    response_time -- The time the response was issued, ISO8601.
+    status -- Pangea response status
+    summary -- The summary of the response.
+    """
+
+    request_id: str
+    request_time: str
+    response_time: str
+    status: str
+    summary: str
+
+
+class PangeaResponse(Generic[T], ResponseHeader):
+    raw_result: Optional[Dict[str, Any]] = None
+    raw_response: Optional[requests.Response] = None
+    result: Optional[T] = None
+    errors: Optional[PangeaError] = None
+
+    def __init__(self, response: requests.Response):
+        json = response.json()
+        super(PangeaResponse, self).__init__(**json)
+        self.raw_response = response
+        self.raw_result = json["result"]
+        self.result = (
+            T(**json["result"])
+            if issubclass(type(T), PangeaResponseResult) and self.status == ResponseStatus.SUCCESS.value
+            else None
+        )
 
     @property
     def success(self) -> bool:
-        return self._success
-
-    @property
-    def request_id(self) -> t.Optional[str]:
-        return self._data.get("request_id", None)
-
-    @property
-    def response(self) -> requests.Response:
-        return self._response
-
-    @property
-    def code(self) -> int:
-        return self._status_code
+        return self.status == "Success"

@@ -1,10 +1,12 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
-import typing as t
 from base64 import b64decode, b64encode
+from typing import Dict, Union
 
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ed25519
+
+from pangea.services.audit_util import b64decode_ascii
 
 from .services.audit_util import canonicalize_json
 
@@ -55,7 +57,7 @@ class Signer:
         message_bytes = canonicalize_json(messageJSON)
         return self._signMessageBytes(message_bytes, private_key)
 
-    def signMessage(self, message: t.Any):
+    def signMessage(self, message: Union[str, Dict, bytes]):
         private_key = self._getPrivateKey()
 
         if isinstance(message, str):
@@ -79,9 +81,8 @@ class Signer:
 
 class Verifier:
     # verify message with signature and public key bytes
-    def verifyMessage(
-        self, signature_b64: bytes, message: t.Union[str, dict, bytes], public_key_bytes: bytes = None
-    ) -> bool:
+    def verifyMessage(self, signature_b64: str, message: Union[str, dict, bytes], public_key_b64: str = None) -> bool:
+        public_key_bytes = b64decode_ascii(public_key_b64)
         public_key = ed25519.Ed25519PublicKey.from_public_bytes(public_key_bytes)
 
         if isinstance(message, str):
@@ -95,7 +96,7 @@ class Verifier:
 
     # Verify a message in bytes using Ed25519 algorithm
     def _verifyMessageBytes(
-        self, signature_b64: bytes, message_bytes: bytes, public_key: ed25519.Ed25519PublicKey
+        self, signature_b64: str, message_bytes: bytes, public_key: ed25519.Ed25519PublicKey
     ) -> bool:
         try:
             signature = b64decode(signature_b64)
@@ -106,11 +107,11 @@ class Verifier:
         return True
 
     # Verify a string message using Ed25519 algorithm
-    def _verifyMessageStr(self, signature_b64: bytes, message: str, public_key: ed25519.Ed25519PublicKey) -> bool:
+    def _verifyMessageStr(self, signature_b64: str, message: str, public_key: ed25519.Ed25519PublicKey) -> bool:
         message_bytes = bytes(message, "utf8")
         return self._verifyMessageBytes(signature_b64, message_bytes, public_key)
 
     # Verify a JSON message using Ed25519 algorithm
-    def _verifyMessageJSON(self, signature_b64: bytes, messageJSON: dict, public_key: ed25519.Ed25519PublicKey) -> bool:
+    def _verifyMessageJSON(self, signature_b64: str, messageJSON: dict, public_key: ed25519.Ed25519PublicKey) -> bool:
         message_bytes = canonicalize_json(messageJSON)
         return self._verifyMessageBytes(signature_b64, message_bytes, public_key)

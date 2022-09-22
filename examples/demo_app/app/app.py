@@ -2,6 +2,7 @@ import copy
 import dataclasses
 import logging
 import os
+from typing import Tuple
 
 # App related imports
 from utils.db import Db
@@ -10,6 +11,8 @@ from utils.employee import Employee, EmployeeStatus
 # Pangea SDK
 from pangea.config import PangeaConfig
 from pangea.services import Audit, Embargo, Redact
+from pangea.services.audit import Event
+from pangea.services.embargo import IPCheckInput
 
 PANGEA_TOKEN = os.getenv("PANGEA_TOKEN")
 
@@ -47,7 +50,7 @@ class App:
     def shutdown(self):
         self._db.teardown()
 
-    def upload_resume(self, user: str, client_ip: str, data: dict) -> (int, str):
+    def upload_resume(self, user: str, client_ip: str, data: dict) -> Tuple[int, str]:
         """Handles uploading a candidate's resume into employee Database
 
         Args:
@@ -74,24 +77,24 @@ class App:
         )
 
         # Check client IP against Pangea's Embargo Service
-        resp = self._pangea_embargo.ip_check(client_ip)
+        resp = self._pangea_embargo.ip_check(IPCheckInput(ip=client_ip))
 
         logging.info(f"[App.upload_resume] Embargo response: {resp.request_id}, {resp.result}")
 
-        if resp.result["sanctions"] is not None:
-            audit_data = {
-                "action": "add_employee",
-                "actor": user,
-                "target": candidate.personal_email,
-                "status": "error",
-                "message": f"Resume denied - sanctioned country from {client_ip}",
-                "source": "web",
-            }
+        if resp.result.sanctions is not None:
+            audit_data = Event(
+                action="add_employee",
+                actor=user,
+                target=candidate.personal_email,
+                status="error",
+                message=f"Resume denied - sanctioned country from {client_ip}",
+                source="web",
+            )
             resp = self._pangea_audit.log(event=audit_data)
             if resp.success:
                 logging.info(f"[App.upload_resume] Audit log ID: {resp.request_id}, Success: {resp.status}")
             else:
-                logging.error(f"[App.upload_resume] Audit log Error: {resp.response.text}")
+                logging.error(f"[App.upload_resume] Audit log Error: {resp.result.errors}")
             return (403, f"Submissions from sanctioned country not allowed")
 
         ######################################
@@ -112,15 +115,14 @@ class App:
 
         if ret:
             # Audit log
-            audit_data = {
-                "action": "add_employee",
-                "actor": user,
-                "target": candidate.personal_email,
-                "status": "success",
-                "message": f"Resume accepted.",
-                "new": emp,
-                "source": "web",
-            }
+            audit_data = Event(
+                action="add_employee",
+                actor=user,
+                target=candidate.personal_email,
+                status="success",
+                message=f"Resume accepted.",
+                source="web",
+            )
 
             resp = self._pangea_audit.log(event=audit_data)
             if resp.success:
@@ -130,22 +132,22 @@ class App:
             return (201, f"Resume accepted")
         else:
             # Audit log
-            audit_data = {
-                "action": "add_employee",
-                "actor": user,
-                "target": candidate.personal_email,
-                "status": "error",
-                "message": f"Resume denied: {emp}",
-                "source": "web",
-            }
+            audit_data = Event(
+                action="add_employee",
+                actor=user,
+                target=candidate.personal_email,
+                status="success",
+                message=f"Resume denied: {emp}",
+                source="web",
+            )
             resp = self._pangea_audit.log(event=audit_data)
             if resp.success:
                 logging.info(f"[App.upload_resume] Audit log ID: {resp.request_id}, Success: {resp.status}")
             else:
-                logging.error(f"[App.upload_resume] Audit log Error: {resp.response.text}")
+                logging.error(f"[App.upload_resume] Audit log Error: {resp.result.errors}")
             return (400, f"Bad request")
 
-    def fetch_employee_record(self, user: str, email: str) -> (int, str):
+    def fetch_employee_record(self, user: str, email: str) -> Tuple[int, str]:
         """Returns an employee record.  Fields may be redacted depending on the user's identity
 
         Args:
@@ -164,26 +166,27 @@ class App:
         ret, emp = self._db.lookup_employee(email)
 
         # Audit log
-        audit_data = {
-            "action": "lookup_employee",
-            "actor": user,
-            "target": email,
-            "status": "success" if ret else "error",
-            "message": "Requested employee record",
-            "source": "web",
-        }
+        audit_data = Event(
+            action="add_employee",
+            actor=user,
+            target=email,
+            status="success" if ret else "error",
+            message="Requested employee record",
+            source="web",
+        )
+
         resp = self._pangea_audit.log(event=audit_data)
         if resp.success:
             logging.info(f"[App.fetch_employee_record] Audit log ID: {resp.request_id}, Success: {resp.status}")
         else:
-            logging.error(f"[App.fetch_employee_record] Audit log Error: {resp.response.text}")
+            logging.error(f"[App.fetch_employee_record] Audit log Error: {resp.result.errors}")
 
         if ret:
             return (200, {"employee": dataclasses.asdict(emp)})
 
         return (400, "Bad request")
 
-    def update_employee(self, user: str, data: dict) -> (int, str):
+    def update_employee(self, user: str, data: dict) -> Tuple[int, str]:
         """Updates the employee status
 
         Args:
@@ -234,21 +237,22 @@ class App:
             ret = self._db.update_employee(emp)
 
             # Audit log
-            audit_data = {
-                "action": "update_employee",
-                "actor": user,
-                "target": data["email"],
-                "status": "success" if ret else "error",
-                "message": "Record updated" if ret else "Failed to update record",
-                "old": dataclasses.asdict(empold),
-                "new": dataclasses.asdict(emp),
-                "source": "web",
-            }
+            audit_data = Event(
+                action="add_employee",
+                actor=user,
+                target=data["email"],
+                status="success" if ret else "error",
+                message="Record updated" if ret else "Failed to update record",
+                old=dataclasses.asdict(empold),
+                new=dataclasses.asdict(emp),
+                source="web",
+            )
+
             resp = self._pangea_audit.log(event=audit_data)
             if resp.success:
                 logging.info(f"[App.update_employee] Audit log ID: {resp.request_id}, Success: {resp.status}")
             else:
-                logging.error(f"[App.update_employee] Audit log Error: {resp.response.text}")
+                logging.error(f"[App.update_employee] Audit log Error: {resp.result.errors}")
 
             if ret:
                 logging.info(f"[App.update_employee] Successfully updated employee record")

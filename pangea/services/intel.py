@@ -1,8 +1,164 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
-from pangea.response import PangeaResponse
+from fileinput import FileInput
+from typing import Dict, List, Optional
+
+from pydantic import BaseModel
+
+from pangea.response import PangeaResponse, PangeaResponseResult
 
 from .base import ServiceBase
+
+
+class BaseModelConfig(BaseModel):
+    class Config:
+        arbitrary_types_allowed = True
+
+
+class FileLookupInput(BaseModelConfig):
+    """
+    TODO: complete
+
+    file_hash (str): Hash of the file to be looked up
+    hash_type (str): Type of hash, can be "sha256", "sha" or "md5"
+    provider (str, optional): Provider of the reputation information. ("reversinglabs" or "crowdstrike"). Default provider defined by the configuration.
+    verbose (bool, optional): Echo back the parameters of the API in the response
+    raw (bool, optional): Return additional details from the provider.
+    """
+
+    hash: str
+    hash_type: str
+    verbose: Optional[bool] = None
+    raw: Optional[bool] = None
+    provider: Optional[str] = None
+
+
+class FileLookupData(BaseModelConfig):
+    """
+    TODO: complete
+    """
+
+    category: List[str]
+    score: int
+    verdict: str
+
+
+class FileLookupOutput(PangeaResponseResult):
+    """
+    TODO: complete
+    """
+
+    data: FileLookupData
+    parameters: Optional[Dict] = None
+    raw_data: Optional[Dict] = None
+
+
+class IPLookupInput(BaseModelConfig):
+    """
+    TODO: complete
+
+    ip (str): IP address to be looked up
+    provider (str, optional): Provider of the reputation information. ("crowdstrike"). Default provider defined by the configuration.
+    verbose (bool, optional): Echo back the parameters of the API in the response
+    raw (bool, optional): Return additional details from the provider.
+    """
+
+    ip: str
+    verbose: Optional[bool] = None
+    raw: Optional[bool] = None
+    provider: Optional[str] = None
+
+
+class IPLookupData(BaseModelConfig):
+    """
+    TODO: complete
+    """
+
+    category: List[str]
+    score: int
+    verdict: str
+
+
+class IPLookupOutput(PangeaResponseResult):
+    """
+    TODO: complete
+    """
+
+    data: IPLookupData
+    parameters: Optional[Dict] = None
+    raw_data: Optional[Dict] = None
+
+
+class DomainLookupInput(BaseModelConfig):
+    """
+    TODO: complete
+
+    domain (str): Domain address to be looked up
+    provider (str, optional): Provider of the reputation information. ("crowdstrike"). Default provider defined by the configuration.
+    verbose (bool, optional): Echo back the parameters of the API in the response
+    raw (bool, optional): Return additional details from the provider.
+    """
+
+    domain: str
+    verbose: Optional[bool] = None
+    raw: Optional[bool] = None
+    provider: Optional[str] = None
+
+
+class DomainLookupData(BaseModelConfig):
+    """
+    TODO: complete
+    """
+
+    category: List[str]
+    score: int
+    verdict: str
+
+
+class DomainLookupOutput(PangeaResponseResult):
+    """
+    TODO: complete
+    """
+
+    data: DomainLookupData
+    parameters: Optional[Dict] = None
+    raw_data: Optional[Dict] = None
+
+
+class URLLookupInput(BaseModelConfig):
+    """
+    TODO: complete
+
+    url (str): URL address to be looked up
+    provider (str, optional): Provider of the reputation information. ("crowdstrike"). Default provider defined by the configuration.
+    verbose (bool, optional): Echo back the parameters of the API in the response
+    raw (bool, optional): Return additional details from the provider.
+    """
+
+    url: str
+    verbose: Optional[bool] = None
+    raw: Optional[bool] = None
+    provider: Optional[str] = None
+
+
+class URLLookupData(BaseModelConfig):
+    """
+    TODO: complete
+    """
+
+    category: List[str]
+    score: int
+    verdict: str
+
+
+class URLLookupOutput(PangeaResponseResult):
+    """
+    TODO: complete
+    """
+
+    data: URLLookupData
+    parameters: Optional[Dict] = None
+    raw_data: Optional[Dict] = None
 
 
 class FileIntel(ServiceBase):
@@ -36,20 +192,14 @@ class FileIntel(ServiceBase):
     service_name = "file-intel"
     version = "v1"
 
-    def lookup(
-        self, file_hash: str, hash_type: str, provider: str = None, verbose: bool = False, raw: bool = False
-    ) -> PangeaResponse:
+    def lookup(self, input=FileLookupInput) -> PangeaResponse[FileLookupOutput]:
         """
         Lookup file reputation by hash.
 
         Retrieve file reputation from a provider, using the file's hash.
 
         Args:
-            file_hash (str): Hash of the file to be looked up
-            hash_type (str): Type of hash, can be "sha256", "sha" or "md5"
-            provider (str, optional): Provider of the reputation information. ("reversinglabs" or "crowdstrike"). Default provider defined by the configuration.
-            verbose (bool, optional): Echo back the parameters of the API in the response
-            raw (bool, optional): Return additional details from the provider.
+            input (FileLookupInput): input with file information to perform request
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -59,7 +209,7 @@ class FileIntel(ServiceBase):
                 response.result field.  Available response fields can be found in our [API documentation](/docs/api/file-intel).
 
         Examples:
-            response = file_intel.lookup("322ccbd42b7e4fd3a9d0167ca2fa9f6483d9691364c431625f1df54270647ca8", "sha256", provider="crowdstrike")
+            response = file_intel.lookup(FileLookupInput(hash="322ccbd42b7e4fd3a9d0167ca2fa9f6483d9691364c431625f1df54270647ca8", hash_type="sha256", provider="crowdstrike"))
 
             \"\"\"
             response contains:
@@ -68,7 +218,6 @@ class FileIntel(ServiceBase):
                 "request_time": "2022-08-23T02:43:17.614Z",
                 "response_time": "2022-08-23T02:43:18.607Z",
                 "status": "success",
-                "status_code": 200,
                 "summary": "Hash was found",
                 "result": {
                     "data": {
@@ -84,18 +233,9 @@ class FileIntel(ServiceBase):
             \"\"\"
         """
 
-        data = {
-            "hash": file_hash,
-            "hash_type": hash_type,
-        }
-        if provider:
-            data["provider"] = provider
-        if verbose:
-            data["verbose"] = verbose
-        if raw:
-            data["raw"] = raw
-
-        return self.request.post("lookup", data=data)
+        response = self.request.post("lookup", data=input.dict(exclude_none=True))
+        response.result = FileLookupOutput(**response.result)
+        return response
 
 
 class IpIntel(ServiceBase):
@@ -129,15 +269,12 @@ class IpIntel(ServiceBase):
     service_name = "ip-intel"
     version = "v1"
 
-    def lookup(self, ip: str, provider: str = None, verbose: bool = False, raw: bool = False) -> PangeaResponse:
+    def lookup(self, input: IPLookupInput) -> PangeaResponse[IPLookupOutput]:
         """
         Retrieve IP address reputation from a provider.
 
         Args:
-            ip (str): IP address to be looked up
-            provider (str, optional): Provider of the reputation information. ("crowdstrike"). Default provider defined by the configuration.
-            verbose (bool, optional): Echo back the parameters of the API in the response
-            raw (bool, optional): Return additional details from the provider.
+            input (IPLookupInput): input with IP information to perform request
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -147,7 +284,7 @@ class IpIntel(ServiceBase):
                 response.result field.  Available response fields can be found in our [API documentation](/docs/api/ip-intel)
 
         Examples:
-            response = ip_intel.lookup("93.231.182.110", provider="crowdstrike")
+            response = ip_intel.lookup(IPLookupInput(ip="93.231.182.110", provider="crowdstrike"))
 
             \"\"\"
             response contains:
@@ -156,7 +293,6 @@ class IpIntel(ServiceBase):
                 "request_time": "2022-08-23T03:28:20.225Z",
                 "response_time": "2022-08-23T03:28:20.244Z",
                 "status": "success",
-                "status_code": 200,
                 "summary": "IP was found",
                 "result": {
                     "data": {
@@ -171,17 +307,9 @@ class IpIntel(ServiceBase):
             \"\"\"
         """
 
-        data = {
-            "ip": ip,
-        }
-        if provider:
-            data["provider"] = provider
-        if verbose:
-            data["verbose"] = verbose
-        if raw:
-            data["raw"] = raw
-
-        return self.request.post("lookup", data=data)
+        response = self.request.post("lookup", data=input.dict(exclude_none=True))
+        response.result = IPLookupOutput(**response.result)
+        return response
 
 
 class UrlIntel(ServiceBase):
@@ -215,15 +343,12 @@ class UrlIntel(ServiceBase):
     service_name = "url-intel"
     version = "v1"
 
-    def lookup(self, url: str, provider: str = None, verbose: bool = False, raw: bool = False) -> PangeaResponse:
+    def lookup(self, input: URLLookupInput) -> PangeaResponse[URLLookupOutput]:
         """
         Retrieve URL address reputation from a provider.
 
         Args:
-            url (str): URL address to be looked up
-            provider (str, optional): Provider of the reputation information. ("crowdstrike"). Default provider defined by the configuration.
-            verbose (bool, optional): Echo back the parameters of the API in the response
-            raw (bool, optional): Return additional details from the provider.
+            input (URLLookupInput): input with URL information to perform request
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -233,7 +358,7 @@ class UrlIntel(ServiceBase):
                 response.result field.  Available response fields can be found in our [API documentation](/docs/api/url-intel)
 
         Examples:
-            response = url_intel.lookup("http://113.235.101.11:54384", provider="crowdstrike")
+            response = url_intel.lookup(URLLookupInput(url="http://113.235.101.11:54384", provider="crowdstrike"))
 
             \"\"\"
             response contains:
@@ -242,7 +367,6 @@ class UrlIntel(ServiceBase):
                 "request_time": "2022-08-23T03:40:03.549Z",
                 "response_time": "2022-08-23T03:40:03.694Z",
                 "status": "success",
-                "status_code": 200,
                 "summary": "Url was found",
                 "result": {
                     "data": {
@@ -257,17 +381,9 @@ class UrlIntel(ServiceBase):
             \"\"\"
         """
 
-        data = {
-            "url": url,
-        }
-        if provider:
-            data["provider"] = provider
-        if verbose:
-            data["verbose"] = verbose
-        if raw:
-            data["raw"] = raw
-
-        return self.request.post("lookup", data=data)
+        response = self.request.post("lookup", data=input.dict(exclude_none=True))
+        response.result = URLLookupOutput(**response.raw_result)
+        return response
 
 
 class DomainIntel(ServiceBase):
@@ -301,15 +417,12 @@ class DomainIntel(ServiceBase):
     service_name = "domain-intel"
     version = "v1"
 
-    def lookup(self, domain: str, provider: str = None, verbose: bool = False, raw: bool = False) -> PangeaResponse:
+    def lookup(self, input: DomainLookupInput) -> PangeaResponse[DomainLookupOutput]:
         """
         Retrieve Domain reputation from a provider.
 
         Args:
-            domain (str): Domain address to be looked up
-            provider (str, optional): Provider of the reputation information. ("crowdstrike"). Default provider defined by the configuration.
-            verbose (bool, optional): Echo back the parameters of the API in the response
-            raw (bool, optional): Return additional details from the provider.
+            input (URLLookupInput): input with domain information to perform request
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -319,21 +432,13 @@ class DomainIntel(ServiceBase):
                 response.result field.  Available response fields can be found in our [API documentation](/docs/api/domain-intel)
 
         Examples:
-            response = domain_intel.lookup("teoghehofuuxo.su", provider="crowdstrike")
+            response = domain_intel.lookup(DomainLookupInput(domain"teoghehofuuxo.su", provider="crowdstrike"))
 
             \"\"\"
             response contains:
             \"\"\"
         """
 
-        data = {
-            "domain": domain,
-        }
-        if provider:
-            data["provider"] = provider
-        if verbose:
-            data["verbose"] = verbose
-        if raw:
-            data["raw"] = raw
-
-        return self.request.post("lookup", data=data)
+        response = self.request.post("lookup", data=input.dict(exclude_none=True))
+        response.result = DomainLookupOutput(**response.raw_result)
+        return response
