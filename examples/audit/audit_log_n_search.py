@@ -13,6 +13,8 @@ from pangea.services.audit import (
     SearchResultOutput,
 )
 
+# This example shows how to perform an audit log, and then search for thats results
+
 token = os.getenv("AUDIT_AUTH_TOKEN")
 config_id = os.getenv("AUDIT_CONFIG_ID")
 domain = os.getenv("PANGEA_DOMAIN")

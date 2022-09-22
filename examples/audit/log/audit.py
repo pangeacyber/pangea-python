@@ -12,6 +12,8 @@ domain = os.getenv("PANGEA_DOMAIN")
 config = PangeaConfig(domain=domain, config_id=config_id)
 audit = Audit(token, config=config)
 
+# This example shows how to perform an audit log
+
 
 def main():
     event = Event(
