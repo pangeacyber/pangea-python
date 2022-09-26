@@ -14,7 +14,7 @@ embargo = Embargo(token, config=config)
 def main():
     country_code = "CU"
     print(f"Checking Embargo ISO code: {country_code}")
-    embargo_response = embargo.iso_check(ISOCheckInput(iso_code=country_code))
+    embargo_response = embargo.iso_check(iso_code=country_code)
 
     if embargo_response.success:
         print(f"Response: {embargo_response.result}")

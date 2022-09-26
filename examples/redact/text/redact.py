@@ -14,7 +14,7 @@ redact = Redact(token, config=config)
 def main():
     text = "Hello, my phone number is 123-456-7890"
     print(f"Redacting PII from: {text}")
-    redact_response = redact.redact(RedactInput(text=text))
+    redact_response = redact.redact(text=text)
 
     if redact_response.success:
         print(f"Response: {redact_response.result}")

@@ -23,3 +23,6 @@ env/
 # editors
 .idea
 .vscode
+
+# test coverage
+.coverage

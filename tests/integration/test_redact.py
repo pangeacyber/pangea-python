@@ -3,10 +3,10 @@ import unittest
 
 import pydantic
 
+import pangea.exceptions as pe
 from pangea import PangeaConfig
 from pangea.response import ResponseStatus
 from pangea.services import Redact
-from pangea.services.redact import RedactInput, StructuredInput
 
 
 class TestRedact(unittest.TestCase):
@@ -21,7 +21,7 @@ class TestRedact(unittest.TestCase):
         text = "Jenny Jenny... 415-867-5309"
         expected = "<PERSON>... <PHONE_NUMBER>"
 
-        response = self.redact.redact(RedactInput(text=text))
+        response = self.redact.redact(text=text)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertEqual(response.result.redacted_text, expected)
 
@@ -29,7 +29,7 @@ class TestRedact(unittest.TestCase):
         data = {"phone": "415-867-5309"}
         expected = {"phone": "<PHONE_NUMBER>"}
 
-        response = self.redact.redact_structured(StructuredInput(data=data))
+        response = self.redact.redact_structured(data=data)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertEqual(response.result.redacted_data, expected)
 
@@ -38,4 +38,30 @@ class TestRedact(unittest.TestCase):
         data = {"phone": "415-867-5309"}
 
         with self.assertRaises(pydantic.ValidationError):
-            self.redact.redact(RedactInput(text=data))  # type: ignore
+            self.redact.redact(text=data)  # type: ignore
+
+    def test_redact_with_bad_auth_token(self):
+        token = "notarealtoken"
+        config_id = os.getenv("REDACT_INTEGRATION_CONFIG_TOKEN")
+        domain = os.getenv("PANGEA_TEST_INTEGRATION_ENDPOINT")
+        config = PangeaConfig(domain=domain, config_id=config_id)
+
+        badredact = Redact(token, config=config)
+
+        text = "Jenny Jenny... 415-867-5309"
+
+        with self.assertRaises(pe.UnauthorizedException):
+            badredact.redact(text=text)
+
+    def test_redact_with_bad_configid(self):
+        token = os.getenv("PANGEA_TEST_INTEGRATION_TOKEN")
+        config_id = "notarealconfigid"
+        domain = os.getenv("PANGEA_TEST_INTEGRATION_ENDPOINT")
+        config = PangeaConfig(domain=domain, config_id=config_id)
+
+        badredact = Redact(token, config=config)
+
+        text = "Jenny Jenny... 415-867-5309"
+
+        with self.assertRaises(pe.MissingConfigID):
+            badredact.redact(text=text)

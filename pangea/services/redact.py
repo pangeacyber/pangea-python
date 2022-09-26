@@ -150,7 +150,7 @@ class Redact(ServiceBase):
         if self.config.config_id:
             self.request.set_extra_headers({ConfigIDHeaderName: self.config.config_id})
 
-    def redact(self, input: RedactInput) -> PangeaResponse[RedactOutput]:
+    def redact(self, text: str, debug: bool = False) -> PangeaResponse[RedactOutput]:
         """
         Redact
 
@@ -185,11 +185,18 @@ class Redact(ServiceBase):
             }
             \"\"\"
         """
+        input = RedactInput(text=text, debug=debug)
         response = self.request.post("redact", data=input.dict(exclude_none=True))
         response.result = RedactOutput(**response.raw_result)
         return response
 
-    def redact_structured(self, input: StructuredInput) -> PangeaResponse[StructuredOutput]:
+    def redact_structured(
+        self,
+        data: Union[Dict, str],
+        jsonp: Optional[List[str]] = None,
+        format: Optional[RedactFormat] = None,
+        debug: Optional[bool] = None,
+    ) -> PangeaResponse[StructuredOutput]:
         """
         Redact structured
 
@@ -228,6 +235,7 @@ class Redact(ServiceBase):
             }
             \"\"\"
         """
+        input = StructuredInput(data=data, jsonp=jsonp, format=format, debug=debug)
         response = self.request.post("redact_structured", data=input.dict(exclude_none=True))
         response.result = StructuredOutput(**response.raw_result)
         return response

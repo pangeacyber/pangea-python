@@ -16,7 +16,7 @@ import sys
 import typing as t
 from base64 import b64decode
 
-from pangea.services.audit_util import (
+from pangea.audit_util import (
     canonicalize_json,
     decode_consistency_proof,
     decode_hash,

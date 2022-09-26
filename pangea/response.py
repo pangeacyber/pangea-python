@@ -7,29 +7,6 @@ import requests
 from pydantic import BaseModel
 
 
-class JSONObject(dict):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        for k, v in self.items():
-            k = k.replace(".", "_")
-            setattr(self, k, self.compute_attr_value(v))
-
-    def compute_attr_value(self, value):
-        if isinstance(value, list):
-            return [self.compute_attr_value(x) for x in value]
-        elif isinstance(value, dict):
-            return JSONObject(value)
-        else:
-            return value
-
-    def __getattr__(self, name: str):
-        return self.get(name)
-
-    def __setattr__(self, name: str, value) -> None:
-        self[name] = value
-
-
 class DataclassConfig:
     arbitrary_types_allowed = True
     extra = "ignore"
