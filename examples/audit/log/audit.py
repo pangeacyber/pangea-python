@@ -17,20 +17,13 @@ audit = Audit(token, config=config)
 def main():
     event = Event(
         message="Hello world",
-        actor="Someone",
-        action="Testing",
-        source="My computer",
-        status="Good",
-        target="Another spot",
-        new="New updated message",
-        old="Old message that it's been updated",
     )
 
     print(f"Logging: {event.dict(exclude_none=True)}")
 
     try:
         log_response = audit.log(event=event, verbose=False)
-        print(f"Response: {log_response.result.dict(exclude_none=True)}")
+        print(f"Response. Hash: {log_response.result.hash}")
     except pe.PangeaAPIException as e:
         print(f"Request Error: {e.response.summary}")
         for err in e.errors:
