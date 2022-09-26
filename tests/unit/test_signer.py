@@ -1,7 +1,7 @@
 import unittest
 
 import pangea.exceptions as pexc
-from pangea.signing import Signer
+from pangea.services.audit.signing import Signer
 
 
 class TestSigner(unittest.TestCase):

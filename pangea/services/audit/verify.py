@@ -16,7 +16,8 @@ import sys
 import typing as t
 from base64 import b64decode
 
-from pangea.audit_util import (
+from pangea.services.audit.signing import Signer
+from pangea.services.audit.util import (
     canonicalize_json,
     decode_consistency_proof,
     decode_hash,
@@ -26,7 +27,6 @@ from pangea.audit_util import (
     verify_consistency_proof,
     verify_membership_proof,
 )
-from pangea.signing import Signer
 
 logger = logging.getLogger("audit")
 pub_roots: t.Dict[int, t.Dict] = {}

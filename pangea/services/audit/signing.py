@@ -6,7 +6,7 @@ from typing import Dict, Union
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ed25519
 
-from pangea.audit_util import b64decode_ascii, canonicalize_json
+from pangea.services.audit.util import b64decode_ascii, canonicalize_json
 
 
 class Signer:

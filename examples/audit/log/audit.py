@@ -3,7 +3,7 @@ import os
 import pangea.exceptions as pe
 from pangea.config import PangeaConfig
 from pangea.services import Audit
-from pangea.services.audit import Event
+from pangea.services.audit.classes import Event
 
 token = os.getenv("AUDIT_AUTH_TOKEN")
 config_id = os.getenv("AUDIT_CONFIG_ID")

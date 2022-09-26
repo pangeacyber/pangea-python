@@ -4,8 +4,11 @@ import json
 import os
 from typing import Dict, List, Optional
 
-from pangea.audit_classes import *
-from pangea.audit_util import (
+from pangea.exceptions import AuditException
+from pangea.response import PangeaResponse
+from pangea.services.audit.classes import *
+from pangea.services.audit.signing import Signer, Verifier
+from pangea.services.audit.util import (
     b64encode_ascii,
     decode_buffer_root,
     decode_consistency_proof,
@@ -18,11 +21,7 @@ from pangea.audit_util import (
     verify_hash,
     verify_membership_proof,
 )
-from pangea.exceptions import AuditException
-from pangea.response import PangeaResponse
-from pangea.signing import Signer, Verifier
-
-from .base import ServiceBase
+from pangea.services.base import ServiceBase
 
 SupportedFields = [
     "actor",
