@@ -19,10 +19,8 @@ def main():
         print(f"Response: {response.result}")
     except pe.PangeaAPIException as e:
         print(f"Request Error: {e.response.summary}")
-        if e.errors:
-            for err in e.errors:
-                print(f"\t{err.detail}")
-            print("")
+        for err in e.errors:
+            print(f"\t{err.detail} \n")
 
 
 if __name__ == "__main__":
