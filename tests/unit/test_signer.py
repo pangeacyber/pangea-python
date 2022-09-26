@@ -19,18 +19,15 @@ class TestSigner(unittest.TestCase):
             filename = "./not/a/file"
             signer = Signer(filename)
             pubkey = signer.getPublicKeyBytes()
-            self.assertTrue(False)
 
     def test_signer_bad_format(self):
         with self.assertRaises(Exception):
             filename = "./tests/testdata/badformatprivkey"
             signer = Signer(filename)
             pubkey = signer.getPublicKeyBytes()
-            self.assertTrue(False)
 
     def test_signer_no_ed25519(self):
         with self.assertRaises(Exception):
             filename = "./tests/testdata/noed25519privkey"
             signer = Signer(filename)
             pubkey = signer.getPublicKeyBytes()
-            self.assertTrue(False)
