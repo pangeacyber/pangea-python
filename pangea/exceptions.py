@@ -25,7 +25,7 @@ class PangeaAPIException(PangeaException):
 
     @property
     def errors(self) -> List[ErrorField]:
-        return self.response.errors if self.response.errors is not None else []
+        return self.response.errors
 
 
 class ValidationException(PangeaAPIException):

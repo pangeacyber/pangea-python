@@ -1,7 +1,7 @@
 import os
 
+import pangea.exceptions as pe
 from pangea.config import PangeaConfig
-from pangea.exceptions import AuditException
 from pangea.response import PangeaResponse
 from pangea.services import Audit
 from pangea.services.audit import (
@@ -42,8 +42,12 @@ def main():
     try:
         log_response = audit.log(event=event, verify=True, verbose=False, signing=True)
         print(f"Log Request ID: {log_response.request_id}, Status: {log_response.status}")
-    except AuditException as e:
-        print(f"Log Request Error: {e.message}")
+    except pe.PangeaAPIException as e:
+        print(f"Request Error: {e.response.summary}")
+        if e.errors:
+            for err in e.errors:
+                print(f"\t{err.detail}")
+            print("")
         exit()
 
     print("Search Data...")
@@ -72,7 +76,6 @@ def main():
 
     else:
         print("Search Failed:", search_res.status)
-        # FIXME: check what info we do have when fails
         for err in search_res.result.errors:
             print(f"\t{err.detail}")
         print("")

@@ -1,8 +1,7 @@
-import json
 import os
 
+import pangea.exceptions as pe
 from pangea.config import PangeaConfig
-from pangea.exceptions import AuditException
 from pangea.services import Audit
 from pangea.services.audit import Event
 
@@ -32,8 +31,12 @@ def main():
     try:
         log_response = audit.log(event=event, verbose=False)
         print(f"Response: {log_response.result.dict(exclude_none=True)}")
-    except AuditException as e:
-        print(f"Log Request Error: {e.message}")
+    except pe.PangeaAPIException as e:
+        print(f"Request Error: {e.response.summary}")
+        if e.errors:
+            for err in e.errors:
+                print(f"\t{err.detail}")
+            print("")
 
 
 if __name__ == "__main__":

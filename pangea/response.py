@@ -28,8 +28,7 @@ class ErrorField(BaseModelConfig):
         code(str): The field code
         detail(str): A human readable detail explaining the error
         source(str): A JSON pointer where the error occurred
-        path(str): If verbose mode was enabled, a path to the JSON Schema used
-            to validate the field
+        path(str): If verbose mode was enabled, a path to the JSON Schema used to validate the field
     """
 
     code: str
@@ -85,7 +84,7 @@ class PangeaResponse(Generic[T], ResponseHeader):
     raw_result: Optional[Dict[str, Any]] = None
     raw_response: Optional[requests.Response] = None
     result: Optional[T] = None
-    errors: Optional[PangeaError] = None
+    pangea_error: Optional[PangeaError] = None
 
     def __init__(self, response: requests.Response):
         json = response.json()
@@ -97,7 +96,13 @@ class PangeaResponse(Generic[T], ResponseHeader):
             if issubclass(type(T), PangeaResponseResult) and self.status == ResponseStatus.SUCCESS.value
             else None
         )
+        if not self.success:
+            self.pangea_error = PangeaError(**self.raw_result) if self.raw_result is not None else None
 
     @property
     def success(self) -> bool:
-        return self.status == "Success"
+        return self.status == ResponseStatus.SUCCESS.value
+
+    @property
+    def errors(self) -> List[ErrorField]:
+        return self.pangea_error.errors if self.pangea_error is not None else []
