@@ -6,10 +6,13 @@ import logging
 import os
 from binascii import hexlify, unhexlify
 from dataclasses import dataclass
+from datetime import datetime
 from hashlib import sha256
 from typing import Dict, List
 
 import requests
+
+from pangea.services.audit.models import PublishedRoot
 
 Hash = bytes
 
@@ -141,19 +144,31 @@ def verify_membership_proof(node_hash: Hash, root_hash: Hash, proof: MembershipP
     return root_hash == node_hash
 
 
+def format_datetime(dt):
+    """
+    Format a datetime in ISO format, using Z instead of +00:00
+    """
+    return dt.isoformat().replace("+00:00", "Z")
+
+
+def normalize_log(audit: dict) -> dict:
+    ans = {}
+    for key in audit:
+        if type(audit[key]) == datetime:
+            ans[key] = format_datetime(audit[key])
+        elif type(audit[key]) == dict:
+            ans[key] = normalize_log(audit[key])
+        else:
+            ans[key] = audit[key]
+    return ans
+
+
 def canonicalize_json(message: dict) -> bytes:
     """Convert log to valid JSON types and apply RFC-7159 (Canonical JSON)"""
 
-    def _default(obj):
-        if not any(isinstance(obj, typ) for typ in JSON_TYPES):
-            return str(obj)
-        else:
-            return obj
-
-    # stringify invalid JSON types before canonicalizing
-    return json.dumps(
-        message, ensure_ascii=False, allow_nan=False, separators=(",", ":"), sort_keys=True, default=_default
-    ).encode("utf-8")
+    return json.dumps(message, ensure_ascii=False, allow_nan=False, separators=(",", ":"), sort_keys=True).encode(
+        "utf-8"
+    )
 
 
 def hash_bytes(data: bytes) -> bytes:
@@ -165,7 +180,7 @@ def hash_str(data: str) -> str:
 
 
 def hash_dict(data: dict) -> bytes:
-    return sha256(canonicalize_json(data)).digest()
+    return sha256(canonicalize_json(normalize_log(data))).digest()
 
 
 def base64url_decode(input_parameter):
@@ -183,7 +198,7 @@ def arweave_graphql_url():
     return f"{ARWEAVE_BASE_URL}/graphql"
 
 
-def get_arweave_published_roots(tree_name: str, tree_sizes: List[int]) -> Dict[int, dict]:
+def get_arweave_published_roots(tree_name: str, tree_sizes: List[int]) -> Dict[int, PublishedRoot]:
     if len(tree_sizes) == 0:
         return {}
 
@@ -225,7 +240,7 @@ def get_arweave_published_roots(tree_name: str, tree_sizes: List[int]) -> Dict[i
         logger.error(f"Error querying Arweave: {resp.reason}")
         return {}
 
-    ans: Dict[int, dict] = {}
+    ans: Dict[int, PublishedRoot] = {}
     data = resp.json()
     tree_size = None
 
@@ -245,7 +260,7 @@ def get_arweave_published_roots(tree_name: str, tree_sizes: List[int]) -> Dict[i
             elif resp2.text == "Pending":
                 logger.warning(f"Published root for size {tree_size} is pending")
             else:
-                ans[int(tree_size)] = json.loads(resp2.text)
+                ans[int(tree_size)] = PublishedRoot(**json.loads(resp2.text))
         except Exception as e:
             logger.error(f"Error decoding published root for size {tree_size}: {str(e)}")
 

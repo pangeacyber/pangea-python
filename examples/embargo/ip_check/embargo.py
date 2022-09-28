@@ -12,11 +12,10 @@ embargo = Embargo(token, config=config)
 
 
 def main():
-    country_code = "CU"
-    print(f"Checking Embargo ISO code: {country_code}")
-
+    ip = "213.24.238.26"
+    print(f"Checking Embargo IP: {ip}")
     try:
-        embargo_response = embargo.iso_check(iso_code=country_code)
+        embargo_response = embargo.ip_check(ip=ip)
         print(f"Response: {embargo_response.result}")
     except pe.PangeaAPIException as e:
         print(f"Embargo Request Error: {e.response.summary}")

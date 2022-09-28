@@ -1,7 +1,9 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 
-from pangea.response import PangeaResponse
+from typing import List
+
+from pangea.response import ErrorField, PangeaResponse
 
 
 class PangeaException(Exception):
@@ -20,6 +22,10 @@ class PangeaAPIException(PangeaException):
     def __init__(self, message: str, response: PangeaResponse):
         super(PangeaAPIException, self).__init__(message)
         self.response = response
+
+    @property
+    def errors(self) -> List[ErrorField]:
+        return self.response.errors
 
 
 class ValidationException(PangeaAPIException):

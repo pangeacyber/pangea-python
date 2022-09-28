@@ -182,7 +182,6 @@ class PangeaRequest(object):
             return
         else:
             response.result = None
-            response.errors = PangeaError(**response.raw_result)
 
         if status == ResponseStatus.VALIDATION_ERR.value:
             raise exceptions.ValidationException(summary, response)

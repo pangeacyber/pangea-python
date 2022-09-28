@@ -1,5 +1,5 @@
-from .audit import Audit
-from .redact import Redact
+from .audit.audit import Audit
 from .embargo import Embargo
-from .intel import FileIntel, IpIntel, UrlIntel, DomainIntel
+from .intel import DomainIntel, FileIntel, IpIntel, UrlIntel
+from .redact import Redact
 from .secrets import Secrets

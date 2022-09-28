@@ -9,7 +9,7 @@ import sys
 import typing as t
 from itertools import groupby
 
-import pangea.services.audit_util as audit_util
+import pangea.services.audit.util as audit_util
 from pangea.services import Audit
 from pangea.tools_util import Event, SequenceFollower, exit_with_error, file_events, init_audit, print_progress_bar
 

@@ -192,7 +192,14 @@ class FileIntel(ServiceBase):
     service_name = "file-intel"
     version = "v1"
 
-    def lookup(self, input=FileLookupInput) -> PangeaResponse[FileLookupOutput]:
+    def lookup(
+        self,
+        hash: str,
+        hash_type: str,
+        provider: Optional[str] = None,
+        verbose: Optional[bool] = None,
+        raw: Optional[bool] = None,
+    ) -> PangeaResponse[FileLookupOutput]:
         """
         Lookup file reputation by hash.
 
@@ -232,9 +239,9 @@ class FileIntel(ServiceBase):
             }
             \"\"\"
         """
-
+        input = FileLookupInput(hash=hash, hash_type=hash_type, verbose=verbose, raw=raw, provider=provider)
         response = self.request.post("lookup", data=input.dict(exclude_none=True))
-        response.result = FileLookupOutput(**response.result)
+        response.result = FileLookupOutput(**response.raw_result)
         return response
 
 
@@ -269,7 +276,9 @@ class IpIntel(ServiceBase):
     service_name = "ip-intel"
     version = "v1"
 
-    def lookup(self, input: IPLookupInput) -> PangeaResponse[IPLookupOutput]:
+    def lookup(
+        self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
+    ) -> PangeaResponse[IPLookupOutput]:
         """
         Retrieve IP address reputation from a provider.
 
@@ -306,9 +315,9 @@ class IpIntel(ServiceBase):
             }
             \"\"\"
         """
-
+        input = IPLookupInput(ip=ip, verbose=verbose, raw=raw, provider=provider)
         response = self.request.post("lookup", data=input.dict(exclude_none=True))
-        response.result = IPLookupOutput(**response.result)
+        response.result = IPLookupOutput(**response.raw_result)
         return response
 
 
@@ -343,7 +352,9 @@ class UrlIntel(ServiceBase):
     service_name = "url-intel"
     version = "v1"
 
-    def lookup(self, input: URLLookupInput) -> PangeaResponse[URLLookupOutput]:
+    def lookup(
+        self, url: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
+    ) -> PangeaResponse[URLLookupOutput]:
         """
         Retrieve URL address reputation from a provider.
 
@@ -381,6 +392,7 @@ class UrlIntel(ServiceBase):
             \"\"\"
         """
 
+        input = URLLookupInput(url=url, provider=provider, verbose=verbose, raw=raw)
         response = self.request.post("lookup", data=input.dict(exclude_none=True))
         response.result = URLLookupOutput(**response.raw_result)
         return response
@@ -417,7 +429,9 @@ class DomainIntel(ServiceBase):
     service_name = "domain-intel"
     version = "v1"
 
-    def lookup(self, input: DomainLookupInput) -> PangeaResponse[DomainLookupOutput]:
+    def lookup(
+        self, domain: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
+    ) -> PangeaResponse[DomainLookupOutput]:
         """
         Retrieve Domain reputation from a provider.
 
@@ -438,7 +452,7 @@ class DomainIntel(ServiceBase):
             response contains:
             \"\"\"
         """
-
+        input = DomainLookupInput(domain=domain, verbose=verbose, provider=provider, raw=raw)
         response = self.request.post("lookup", data=input.dict(exclude_none=True))
         response.result = DomainLookupOutput(**response.raw_result)
         return response

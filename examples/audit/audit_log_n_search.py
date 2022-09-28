@@ -1,7 +1,7 @@
 import os
 
+import pangea.exceptions as pe
 from pangea.config import PangeaConfig
-from pangea.exceptions import AuditException
 from pangea.response import PangeaResponse
 from pangea.services import Audit
 from pangea.services.audit import (
@@ -42,8 +42,10 @@ def main():
     try:
         log_response = audit.log(event=event, verify=True, verbose=False, signing=True)
         print(f"Log Request ID: {log_response.request_id}, Status: {log_response.status}")
-    except AuditException as e:
-        print(f"Log Request Error: {e.message}")
+    except pe.PangeaAPIException as e:
+        print(f"Request Error: {e.response.summary}")
+        for err in e.errors:
+            print(f"\t{err.detail} \n")
         exit()
 
     print("Search Data...")
@@ -53,10 +55,10 @@ def main():
     query = "message:" + event.message
     restriction = SearchRestriction(source=["monitor"])
 
-    search_input = SearchInput(query=query, search_restriction=restriction, limit=page_size)
-    search_res = audit.search(input=search_input, verify=True, verify_signatures=True)
+    try:
+        search_input = SearchInput(query=query, search_restriction=restriction, limit=page_size)
+        search_res = audit.search(input=search_input, verify=True, verify_signatures=True)
 
-    if search_res.success:
         result_id = search_res.result.id
         count = search_res.result.count
         print(f"Search Request ID: {search_res.request_id}, Success: {search_res.status}, Results: {count}")
@@ -70,12 +72,10 @@ def main():
                 res_input = SearchResultInput(id=result_id, limit=page_size, offset=offset)
                 search_res = audit.results(input=res_input, verify_signatures=True)
 
-    else:
-        print("Search Failed:", search_res.status)
-        # FIXME: check what info we do have when fails
-        for err in search_res.result.errors:
-            print(f"\t{err.detail}")
-        print("")
+    except pe.PangeaAPIException as e:
+        print("Search Failed:", e.response.summary)
+        for err in e.errors:
+            print(f"\t{err.detail} \n")
 
 
 def print_page_results(search_res: PangeaResponse[SearchResultOutput], offset, count):

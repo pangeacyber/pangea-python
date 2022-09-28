@@ -6,9 +6,7 @@ from typing import Dict, Union
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ed25519
 
-from pangea.services.audit_util import b64decode_ascii
-
-from .services.audit_util import canonicalize_json
+from pangea.services.audit.util import b64decode_ascii, canonicalize_json
 
 
 class Signer:
@@ -22,7 +20,7 @@ class Signer:
             try:
                 with open(self._private_key_filename, "rb") as file:
                     file_bytes = file.read()
-            except Exception:
+            except FileNotFoundError:
                 raise Exception(f"Error: Failed opening private key file {self._private_key_filename}")
 
             try:
@@ -38,7 +36,7 @@ class Signer:
         return self._private_key
 
     # Signs a message in bytes using Ed25519 algorithm
-    def _signMessageBytes(self, message_bytes: bytes, private_key: ed25519.Ed25519PrivateKey):
+    def _signMessageBytes(self, message_bytes: bytes, private_key: ed25519.Ed25519PrivateKey) -> str:
         try:
             signature = private_key.sign(message_bytes)
             signature_b64 = b64encode(signature).decode("ascii")
@@ -48,16 +46,16 @@ class Signer:
         return signature_b64
 
     # Signs a string message using Ed25519 algorithm
-    def _signMessageStr(self, message: str, private_key: ed25519.Ed25519PrivateKey):
+    def _signMessageStr(self, message: str, private_key: ed25519.Ed25519PrivateKey) -> str:
         message_bytes = bytes(message, "utf8")
         return self._signMessageBytes(message_bytes, private_key)
 
     # Signs a JSON message using Ed25519 algorithm
-    def _signMessageJSON(self, messageJSON: dict, private_key: ed25519.Ed25519PrivateKey):
+    def _signMessageJSON(self, messageJSON: dict, private_key: ed25519.Ed25519PrivateKey) -> str:
         message_bytes = canonicalize_json(messageJSON)
         return self._signMessageBytes(message_bytes, private_key)
 
-    def signMessage(self, message: Union[str, Dict, bytes]):
+    def signMessage(self, message: Union[str, Dict, bytes]) -> str:
         private_key = self._getPrivateKey()
 
         if isinstance(message, str):
