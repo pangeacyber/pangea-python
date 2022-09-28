@@ -12,7 +12,7 @@ from typing import Dict, List
 
 import requests
 
-from pangea.services.audit.classes import PublishedRoot
+from pangea.services.audit.models import PublishedRoot
 
 Hash = bytes
 

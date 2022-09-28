@@ -6,7 +6,7 @@ from typing import Dict, List, Optional
 
 from pangea.exceptions import AuditException
 from pangea.response import PangeaResponse
-from pangea.services.audit.classes import *
+from pangea.services.audit.models import *
 from pangea.services.audit.signing import Signer, Verifier
 from pangea.services.audit.util import (
     b64encode_ascii,

@@ -6,7 +6,7 @@ import pangea.exceptions as pexc
 from pangea import PangeaConfig
 from pangea.response import PangeaResponse, ResponseStatus
 from pangea.services import Audit
-from pangea.services.audit.classes import (
+from pangea.services.audit.models import (
     Event,
     EventVerification,
     LogOutput,
