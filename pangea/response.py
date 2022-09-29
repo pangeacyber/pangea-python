@@ -1,7 +1,7 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 import enum
-from typing import Any, Dict, Generic, List, Optional, TypeVar, Union
+from typing import Any, Dict, Generic, List, Optional, TypeVar
 
 import requests
 from pydantic import BaseModel
@@ -63,7 +63,7 @@ class ResponseStatus(str, enum.Enum):
 
 class ResponseHeader(BaseModelConfig):
     """
-    TODO: complete
+    Pangea response API header.
 
     Arguments:
     request_id -- The request ID.

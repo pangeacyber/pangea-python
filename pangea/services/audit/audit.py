@@ -4,8 +4,8 @@ import json
 import os
 from typing import Dict, List, Optional
 
-from pangea.exceptions import AuditException
 from pangea.response import PangeaResponse
+from pangea.services.audit.exceptions import AuditException, EventCorruption
 from pangea.services.audit.models import *
 from pangea.services.audit.signing import Signer, Verifier
 from pangea.services.audit.util import (
@@ -18,7 +18,7 @@ from pangea.services.audit.util import (
     get_root_filename,
     hash_dict,
     verify_consistency_proof,
-    verify_hash,
+    verify_event_hash,
     verify_membership_proof,
 )
 from pangea.services.base import ServiceBase
@@ -73,8 +73,6 @@ class Audit(ServiceBase):
         self,
         token,
         config=None,
-        verify_response: bool = False,
-        enable_signing: bool = False,
         private_key_file: str = "",
     ):
         super().__init__(token, config)
@@ -83,12 +81,7 @@ class Audit(ServiceBase):
         self.buffer_data: Optional[str] = None
         self.root_id_filename: str = get_root_filename()
 
-        # TODO: Document signing options
-        self.verify_response: bool = verify_response
-        self.enable_signing: bool = enable_signing
-
-        if self.enable_signing:
-            self.signer = Signer(private_key_file)
+        self.signer: Optional[Signer] = Signer(private_key_file) if private_key_file else None
 
         # In case of Arweave failure, ask the server for the roots
         self.allow_server_roots = True
@@ -146,8 +139,8 @@ class Audit(ServiceBase):
 
         endpoint_name = "log"
 
-        if signing and not self.enable_signing:
-            raise AuditException("Error: the `signing` parameter set, but `enable_signing` is not set to True")
+        if signing and self.signer is None:
+            raise AuditException("Error: the `signing` parameter set, but `signer` is not configured")
 
         input = LogInput(event=event, verbose=verbose, return_hash=True)
 
@@ -219,9 +212,9 @@ class Audit(ServiceBase):
             pending_roots = []
 
             # verify event hash
-            if not verify_hash(hash_dict(response.result.envelope.dict(exclude_none=True)), event_hash):
+            if not verify_event_hash(response.result.envelope, response.result.hash):
                 # it's a extreme case, it's OK to raise an exception
-                raise AuditException(f"Error: Event hash failed.")
+                raise EventCorruption(f"Error: Event hash failed.", response.result.envelope)
 
             # verify membership proofs
             if verify_membership_proof(
@@ -274,8 +267,8 @@ class Audit(ServiceBase):
     def search(
         self,
         input: SearchInput,
-        verify: bool = False,
-        verify_signatures: bool = False,
+        verify_consistency: bool = False,
+        verify_events: bool = True,
     ) -> PangeaResponse[SearchOutput]:
         """
         Search for events
@@ -344,16 +337,19 @@ class Audit(ServiceBase):
 
         endpoint_name = "search"
 
-        self.verify_response = verify
-        if verify:
-            input.include_hash = True
+        # Will be removed soon
+        input.include_hash = True
+
+        if verify_consistency:
             input.include_root = True
             input.include_membership_proof = True
 
         response = self.request.post(endpoint_name, data=input.dict(exclude_none=True))
-        return self.handle_search_response(response, verify_signatures)
+        return self.handle_search_response(response, verify_events)
 
-    def results(self, input: SearchResultInput, verify_signatures: bool = False) -> PangeaResponse[SearchResultOutput]:
+    def results(
+        self, input: SearchResultInput, verify_consistency: bool = False, verify_events: bool = True
+    ) -> PangeaResponse[SearchResultOutput]:
         """
         Results of a Search
 
@@ -380,24 +376,30 @@ class Audit(ServiceBase):
             raise AuditException("The 'offset' argument must be a positive integer")
 
         response = self.request.post(endpoint_name, data=input.dict(exclude_none=True))
-        return self.handle_search_response(response, verify_signatures)
+        return self.handle_search_response(response, verify_consistency, verify_events)
 
-    def handle_search_response(self, response: PangeaResponse, verify_signatures=False) -> PangeaResponse[SearchOutput]:
+    def handle_search_response(
+        self, response: PangeaResponse, verify_consistency: bool = False, verify_events: bool = True
+    ) -> PangeaResponse[SearchOutput]:
         if not response.success:
             return response
 
         response.result = SearchOutput(**response.raw_result)
 
-        if verify_signatures:
+        if verify_events:
             for event_search in response.result.events:
+                # verify event hash
+                if event_search.hash and not verify_event_hash(event_search.envelope, event_search.hash):
+                    # it's a extreme case, it's OK to raise an exception
+                    raise EventCorruption(f"Error: Event hash failed.", event_search.envelope)
+
                 event_search.signature_verification = self.verify_signature(event_search.envelope)
 
         root = response.result.root
 
-        if self.verify_response:
+        if verify_consistency:
             # if there is no root, we don't have any record migrated to cold. We cannot verify any proof
             if not root:
-
                 return response
 
             self.update_published_roots(self.pub_roots, response.result)
@@ -567,7 +569,10 @@ class Audit(ServiceBase):
             audit_envelope (EventEnvelope): Object to verify
 
         Returns:
-          EventVerification: PASS, FAIL or None in case that there is not enough information to verify it
+          EventVerification: PASS or None in case that there is not enough information to verify it
+
+        Raise:
+          EventCorruption: If signature verification fails
         """
         v = Verifier()
         if audit_envelope.signature and audit_envelope.public_key:
@@ -576,7 +581,7 @@ class Audit(ServiceBase):
             ):
                 return EventVerification.PASS
             else:
-                return EventVerification.FAIL
+                raise EventCorruption(f"Error: Event signature verification failed.", audit_envelope)
         else:
             return EventVerification.NONE
 

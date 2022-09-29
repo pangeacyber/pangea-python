@@ -38,7 +38,7 @@ class TestAudit(unittest.TestCase):
         receive_at = response.result.envelope.received_at
 
         search_input = SearchInput(query=f"message: {msg}", limit=limit)
-        response_search: PangeaResponse[SearchOutput] = self.audit.search(search_input, verify_signatures=True)
+        response_search: PangeaResponse[SearchOutput] = self.audit.search(search_input, verify_events=True)
         self.assertEqual(response_search.status, ResponseStatus.SUCCESS)
         self.assertEqual(len(response_search.result.events), limit)
         self.assertEqual(
@@ -50,9 +50,7 @@ class TestAudit(unittest.TestCase):
         audit = Audit(
             self.token,
             config=self.config,
-            enable_signing=True,
             private_key_file="./tests/testdata/privkey",
-            verify_response=True,
         )
 
         msg = "sigtest100"
@@ -75,7 +73,7 @@ class TestAudit(unittest.TestCase):
         print(f"Encoded public key: {response.result.envelope.public_key}")
 
         search_input = SearchInput(query=f"message: {msg}", limit=1)
-        response_search: PangeaResponse[SearchOutput] = audit.search(search_input, verify_signatures=True)
+        response_search: PangeaResponse[SearchOutput] = audit.search(search_input, verify_events=True)
         self.assertEqual(response_search.status, ResponseStatus.SUCCESS)
         self.assertEqual(len(response_search.result.events), 1)
         self.assertEqual(response_search.result.events[0].signature_verification, EventVerification.PASS.value)
@@ -139,9 +137,9 @@ class TestAudit(unittest.TestCase):
         self.assertGreaterEqual(len(response.result.data.consistency_proof), 1)
 
     def test_search_verify(self):
-        query = "message:test"
+        query = "message:Integration test msg"
         input = SearchInput(query=query, order=SearchOrder.DESC, limit=10, max_results=10)
-        response = self.audit.search(input=input, verify=True)
+        response = self.audit.search(input=input, verify_consistency=True)
 
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         print("events: ", len(response.result.events))
