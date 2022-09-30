@@ -10,15 +10,15 @@ from pangea.services.audit.models import *
 from pangea.services.audit.signing import Signer, Verifier
 from pangea.services.audit.util import (
     b64encode_ascii,
+    canonicalize_event,
     decode_buffer_root,
     decode_consistency_proof,
     decode_hash,
     decode_membership_proof,
     get_arweave_published_roots,
     get_root_filename,
-    hash_dict,
     verify_consistency_proof,
-    verify_event_hash,
+    verify_envelope_hash,
     verify_membership_proof,
 )
 from pangea.services.base import ServiceBase
@@ -157,7 +157,7 @@ class Audit(ServiceBase):
         #             data["event"][name] = event[name]
 
         if signing:
-            data2sign = event.dict(exclude_none=True)
+            data2sign = canonicalize_event(event)
             signature = self.signer.signMessage(data2sign)
             if signature is not None:
                 input.signature = signature
@@ -212,7 +212,7 @@ class Audit(ServiceBase):
             pending_roots = []
 
             # verify event hash
-            if not verify_event_hash(response.result.envelope, response.result.hash):
+            if not verify_envelope_hash(response.result.envelope, response.result.hash):
                 # it's a extreme case, it's OK to raise an exception
                 raise EventCorruption(f"Error: Event hash failed.", response.result.envelope)
 
@@ -389,7 +389,7 @@ class Audit(ServiceBase):
         if verify_events:
             for event_search in response.result.events:
                 # verify event hash
-                if event_search.hash and not verify_event_hash(event_search.envelope, event_search.hash):
+                if event_search.hash and not verify_envelope_hash(event_search.envelope, event_search.hash):
                     # it's a extreme case, it's OK to raise an exception
                     raise EventCorruption(f"Error: Event hash failed.", event_search.envelope)
 

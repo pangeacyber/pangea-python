@@ -12,7 +12,7 @@ from typing import Dict, List
 
 import requests
 
-from pangea.services.audit.models import EventEnvelope, PublishedRoot
+from pangea.services.audit.models import Event, EventEnvelope, PublishedRoot
 
 Hash = bytes
 
@@ -79,8 +79,12 @@ def verify_hash(hash1: Hash, hash2: Hash) -> bool:
     return hash1 == hash2
 
 
-def verify_event_hash(event: EventEnvelope, hash: Hash):
-    return verify_hash(hash_dict(event.dict(exclude_none=True)), hash)
+def verify_envelope_hash(envelope: EventEnvelope, hash: Hash):
+    return verify_hash(hash_dict(normalize_log(envelope.dict(exclude_none=True))), hash)
+
+
+def canonicalize_event(event: Event):
+    return canonicalize_json(normalize_log(event.dict(exclude_none=True)))
 
 
 def b64encode(data: bytes) -> bytes:
@@ -184,7 +188,7 @@ def hash_str(data: str) -> str:
 
 
 def hash_dict(data: dict) -> bytes:
-    return sha256(canonicalize_json(normalize_log(data))).hexdigest()
+    return sha256(canonicalize_json(data)).hexdigest()
 
 
 def base64url_decode(input_parameter):
