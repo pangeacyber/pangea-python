@@ -1,7 +1,9 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+import copy
 import datetime
 import enum
+import json
 from typing import Dict, List, Optional, Union
 
 from pydantic import BaseModel
@@ -50,6 +52,36 @@ class Event(BaseModelConfig):
     status: Optional[str] = None
     target: Optional[str] = None
     timestamp: Optional[datetime.datetime] = None
+
+    _JSON_SUPPORTED_FIELDS = ["message", "new", "old"]
+
+    def __init__(self, **data):
+        super().__init__(**data)
+        self.parse_json_fields()
+
+    def parse_json_fields(self):
+        """Parse JSON supported fields from string to dict"""
+        for f in self._JSON_SUPPORTED_FIELDS:
+            v = getattr(self, f)
+            if type(v) is str:
+                try:
+                    obj = json.loads(v)
+                    setattr(self, f, obj)
+                except:
+                    pass
+
+    def get_stringified_copy(self):
+        """Return object copy with JSON supported fields in string format"""
+        aux = copy.deepcopy(self)
+        for f in self._JSON_SUPPORTED_FIELDS:
+            v = getattr(aux, f, None)
+            if v is not None and type(v) is dict:
+                setattr(aux, f, self._dict_to_canonicalized_str(v))
+        return aux
+
+    def _dict_to_canonicalized_str(self, message: dict) -> str:
+        """Convert dict to canonical str"""
+        return json.dumps(message, ensure_ascii=False, allow_nan=False, separators=(",", ":"), sort_keys=True)
 
 
 class EventEnvelope(BaseModelConfig):

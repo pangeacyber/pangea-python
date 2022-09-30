@@ -142,19 +142,7 @@ class Audit(ServiceBase):
         if signing and self.signer is None:
             raise AuditException("Error: the `signing` parameter set, but `signer` is not configured")
 
-        input = LogInput(event=event, verbose=verbose, return_hash=True)
-
-        # FIXME: How do we solve when ussing dataclasses? check using message with dictionary
-        # for name in SupportedFields:
-        #     if name in event:
-        #         data["event"][name] = event[name]
-
-        # for name in SupportedJSONFields:
-        #     if name in event:
-        #         if isinstance(event[name], dict):
-        #             data["event"][name] = json.dumps(event[name])
-        #         else:
-        #             data["event"][name] = event[name]
+        input = LogInput(event=event.get_stringified_copy(), verbose=verbose, return_hash=True)
 
         if signing:
             data2sign = canonicalize_event(event)
@@ -577,7 +565,7 @@ class Audit(ServiceBase):
         v = Verifier()
         if audit_envelope.signature and audit_envelope.public_key:
             if v.verifyMessage(
-                audit_envelope.signature, audit_envelope.event.dict(exclude_none=True), audit_envelope.public_key
+                audit_envelope.signature, canonicalize_event(audit_envelope.event), audit_envelope.public_key
             ):
                 return EventVerification.PASS
             else:

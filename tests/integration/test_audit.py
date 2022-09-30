@@ -30,7 +30,7 @@ class TestAudit(unittest.TestCase):
     def test_log(self):
         timestamp = time.time()
         msg = f"test-log-{timestamp}"
-        event = {"message": msg}
+        event = Event.parse_obj({"message": msg})
         limit = 1
 
         response: PangeaResponse[LogOutput] = self.audit.log(event, verify=True, verbose=True)
@@ -69,11 +69,55 @@ class TestAudit(unittest.TestCase):
         receive_at = response.result.envelope.received_at
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
 
-        print(f"Event signature: {response.result.envelope.signature}")
-        print(f"Encoded public key: {response.result.envelope.public_key}")
-
         search_input = SearchInput(query=f"message: {msg}", limit=1)
         response_search: PangeaResponse[SearchOutput] = audit.search(search_input, verify_events=True)
+        self.assertEqual(response_search.status, ResponseStatus.SUCCESS)
+        self.assertEqual(len(response_search.result.events), 1)
+        self.assertEqual(
+            response_search.result.events[0].envelope.signature,
+            "dg7Wg+E8QzZzhECzQoH3v3pbjWObR8ve7SHREAyA9JlFOusKPHVb16t5D3rbscnv80ry/aWzfMTscRNSYJFzDA==",
+        )
+        self.assertEqual(
+            response_search.result.events[0].envelope.public_key, "lvOyDMpK2DQ16NI8G41yINl01wMHzINBahtDPoh4+mE="
+        )
+        self.assertEqual(response_search.result.events[0].signature_verification, EventVerification.PASS.value)
+        self.assertEqual(response_search.result.events[0].envelope.received_at, receive_at)
+
+    def test_log_json(self):
+        audit = Audit(
+            self.token,
+            config=self.config,
+            private_key_file="./tests/testdata/privkey",
+        )
+
+        msg = {"customtag1": "mycustommsg1", "ct2": "cm2"}
+
+        new = {"customtag3": "mycustommsg3", "ct4": "cm4"}
+
+        old = {"customtag5": "mycustommsg5", "ct6": "cm6"}
+
+        event = Event(
+            message=msg,
+            actor="Actor",
+            action="Action",
+            source="Source",
+            status="Status",
+            target="Target",
+            new=new,
+            old=old,
+        )
+        try:
+            response = audit.log(event, signing=True, verbose=True, verify=True)
+        except pexc.PangeaAPIException as e:
+            print(f"Request Error: {e.response.summary}")
+            for err in e.errors:
+                print(f"\t{err.detail} \n")
+
+        receive_at = response.result.envelope.received_at
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+
+        search_input = SearchInput(query=f'message:""', limit=1)
+        response_search: PangeaResponse[SearchOutput] = audit.search(search_input)
         self.assertEqual(response_search.status, ResponseStatus.SUCCESS)
         self.assertEqual(len(response_search.result.events), 1)
         self.assertEqual(response_search.result.events[0].signature_verification, EventVerification.PASS.value)
@@ -102,7 +146,6 @@ class TestAudit(unittest.TestCase):
             response_results = self.audit.results(
                 input=SearchResultInput(id=response_search.result.id, limit=1, offset=max_result + 1)
             )
-            print("total events :", len(response_results.result.events))
             self.assertEqual(len(response_results.result.events), 0)
         except Exception as e:
             # FIXME: Remove and fix once endpoint is fixed. Have to return error
