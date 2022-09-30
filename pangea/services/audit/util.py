@@ -1,6 +1,7 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 import base64
+import copy
 import json
 import logging
 import os
@@ -18,7 +19,7 @@ Hash = bytes
 
 
 JSON_TYPES = [int, float, str, bool]
-
+JSON_SUPPORTED_FIELDS = ["message", "new", "old"]
 
 logger = logging.getLogger("audit")
 
@@ -80,11 +81,14 @@ def verify_hash(hash1: Hash, hash2: Hash) -> bool:
 
 
 def verify_envelope_hash(envelope: EventEnvelope, hash: Hash):
-    return verify_hash(hash_dict(normalize_log(envelope.dict(exclude_none=True))), hash)
+    env_tmp = copy.deepcopy(envelope)
+    env_tmp.event = env_tmp.event.get_stringified_copy()
+    return verify_hash(hash_dict(normalize_log(env_tmp.dict(exclude_none=True))), hash)
 
 
-def canonicalize_event(event: Event):
-    return canonicalize_json(normalize_log(event.dict(exclude_none=True)))
+def canonicalize_event(event: Event) -> bytes:
+    tpm_event = event.get_stringified_copy()
+    return canonicalize_json(normalize_log(tpm_event.dict(exclude_none=True)))
 
 
 def b64encode(data: bytes) -> bytes:
