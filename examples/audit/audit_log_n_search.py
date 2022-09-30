@@ -57,7 +57,7 @@ def main():
 
     try:
         search_input = SearchInput(query=query, search_restriction=restriction, limit=page_size)
-        search_res = audit.search(input=search_input, verify=True, verify_signatures=True)
+        search_res = audit.search(input=search_input, verify_consistency=True, verify_events=True)
 
         result_id = search_res.result.id
         count = search_res.result.count

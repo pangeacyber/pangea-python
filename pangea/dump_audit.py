@@ -42,7 +42,12 @@ def dump_audit(audit: Audit, output: io.TextIOWrapper, start: datetime, end: dat
 def dump_before(audit: Audit, output: io.TextIOWrapper, start: datetime) -> int:
     print("Dumping before...", end="\r")
     search_res = audit.search(
-        start="2000-01-01T10:00:00Z", end=start.isoformat(), order="desc", verify=False, limit=1000, max_results=1000
+        start="2000-01-01T10:00:00Z",
+        end=start.isoformat(),
+        order="desc",
+        verify_consistency=False,
+        limit=1000,
+        max_results=1000,
     )
     if not search_res.success:
         raise ValueError(f"Error fetching events: {search_res.result}")
@@ -61,7 +66,9 @@ def dump_before(audit: Audit, output: io.TextIOWrapper, start: datetime) -> int:
 
 def dump_after(audit: Audit, output: io.TextIOWrapper, start: datetime) -> int:
     print("Dumping after...", end="\r")
-    search_res = audit.search(start=start.isoformat(), order="asc", verify=False, limit=1000, max_results=1000)
+    search_res = audit.search(
+        start=start.isoformat(), order="asc", verify_consistency=False, limit=1000, max_results=1000
+    )
     if not search_res.success:
         raise ValueError("Error fetching events")
 
@@ -83,7 +90,12 @@ def dump_page(
 
     print("Dumping...", end="\r")
     search_res = audit.search(
-        start=start.isoformat(), end=end.isoformat(), order="asc", order_by="received_at", verify=False, limit=1000
+        start=start.isoformat(),
+        end=end.isoformat(),
+        order="asc",
+        order_by="received_at",
+        verify_consistency=False,
+        limit=1000,
     )
     if not search_res.success:
         raise ValueError(f"Error fetching events: {search_res.result}")
