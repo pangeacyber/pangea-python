@@ -76,16 +76,6 @@ class ServiceNotAvailableException(PangeaAPIException):
     """Service is not currently available"""
 
 
-# Audit Specific Exceptions
-#
-class AuditException(PangeaException):
-    """Audit service specific exceptions"""
-
-
-class TreeNotFoundException(AuditException):
-    """Tree was not found during a root inspection"""
-
-
 # Embargo specific exceptions
 class EmbargoException(PangeaException):
     """Embargo service specific exceptions"""
