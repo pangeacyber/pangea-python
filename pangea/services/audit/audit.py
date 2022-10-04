@@ -45,9 +45,9 @@ class Audit(ServiceBase):
 
     The following information is needed:
         PANGEA_TOKEN - service token which can be found on the Pangea User
-            Console at [https://console.dev.pangea.cloud/project/tokens](https://console.dev.pangea.cloud/project/tokens)
+            Console at [{{ console_url }}/project/tokens]({{ console_url }}/project/tokens)
         AUDIT_CONFIG_ID - Configuration ID which can be found on the Pangea
-            User Console at [https://console.dev.pangea.cloud/service/audit](https://console.dev.pangea.cloud/service/audit)
+            User Console at [{{ console_url }}/service/audit]({{ console_url }}/service/audit)
 
     Examples:
         import os
@@ -344,7 +344,7 @@ class Audit(ServiceBase):
         Returns paginated results of a previous Search
 
         Args:
-            id (string, required): the id of a search action, found in `response.result.id`
+            id (string): the id of a search action, found in `response.result.id`
             limit (integer, optional): the maximum number of results to return, default is 20
             offset (integer, optional): the position of the first result to return, default is 0
             verify_signatures (bool, optional):
@@ -511,7 +511,7 @@ class Audit(ServiceBase):
             event (obj): The audit event to be verified.
 
         Returns:
-            bool: True if the consistency can be verifed, False otherwise
+            bool: True if the consistency can be verified, False otherwise
         """
         leaf_index = event.leaf_index
         return leaf_index is not None and leaf_index > 0

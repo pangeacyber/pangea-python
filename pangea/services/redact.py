@@ -120,9 +120,9 @@ class Redact(ServiceBase):
 
     The following information is needed:
         PANGEA_TOKEN - service token which can be found on the Pangea User
-            Console at [https://console.dev.pangea.cloud/project/tokens](https://console.dev.pangea.cloud/project/tokens)
+            Console at [{{ console_url }}/project/tokens]({{ console_url }}/project/tokens)
         REDACT_CONFIG_ID - Configuration ID which can be found on the Pangea
-            User Console at [https://console.dev.pangea.cloud/service/redact](https://console.dev.pangea.cloud/service/redact)
+            User Console at [{{ console_url }}/service/redact]({{ console_url }}/service/redact)
 
     Examples:
         import os
@@ -165,8 +165,8 @@ class Redact(ServiceBase):
 
         Returns:
             Pangea Response with redacted text in the response.result property,
-                available response fields can be found at:
-                [https://docs.dev.pangea.cloud/docs/api/redact#redact](https://docs.dev.pangea.cloud/docs/api/redact#redact)
+                available response fields can be found in our
+                [API Documentation](/docs/api/redact#redact).
 
         Examples:
             response = redact.redact(RedactInput(text="Jenny Jenny... 415-867-5309"))
@@ -212,8 +212,8 @@ class Redact(ServiceBase):
 
         Returns:
             Pangea Response with redacted data in the response.result field,
-                available response fields can be found at:
-                [https://docs.dev.pangea.cloud/docs/api/redact#redact](https://docs.dev.pangea.cloud/docs/api/redact#redact)
+                available response fields can be found in our
+                [API Documentation](/docs/api/redact#redact-structured)
 
         Examples:
             response = redact.redact_structured(obj={ "number": "415-867-5309", "ip": "1.1.1.1" }, redact_format="json")

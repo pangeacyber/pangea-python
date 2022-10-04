@@ -71,9 +71,9 @@ class Embargo(ServiceBase):
 
     The following information is needed:
         PANGEA_TOKEN - service token which can be found on the Pangea User
-            Console at [https://console.dev.pangea.cloud/project/tokens](https://console.dev.pangea.cloud/project/tokens)
+            Console at [{{ console_url }}/project/tokens]({{ console_url }}/project/tokens)
         EMBARGO_CONFIG_ID - Configuration ID which can be found on the Pangea
-            User Console at [https://console.dev.pangea.cloud/service/embargo](https://console.dev.pangea.cloud/service/embargo)
+            User Console at [{{ console_url }}/service/embargo]({{ console_url }}/service/embargo)
 
     Examples:
         import os
@@ -112,7 +112,7 @@ class Embargo(ServiceBase):
         Returns:
             A PangeaResponse where the sanctioned source(s) are in the
                 response.result field.  Available response fields can be found
-                at: [https://docs.dev.pangea.cloud/docs/api/embargo](https://docs.dev.pangea.cloud/docs/api/embargo)
+                in our [API Documentation](/docs/api/embargo).
 
         Examples:
             response = embargo.ip_check("1.1.1.1")
@@ -169,7 +169,7 @@ class Embargo(ServiceBase):
         Returns:
             A PangeaResponse where the sanctioned source(s) are in the
                 response.result field.  Available response fields can be found
-                at: [https://docs.dev.pangea.cloud/docs/api/embargo](https://docs.dev.pangea.cloud/docs/api/embargo)
+                in our [API Documentation](/docs/api/embargo).
 
         Examples:
             response = embargo.lookup("FR")

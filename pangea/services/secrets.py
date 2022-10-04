@@ -17,8 +17,7 @@ class Secrets(ServiceBase):
 
     The following information is needed:
         PANGEA_TOKEN - service token which can be found on the Pangea User
-            Console at [https://console.dev.pangea.cloud/project/tokens]
-            (https://console.dev.pangea.cloud/project/tokens)
+            Console at [{{ console_url }}/project/tokens]({{ console_url }}/project/tokens)
 
     Examples:
         import os
