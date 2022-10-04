@@ -71,9 +71,9 @@ class Embargo(ServiceBase):
 
     The following information is needed:
         PANGEA_TOKEN - service token which can be found on the Pangea User
-            Console at [{{ console_url }}/project/tokens]({{ console_url }}/project/tokens)
+            Console at [https://console.pangea.cloud/project/tokens](https://console.pangea.cloud/project/tokens)
         EMBARGO_CONFIG_ID - Configuration ID which can be found on the Pangea
-            User Console at [{{ console_url }}/service/embargo]({{ console_url }}/service/embargo)
+            User Console at [https://console.pangea.cloud/service/embargo](https://console.pangea.cloud/service/embargo)
 
     Examples:
         import os
