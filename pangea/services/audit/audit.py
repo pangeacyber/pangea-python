@@ -41,7 +41,7 @@ SupportedJSONFields = [
 class Audit(ServiceBase):
     """Audit service client.
 
-    Provides methods to interact with the [Pangea Audit Service](/docs/api/audit).
+    Provides methods to interact with the [Pangea Audit Service](https://pangea.cloud/docs/api/audit).
 
     The following information is needed:
         PANGEA_TOKEN - service token which can be found on the Pangea User
@@ -107,7 +107,7 @@ class Audit(ServiceBase):
         Returns:
             A PangeaResponse where the hash of event data and optional verbose
                 results are returned in the response.result field.
-                Available response fields can be found in our [API documentation](/docs/api/audit#log-an-entry).
+                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/audit#log-an-entry).
 
         Examples:
             audit_data = {
@@ -276,8 +276,8 @@ class Audit(ServiceBase):
 
         Returns:
             A PangeaResponse where the first page of matched events is returned in the
-                response.result field. Available response fields can be found in our [API documentation](/docs/api/audit#search-for-events).
-                Pagination can be found in the [search results endpoint](/docs/api/audit#search-results).
+                response.result field. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/audit#search-for-events).
+                Pagination can be found in the [search results endpoint](https://pangea.cloud/docs/api/audit#search-results).
 
         Examples:
             response = audit.search("Resume accepted", page_size=10)
@@ -460,7 +460,7 @@ class Audit(ServiceBase):
 
         If a given event's membership within the tree can be proven.
 
-        Read more at: [What is a membership proof?](/docs/audit/merkle-trees#what-is-a-membership-proof)
+        Read more at: [What is a membership proof?](https://pangea.cloud/docs/audit/merkle-trees#what-is-a-membership-proof)
 
         Args:
             event (obj): The audit event to be verified
@@ -476,7 +476,7 @@ class Audit(ServiceBase):
 
         Verifies an event's membership proof within the tree.
 
-        Read more at: [What is a membership proof?](/docs/audit/merkle-trees#what-is-a-membership-proof)
+        Read more at: [What is a membership proof?](https://pangea.cloud/docs/audit/merkle-trees#what-is-a-membership-proof)
 
         Args:
             root (obj): The root node used for verification
@@ -505,7 +505,7 @@ class Audit(ServiceBase):
 
         If a given event's consistency across time can be proven.
 
-        Read more at: [What is a consistency proof?](/docs/audit/merkle-trees#what-is-a-consistency-proof)
+        Read more at: [What is a consistency proof?](https://pangea.cloud/docs/audit/merkle-trees#what-is-a-consistency-proof)
 
         Args:
             event (obj): The audit event to be verified.
@@ -522,7 +522,7 @@ class Audit(ServiceBase):
 
         Checks the cryptographic consistency of the event across time.
 
-        Read more at: [What is a consistency proof?](/docs/audit/merkle-trees#what-is-a-consistency-proof)
+        Read more at: [What is a consistency proof?](https://pangea.cloud/docs/audit/merkle-trees#what-is-a-consistency-proof)
 
         Args:
             pub_roots (dict): list of published root hashes across time

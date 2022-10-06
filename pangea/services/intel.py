@@ -164,7 +164,7 @@ class URLLookupOutput(PangeaResponseResult):
 class FileIntel(ServiceBase):
     """File Intel service client
 
-    Provides methods to interact with [Pangea File Intel Service](/docs/api/file-intel)
+    Provides methods to interact with [Pangea File Intel Service](https://pangea.cloud/docs/api/file-intel)
 
     The following information is needed:
         PANGEA_TOKEN - service token which can be found on the Pangea User
@@ -213,7 +213,7 @@ class FileIntel(ServiceBase):
 
         Returns:
             A PangeaResponse where the sanctioned source(s) are in the
-                response.result field.  Available response fields can be found in our [API documentation](/docs/api/file-intel).
+                response.result field.  Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/file-intel).
 
         Examples:
             response = file_intel.lookup(FileLookupInput(hash="322ccbd42b7e4fd3a9d0167ca2fa9f6483d9691364c431625f1df54270647ca8", hash_type="sha256", provider="crowdstrike"))
@@ -248,7 +248,7 @@ class FileIntel(ServiceBase):
 class IpIntel(ServiceBase):
     """IP Intel service client
 
-    Provides methods to interact with [Pangea IP Intel Service](/docs/api/ip-intel)
+    Provides methods to interact with [Pangea IP Intel Service](https://pangea.cloud/docs/api/ip-intel)
 
     The following information is needed:
         PANGEA_TOKEN - service token which can be found on the Pangea User
@@ -290,7 +290,7 @@ class IpIntel(ServiceBase):
 
         Returns:
             A PangeaResponse where the sanctioned source(s) are in the
-                response.result field.  Available response fields can be found in our [API documentation](/docs/api/ip-intel)
+                response.result field.  Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/ip-intel)
 
         Examples:
             response = ip_intel.lookup(IPLookupInput(ip="93.231.182.110", provider="crowdstrike"))
@@ -324,7 +324,7 @@ class IpIntel(ServiceBase):
 class UrlIntel(ServiceBase):
     """URL Intel service client.
 
-    Provides methods to interact with [Pangea URL Intel Service](/docs/api/url-intel)
+    Provides methods to interact with [Pangea URL Intel Service](https://pangea.cloud/docs/api/url-intel)
 
     The following information is needed:
         PANGEA_TOKEN - service token which can be found on the Pangea User
@@ -366,7 +366,7 @@ class UrlIntel(ServiceBase):
 
         Returns:
             A PangeaResponse where the sanctioned source(s) are in the
-                response.result field.  Available response fields can be found in our [API documentation](/docs/api/url-intel)
+                response.result field.  Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/url-intel)
 
         Examples:
             response = url_intel.lookup(URLLookupInput(url="http://113.235.101.11:54384", provider="crowdstrike"))
@@ -401,7 +401,7 @@ class UrlIntel(ServiceBase):
 class DomainIntel(ServiceBase):
     """Domain Intel service client
 
-    Provides methods to interact with [Pangea Domain Intel Service](/docs/api/domain-intel)
+    Provides methods to interact with [Pangea Domain Intel Service](https://pangea.cloud/docs/api/domain-intel)
 
     The following information is needed:
         PANGEA_TOKEN - service token which can be found on the Pangea User
@@ -443,7 +443,7 @@ class DomainIntel(ServiceBase):
 
         Returns:
             A PangeaResponse where the sanctioned source(s) are in the
-                response.result field.  Available response fields can be found in our [API documentation](/docs/api/domain-intel)
+                response.result field.  Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/domain-intel)
 
         Examples:
             response = domain_intel.lookup(DomainLookupInput(domain"teoghehofuuxo.su", provider="crowdstrike"))

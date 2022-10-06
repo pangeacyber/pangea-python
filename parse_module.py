@@ -215,6 +215,7 @@ def _parse_module(module: types.ModuleType, module_cache=set()) -> dict:
 
 def parse_pangea():
     import pangea
+    import pangea.services
 
     docs = {}
     docs[pangea.__name__] = _parse_module(pangea)

@@ -112,7 +112,7 @@ class Embargo(ServiceBase):
         Returns:
             A PangeaResponse where the sanctioned source(s) are in the
                 response.result field.  Available response fields can be found
-                in our [API Documentation](/docs/api/embargo).
+                in our [API Documentation](https://pangea.cloud/docs/api/embargo).
 
         Examples:
             response = embargo.ip_check("1.1.1.1")
@@ -169,7 +169,7 @@ class Embargo(ServiceBase):
         Returns:
             A PangeaResponse where the sanctioned source(s) are in the
                 response.result field.  Available response fields can be found
-                in our [API Documentation](/docs/api/embargo).
+                in our [API Documentation](https://pangea.cloud/docs/api/embargo).
 
         Examples:
             response = embargo.lookup("FR")

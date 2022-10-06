@@ -166,7 +166,7 @@ class Redact(ServiceBase):
         Returns:
             Pangea Response with redacted text in the response.result property,
                 available response fields can be found in our
-                [API Documentation](/docs/api/redact#redact).
+                [API Documentation](https://pangea.cloud/docs/api/redact#redact).
 
         Examples:
             response = redact.redact(RedactInput(text="Jenny Jenny... 415-867-5309"))
@@ -213,7 +213,7 @@ class Redact(ServiceBase):
         Returns:
             Pangea Response with redacted data in the response.result field,
                 available response fields can be found in our
-                [API Documentation](/docs/api/redact#redact-structured)
+                [API Documentation](https://pangea.cloud/docs/api/redact#redact-structured)
 
         Examples:
             response = redact.redact_structured(obj={ "number": "415-867-5309", "ip": "1.1.1.1" }, redact_format="json")
