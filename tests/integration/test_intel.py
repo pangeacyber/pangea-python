@@ -76,7 +76,7 @@ class TestDomainIntel(unittest.TestCase):
         self.intel_domain = DomainIntel(token, config=config)
 
     def test_domain_lookup(self):
-        response = self.intel_domain.lookup(domain="teoghehofuuxo.su", provider="crowdstrike", verbose=True, raw=True)
+        response = self.intel_domain.lookup(domain="737updatesboeing.com", provider="domaintools", verbose=True, raw=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertEqual(response.result.data.verdict, "malicious")
 
@@ -88,7 +88,7 @@ class TestDomainIntel(unittest.TestCase):
         badintel_domain = DomainIntel(token, config=config)
 
         with self.assertRaises(pe.UnauthorizedException):
-            badintel_domain.lookup(domain="teoghehofuuxo.su", provider="crowdstrike")
+            badintel_domain.lookup(domain="737updatesboeing.com", provider="domaintools")
 
     def test_domain_lookup_with_no_provider(self):
         with self.assertRaises(pe.PangeaAPIException):
