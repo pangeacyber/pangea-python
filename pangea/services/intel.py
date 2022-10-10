@@ -21,7 +21,7 @@ class FileLookupInput(BaseModelConfig):
 
     file_hash (str): Hash of the file to be looked up
     hash_type (str): Type of hash, can be "sha256", "sha" or "md5"
-    provider (str, optional): Provider of the reputation information. ("reversinglabs" or "crowdstrike"). Default provider defined by the configuration.
+    provider (str, optional): Provider of the reputation information.  ("reversinglabs"). Default provider defined by the configuration.
     verbose (bool, optional): Echo back the parameters of the API in the response
     raw (bool, optional): Return additional details from the provider.
     """
@@ -94,7 +94,7 @@ class DomainLookupInput(BaseModelConfig):
     TODO: complete
 
     domain (str): Domain address to be looked up
-    provider (str, optional): Provider of the reputation information. ("crowdstrike"). Default provider defined by the configuration.
+    provider (str, optional): Provider of the reputation information. ("domaintools"). Default provider defined by the configuration.
     verbose (bool, optional): Echo back the parameters of the API in the response
     raw (bool, optional): Return additional details from the provider.
     """
@@ -216,23 +216,22 @@ class FileIntel(ServiceBase):
                 response.result field.  Available response fields can be found in our [API documentation](/docs/api/file-intel).
 
         Examples:
-            response = file_intel.lookup(FileLookupInput(hash="322ccbd42b7e4fd3a9d0167ca2fa9f6483d9691364c431625f1df54270647ca8", hash_type="sha256", provider="crowdstrike"))
+            response = file_intel.lookup(FileLookupInput(hash="142b638c6a60b60c7f9928da4fb85a5a8e1422a9ffdc9ee49e17e56ccca9cf6e", hash_type="sha256", provider="reversinglabs"))
 
             \"\"\"
             response contains:
             {
-                "request_id": "prq_shfq6vhj7xvi6b6noswfkuoeaxtzgpnb",
-                "request_time": "2022-08-23T02:43:17.614Z",
-                "response_time": "2022-08-23T02:43:18.607Z",
-                "status": "success",
+                "request_id": "prq_snooq62g4jsolhhpm4ze6pgzhmguflnl",
+                "request_time": "2022-10-10T21:54:19.392Z",
+                "response_time": "2022-10-10T21:54:19.933Z",
+                "status": "Success",
                 "summary": "Hash was found",
                 "result": {
                     "data": {
                         "category": [
-                            "RAT",
-                            "Targeted"
+                            "Trojan"
                         ],
-                        "score": 80,
+                        "score": 100,
                         "verdict": "malicious"
                     }
                 }
@@ -446,10 +445,31 @@ class DomainIntel(ServiceBase):
                 response.result field.  Available response fields can be found in our [API documentation](/docs/api/domain-intel)
 
         Examples:
-            response = domain_intel.lookup(DomainLookupInput(domain"teoghehofuuxo.su", provider="crowdstrike"))
+            response = domain_intel.lookup(DomainLookupInput(domain="737updatesboeing.com", provider="domaintools"))
 
             \"\"\"
             response contains:
+            {
+                "request_id": "prq_gs5konqehibr5zflkxeqe2l2z7haeirx",
+                "request_time": "2022-10-10T21:57:08.860Z",
+                "response_time": "2022-10-10T21:57:09.539Z",
+                "status": "Success",
+                "summary": "Domain was found",
+                "result": {
+                    "data": {
+                        "category": [
+                            "sinkhole",
+                            "proximity",
+                            "threat_profile",
+                            "threat_profile_phishing",
+                            "threat_profile_malware",
+                            "threat_profile_spam"
+                        ],
+                        "score": 100,
+                        "verdict": "malicious"
+                    }
+                }
+            }
             \"\"\"
         """
         input = DomainLookupInput(domain=domain, verbose=verbose, provider=provider, raw=raw)
