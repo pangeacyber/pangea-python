@@ -15,7 +15,7 @@ def main():
     print(f"Checking IP...")
 
     try:
-        response = intel.lookup(ip="93.231.182.110", provider="domaintools", verbose=True, raw=True)
+        response = intel.lookup(ip="93.231.182.110", provider="crowdstrike", verbose=True, raw=True)
         print(f"Response: {response.result}")
     except pe.PangeaAPIException as e:
         print(f"Request Error: {e.response.summary}")

@@ -58,7 +58,7 @@ class IPLookupInput(BaseModelConfig):
     TODO: complete
 
     ip (str): IP address to be looked up
-    provider (str, optional): Provider of the reputation information. ("domaintools"). Default provider defined by the configuration.
+    provider (str, optional): Provider of the reputation information. ("crowdstrike"). Default provider defined by the configuration.
     verbose (bool, optional): Echo back the parameters of the API in the response
     raw (bool, optional): Return additional details from the provider.
     """
@@ -130,7 +130,7 @@ class URLLookupInput(BaseModelConfig):
     TODO: complete
 
     url (str): URL address to be looked up
-    provider (str, optional): Provider of the reputation information. ("domaintools"). Default provider defined by the configuration.
+    provider (str, optional): Provider of the reputation information. ("crowdstrike"). Default provider defined by the configuration.
     verbose (bool, optional): Echo back the parameters of the API in the response
     raw (bool, optional): Return additional details from the provider.
     """
@@ -292,7 +292,7 @@ class IpIntel(ServiceBase):
                 response.result field.  Available response fields can be found in our [API documentation](/docs/api/ip-intel)
 
         Examples:
-            response = ip_intel.lookup(IPLookupInput(ip="93.231.182.110", provider="domaintools"))
+            response = ip_intel.lookup(IPLookupInput(ip="93.231.182.110", provider="crowdstrike"))
 
             \"\"\"
             response contains:
@@ -368,7 +368,7 @@ class UrlIntel(ServiceBase):
                 response.result field.  Available response fields can be found in our [API documentation](/docs/api/url-intel)
 
         Examples:
-            response = url_intel.lookup(URLLookupInput(url="http://113.235.101.11:54384", provider="domaintools"))
+            response = url_intel.lookup(URLLookupInput(url="http://113.235.101.11:54384", provider="crowdstrike"))
 
             \"\"\"
             response contains:

@@ -15,7 +15,7 @@ def main():
     print(f"Checking URL...")
 
     try:
-        response = intel.lookup(url="http://113.235.101.11:54384", provider="domaintools", verbose=True, raw=True)
+        response = intel.lookup(url="http://113.235.101.11:54384", provider="crowdstrike", verbose=True, raw=True)
         print(f"Response: {response.result}")
     except pe.PangeaAPIException as e:
         print(f"Request Error: {e.response.summary}")

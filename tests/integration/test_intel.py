@@ -15,7 +15,7 @@ from pangea.services import DomainIntel, FileIntel, IpIntel, UrlIntel
 #         self.intel_ip = IpIntel(token, config=config)
 
 #     def test_ip_lookup(self):
-#         response = self.intel_ip.lookup(ip="93.231.182.110", provider="domaintools", verbose=True, raw=True)
+#         response = self.intel_ip.lookup(ip="93.231.182.110", provider="crowdstrike", verbose=True, raw=True)
 #         self.assertEqual(response.status, ResponseStatus.SUCCESS)
 #         self.assertEqual(response.result.data.verdict, "malicious")
 
@@ -27,7 +27,7 @@ from pangea.services import DomainIntel, FileIntel, IpIntel, UrlIntel
 #         badintel_ip = IpIntel(token, config=config)
 
 #         with self.assertRaises(pe.UnauthorizedException):
-#             badintel_ip.lookup(ip="93.231.182.110", provider="domaintools")
+#             badintel_ip.lookup(ip="93.231.182.110", provider="crowdstrike")
 
 #     def test_ip_lookup_with_no_provider(self):
 #         with self.assertRaises(pe.PangeaAPIException):
@@ -44,7 +44,7 @@ from pangea.services import DomainIntel, FileIntel, IpIntel, UrlIntel
 
 #     def test_url_lookup(self):
 #         response = self.intel_url.lookup(
-#             url="http://113.235.101.11:54384", provider="domaintools", verbose=True, raw=True
+#             url="http://113.235.101.11:54384", provider="crowdstrike", verbose=True, raw=True
 #         )
 #         self.assertEqual(response.status, ResponseStatus.SUCCESS)
 #         self.assertEqual(response.result.data.verdict, "malicious")
@@ -57,7 +57,7 @@ from pangea.services import DomainIntel, FileIntel, IpIntel, UrlIntel
 #         badintel_url = UrlIntel(token, config=config)
 
 #         with self.assertRaises(pe.UnauthorizedException):
-#             badintel_url.lookup(url="http://113.235.101.11:54384", provider="domaintools")
+#             badintel_url.lookup(url="http://113.235.101.11:54384", provider="crowdstrike")
 
 #     def test_url_lookup_with_no_provider(self):
 #         with self.assertRaises(pe.PangeaAPIException):
