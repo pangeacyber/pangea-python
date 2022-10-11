@@ -514,7 +514,7 @@ class Audit(ServiceBase):
             bool: True if the consistency can be verifed, False otherwise
         """
         leaf_index = event.leaf_index
-        return leaf_index is not None and leaf_index > 0
+        return leaf_index is not None and leaf_index >= 0
 
     def verify_consistency_proof(self, pub_roots: Dict[int, Root], event: SearchEvent) -> bool:
         """
