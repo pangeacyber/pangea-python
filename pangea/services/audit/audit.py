@@ -333,7 +333,7 @@ class Audit(ServiceBase):
             input.include_membership_proof = True
 
         response = self.request.post(endpoint_name, data=input.dict(exclude_none=True))
-        return self.handle_search_response(response, verify_events)
+        return self.handle_search_response(response, verify_consistency, verify_events)
 
     def results(
         self, input: SearchResultInput, verify_consistency: bool = False, verify_events: bool = True
