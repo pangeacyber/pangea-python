@@ -182,7 +182,7 @@ class TestAudit(unittest.TestCase):
     def test_search_verify(self):
         query = "message:Integration test msg"
         input = SearchInput(query=query, order=SearchOrder.DESC, limit=10, max_results=10)
-        response = self.audit.search(input=input, verify_consistency=True)
+        response = self.audit.search(input=input, verify_consistency=True, verify_events=True)
 
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         print("events: ", len(response.result.events))
