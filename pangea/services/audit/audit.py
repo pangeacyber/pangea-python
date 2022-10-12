@@ -333,7 +333,7 @@ class Audit(ServiceBase):
             input.include_membership_proof = True
 
         response = self.request.post(endpoint_name, data=input.dict(exclude_none=True))
-        return self.handle_search_response(response, verify_events)
+        return self.handle_search_response(response, verify_consistency, verify_events)
 
     def results(
         self, input: SearchResultInput, verify_consistency: bool = False, verify_events: bool = True
@@ -514,7 +514,7 @@ class Audit(ServiceBase):
             bool: True if the consistency can be verified, False otherwise
         """
         leaf_index = event.leaf_index
-        return leaf_index is not None and leaf_index > 0
+        return leaf_index is not None and leaf_index >= 0
 
     def verify_consistency_proof(self, pub_roots: Dict[int, Root], event: SearchEvent) -> bool:
         """
