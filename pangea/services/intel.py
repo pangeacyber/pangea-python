@@ -57,7 +57,7 @@ class IPLookupInput(BaseModelConfig):
     TODO: complete
 
     ip (str): IP address to be looked up
-    provider (str, optional): Provider of the reputation information. ("crowdstrike"). Default provider defined by the configuration.
+    provider (str, optional): Provider of the reputation information. ("reversinglabs"). Default provider defined by the configuration.
     verbose (bool, optional): Echo back the parameters of the API in the response
     raw (bool, optional): Return additional details from the provider.
     """
@@ -107,7 +107,7 @@ class DomainLookupOutput(PangeaResponseResult):
 class FileIntel(ServiceBase):
     """File Intel service client
 
-    Provides methods to interact with [Pangea File Intel Service](/docs/api/file-intel)
+    Provides methods to interact with [Pangea File Intel Service](https://pangea.cloud/docs/api/file-intel)
 
     The following information is needed:
         PANGEA_TOKEN - service token which can be found on the Pangea User
@@ -144,7 +144,7 @@ class FileIntel(ServiceBase):
         raw: Optional[bool] = None,
     ) -> PangeaResponse[FileLookupOutput]:
         """
-        Lookup file reputation by hash.
+        Look up a file
 
         Retrieve file reputation from a provider, using the file's hash.
 
@@ -156,7 +156,7 @@ class FileIntel(ServiceBase):
 
         Returns:
             A PangeaResponse where the sanctioned source(s) are in the
-                response.result field.  Available response fields can be found in our [API documentation](/docs/api/file-intel).
+                response.result field.  Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/file-intel).
 
         Examples:
             response = file_intel.lookup(FileLookupInput(hash="142b638c6a60b60c7f9928da4fb85a5a8e1422a9ffdc9ee49e17e56ccca9cf6e", hash_type="sha256", provider="reversinglabs"))
@@ -190,7 +190,7 @@ class FileIntel(ServiceBase):
 class DomainIntel(ServiceBase):
     """Domain Intel service client
 
-    Provides methods to interact with [Pangea Domain Intel Service](/docs/api/domain-intel)
+    Provides methods to interact with [Pangea Domain Intel Service](https://pangea.cloud/docs/api/domain-intel)
 
     The following information is needed:
         PANGEA_TOKEN - service token which can be found on the Pangea User
@@ -222,6 +222,8 @@ class DomainIntel(ServiceBase):
         self, domain: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
     ) -> PangeaResponse[DomainLookupOutput]:
         """
+        Look up a domain
+
         Retrieve Domain reputation from a provider.
 
         Args:
@@ -232,7 +234,7 @@ class DomainIntel(ServiceBase):
 
         Returns:
             A PangeaResponse where the sanctioned source(s) are in the
-                response.result field.  Available response fields can be found in our [API documentation](/docs/api/domain-intel)
+                response.result field.  Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/domain-intel).
 
         Examples:
             response = domain_intel.lookup(DomainLookupInput(domain="737updatesboeing.com", provider="domaintools"))
