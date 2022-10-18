@@ -573,7 +573,7 @@ class Audit(ServiceBase):
         else:
             return EventVerification.NONE
 
-    def root(self, input: RootInput) -> PangeaResponse[RootOutput]:
+    def root(self, tree_size: Optional[int] = None) -> PangeaResponse[RootOutput]:
         """
         Retrieve tamperproof verification
 
@@ -592,6 +592,7 @@ class Audit(ServiceBase):
         Examples:
             response = audit.root(tree_size=7)
         """
+        input = RootInput(tree_size=tree_size)
         endpoint_name = "root"
         response = self.request.post(endpoint_name, data=input.dict(exclude_none=True))
         response.result = RootOutput(**response.raw_result)

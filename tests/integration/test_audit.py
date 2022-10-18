@@ -154,7 +154,7 @@ class TestAudit(unittest.TestCase):
             print(e)
 
     def test_root_1(self):
-        response = self.audit.root(input=RootInput())
+        response = self.audit.root()
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertTrue(isinstance(response.result.data.tree_name, str))
         self.assertNotEqual(response.result.data.tree_name, "")
@@ -167,7 +167,7 @@ class TestAudit(unittest.TestCase):
 
     def test_root_2(self):
         tree_size = 3
-        response = self.audit.root(input=RootInput(tree_size=tree_size))
+        response = self.audit.root(tree_size=tree_size)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertEqual(response.result.data.size, tree_size)
 
