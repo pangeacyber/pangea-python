@@ -26,21 +26,22 @@ audit = Audit(
 
 def main():
     print("Log Data...")
-    event = Event(
-        message="Hello world",
-        actor="Someone",
-        action="Testing",
-        source="monitor",
-        status="Good",
-        target="Another spot",
-        new="New updated message",
-        old="Old message that it's been updated",
-    )
-
-    print(f"Logging: {event.dict(exclude_none=True)}")
+    msg = "Hello world"
 
     try:
-        log_response = audit.log(event=event, verify=True, verbose=False, signing=True)
+        log_response = audit.log(
+            message=msg,
+            actor="Someone",
+            action="Testing",
+            source="monitor",
+            status="Good",
+            target="Another spot",
+            new="New updated message",
+            old="Old message that it's been updated",
+            verify=True,
+            verbose=False,
+            signing=True,
+        )
         print(f"Log Request ID: {log_response.request_id}, Status: {log_response.status}")
     except pe.PangeaAPIException as e:
         print(f"Request Error: {e.response.summary}")
@@ -51,13 +52,13 @@ def main():
     print("Search Data...")
 
     page_size = 10
-
-    query = "message:" + event.message
-    restriction = SearchRestriction(source=["monitor"])
+    query = "message:" + msg
+    restriction = {"source": ["monitor"]}
 
     try:
-        search_input = SearchInput(query=query, search_restriction=restriction, limit=page_size)
-        search_res = audit.search(input=search_input, verify_consistency=True, verify_events=True)
+        search_res = audit.search(
+            query=query, search_restriction=restriction, limit=page_size, verify_consistency=True, verify_events=True
+        )
 
         result_id = search_res.result.id
         count = search_res.result.count
@@ -69,8 +70,7 @@ def main():
             offset += page_size
 
             if offset < count:
-                res_input = SearchResultInput(id=result_id, limit=page_size, offset=offset)
-                search_res = audit.results(input=res_input, verify_signatures=True)
+                search_res = audit.results(id=result_id, limit=page_size, offset=offset)
 
     except pe.PangeaAPIException as e:
         print("Search Failed:", e.response.summary)

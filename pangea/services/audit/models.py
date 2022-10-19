@@ -200,7 +200,6 @@ class SearchInput(BaseModelConfig):
     query -- Natural search string; list of keywords with optional `<option>:<value>` qualifiers.
     order -- Specify the sort order of the response. "asc" or "desc".
     order_by -- Name of column to sort the results by. "message", "actor", "status", etc.
-    last -- If set, the last value from the response to fetch the next page from.
     start -- The start of the time range to perform the search on.
     end -- The end of the time range to perform the search on. All records up to the latest if left out.
     limit -- Number of audit records to include from the first page of the results.
@@ -222,7 +221,7 @@ class SearchInput(BaseModelConfig):
     include_membership_proof: Optional[bool] = None
     include_hash: Optional[bool] = None
     include_root: Optional[bool] = None
-    search_restriction: Optional[SearchRestriction] = None
+    search_restriction: Optional[dict] = None
 
 
 class RootInput(BaseModelConfig):
