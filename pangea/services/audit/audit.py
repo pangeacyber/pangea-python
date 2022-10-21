@@ -23,20 +23,6 @@ from pangea.services.audit.util import (
 )
 from pangea.services.base import ServiceBase
 
-SupportedFields = [
-    "actor",
-    "action",
-    "status",
-    "source",
-    "target",
-]
-
-SupportedJSONFields = [
-    "message",
-    "new",
-    "old",
-]
-
 
 class Audit(ServiceBase):
     """Audit service client.
@@ -87,19 +73,37 @@ class Audit(ServiceBase):
         self.allow_server_roots = True
 
     def log(
-        self, event: Event, verify: bool = False, signing: bool = False, verbose: bool = False
+        self,
+        message: Union[str, dict],
+        actor: Optional[str] = None,
+        action: Optional[str] = None,
+        new: Optional[Union[str, dict]] = None,
+        old: Optional[Union[str, dict]] = None,
+        source: Optional[str] = None,
+        status: Optional[str] = None,
+        target: Optional[str] = None,
+        timestamp: Optional[datetime.datetime] = None,
+        verify: bool = False,
+        signing: bool = False,
+        verbose: bool = False,
     ) -> PangeaResponse[LogOutput]:
         """
         Log an entry
 
         Create a log entry in the Secure Audit Log.
-
         Args:
-            event (Event): A structured dict describing an auditable activity.
-            verify (bool, optional):
-            signing (bool, optional):
-            verbose (bool, optional):
-
+            message (str, dict): A message describing a detailed account of what happened.
+            actor (str, optional): Record who performed the auditable activity.
+            action (str, optional): The auditable action that occurred.
+            new (str, dict, optional): The value of a record after it was changed.
+            old (str, dict, optional): The value of a record before it was changed.
+            source (str, optional): Used to record the location from where an activity occurred.
+            status (str, optional): Record whether or not the activity was successful.
+            target (str, optional): Used to record the specific record that was targeted by the auditable activity.
+            timestamp (datetime, optional): An optional client-supplied timestamp.
+            verify (bool, optional): True to verify logs consistency after response.
+            signing (bool, optional): True to sign event.
+            verbose (bool, optional): True to get a more verbose response.
         Raises:
             AuditException: If an audit based api exception happens
             PangeaAPIException: If an API Error happens
@@ -110,34 +114,28 @@ class Audit(ServiceBase):
                 Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/audit#log-an-entry).
 
         Examples:
-            audit_data = {
-                "action": "add_employee",
-                "actor": "Mariah Carey",
-                "target": "mariah@mariahcarey.com",
-                "status": "success",
-                "message": "Resume accepted",
-                "new": { "status": "employed" },
-                "source": "web",
-            }
-
-            response = audit.log(event=audit_data)
-
-            \"\"\"
-            response contains:
-            {
-                "request_id": "prq_ttd3wa7pm4fbut73tlc2r7gi5tcelfcq",
-                "request_time": "2022-07-06T23:46:57.537Z",
-                "response_time": "2022-07-06T23:46:57.556Z",
-                "status": "success",
-                "result": {
-                    "hash": "eba9cd62d2f765a462b6a1c246e18dcb20411c5ee6f6ba4b6d315f455fdfb38a"
-                },
-                "summary": "Logged 1 record(s)"
-            }
-            \"\"\"
+            try:
+                log_response = audit.log(message="Hello world", verbose=False)
+                print(f"Response. Hash: {log_response.result.hash}")
+            except pe.PangeaAPIException as e:
+                print(f"Request Error: {e.response.summary}")
+                for err in e.errors:
+                    print(f"\t{err.detail} \n")
         """
 
         endpoint_name = "log"
+
+        event = Event(
+            message=message,
+            actor=actor,
+            action=action,
+            new=new,
+            old=old,
+            source=source,
+            status=status,
+            target=target,
+            timestamp=timestamp,
+        )
 
         if signing and self.signer is None:
             raise AuditException("Error: the `signing` parameter set, but `signer` is not configured")
@@ -254,7 +252,15 @@ class Audit(ServiceBase):
 
     def search(
         self,
-        input: SearchInput,
+        query: str,
+        order: Optional[SearchOrder] = None,
+        order_by: Optional[SearchOrderBy] = None,
+        start: Optional[datetime.datetime] = None,
+        end: Optional[datetime.datetime] = None,
+        limit: Optional[int] = None,
+        max_results: Optional[int] = None,
+        include_membership_proof: Optional[bool] = None,
+        search_restriction: Optional[dict] = None,
         verify_consistency: bool = False,
         verify_events: bool = True,
     ) -> PangeaResponse[SearchOutput]:
@@ -264,7 +270,24 @@ class Audit(ServiceBase):
         Search for events that match the provided search criteria.
 
         Args:
-            input (SearchInput): Input class with search query parameters
+            query (str): - Natural search string; list of keywords with optional
+                    `<option>:<value>` qualifiers. The following optional qualifiers are supported:
+                        - action
+                        - actor
+                        - message
+                        - new
+                        - old
+                        - status
+                        - target
+            order (SearchOrder, optional): Specify the sort order of the response.
+            order_by (SearchOrderBy, optional): Name of column to sort the results by.
+            last (str, optional): Optional[str] = None,
+            start (datetime, optional): An RFC-3339 formatted timestamp, or relative time adjustment from the current time.
+            end: (datetime, optional): An RFC-3339 formatted timestamp, or relative time adjustment from the current time.
+            limit (int, optional): Optional[int] = None,
+            max_results (int, optional): Maximum number of results to return.
+            include_membership_proof (bool, optional): If True, include membership proofs for each record.
+            search_restriction (dict, optional): A list of keys to restrict the search results to. Useful for partitioning data available to the query string.
             verify (bool, optional): If set, the consistency and membership proofs are validated for all
                 events returned by `search` and `results`. The fields `consistency_proof_verification` and
                 `membership_proof_verification` are added to each event, with the value `pass`, `fail` or `none`.
@@ -280,7 +303,7 @@ class Audit(ServiceBase):
                 Pagination can be found in the [search results endpoint](https://pangea.cloud/docs/api/audit#search-results).
 
         Examples:
-            response = audit.search("Resume accepted", page_size=10)
+            response = audit.search(query="message:test", search_restriction={'source': ["monitor"]}, limit=1, verify_consistency=True, verify_events=True)
 
             \"\"\"
             response.result contains:
@@ -291,7 +314,7 @@ class Audit(ServiceBase):
                         'envelope': {
                             'event': {
                                 'action': 'reboot',
-                                'actor': 'villain',o
+                                'actor': 'villain',
                                 'message': 'test',
                                 'source': 'monitor',
                                 'status': 'error',
@@ -325,18 +348,37 @@ class Audit(ServiceBase):
 
         endpoint_name = "search"
 
-        # Will be removed soon
-        input.include_hash = True
+        # This parameters will be removed soon from endpoint
+        include_hash = True
+        include_root = True
 
         if verify_consistency:
-            input.include_root = True
-            input.include_membership_proof = True
+            include_membership_proof = True
+
+        input = SearchInput(
+            query=query,
+            order=order,
+            order_by=order_by,
+            start=start,
+            end=end,
+            limit=limit,
+            max_results=max_results,
+            include_hash=include_hash,
+            include_root=include_root,
+            include_membership_proof=include_membership_proof,
+            search_restriction=search_restriction,
+        )
 
         response = self.request.post(endpoint_name, data=input.dict(exclude_none=True))
         return self.handle_search_response(response, verify_consistency, verify_events)
 
     def results(
-        self, input: SearchResultInput, verify_consistency: bool = False, verify_events: bool = True
+        self,
+        id: str,
+        limit: Optional[int] = 20,
+        offset: Optional[int] = 0,
+        verify_consistency: bool = False,
+        verify_events: bool = True,
     ) -> PangeaResponse[SearchResultOutput]:
         """
         Results of a Search
@@ -347,22 +389,31 @@ class Audit(ServiceBase):
             id (string): the id of a search action, found in `response.result.id`
             limit (integer, optional): the maximum number of results to return, default is 20
             offset (integer, optional): the position of the first result to return, default is 0
-            verify_signatures (bool, optional):
-
+            verify_consistency (bool): True to verify logs consistency
+            verify_events (bool): True to verify hash events and signatures
         Raises:
             AuditException: If an audit based api exception happens
             PangeaAPIException: If an API Error happens
 
+        Example:
+
+            search_res = audit.search(query="message:test", search_restriction={'source': ["monitor"]}, limit=100, verify_consistency=True, verify_events=True)
+            result_res = audit.results(id=search_res.result.id, limit=10, offset=0)
         """
 
         endpoint_name = "results"
 
-        if input.limit <= 0:
+        if limit <= 0:
             raise AuditException("The 'limit' argument must be a positive integer > 0")
 
-        if input.offset < 0:
+        if offset < 0:
             raise AuditException("The 'offset' argument must be a positive integer")
 
+        input = SearchResultInput(
+            id=id,
+            limit=limit,
+            offset=offset,
+        )
         response = self.request.post(endpoint_name, data=input.dict(exclude_none=True))
         return self.handle_search_response(response, verify_consistency, verify_events)
 
@@ -479,8 +530,8 @@ class Audit(ServiceBase):
         Read more at: [What is a membership proof?](https://pangea.cloud/docs/audit/merkle-trees#what-is-a-membership-proof)
 
         Args:
-            root (obj): The root node used for verification
-            event (obj): The audit event to be verified
+            root (Root): The root node used for verification
+            event (SearchEvent): The audit event to be verified
 
         Returns:
             bool: True if membership proof is verified, False otherwise
@@ -488,13 +539,8 @@ class Audit(ServiceBase):
         if not self.allow_server_roots and root.source != RootSource.ARWEAVE:
             return False
 
-        # TODO: uncomment when audit created field bug is fixed
-        # canon = canonicalize_json(event.event)
-        # node_hash_enc = hash_data(canon)
-        node_hash_enc = event.hash
-        node_hash = decode_hash(node_hash_enc)
+        node_hash = decode_hash(event.hash)
         root_hash = decode_hash(root.root_hash)
-
         proof = decode_membership_proof(event.membership_proof)
 
         return verify_membership_proof(node_hash, root_hash, proof)
@@ -508,13 +554,12 @@ class Audit(ServiceBase):
         Read more at: [What is a consistency proof?](https://pangea.cloud/docs/audit/merkle-trees#what-is-a-consistency-proof)
 
         Args:
-            event (obj): The audit event to be verified.
+            event (SearchEvent): The audit event to be verified.
 
         Returns:
             bool: True if the consistency can be verified, False otherwise
         """
-        leaf_index = event.leaf_index
-        return leaf_index is not None and leaf_index >= 0
+        return event.leaf_index is not None and event.leaf_index >= 0
 
     def verify_consistency_proof(self, pub_roots: Dict[int, Root], event: SearchEvent) -> bool:
         """
@@ -525,8 +570,8 @@ class Audit(ServiceBase):
         Read more at: [What is a consistency proof?](https://pangea.cloud/docs/audit/merkle-trees#what-is-a-consistency-proof)
 
         Args:
-            pub_roots (dict): list of published root hashes across time
-            event (obj): Audit event to be verified.
+            pub_roots (dict[int, Root]): list of published root hashes across time
+            event (SearchEvent): Audit event to be verified.
 
         Returns:
             bool: True if consistency proof is verified, False otherwise.
@@ -557,7 +602,7 @@ class Audit(ServiceBase):
             audit_envelope (EventEnvelope): Object to verify
 
         Returns:
-          EventVerification: PASS or None in case that there is not enough information to verify it
+          EventVerification: PASS if success or NONE in case that there is not enough information to verify it
 
         Raise:
           EventCorruption: If signature verification fails
@@ -580,10 +625,10 @@ class Audit(ServiceBase):
         Returns current root hash and consistency proof.
 
         Args:
-            tree_size (int): The size of the tree (the number of records)
+            tree_size (int, optional): The size of the tree (the number of records). If None endpoint will return last tree root.
 
         Returns:
-            An PangeaResponse.
+            PangeaResponse[RootOutput]
 
         Raises:
             AuditException: If an audit based api exception happens
