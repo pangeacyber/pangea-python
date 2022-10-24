@@ -5,9 +5,8 @@ from pangea.config import PangeaConfig
 from pangea.services import Embargo
 
 token = os.getenv("EMBARGO_AUTH_TOKEN")
-config_id = os.getenv("EMBARGO_CONFIG_ID")
 domain = os.getenv("PANGEA_DOMAIN")
-config = PangeaConfig(domain=domain, config_id=config_id)
+config = PangeaConfig(domain=domain)
 embargo = Embargo(token, config=config)
 
 

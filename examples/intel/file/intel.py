@@ -5,9 +5,8 @@ from pangea.config import PangeaConfig
 from pangea.services import FileIntel
 
 token = os.getenv("INTEL_AUTH_TOKEN")
-config_id = os.getenv("INTEL_FILE_CONFIG_ID")
 domain = os.getenv("PANGEA_DOMAIN")
-config = PangeaConfig(domain=domain, config_id=config_id)
+config = PangeaConfig(domain=domain)
 intel = FileIntel(token, config=config)
 
 

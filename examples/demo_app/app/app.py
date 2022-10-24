@@ -15,10 +15,6 @@ from pangea.services.audit import Event
 from pangea.services.embargo import IPCheckInput
 
 PANGEA_TOKEN = os.getenv("PANGEA_TOKEN")
-
-EMBARGO_CONFIG_ID = os.getenv("EMBARGO_CONFIG_ID")
-REDACT_CONFIG_ID = os.getenv("REDACT_CONFIG_ID")
-AUDIT_CONFIG_ID = os.getenv("AUDIT_CONFIG_ID")
 PANGEA_CSP = os.getenv("PANGEA_CSP")
 domain = os.getenv("PANGEA_DOMAIN")
 
@@ -28,9 +24,9 @@ class App:
 
     def __init__(self):
         self._db = self._db_instance()
-        self._embargo_config = PangeaConfig(domain=domain, config_id=EMBARGO_CONFIG_ID)
-        self._redact_config = PangeaConfig(domain=domain, config_id=REDACT_CONFIG_ID)
-        self._audit_config = PangeaConfig(domain=domain, config_id=AUDIT_CONFIG_ID)
+        self._embargo_config = PangeaConfig(domain=domain)
+        self._redact_config = PangeaConfig(domain=domain)
+        self._audit_config = PangeaConfig(domain=domain)
 
         # Setup Pangea Audit service
         self._pangea_audit = Audit(token=PANGEA_TOKEN, config=self._audit_config)
