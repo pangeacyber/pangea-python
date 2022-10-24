@@ -12,7 +12,6 @@ import pangea
 from pangea import exceptions
 from pangea.config import PangeaConfig
 from pangea.response import PangeaResponse, ResponseStatus
-from pangea.services.audit.exceptions import TreeNotFoundException
 
 logger = logging.getLogger(__name__)
 
@@ -201,7 +200,7 @@ class PangeaRequest(object):
         elif status == ResponseStatus.SERVICE_NOT_AVAILABLE.value:
             raise exceptions.ServiceNotAvailableException(summary, response)
         elif status == ResponseStatus.TREE_NOT_FOUND.value:
-            raise TreeNotFoundException(summary, response)
+            raise exceptions.TreeNotFoundException(summary, response)
         elif status == ResponseStatus.IP_NOT_FOUND.value:
             raise exceptions.IPNotFoundException(summary, response)
         raise exceptions.PangeaAPIException(f"{status}: {summary}", response)
