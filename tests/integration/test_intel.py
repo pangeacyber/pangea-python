@@ -9,10 +9,9 @@ from pangea.services import DomainIntel, FileIntel
 
 class TestDomainIntel(unittest.TestCase):
     def setUp(self):
-        token = os.getenv("PANGEA_TEST_INTEGRATION_TOKEN")
-        config_id = os.getenv("INTEL_INTEGRATION_CONFIG_TOKEN")
-        domain = os.getenv("PANGEA_TEST_INTEGRATION_ENDPOINT")
-        config = PangeaConfig(domain=domain, config_id=config_id)
+        token = os.getenv("PANGEA_INTEGRATION_DOMAIN_INTEL_TOKEN")
+        domain = os.getenv("PANGEA_INTEGRATION_DOMAIN")
+        config = PangeaConfig(domain=domain)
         self.intel_domain = DomainIntel(token, config=config)
 
     def test_domain_lookup(self):
@@ -24,25 +23,19 @@ class TestDomainIntel(unittest.TestCase):
 
     def test_domain_lookup_with_bad_auth_token(self):
         token = "noarealtoken"
-        config_id = os.getenv("INTEL_INTEGRATION_CONFIG_TOKEN")
-        domain = os.getenv("PANGEA_TEST_INTEGRATION_ENDPOINT")
-        config = PangeaConfig(domain=domain, config_id=config_id)
+        domain = os.getenv("PANGEA_INTEGRATION_DOMAIN")
+        config = PangeaConfig(domain=domain)
         badintel_domain = DomainIntel(token, config=config)
 
         with self.assertRaises(pe.UnauthorizedException):
             badintel_domain.lookup(domain="737updatesboeing.com", provider="domaintools")
 
-    def test_domain_lookup_with_no_provider(self):
-        with self.assertRaises(pe.PangeaAPIException):
-            self.intel_domain.lookup(domain="teoghehofuuxo.su")
-
 
 class TestFileIntel(unittest.TestCase):
     def setUp(self):
-        token = os.getenv("PANGEA_TEST_INTEGRATION_TOKEN")
-        config_id = os.getenv("INTEL_INTEGRATION_CONFIG_TOKEN")
-        domain = os.getenv("PANGEA_TEST_INTEGRATION_ENDPOINT")
-        config = PangeaConfig(domain=domain, config_id=config_id)
+        token = os.getenv("PANGEA_INTEGRATION_FILE_INTEL_TOKEN")
+        domain = os.getenv("PANGEA_INTEGRATION_DOMAIN")
+        config = PangeaConfig(domain=domain)
         self.intel_file = FileIntel(token, config=config)
 
     def test_file_lookup(self):
@@ -58,9 +51,8 @@ class TestFileIntel(unittest.TestCase):
 
     def test_file_lookup_with_bad_auth_token(self):
         token = "noarealtoken"
-        config_id = os.getenv("INTEL_INTEGRATION_CONFIG_TOKEN")
         domain = os.getenv("PANGEA_TEST_INTEGRATION_ENDPOINT")
-        config = PangeaConfig(domain=domain, config_id=config_id)
+        config = PangeaConfig(domain=domain)
         badintel_domain = FileIntel(token, config=config)
 
         with self.assertRaises(pe.UnauthorizedException):

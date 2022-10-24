@@ -142,13 +142,9 @@ class Redact(ServiceBase):
 
     service_name = "redact"
     version = "v1"
-    config_id_header = "X-Pangea-Redact-Config-ID"
 
     def __init__(self, token, config=None):
         super().__init__(token, config)
-
-        if self.config.config_id:
-            self.request.set_extra_headers({ConfigIDHeaderName: self.config.config_id})
 
     def redact(self, text: str, debug: bool = False) -> PangeaResponse[RedactOutput]:
         """

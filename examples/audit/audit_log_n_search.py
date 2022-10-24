@@ -4,21 +4,13 @@ import pangea.exceptions as pe
 from pangea.config import PangeaConfig
 from pangea.response import PangeaResponse
 from pangea.services import Audit
-from pangea.services.audit import (
-    Event,
-    SearchInput,
-    SearchOutput,
-    SearchRestriction,
-    SearchResultInput,
-    SearchResultOutput,
-)
+from pangea.services.audit.audit import SearchResultOutput
 
 # This example shows how to perform an audit log, and then search for thats results
 
-token = os.getenv("AUDIT_AUTH_TOKEN")
-config_id = os.getenv("AUDIT_CONFIG_ID")
+token = os.getenv("PANGEA_AUDIT_TOKEN")
 domain = os.getenv("PANGEA_DOMAIN")
-config = PangeaConfig(domain=domain, config_id=config_id)
+config = PangeaConfig(domain=domain)
 audit = Audit(
     token, config=config, enable_signing=True, private_key_file="./tests/testdata/privkey", verify_response=True
 )

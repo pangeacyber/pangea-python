@@ -1,6 +1,8 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 
+from typing import Optional
+
 from pangea.config import PangeaConfig
 from pangea.request import PangeaRequest
 
@@ -8,9 +10,8 @@ from pangea.request import PangeaRequest
 class ServiceBase(object):
     service_name: str = "base"
     version: str = "v1"
-    config_id_header: str = ""
 
-    def __init__(self, token, config=None):
+    def __init__(self, token, config: Optional[PangeaConfig] = None):
         if not token:
             raise Exception("No token provided")
 
@@ -22,9 +23,6 @@ class ServiceBase(object):
             self.version,
             self.service_name,
         )
-
-        if self.config.config_id and self.config_id_header:
-            self.request.set_extra_headers({self.config_id_header: self.config.config_id})
 
     @property
     def token(self):

@@ -8,10 +8,9 @@ from pangea.services import Embargo
 
 class TestEmbargo(unittest.TestCase):
     def setUp(self):
-        token = os.getenv("PANGEA_TEST_INTEGRATION_TOKEN")
-        config_id = os.getenv("EMBARGO_INTEGRATION_CONFIG_TOKEN")
-        domain = os.getenv("PANGEA_TEST_INTEGRATION_ENDPOINT")
-        config = PangeaConfig(domain=domain, config_id=config_id)
+        token = os.getenv("PANGEA_INTEGRATION_EMBARGO_TOKEN")
+        domain = os.getenv("PANGEA_INTEGRATION_DOMAIN")
+        config = PangeaConfig(domain=domain)
         self.embargo = Embargo(token, config=config)
 
     def test_ip_check(self):
@@ -39,9 +38,8 @@ class TestEmbargo(unittest.TestCase):
 
     def test_embargo_with_bad_auth_token(self):
         token = "noarealauthtoken"
-        config_id = os.getenv("EMBARGO_INTEGRATION_CONFIG_TOKEN")
         domain = os.getenv("PANGEA_TEST_INTEGRATION_ENDPOINT")
-        config = PangeaConfig(domain=domain, config_id=config_id)
+        config = PangeaConfig(domain=domain)
         badembargo = Embargo(token, config=config)
 
         with self.assertRaises(pe.UnauthorizedException):

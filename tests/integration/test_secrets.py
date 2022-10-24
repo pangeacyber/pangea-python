@@ -5,12 +5,11 @@ import unittest
 from pangea import PangeaConfig
 from pangea.services import Secrets
 
-# class TestRedact(unittest.TestCase):
+# class TestSecrets(unittest.TestCase):
 #     def setUp(self):
-#         token = os.getenv("PANGEA_TEST_INTEGRATION_TOKEN")
-#         config_id = os.getenv("SECRETS_INTEGRATION_CONFIG_ID")
-#         domain = os.getenv("PANGEA_TEST_INTEGRATION_ENDPOINT")
-#         config = PangeaConfig(domain=domain, config_id=config_id)
+#         token = os.getenv("PANGEA_INTEGRATION_SECRETS_TOKEN")
+#         domain = os.getenv("PANGEA_INTEGRATION_DOMAIN")
+#         config = PangeaConfig(domain=domain)
 #         self.secrets = Secrets(token, config=config)
 
 #     def test_add_new_id(self):
