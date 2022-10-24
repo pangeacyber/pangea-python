@@ -4,7 +4,7 @@ import pangea.exceptions as pe
 from pangea.config import PangeaConfig
 from pangea.services import IpIntel
 
-token = os.getenv("PANGEA_INTEL_IP_TOKEN")
+token = os.getenv("PANGEA_IP_INTEL_TOKEN")
 domain = os.getenv("PANGEA_DOMAIN")
 config = PangeaConfig(domain=domain)
 intel = IpIntel(token, config=config)
