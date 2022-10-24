@@ -5,7 +5,7 @@ from pangea.config import PangeaConfig
 from pangea.services import Audit
 from pangea.services.audit.models import Event
 
-token = os.getenv("AUDIT_AUTH_TOKEN")
+token = os.getenv("PANGEA_AUDIT_TOKEN")
 domain = os.getenv("PANGEA_DOMAIN")
 config = PangeaConfig(domain=domain)
 audit = Audit(token, config=config)

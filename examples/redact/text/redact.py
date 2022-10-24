@@ -4,7 +4,7 @@ import pangea.exceptions as pe
 from pangea.config import PangeaConfig
 from pangea.services import Redact
 
-token = os.getenv("REDACT_AUTH_TOKEN")
+token = os.getenv("PANGEA_REDACT_TOKEN")
 domain = os.getenv("PANGEA_DOMAIN")
 config = PangeaConfig(domain=domain)
 redact = Redact(token, config=config)

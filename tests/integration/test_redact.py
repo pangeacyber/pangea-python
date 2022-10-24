@@ -11,8 +11,8 @@ from pangea.services import Redact
 
 class TestRedact(unittest.TestCase):
     def setUp(self):
-        token = os.getenv("PANGEA_TEST_INTEGRATION_TOKEN")
-        domain = os.getenv("PANGEA_TEST_INTEGRATION_ENDPOINT")
+        token = os.getenv("PANGEA_INTEGRATION_REDACT_TOKEN")
+        domain = os.getenv("PANGEA_INTEGRATION_DOMAIN")
         config = PangeaConfig(domain=domain)
         self.redact = Redact(token, config=config)
 

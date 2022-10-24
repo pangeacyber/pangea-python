@@ -11,8 +11,8 @@ from pangea.services.audit.models import EventVerification, LogOutput, SearchOrd
 
 class TestAudit(unittest.TestCase):
     def setUp(self):
-        self.token = os.getenv("PANGEA_TEST_INTEGRATION_TOKEN")
-        domain = os.getenv("PANGEA_TEST_INTEGRATION_ENDPOINT")
+        self.token = os.getenv("PANGEA_INTEGRATION_AUDIT_TOKEN")
+        domain = os.getenv("PANGEA_INTEGRATION_DOMAIN")
         self.config = PangeaConfig(domain=domain)
         self.audit = Audit(self.token, config=self.config)
 
