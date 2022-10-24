@@ -9,7 +9,7 @@ from binascii import hexlify, unhexlify
 from dataclasses import dataclass
 from datetime import datetime
 from hashlib import sha256
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import requests
 
@@ -46,22 +46,25 @@ ConsistencyProof = List[ConsistencyProofItem]
 
 
 @dataclass
-class BufferRoot:
+class UnpublishedRoot:
     tree_id: str
     cold_tree_size: int
     tree_size: int
-    root_hash: Hash
+    hash: Hash
 
 
-def decode_buffer_root(enc_buffer_root: str) -> BufferRoot:
-    parts = enc_buffer_root.split(",")
-    return BufferRoot(
-        tree_id=parts[0], cold_tree_size=int(parts[1]), tree_size=int(parts[2]), root_hash=decode_hash(parts[3])
-    )
+def decode_unpublished_root(enc_buffer_root: str) -> Optional[UnpublishedRoot]:
+    if str:
+        parts = enc_buffer_root.split(",")
+        if len(parts) == 4:
+            return UnpublishedRoot(
+                tree_id=parts[0], cold_tree_size=int(parts[1]), tree_size=int(parts[2]), hash=decode_hash(parts[3])
+            )
+    return None
 
 
-def encode_buffer_root(buffer_root: BufferRoot) -> str:
-    return f"{buffer_root.tree_id},{buffer_root.cold_tree_size},{buffer_root.tree_size},{encode_hash(buffer_root.root_hash)}"
+def encode_unpublished_root(buffer_root: UnpublishedRoot) -> str:
+    return f"{buffer_root.tree_id},{buffer_root.cold_tree_size},{buffer_root.tree_size},{encode_hash(buffer_root.hash)}"
 
 
 def decode_hash(hexhash) -> Hash:

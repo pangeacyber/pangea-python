@@ -9,12 +9,14 @@ from pangea.services.audit.exceptions import AuditException, EventCorruption
 from pangea.services.audit.models import *
 from pangea.services.audit.signing import Signer, Verifier
 from pangea.services.audit.util import (
+    UnpublishedRoot,
     b64encode_ascii,
     canonicalize_event,
-    decode_buffer_root,
     decode_consistency_proof,
     decode_hash,
     decode_membership_proof,
+    decode_unpublished_root,
+    encode_unpublished_root,
     get_arweave_published_roots,
     get_root_filename,
     verify_consistency_proof,
@@ -70,6 +72,8 @@ class Audit(ServiceBase):
 
         # In case of Arweave failure, ask the server for the roots
         self.allow_server_roots = True
+
+        self.prev_unpublished_root: Optional[UnpublishedRoot] = None
 
     def log(
         self,
@@ -152,49 +156,30 @@ class Audit(ServiceBase):
             public_bytes = self.signer.getPublicKeyBytes()
             input.public_key = b64encode_ascii(public_bytes)
 
-        prev_buffer_root = None
         if verify:
             input.verbose = True
             input.return_hash = True
             input.return_proof = True
-
-            local_data: dict = {}
-            raw_local_data = self.get_local_data()
-            if raw_local_data:
-                local_data = json.loads(raw_local_data)
-                if local_data:
-                    prev_buffer_root = local_data.get("last_root")
-                    # peding_roots = buffer_data.get("pending_roots")
-
-                    if prev_buffer_root:
-                        input.prev_root = prev_buffer_root
-
-                    # if peding_roots:
-                    #     input.return_commit_proofs = peding_roots
+            if self.prev_unpublished_root:
+                input.prev_root = encode_unpublished_root(self.prev_unpublished_root)
 
         response = self.request.post(endpoint_name, data=input.dict(exclude_none=True))
+        return self.handle_log_response(response, verify=verify)
 
-        return self.handle_log_response(response, verify=verify, prev_buffer_root_enc=prev_buffer_root)
-
-    def handle_log_response(
-        self, response: PangeaResponse, verify: bool, prev_buffer_root_enc: bytes
-    ) -> PangeaResponse[LogOutput]:
+    def handle_log_response(self, response: PangeaResponse, verify: bool) -> PangeaResponse[LogOutput]:
         if not response.success:
             return response
 
         response.result = LogOutput(**response.raw_result)
 
-        if verify:
-            new_buffer_root_enc = response.result.unpublished_root
-            membership_proof_enc = response.result.membership_proof
-            consistency_proof_enc = response.result.consistency_proof
-            # commit_proofs = response.result.get("commit_proofs")
-            event_hash_enc = response.result.hash
+        # Always should receive unpublished root
+        new_unpublished_root = None
+        if response.result.unpublished_root:
+            new_unpublished_root = decode_unpublished_root(response.result.unpublished_root)
 
-            new_buffer_root = decode_buffer_root(new_buffer_root_enc)
-            event_hash = decode_hash(event_hash_enc)
-            membership_proof = decode_membership_proof(membership_proof_enc)
-            pending_roots = []
+        if verify:
+            event_hash = decode_hash(response.result.hash)
+            membership_proof = decode_membership_proof(response.result.membership_proof)
 
             # verify event hash
             if not verify_envelope_hash(response.result.envelope, response.result.hash):
@@ -203,50 +188,28 @@ class Audit(ServiceBase):
 
             # verify membership proofs
             if verify_membership_proof(
-                node_hash=event_hash, root_hash=new_buffer_root.root_hash, proof=membership_proof
+                node_hash=event_hash, root_hash=new_unpublished_root.hash, proof=membership_proof
             ):
                 response.result.membership_verification = EventVerification.PASS
             else:
                 response.result.membership_verification = EventVerification.FAIL
 
             # verify consistency proofs (following events)
-            if consistency_proof_enc:
-                prev_buffer_root = decode_buffer_root(prev_buffer_root_enc)
-                consistency_proof = decode_consistency_proof(consistency_proof_enc)
+            if response.result.consistency_proof:
+                consistency_proof = decode_consistency_proof(response.result.consistency_proof)
 
                 if verify_consistency_proof(
-                    new_root=new_buffer_root.root_hash, prev_root=prev_buffer_root.root_hash, proof=consistency_proof
+                    new_root=new_unpublished_root.hash,
+                    prev_root=self.prev_unpublished_root.hash,
+                    proof=consistency_proof,
                 ):
                     response.result.consistency_verification = EventVerification.PASS
                 else:
                     response.result.consistency_verification = EventVerification.FAIL
 
-            # TODO: commit proofs pending yet
-            # if commit_proofs:
-            #     # Get the root from the cold tree...
-            #     # FIXME: This should be on LogOutput by default
-            #     root_response = self.root()
-            #     if not root_response.success:
-            #         return root_response
-
-            #     cold_root_hash_enc = root_response.result.data.get("root_hash")
-            #     if cold_root_hash_enc:
-            #         cold_root_hash = decode_hash(cold_root_hash_enc)
-
-            #         for buffer_root_enc, commit_proof_enc in commit_proofs.items():
-            #             if commit_proof_enc is None:
-            #                 pending_roots.append(buffer_root_enc)
-            #             else:
-            #                 buffer_root = decode_buffer_root(buffer_root_enc)
-            #                 commit_proof = decode_consistency_proof(commit_proof_enc)
-
-            #                 if not verify_consistency_proof(
-            #                     new_root=cold_root_hash, prev_root=buffer_root.root_hash, proof=commit_proof
-            #                 ):
-            #                     raise AuditException(f"Error: Consistency proof failed.")
-
-            self.set_local_data(last_root_enc=new_buffer_root_enc, pending_roots=pending_roots)
-
+        # Update prev unpublished root
+        if new_unpublished_root:
+            self.prev_unpublished_root = new_unpublished_root
         return response
 
     def search(
