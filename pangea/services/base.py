@@ -1,6 +1,7 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 
+from pangea import __version__
 from pangea.config import PangeaConfig
 from pangea.request import PangeaRequest
 
@@ -23,8 +24,14 @@ class ServiceBase(object):
             self.service_name,
         )
 
+        extra_headers = {
+            "User-Agent": f"Pangea Python ${__version__}",
+        }
+
         if self.config.config_id and self.config_id_header:
-            self.request.set_extra_headers({self.config_id_header: self.config.config_id})
+            extra_headers[self.config_id_header] = self.config.config_id
+
+        self.request.set_extra_headers(extra_headers)
 
     @property
     def token(self):
