@@ -51,7 +51,7 @@ class TestFileIntel(unittest.TestCase):
 
     def test_file_lookup_with_bad_auth_token(self):
         token = "noarealtoken"
-        domain = os.getenv("PANGEA_TEST_INTEGRATION_ENDPOINT")
+        domain = os.getenv("PANGEA_INTEGRATION_DOMAIN")
         config = PangeaConfig(domain=domain)
         badintel_domain = FileIntel(token, config=config)
 

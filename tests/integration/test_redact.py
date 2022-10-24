@@ -41,7 +41,7 @@ class TestRedact(unittest.TestCase):
 
     def test_redact_with_bad_auth_token(self):
         token = "notarealtoken"
-        domain = os.getenv("PANGEA_TEST_INTEGRATION_ENDPOINT")
+        domain = os.getenv("PANGEA_INTEGRATION_DOMAIN")
         config = PangeaConfig(domain=domain)
 
         badredact = Redact(token, config=config)
