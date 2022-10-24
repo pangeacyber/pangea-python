@@ -1,4 +1,4 @@
-from pangea.exceptions import PangeaAPIException, PangeaException
+from pangea.exceptions import PangeaException
 
 from .models import EventEnvelope
 
