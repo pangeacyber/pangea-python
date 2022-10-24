@@ -3,6 +3,7 @@
 
 from typing import Optional
 
+from pangea import __version__
 from pangea.config import PangeaConfig
 from pangea.request import PangeaRequest
 
@@ -23,6 +24,12 @@ class ServiceBase(object):
             self.version,
             self.service_name,
         )
+
+        extra_headers = {
+            "User-Agent": f"Pangea Python ${__version__}",
+        }
+
+        self.request.set_extra_headers(extra_headers)
 
     @property
     def token(self):
