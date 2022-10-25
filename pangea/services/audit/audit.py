@@ -53,7 +53,6 @@ class Audit(ServiceBase):
 
     service_name: str = "audit"
     version: str = "v1"
-    config_id_header: str = "X-Pangea-Audit-Config-ID"
 
     def __init__(
         self,

@@ -10,7 +10,6 @@ class PangeaConfig:
 
     domain: str = "pangea.cloud"
     environment: str = "production"
-    config_id: str = ""
 
     """
     Set to true to use plain http

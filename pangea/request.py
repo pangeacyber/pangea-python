@@ -11,7 +11,7 @@ from requests.adapters import HTTPAdapter, Retry
 import pangea
 from pangea import exceptions
 from pangea.config import PangeaConfig
-from pangea.response import PangeaError, PangeaResponse, ResponseStatus
+from pangea.response import PangeaResponse, ResponseStatus
 
 logger = logging.getLogger(__name__)
 

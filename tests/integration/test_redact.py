@@ -11,10 +11,9 @@ from pangea.services import Redact
 
 class TestRedact(unittest.TestCase):
     def setUp(self):
-        token = os.getenv("PANGEA_TEST_INTEGRATION_TOKEN")
-        config_id = os.getenv("REDACT_INTEGRATION_CONFIG_TOKEN")
-        domain = os.getenv("PANGEA_TEST_INTEGRATION_ENDPOINT")
-        config = PangeaConfig(domain=domain, config_id=config_id)
+        token = os.getenv("PANGEA_INTEGRATION_REDACT_TOKEN")
+        domain = os.getenv("PANGEA_INTEGRATION_DOMAIN")
+        config = PangeaConfig(domain=domain)
         self.redact = Redact(token, config=config)
 
     def test_redact(self):
@@ -42,26 +41,12 @@ class TestRedact(unittest.TestCase):
 
     def test_redact_with_bad_auth_token(self):
         token = "notarealtoken"
-        config_id = os.getenv("REDACT_INTEGRATION_CONFIG_TOKEN")
-        domain = os.getenv("PANGEA_TEST_INTEGRATION_ENDPOINT")
-        config = PangeaConfig(domain=domain, config_id=config_id)
+        domain = os.getenv("PANGEA_INTEGRATION_DOMAIN")
+        config = PangeaConfig(domain=domain)
 
         badredact = Redact(token, config=config)
 
         text = "Jenny Jenny... 415-867-5309"
 
         with self.assertRaises(pe.UnauthorizedException):
-            badredact.redact(text=text)
-
-    def test_redact_with_bad_configid(self):
-        token = os.getenv("PANGEA_TEST_INTEGRATION_TOKEN")
-        config_id = "notarealconfigid"
-        domain = os.getenv("PANGEA_TEST_INTEGRATION_ENDPOINT")
-        config = PangeaConfig(domain=domain, config_id=config_id)
-
-        badredact = Redact(token, config=config)
-
-        text = "Jenny Jenny... 415-867-5309"
-
-        with self.assertRaises(pe.MissingConfigID):
             badredact.redact(text=text)
