@@ -8,6 +8,13 @@ from pangea.response import PangeaResponse, ResponseStatus
 from pangea.services import Audit
 from pangea.services.audit.models import EventVerification, LogOutput, SearchOrder, SearchOrderBy, SearchOutput
 
+ACTOR = "python-sdk"
+MSG_NO_SIGNED = "test-message"
+MSG_JSON = "JSON-message"
+MSG_SIGNED = "sign-test"
+STATUS_NO_SIGNED = "no-signed"
+STATUS_SIGNED = "signed"
+
 
 class TestAudit(unittest.TestCase):
     def setUp(self):
@@ -15,120 +22,195 @@ class TestAudit(unittest.TestCase):
         domain = os.getenv("PANGEA_INTEGRATION_DOMAIN")
         self.config = PangeaConfig(domain=domain)
         self.audit = Audit(self.token, config=self.config)
-
-    def test_log(self):
-        timestamp = time.time()
-        msg = f"test-log-{timestamp}"
-        limit = 1
-
-        response: PangeaResponse[LogOutput] = self.audit.log(message=msg, verify=True, verbose=True)
-        self.assertEqual(response.status, ResponseStatus.SUCCESS)
-        receive_at = response.result.envelope.received_at
-
-        response_search: PangeaResponse[SearchOutput] = self.audit.search(
-            query=f"message: {msg}", limit=limit, verify_events=True
-        )
-        self.assertEqual(response_search.status, ResponseStatus.SUCCESS)
-        self.assertEqual(len(response_search.result.events), limit)
-        self.assertEqual(
-            response_search.result.events[0].signature_verification, EventVerification.NONE.value
-        )  # This message has no signature
-        self.assertEqual(response_search.result.events[0].envelope.received_at, receive_at)
-
-    def test_log_signature(self):
-        audit = Audit(
+        self.auditSigner = Audit(
             self.token,
             config=self.config,
             private_key_file="./tests/testdata/privkey",
         )
 
-        msg = "sigtest100"
+    def test_log_no_verbose(self):
+        response: PangeaResponse[LogOutput] = self.audit.log(
+            message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verbose=False
+        )
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertIsNotNone(response.result.hash)
+        self.assertIsNone(response.result.envelope)
 
-        response = audit.log(
-            message=msg,
-            actor="Actor",
+    def test_log_verbose_no_verify(self):
+        response: PangeaResponse[LogOutput] = self.audit.log(
+            message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verify=False, verbose=True
+        )
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertIsNotNone(response.result.envelope)
+        self.assertIsNone(response.result.consistency_proof)
+        self.assertIsNotNone(response.result.membership_proof)
+        self.assertEqual(response.result.consistency_verification, EventVerification.NONE)
+        self.assertEqual(response.result.membership_verification, EventVerification.NONE)
+        self.assertEqual(response.result.signature_verification, EventVerification.NONE)
+
+    def test_log_verify(self):
+        response: PangeaResponse[LogOutput] = self.audit.log(
+            message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verify=True
+        )  # Verify true set verbose to true
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertIsNotNone(response.result.envelope)
+        self.assertIsNone(response.result.consistency_proof)
+        self.assertIsNotNone(response.result.membership_proof)
+        self.assertEqual(
+            response.result.consistency_verification, EventVerification.NONE
+        )  # Cant verify consistency on first
+        self.assertEqual(response.result.membership_verification, EventVerification.PASS)
+        self.assertEqual(response.result.signature_verification, EventVerification.NONE)
+
+        response: PangeaResponse[LogOutput] = self.audit.log(
+            message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verify=True
+        )
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertIsNotNone(response.result.envelope)
+        self.assertEqual(response.result.consistency_verification, EventVerification.PASS)  # but second should pass
+        self.assertEqual(response.result.membership_verification, EventVerification.PASS)
+        self.assertEqual(response.result.signature_verification, EventVerification.NONE)
+
+    def test_log_json(self):
+        new = {"customtag3": "mycustommsg3", "ct4": "cm4"}
+        old = {"customtag5": "mycustommsg5", "ct6": "cm6"}
+
+        response = self.audit.log(
+            message=MSG_JSON,
+            actor=ACTOR,
             action="Action",
             source="Source",
-            status="Status",
+            status=STATUS_NO_SIGNED,
+            target="Target",
+            new=new,
+            old=old,
+            verify=True,
+        )
+
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertIsNotNone(response.result.envelope)
+        self.assertIsInstance(response.result.envelope.event.new, dict)
+        self.assertIsInstance(response.result.envelope.event.old, dict)
+        self.assertIsNotNone(response.result.envelope)
+        self.assertIsNotNone(response.result.membership_proof)
+        self.assertEqual(response.result.membership_verification, EventVerification.PASS)
+        self.assertEqual(response.result.signature_verification, EventVerification.NONE)
+
+    def test_log_sign_and_verify(self):
+        response = self.auditSigner.log(
+            message=MSG_SIGNED,
+            actor=ACTOR,
+            action="Action",
+            source="Source",
+            status=STATUS_SIGNED,
             target="Target",
             new="New",
             old="Old",
             signing=True,
-            verbose=True,
             verify=True,
         )
-        receive_at = response.result.envelope.received_at
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
 
-        response_search: PangeaResponse[SearchOutput] = audit.search(
-            query=f"message: {msg}", limit=1, verify_events=True
-        )
-        self.assertEqual(response_search.status, ResponseStatus.SUCCESS)
-        self.assertEqual(len(response_search.result.events), 1)
-        self.assertEqual(
-            response_search.result.events[0].envelope.signature,
-            "dg7Wg+E8QzZzhECzQoH3v3pbjWObR8ve7SHREAyA9JlFOusKPHVb16t5D3rbscnv80ry/aWzfMTscRNSYJFzDA==",
-        )
-        self.assertEqual(
-            response_search.result.events[0].envelope.public_key, "lvOyDMpK2DQ16NI8G41yINl01wMHzINBahtDPoh4+mE="
-        )
-        self.assertEqual(response_search.result.events[0].signature_verification, EventVerification.PASS.value)
-        self.assertEqual(response_search.result.events[0].envelope.received_at, receive_at)
+        self.assertIsNotNone(response.result.envelope)
+        self.assertIsNone(response.result.consistency_proof)
+        self.assertIsNotNone(response.result.membership_proof)
+        self.assertEqual(response.result.consistency_verification, EventVerification.NONE)
+        self.assertEqual(response.result.membership_verification, EventVerification.PASS)
+        self.assertEqual(response.result.signature_verification, EventVerification.PASS)
+        self.assertEqual(response.result.envelope.public_key, "lvOyDMpK2DQ16NI8G41yINl01wMHzINBahtDPoh4+mE=")
 
-    def test_log_json(self):
-        audit = Audit(
-            self.token,
-            config=self.config,
-            private_key_file="./tests/testdata/privkey",
-        )
-
-        msg = {"customtag1": "mycustommsg1", "ct2": "cm2"}
+    def test_log_json_sign_and_verify(self):
         new = {"customtag3": "mycustommsg3", "ct4": "cm4"}
         old = {"customtag5": "mycustommsg5", "ct6": "cm6"}
 
-        try:
-            response = audit.log(
-                message=msg,
-                actor="Actor",
-                action="Action",
-                source="Source",
-                status="Status",
-                target="Target",
-                new=new,
-                old=old,
-                signing=True,
-                verbose=True,
-                verify=True,
-            )
-        except pexc.PangeaAPIException as e:
-            print(f"Request Error: {e.response.summary}")
-            for err in e.errors:
-                print(f"\t{err.detail} \n")
+        response = self.auditSigner.log(
+            message=MSG_JSON,
+            actor=ACTOR,
+            action="Action",
+            source="Source",
+            status=STATUS_NO_SIGNED,
+            target="Target",
+            new=new,
+            old=old,
+            signing=True,
+            verify=True,
+        )
 
-        receive_at = response.result.envelope.received_at
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertIsNotNone(response.result.envelope)
+        self.assertIsInstance(response.result.envelope.event.new, dict)
+        self.assertIsInstance(response.result.envelope.event.old, dict)
+        self.assertIsNotNone(response.result.envelope)
+        self.assertIsNone(response.result.consistency_proof)
+        self.assertIsNotNone(response.result.membership_proof)
+        self.assertEqual(response.result.membership_verification, EventVerification.PASS)
+        self.assertEqual(response.result.signature_verification, EventVerification.PASS)
 
-        response_search: PangeaResponse[SearchOutput] = audit.search(query=f'message:""', limit=1)
-        self.assertEqual(response_search.status, ResponseStatus.SUCCESS)
-        self.assertEqual(len(response_search.result.events), 1)
-        self.assertEqual(response_search.result.events[0].signature_verification, EventVerification.PASS.value)
-        self.assertEqual(response_search.result.events[0].envelope.received_at, receive_at)
-
-    def test_search_results(self):
-        limit = 1
-        max_result = 2
-        response_search = self.audit.search(query="", limit=limit, max_results=max_result)
+    def test_search_results_verbose(self):
+        limit = 100
+        max_result = 100
+        response_search = self.audit.search(
+            query="message:", order=SearchOrder.DESC, limit=limit, max_results=max_result, verbose=True
+        )
         self.assertEqual(response_search.status, ResponseStatus.SUCCESS)
         self.assertEqual(len(response_search.result.events), limit)
         self.assertEqual(response_search.result.count, max_result)
 
-        response_results = self.audit.results(id=response_search.result.id, limit=limit, offset=0)
+        resultsLimit = 90
+        # Verify consistency en true
+        response_results = self.audit.results(id=response_search.result.id, limit=resultsLimit, verify_consistency=True)
         self.assertEqual(response_results.status, ResponseStatus.SUCCESS)
-        self.assertEqual(len(response_results.result.events), limit)
+        self.assertEqual(len(response_results.result.events), resultsLimit)
+        for event in response_results.result.events:
+            self.assertEqual(event.consistency_verification, EventVerification.PASS)
+            self.assertEqual(event.membership_verification, EventVerification.PASS)
 
-        response_results = self.audit.results(id=response_search.result.id, limit=1, offset=1)
+        # Verify consistency en false
+        response_results = self.audit.results(
+            id=response_search.result.id, limit=resultsLimit, offset=1, verify_consistency=False
+        )
         self.assertEqual(response_results.status, ResponseStatus.SUCCESS)
-        self.assertEqual(len(response_results.result.events), limit)
+        self.assertEqual(len(response_results.result.events), resultsLimit)
+        for event in response_results.result.events:
+            self.assertEqual(event.consistency_verification, EventVerification.NONE)
+            self.assertEqual(event.membership_verification, EventVerification.NONE)
+
+        try:
+            # This should fail because offset is out of range
+            response_results = self.audit.results(id=response_search.result.id, limit=1, offset=max_result + 1)
+            self.assertEqual(len(response_results.result.events), 0)
+        except Exception as e:
+            # FIXME: Remove and fix once endpoint is fixed. Have to return error
+            self.assertTrue(False)
+            self.assertTrue(isinstance(e, pexc.PangeaAPIException))
+            print(e)
+
+    def test_search_results_no_verbose(self):
+        limit = 10
+        max_result = 10
+        response_search = self.audit.search(query="message:", limit=limit, max_results=max_result, verbose=False)
+        self.assertEqual(response_search.status, ResponseStatus.SUCCESS)
+        self.assertEqual(len(response_search.result.events), limit)
+        self.assertEqual(response_search.result.count, max_result)
+
+        resultsLimit = 2
+        # Verify consistency en true
+        response_results = self.audit.results(id=response_search.result.id, limit=resultsLimit, verify_consistency=True)
+        self.assertEqual(response_results.status, ResponseStatus.SUCCESS)
+        self.assertEqual(len(response_results.result.events), resultsLimit)
+        for event in response_results.result.events:
+            self.assertEqual(event.consistency_verification, EventVerification.NONE)
+            self.assertEqual(event.membership_verification, EventVerification.NONE)
+
+        # Verify consistency en false
+        response_results = self.audit.results(
+            id=response_search.result.id, limit=resultsLimit, offset=1, verify_consistency=False
+        )
+        self.assertEqual(response_results.status, ResponseStatus.SUCCESS)
+        self.assertEqual(len(response_results.result.events), resultsLimit)
+        for event in response_results.result.events:
+            self.assertEqual(event.consistency_verification, EventVerification.NONE)
+            self.assertEqual(event.membership_verification, EventVerification.NONE)
 
         try:
             # This should fail because offset is out of range
@@ -167,9 +249,9 @@ class TestAudit(unittest.TestCase):
         self.assertGreaterEqual(len(response.result.data.consistency_proof), 1)
 
     def test_search_verify(self):
-        query = "message:Integration test msg"
+        query = "message:sigtest100"
         response = self.audit.search(
-            query=query, order=SearchOrder.DESC, limit=10, max_results=10, verify_consistency=True, verify_events=True
+            query=query, order=SearchOrder.DESC, limit=2, max_results=2, verify_consistency=True, verify_events=True
         )
 
         self.assertEqual(response.status, ResponseStatus.SUCCESS)

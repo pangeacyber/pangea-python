@@ -45,28 +45,6 @@ class ConsistencyProofItem:
 ConsistencyProof = List[ConsistencyProofItem]
 
 
-@dataclass
-class UnpublishedRoot:
-    tree_id: str
-    cold_tree_size: int
-    tree_size: int
-    hash: Hash
-
-
-def decode_unpublished_root(enc_buffer_root: str) -> Optional[UnpublishedRoot]:
-    if str:
-        parts = enc_buffer_root.split(",")
-        if len(parts) == 4:
-            return UnpublishedRoot(
-                tree_id=parts[0], cold_tree_size=int(parts[1]), tree_size=int(parts[2]), hash=decode_hash(parts[3])
-            )
-    return None
-
-
-def encode_unpublished_root(buffer_root: UnpublishedRoot) -> str:
-    return f"{buffer_root.tree_id},{buffer_root.cold_tree_size},{buffer_root.tree_size},{encode_hash(buffer_root.hash)}"
-
-
 def decode_hash(hexhash) -> Hash:
     return unhexlify(hexhash.encode("utf8"))
 
@@ -79,11 +57,11 @@ def hash_pair(hash1: Hash, hash2: Hash) -> Hash:
     return sha256(hash1 + hash2).digest()
 
 
-def verify_hash(hash1: Hash, hash2: Hash) -> bool:
+def verify_hash(hash1: str, hash2: str) -> bool:
     return hash1 == hash2
 
 
-def verify_envelope_hash(envelope: EventEnvelope, hash: Hash):
+def verify_envelope_hash(envelope: EventEnvelope, hash: str):
     env_tmp = copy.deepcopy(envelope)
     env_tmp.event = env_tmp.event.get_stringified_copy()
     return verify_hash(hash_dict(normalize_log(env_tmp.dict(exclude_none=True))), hash)
@@ -194,7 +172,7 @@ def hash_str(data: str) -> str:
     return sha256(bytes(data, "utf8")).hexdigest()
 
 
-def hash_dict(data: dict) -> bytes:
+def hash_dict(data: dict) -> str:
     return sha256(canonicalize_json(data)).hexdigest()
 
 
