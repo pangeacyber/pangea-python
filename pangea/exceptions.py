@@ -83,3 +83,12 @@ class EmbargoException(PangeaException):
 
 class IPNotFoundException(EmbargoException):
     """IP address was not found"""
+
+
+# Audit Specific Exceptions
+class AuditException(PangeaException):
+    """Audit service specific exceptions"""
+
+
+class TreeNotFoundException(AuditException):
+    """Tree was not found during a root inspection"""

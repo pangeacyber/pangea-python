@@ -38,7 +38,7 @@ class TestEmbargo(unittest.TestCase):
 
     def test_embargo_with_bad_auth_token(self):
         token = "noarealauthtoken"
-        domain = os.getenv("PANGEA_TEST_INTEGRATION_ENDPOINT")
+        domain = os.getenv("PANGEA_INTEGRATION_DOMAIN")
         config = PangeaConfig(domain=domain)
         badembargo = Embargo(token, config=config)
 
