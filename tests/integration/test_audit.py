@@ -147,8 +147,8 @@ class TestAudit(unittest.TestCase):
         self.assertEqual(response.result.signature_verification, EventVerification.PASS)
 
     def test_search_results_verbose(self):
-        limit = 100
-        max_result = 100
+        limit = 10
+        max_result = 10
         response_search = self.audit.search(
             query="message:", order=SearchOrder.DESC, limit=limit, max_results=max_result, verbose=True
         )
@@ -156,7 +156,7 @@ class TestAudit(unittest.TestCase):
         self.assertEqual(len(response_search.result.events), limit)
         self.assertEqual(response_search.result.count, max_result)
 
-        resultsLimit = 90
+        resultsLimit = 2
         # Verify consistency en true
         response_results = self.audit.results(id=response_search.result.id, limit=resultsLimit, verify_consistency=True)
         self.assertEqual(response_results.status, ResponseStatus.SUCCESS)
