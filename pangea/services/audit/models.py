@@ -81,7 +81,7 @@ class Event(BaseModelConfig):
 
     def _dict_to_canonicalized_str(self, message: dict) -> str:
         """Convert dict to canonical str"""
-        return json.dumps(message, ensure_ascii=False, allow_nan=False, separators=(",", ":"), sort_keys=True)
+        return json.dumps(message, ensure_ascii=False, allow_nan=False, separators=(",", ":"))
 
 
 class EventEnvelope(BaseModelConfig):
@@ -107,20 +107,16 @@ class LogInput(BaseModelConfig):
 
     Arguments:
     event -- A structured event describing an auditable activity.
-    return_hash -- Return the event's hash with response.
-    verbose -- If true, be verbose in the response; include canonical events, create time, hashes, etc.
+    verbose -- If true, be verbose in the response; include membership proof, unpublished root and consistency proof, etc.
     signature -- An optional client-side signature for forgery protection.
     public_key -- The base64-encoded ed25519 public key used for the signature, if one is provided.
-    return_proof -- If true returns the unpublished root hash of the tree, membership proof of the message in the tree, and consistency proof from the prev_root specified.
     prev_root -- Unpublished root hash that was returned from the last log API call that was made. If the user does not provide prev_root, the consistency proof from the last known unpublished root will be provided.
     """
 
     event: Event
-    return_hash: Optional[bool] = None
     verbose: Optional[bool] = None
     signature: Optional[str] = None
     public_key: Optional[str] = None
-    return_proof: Optional[bool] = None
     prev_root: Optional[str] = None
 
 
@@ -130,15 +126,13 @@ class LogOutput(PangeaResponseResult):
 
     envelope -- Event envelope information.
     hash -- Event envelope hash.
-    canonical_envelope_base64 -- A base64 encoded canonical JSON form of the event envelope, used for hashing.
     unpublished_root -- The current unpublished root.
     membership_proof -- A proof for verifying the unpublished root.
     consistency_proof -- If prev_root was present in the request, this proof verifies that the new unpublished root is a continuation of the prev_root
     """
 
     envelope: Optional[EventEnvelope] = None
-    hash: Optional[str] = None
-    canonical_envelope_base64: Optional[str] = None
+    hash: str
     unpublished_root: Optional[str] = None
     membership_proof: Optional[str] = None
     consistency_proof: Optional[List[str]] = None
@@ -187,7 +181,6 @@ class SearchInput(BaseModelConfig):
     Input class to perform an audit search action
 
     Arguments:
-
         #: Query is a required field.
         #: The following optional qualifiers are supported:
         #:	* action:
@@ -204,10 +197,8 @@ class SearchInput(BaseModelConfig):
     end -- The end of the time range to perform the search on. All records up to the latest if left out.
     limit -- Number of audit records to include from the first page of the results.
     max_results -- Maximum number of results to return.
-    include_memebership_proof -- If true, include membership proofs for each record in the first page.
-    include_hash -- If true, include hashes for each record in the first page.
-    include_root -- If true, include the Merkle root hash of the tree in the first page.
     search_restriction -- A list of keys to restrict the search results to. Useful for partitioning data available to the query string.
+    verbose -- If true, include root, membership and consistency proofs in response.
     """
 
     query: str
@@ -218,10 +209,8 @@ class SearchInput(BaseModelConfig):
     end: Optional[datetime.time] = None
     limit: Optional[int] = None
     max_results: Optional[int] = None
-    include_membership_proof: Optional[bool] = None
-    include_hash: Optional[bool] = None
-    include_root: Optional[bool] = None
     search_restriction: Optional[dict] = None
+    verbose: Optional[bool] = None
 
 
 class RootInput(BaseModelConfig):
@@ -252,8 +241,8 @@ class Root(BaseModelConfig):
     tree_name: str
     size: int
     root_hash: str
-    url: str
-    published_at: str
+    url: Optional[str] = None
+    published_at: Optional[str] = None
     consistency_proof: Optional[List[str]] = None
 
 
@@ -305,9 +294,10 @@ class SearchEvent(BaseModelConfig):
     """
 
     envelope: EventEnvelope
-    hash: Optional[str] = None
+    hash: str
+    membership_proof: Optional[str] = None
+    published: Optional[bool] = None
     leaf_index: Optional[int] = None
-    membership_proof: Optional[str] = None  # FIXME: Check membership and others class
     consistency_verification: EventVerification = EventVerification.NONE
     membership_verification: EventVerification = EventVerification.NONE
     signature_verification: EventVerification = EventVerification.NONE
@@ -321,15 +311,17 @@ class SearchOutput(PangeaResponseResult):
     id -- Identifier to supply to search_results API to fetch/paginate through search results. ID is always populated on a successful response.
     expires_at -- The time when the results will no longer be available to page through via the results API.
     count -- The total number of results that were returned by the search.
-    root -- A root of a Merkle Tree.
     events -- A list of matching audit records.
+    root -- Root of a published Merkle Tree.
+    unpublished_root -- Root of a unpublished Merkle Tree
     """
 
     count: int
     events: List[SearchEvent]
-    id: Optional[str] = None
-    expires_at: Optional[datetime.datetime] = None
+    id: str
+    expires_at: datetime.datetime
     root: Optional[Root] = None
+    unpublished_root: Optional[Root] = None
 
 
 class SearchResultInput(BaseModelConfig):
@@ -338,9 +330,6 @@ class SearchResultInput(BaseModelConfig):
 
     Arguments:
     id -- A search results identifier returned by the search call.
-    include_membership_proof -- If true, include membership proofs for each record in the first page.
-    include_hash -- If true, include hashes for each record in the first page.
-    include_root -- If true, include the Merkle root hash of the tree in the first page.
     limit -- Number of audit records to include from the first page of the results.
     offset -- Offset from the start of the result set to start returning results from.
     """
@@ -348,9 +337,6 @@ class SearchResultInput(BaseModelConfig):
     id: str
     limit: Optional[int] = 20
     offset: Optional[int] = 0
-    include_membership_proof: Optional[bool] = None
-    include_hash: Optional[bool] = None
-    include_root: Optional[bool] = None
 
 
 class SearchResultOutput(PangeaResponseResult):
@@ -361,8 +347,10 @@ class SearchResultOutput(PangeaResponseResult):
     count -- The total number of results that were returned by the search.
     events -- A list of matching audit records.
     root -- A root of a Merkle Tree.
+    unpublished_root -- Root of a unpublished Merkle Tree
     """
 
     count: int
     events: List[SearchEvent]
     root: Optional[Root] = None
+    unpublished_root: Optional[Root] = None

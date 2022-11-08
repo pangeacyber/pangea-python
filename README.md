@@ -130,7 +130,7 @@ It accepts multiple file formats:
 - a search response from the REST API:
 
 ```
-curl -H "Authorization: Bearer ${PANGEA_TOKEN}" -H "X-Pangea-Audit-Config-Id=${AUDIT_CONFIG_ID}" -X POST -H 'Content-Type: application/json'  --data '{"include_hash": true, "include_membership_proof": true, "include_root": true}' https://audit.dev.aws.pangea.cloud/v1/search
+curl -H "Authorization: Bearer ${PANGEA_TOKEN}" -X POST -H 'Content-Type: application/json'  --data '{"verbose": true}' https://audit.dev.aws.pangea.cloud/v1/search
 ```
 
 
