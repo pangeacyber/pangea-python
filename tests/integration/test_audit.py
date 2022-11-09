@@ -251,7 +251,7 @@ class TestAudit(unittest.TestCase):
     def test_search_verify(self):
         query = "message:sigtest100"
         response = self.audit.search(
-            query=query, order=SearchOrder.DESC, limit=2, max_results=2, verify_consistency=True, verify_events=True
+            query=query, order=SearchOrder.DESC, limit=2, max_results=2, verify_consistency=True, verify_events=True, start="7d"
         )
 
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
