@@ -41,10 +41,8 @@ class Audit(ServiceBase):
         from pangea.config import PangeaConfig
         from pangea.services import Audit
 
-        PANGEA_TOKEN = os.getenv("PANGEA_TOKEN")
-        AUDIT_CONFIG_ID = os.getenv("AUDIT_CONFIG_ID")
-
-        audit_config = PangeaConfig(domain="pangea.cloud", config_id=AUDIT_CONFIG_ID)
+        PANGEA_TOKEN = os.getenv("PANGEA_AUDIT_TOKEN")
+        audit_config = PangeaConfig(domain="pangea.cloud")
 
         # Setup Pangea Audit service
         audit = Audit(token=PANGEA_TOKEN, config=audit_config)
@@ -255,52 +253,12 @@ class Audit(ServiceBase):
             PangeaAPIException: If an API Error happens
 
         Returns:
-            A PangeaResponse where the first page of matched events is returned in the
+            A PangeaResponse[SearchOutput] where the first page of matched events is returned in the
                 response.result field. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/audit#search-for-events).
                 Pagination can be found in the [search results endpoint](https://pangea.cloud/docs/api/audit#search-results).
 
         Examples:
-            response = audit.search(query="message:test", search_restriction={'source': ["monitor"]}, limit=1, verify_consistency=True, verify_events=True)
-
-            \"\"\"
-            response.result contains:
-            {
-                'count': 1,
-                'events': [
-                    {
-                        'envelope': {
-                            'event': {
-                                'action': 'reboot',
-                                'actor': 'villain',
-                                'message': 'test',
-                                'source': 'monitor',
-                                'status': 'error',
-                                'target': 'world'
-                            },
-                            'received_at': '2022-09-03T02:24:46.554034+00:00',
-                            'membership_verification': 'pass',
-                            'consistency_verification': 'pass'
-                        },
-                        'hash': '735b4c5d5fdbf49a680fe82b5447ca454f8bf37a607dbce9b51c45855528475b',
-                        'leaf_index': 5,
-                        'membership_proof': 'l:3a78ee8f8a4720dc6a832c96531a9287327b2e615f0272361211e40ff8a5431e,l:744fe2bcd44de81d96360b8839f0166dd7c400b9d283df2a089a962d41cef994,l:caeffdf1a19e3273227969f9332eb48c96e937e753d9d95ccf14902b06336c48,l:25d8e95b8392130c455d2bf8e709225891c554773f30aacf0b9ea35848d0f201'
-                    }
-                ],
-                'expires_at': '2022-09-08T15:57:52.474234Z',
-                'id': 'pit_kgr66t3yluqqexahxzdldqatirommhbt',
-                'root': {
-                    'consistency_proof': [
-                        'x:caeffdf1a19e3273227969f9332eb48c96e937e753d9d95ccf14902b06336c48,r:59b722c11cfd1435e2a9538091022d995d0311d3f5379118dfda3fa1f04ef175,l:25d8e95b8392130c455d2bf8e709225891c554773f30aacf0b9ea35848d0f201',
-                        'x:25d8e95b8392130c455d2bf8e709225891c554773f30aacf0b9ea35848d0f201,r:cd666f188d4fd8b51b3df33b65c5d2e5b9a269b9d7d324ba344cdaa62541675b'
-                    ],
-                    'published_at': '2022-09-03T03:02:13.848781Z',
-                    'root_hash': 'dbfd18fa07ddb1210d80c428e9087e5daf4f360ac7c16b68a0b9757551ff9290',
-                    'size': 6,
-                    'tree_name': 'a6d48322aa88e25ede9cbac403110bf12580f11fe4cae6a8a4539950f5c236b1',
-                    'url': 'https://arweave.net/P18k8w7uRt9uDMCTJ9dlvSQta1DsbOYCefboHEjzlM8'
-                }
-            }
-            \"\"\"
+            response: PangeaResponse[SearchOutput] = audit.search(query="message:test", search_restriction={'source': ["monitor"]}, limit=1, verify_consistency=True, verify_events=True)
         """
 
         endpoint_name = "search"
@@ -348,8 +306,8 @@ class Audit(ServiceBase):
 
         Example:
 
-            search_res = audit.search(query="message:test", search_restriction={'source': ["monitor"]}, limit=100, verify_consistency=True, verify_events=True)
-            result_res = audit.results(id=search_res.result.id, limit=10, offset=0)
+            search_res: PangeaResponse[SearchOutput] = audit.search(query="message:test", search_restriction={'source': ["monitor"]}, limit=100, verify_consistency=True, verify_events=True)
+            result_res: PangeaResponse[SearchResultsOutput] = audit.results(id=search_res.result.id, limit=10, offset=0)
         """
 
         endpoint_name = "results"
@@ -428,12 +386,11 @@ class Audit(ServiceBase):
         are published on [Arweave](https://arweave.net).
 
         Args:
-            result (obj): PangeaResponse object from previous call to audit.search()
+            result (SearchOutput): PangeaResponse object from previous call to audit.search()
 
         Raises:
             AuditException: If an audit based api exception happens
             PangeaAPIException: If an API Error happens
-
         """
 
         if not result.root:

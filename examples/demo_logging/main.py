@@ -4,11 +4,10 @@ import module2
 
 from pangea.audit_logger import AuditLogger, getLogger, initLogging
 
-PANGEA_TOKEN = os.getenv("PANGEA_TOKEN")
-AUDIT_CONFIG_ID = os.getenv("AUDIT_CONFIG_ID")
+PANGEA_AUDIT_TOKEN = os.getenv("PANGEA_AUDIT_TOKEN")
 DOMAIN = os.getenv("PANGEA_DOMAIN")
 
-initLogging(DOMAIN, PANGEA_TOKEN, AUDIT_CONFIG_ID)
+initLogging(DOMAIN, PANGEA_AUDIT_TOKEN)
 
 logger = getLogger(name=__name__)
 

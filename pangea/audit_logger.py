@@ -2,14 +2,16 @@
 # Author: Pangea Cyber Corporation
 import logging
 
+import pangea.exceptions as pe
 from pangea.config import PangeaConfig
+from pangea.response import PangeaResponse
 from pangea.services import Audit
+from pangea.services.audit.models import LogOutput
 
 SupportedFields = ["actor", "action", "status", "source", "target", "new", "old"]
 
-DOMAIN = ""
-PANGEA_TOKEN = ""
-AUDIT_CONFIG_ID = ""
+PANGEA_DOMAIN = ""
+PANGEA_AUDIT_TOKEN = ""
 
 
 class AuditLogger(logging.Logger):
@@ -64,21 +66,21 @@ class AuditLogger(logging.Logger):
             if name in kwargs:
                 audit_record[name] = kwargs.pop(name)
 
-        resp = self.auditor.log(audit_record)
+        try:
+            resp: PangeaResponse[LogOutput] = self.auditor.log(**audit_record)
+            print(f"Response. Hash: {resp.result.hash}")
+        except pe.PangeaAPIException as e:
+            print(f"Request Error: {e.response.summary}")
+            for err in e.errors:
+                print(f"\t{err.detail} \n")
 
-        if resp.success:
-            pass
-        else:
-            raise Exception(f"Pangea Audit error: {resp.response.text}")
 
-
-def initLogging(domain: str, token: str, config_id: str):
+def initLogging(domain: str, token: str):
     """Initializes Audit logging environment
 
     Args:
         domain (string) : the Pangea domain to use, i.e. "aws.us.pangea.cloud"
         token (string) : the Pangea Audit Service token
-        config_id (string) : the Configuration ID associated with Audit Service profile
 
     Examples:
         import os
@@ -89,48 +91,36 @@ def initLogging(domain: str, token: str, config_id: str):
         AUDIT_CONFIG_ID = os.getenv("AUDIT_CONFIG_ID")
         PANGEA_CSP = os.getenv("PANGEA_CSP")
 
-        initLogging(PANGEA_CSP, PANGEA_TOKEN, AUDIT_CONFIG_ID)
+        initLogging(PANGEA_DOMAIN, PANGEA_TOKEN)
     """
-    global DOMAIN, PANGEA_TOKEN, AUDIT_CONFIG_ID
+    global PANGEA_DOMAIN, PANGEA_AUDIT_TOKEN
 
-    DOMAIN = domain
-    PANGEA_TOKEN = token
-    AUDIT_CONFIG_ID = config_id
+    PANGEA_DOMAIN = domain
+    PANGEA_AUDIT_TOKEN = token
 
 
-def getLogger(name, level=logging.DEBUG):
+def getLogger(name, level=logging.DEBUG) -> AuditLogger:
     """Gets an instance of the AuditLogger
 
     Args:
         name (str) : name of the logger
-
         level : debug level
 
     Examples:
         from pangea.audit_logger import AuditLogger, getLogger
 
-
         logger = getLogger(name='myLogger')
-
         logger.info('This is an info')
-
         logger.warning('This is a warning')
-
         logger.error('This is an error')
-
         logger.audit("hello world")
-
     """
-    audit_config = PangeaConfig(domain=DOMAIN, config_id=AUDIT_CONFIG_ID)
+    audit_config = PangeaConfig(domain=PANGEA_DOMAIN)
 
-    auditor = Audit(token=PANGEA_TOKEN, config=audit_config)
-
+    auditor = Audit(token=PANGEA_AUDIT_TOKEN, config=audit_config)
     logging.basicConfig(level=level)
-
     logging.setLoggerClass(AuditLogger)
-
-    logger = logging.getLogger(name)
-
+    logger: AuditLogger = logging.getLogger(name)
     logger.set_auditor(auditor)
 
     return logger
