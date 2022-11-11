@@ -1,0 +1,47 @@
+.pangea-sdk:
+  before_script:
+    - pip install poetry
+    - poetry install
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - packages/pangea-sdk/**/*
+      when: on_success
+
+.pangea-sdk-publish:
+  before_script:
+    - pip install poetry
+    - poetry install
+  rules:
+   - if: $CI_COMMIT_BRANCH == "production"
+    changes:
+      - packages/pangea-sdk/**/*
+    when: on_success
+
+
+py_lint:
+  extends: .pangea-sdk
+  stage: lint
+  script:
+    - poetry run black .
+
+testing:
+  extends: .pangea-sdk
+  stage: unit_tests
+  script:
+    - poetry run python -m unittest tests
+
+integration:
+  extends: .pangea-sdk
+  stage: integration_tests
+  script:
+    - poetry run python -m unittest tests.integration
+
+building:
+  extends: .pangea-sdk-publish
+  stage: build
+  script:
+    - poetry build
+    - poetry publish --username __token__ --password $PYPI_SDK_TOKEN
+    - poetry config repositories.artifactory "https://builder.scranton.dev.pangea.cloud/artifactory/api/pypi/pypi"
+    - poetry publish --repository artifactory -u poetry -p "${ARTIFACTORY_PUBLISH_TOKEN}"
