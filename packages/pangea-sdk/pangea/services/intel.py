@@ -2,9 +2,8 @@
 # Author: Pangea Cyber Corporation
 from typing import Dict, List, Optional
 
-from pydantic import BaseModel
-
 from pangea.response import PangeaResponse, PangeaResponseResult
+from pydantic import BaseModel
 
 from .base import ServiceBase
 
@@ -66,6 +65,26 @@ class IPLookupInput(BaseModelConfig):
     verbose: Optional[bool] = None
     raw: Optional[bool] = None
     provider: Optional[str] = None
+
+
+class IPLookupData(BaseModelConfig):
+    """
+    TODO: complete
+    """
+
+    category: List[str]
+    score: int
+    verdict: str
+
+
+class IPLookupOutput(PangeaResponseResult):
+    """
+    TODO: complete
+    """
+
+    data: IPLookupData
+    parameters: Optional[Dict] = None
+    raw_data: Optional[Dict] = None
 
 
 class DomainLookupInput(BaseModelConfig):
@@ -267,4 +286,80 @@ class DomainIntel(ServiceBase):
         input = DomainLookupInput(domain=domain, verbose=verbose, provider=provider, raw=raw)
         response = self.request.post("lookup", data=input.dict(exclude_none=True))
         response.result = DomainLookupOutput(**response.raw_result)
+        return response
+
+
+class IpIntel(ServiceBase):
+    """IP Intel service client
+
+    Provides methods to interact with [Pangea IP Intel Service](/docs/api/ip-intel)
+
+    The following information is needed:
+        PANGEA_TOKEN - service token which can be found on the Pangea User
+            Console at [https://console.pangea.cloud/project/tokens](https://console.pangea.cloud/project/tokens)
+        IP_INTEL_CONFIG_ID - Configuration ID which can be found on the Pangea
+            User Console at [https://console.pangea.cloud/service/ip-intel](https://console.pangea.cloud/service/ip-intel)
+
+    Examples:
+        import os
+
+        # Pangea SDK
+        from pangea.config import PangeaConfig
+        from pangea.services import IpIntel
+
+        PANGEA_TOKEN = os.getenv("PANGEA_TOKEN")
+        IP_INTEL_CONFIG_ID = os.getenv("IP_INTEL_CONFIG_ID")
+
+        ip_intel_config = PangeaConfig(domain="pangea.cloud",
+                                        config_id=IP_INTEL_CONFIG_ID)
+
+        # Setup Pangea IP Intel service
+        ip_intel = IpIntel(token=PANGEA_TOKEN, config=ip_intel_config)
+    """
+
+    service_name = "ip-intel"
+    version = "v1"
+
+    def lookup(
+        self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
+    ) -> PangeaResponse[IPLookupOutput]:
+        """
+        Retrieve IP address reputation from a provider.
+
+        Args:
+            input (IPLookupInput): input with IP information to perform request
+
+        Raises:
+            PangeaAPIException: If an API Error happens
+
+        Returns:
+            A PangeaResponse where the sanctioned source(s) are in the
+                response.result field.  Available response fields can be found in our [API documentation](/docs/api/ip-intel)
+
+        Examples:
+            response = ip_intel.lookup(IPLookupInput(ip="93.231.182.110", provider="crowdstrike"))
+
+            \"\"\"
+            response contains:
+            {
+                "request_id": "prq_xoohakngaerteg4yiekikva3issxp4bq",
+                "request_time": "2022-08-23T03:28:20.225Z",
+                "response_time": "2022-08-23T03:28:20.244Z",
+                "status": "success",
+                "summary": "IP was found",
+                "result": {
+                    "data": {
+                        "category": [
+                            "Suspicious"
+                        ],
+                        "score": 0,
+                        "verdict": "malicious"
+                    }
+                }
+            }
+            \"\"\"
+        """
+        input = IPLookupInput(ip=ip, verbose=verbose, raw=raw, provider=provider)
+        response = self.request.post("lookup", data=input.dict(exclude_none=True))
+        response.result = IPLookupOutput(**response.raw_result)
         return response
