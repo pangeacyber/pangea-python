@@ -1,6 +1,5 @@
-image: python:3.7
-
 default:
+  image: python:3.7
   tags:
     - pangea-internal
 
@@ -10,31 +9,5 @@ stages:
   - integration_tests
   - build
 
-before_script:
-  - pip install poetry
-  - poetry install
-
-py_lint:
-  stage: lint
-  script:
-    - poetry run black .
-
-testing:
-  stage: unit_tests
-  script:
-    - poetry run python -m unittest tests
-
-integration:
-  stage: integration_tests
-  script:
-    - poetry run python -m unittest tests.integration
-
-building:
-  stage: build
-  only:
-    - tags
-  script:
-    - poetry build
-    - poetry publish --username __token__ --password $PYPI_SDK_TOKEN
-    - poetry config repositories.artifactory "https://builder.scranton.dev.pangea.cloud/artifactory/api/pypi/pypi"
-    - poetry publish --repository artifactory -u poetry -p "${ARTIFACTORY_PUBLISH_TOKEN}"
+include:
+  - /packages/pangea-sdk/.sdk-ci.yml
