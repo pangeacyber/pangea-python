@@ -4,7 +4,7 @@ import unittest
 import pangea.exceptions as pe
 from pangea import PangeaConfig
 from pangea.response import ResponseStatus
-from pangea.services import DomainIntel, FileIntel
+from pangea.services import DomainIntel, FileIntel, UrlIntel
 
 
 class TestDomainIntel(unittest.TestCase):
@@ -79,3 +79,33 @@ class TestFileIntel(unittest.TestCase):
                 hash_type="notavalidhashtype",
                 provider="reversinglabs",
             )
+
+
+class TestURLIntel(unittest.TestCase):
+    def setUp(self):
+        token = os.getenv("PANGEA_TEST_INTEGRATION_TOKEN")
+        config_id = os.getenv("INTEL_INTEGRATION_CONFIG_TOKEN")
+        domain = os.getenv("PANGEA_TEST_INTEGRATION_ENDPOINT")
+        config = PangeaConfig(domain=domain, config_id=config_id)
+        self.intel_url = UrlIntel(token, config=config)
+
+    def test_url_lookup(self):
+        response = self.intel_url.lookup(
+            url="http://113.235.101.11:54384", provider="crowdstrike", verbose=True, raw=True
+        )
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertEqual(response.result.data.verdict, "malicious")
+
+    def test_url_lookup_with_bad_auth_token(self):
+        token = "noarealtoken"
+        config_id = os.getenv("INTEL_INTEGRATION_CONFIG_TOKEN")
+        domain = os.getenv("PANGEA_TEST_INTEGRATION_ENDPOINT")
+        config = PangeaConfig(domain=domain, config_id=config_id)
+        badintel_url = UrlIntel(token, config=config)
+
+        with self.assertRaises(pe.UnauthorizedException):
+            badintel_url.lookup(url="http://113.235.101.11:54384", provider="crowdstrike")
+
+    def test_url_lookup_with_no_provider(self):
+        with self.assertRaises(pe.PangeaAPIException):
+            self.intel_url.lookup(url="http://113.235.101.11:54384")
