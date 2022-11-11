@@ -13,11 +13,10 @@
     - pip install poetry
     - poetry install
   rules:
-   - if: $CI_COMMIT_BRANCH == "production"
-    changes:
-      - packages/pangea-sdk/**/*
-    when: on_success
-
+    - if: $CI_COMMIT_BRANCH == "production"
+      changes:
+        - packages/pangea-sdk/**/*
+      when: on_success
 
 py_lint:
   extends: .pangea-sdk
