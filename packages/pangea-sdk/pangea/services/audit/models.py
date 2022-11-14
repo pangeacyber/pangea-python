@@ -14,6 +14,7 @@ from pangea.response import PangeaResponseResult
 class BaseModelConfig(BaseModel):
     class Config:
         arbitrary_types_allowed = True
+        extra = "allow"
 
 
 class EventVerification(str, enum.Enum):
