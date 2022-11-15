@@ -8,6 +8,7 @@
 
 .pangea-sdk-publish:
   before_script:
+    - cd packages/pangea-sdk/
     - pip install poetry
     - poetry install
   rules:
