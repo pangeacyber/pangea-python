@@ -3,10 +3,7 @@
     - pip install poetry
     - poetry install
   rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      changes:
-        - packages/pangea-sdk/**/*
-      when: on_success
+    - if: $CI_PIPELINE_SOURCE == "push"
 
 .pangea-sdk-publish:
   before_script:
