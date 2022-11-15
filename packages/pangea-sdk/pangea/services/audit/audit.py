@@ -513,6 +513,12 @@ class Audit(ServiceBase):
 
         return verify_consistency_proof(curr_root_hash, prev_root_hash, proof)
 
+    def has_valid_public_key(self, key: Optional[str]) -> bool:
+        if key and not key.startswith("-----"):
+            return True
+
+        return False
+
     def verify_signature(self, audit_envelope: EventEnvelope) -> EventVerification:
         """
         Verify signature
@@ -526,7 +532,7 @@ class Audit(ServiceBase):
         Raise:
           EventCorruption: If signature verification fails
         """
-        if audit_envelope and audit_envelope.signature and audit_envelope.public_key:
+        if audit_envelope and audit_envelope.signature and self.has_valid_public_key(audit_envelope.public_key):
             v = Verifier()
             if v.verifyMessage(
                 audit_envelope.signature, canonicalize_event(audit_envelope.event), audit_envelope.public_key
