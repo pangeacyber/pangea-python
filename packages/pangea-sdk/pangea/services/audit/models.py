@@ -6,20 +6,32 @@ import enum
 import json
 from typing import Dict, List, Optional, Union
 
-from pydantic import BaseModel
-
 from pangea.response import PangeaResponseResult
+from pydantic import BaseModel
 
 
 class BaseModelConfig(BaseModel):
     class Config:
         arbitrary_types_allowed = True
+        extra = "allow"
 
 
 class EventVerification(str, enum.Enum):
     NONE = "none"
     PASS = "pass"
     FAIL = "fail"
+
+    def __str__(self):
+        return str(self.value)
+
+    def __repr__(self):
+        return str(self.value)
+
+
+class EventSigning(enum.Enum):
+    NONE = 0
+    LOCAL = 1
+    VAULT = 2
 
     def __str__(self):
         return str(self.value)
@@ -99,6 +111,8 @@ class EventEnvelope(BaseModelConfig):
     signature: Optional[str] = None
     public_key: Optional[str] = None
     received_at: datetime.datetime
+    signature_key_id: Optional[str] = None
+    signature_key_version: Optional[int] = None
 
 
 class LogInput(BaseModelConfig):
@@ -118,6 +132,9 @@ class LogInput(BaseModelConfig):
     signature: Optional[str] = None
     public_key: Optional[str] = None
     prev_root: Optional[str] = None
+    sign: Optional[bool] = None
+    signature_key_id: Optional[str] = None
+    signature_key_version: Optional[str] = None
 
 
 class LogOutput(PangeaResponseResult):
