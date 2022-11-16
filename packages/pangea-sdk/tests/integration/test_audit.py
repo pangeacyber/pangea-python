@@ -186,15 +186,11 @@ class TestAudit(unittest.TestCase):
             self.assertEqual(event.consistency_verification, EventVerification.NONE)
             self.assertEqual(event.membership_verification, EventVerification.NONE)
 
-        try:
-            # This should fail because offset is out of range
-            response_results = self.audit.results(id=response_search.result.id, limit=1, offset=max_result + 1)
-            self.assertEqual(len(response_results.result.events), 0)
-        except Exception as e:
-            # FIXME: Remove and fix once endpoint is fixed. Have to return error
-            self.assertTrue(False)
-            self.assertTrue(isinstance(e, pexc.PangeaAPIException))
-            print(e)
+        def resultBadOffset():
+            self.audit.results(id=response_search.result.id, limit=1, offset=max_result + 1)
+
+        # This should fail because offset is out of range
+        self.assertRaises(pexc.BadOffsetException, resultBadOffset)
 
     def test_search_results_no_verbose(self):
         limit = 10
@@ -223,15 +219,11 @@ class TestAudit(unittest.TestCase):
             self.assertEqual(event.consistency_verification, EventVerification.NONE)
             self.assertEqual(event.membership_verification, EventVerification.NONE)
 
-        try:
-            # This should fail because offset is out of range
-            response_results = self.audit.results(id=response_search.result.id, limit=1, offset=max_result + 1)
-            self.assertEqual(len(response_results.result.events), 0)
-        except Exception as e:
-            # FIXME: Remove and fix once endpoint is fixed. Have to return error
-            self.assertTrue(False)
-            self.assertTrue(isinstance(e, pexc.PangeaAPIException))
-            print(e)
+        def resultBadOffset():
+            self.audit.results(id=response_search.result.id, limit=1, offset=max_result + 1)
+
+        # This should fail because offset is out of range
+        self.assertRaises(pexc.BadOffsetException, resultBadOffset)
 
     def test_root_1(self):
         response = self.audit.root()

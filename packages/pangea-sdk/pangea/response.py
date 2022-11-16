@@ -62,6 +62,7 @@ class ResponseStatus(str, enum.Enum):
     SERVICE_NOT_AVAILABLE = "ServiceNotAvailable"
     TREE_NOT_FOUND = "TreeNotFound"
     IP_NOT_FOUND = "IPNotFound"
+    BAD_OFFSET = "BadOffset"
 
 
 class ResponseHeader(BaseModelConfig):

@@ -202,4 +202,6 @@ class PangeaRequest(object):
             raise exceptions.TreeNotFoundException(summary)
         elif status == ResponseStatus.IP_NOT_FOUND.value:
             raise exceptions.IPNotFoundException(summary)
+        elif status == ResponseStatus.BAD_OFFSET.value:
+            raise exceptions.BadOffsetException(summary)
         raise exceptions.PangeaAPIException(f"{status}: {summary}", response)

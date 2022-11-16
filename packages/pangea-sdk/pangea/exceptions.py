@@ -92,3 +92,7 @@ class AuditException(PangeaException):
 
 class TreeNotFoundException(AuditException):
     """Tree was not found during a root inspection"""
+
+
+class BadOffsetException(AuditException):
+    """Bad offset in results search"""
