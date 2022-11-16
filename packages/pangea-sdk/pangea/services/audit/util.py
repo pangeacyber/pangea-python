@@ -12,7 +12,6 @@ from hashlib import sha256
 from typing import Dict, List, Optional
 
 import requests
-
 from pangea.services.audit.models import Event, EventEnvelope, PublishedRoot
 
 Hash = bytes
