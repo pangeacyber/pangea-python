@@ -496,6 +496,10 @@ class Audit(ServiceBase):
         Returns:
             bool: True if consistency proof is verified, False otherwise.
         """
+
+        if event.leaf_index == 0:
+            return True
+
         curr_root = pub_roots.get(event.leaf_index + 1)
         prev_root = pub_roots.get(event.leaf_index)
 

@@ -155,10 +155,10 @@ class TestAudit(unittest.TestCase):
 
     def test_search_results_verbose(self):
         limit = 2
-        max_result = 2
+        max_result = 3
         response_search = self.audit.search(
             query="message:" + MSG_SIGNED_LOCAL,
-            order=SearchOrder.ASC,
+            order=SearchOrder.DESC,
             limit=limit,
             max_results=max_result,
             verbose=True,
