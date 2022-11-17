@@ -82,7 +82,7 @@ class Audit(ServiceBase):
         target: Optional[str] = None,
         timestamp: Optional[datetime.datetime] = None,
         verify: bool = False,
-        signing: bool = False,
+        signing: EventSigning = EventSigning.NONE,
         verbose: Optional[bool] = None,
     ) -> PangeaResponse[LogOutput]:
         """
@@ -135,12 +135,12 @@ class Audit(ServiceBase):
             timestamp=timestamp,
         )
 
-        if signing and self.signer is None:
+        if signing == EventSigning.LOCAL and self.signer is None:
             raise AuditException("Error: the `signing` parameter set, but `signer` is not configured")
 
         input = LogInput(event=event.get_stringified_copy(), verbose=verbose)
 
-        if signing:
+        if signing == EventSigning.LOCAL:
             data2sign = canonicalize_event(event)
             signature = self.signer.signMessage(data2sign)
             if signature is not None:
@@ -496,6 +496,10 @@ class Audit(ServiceBase):
         Returns:
             bool: True if consistency proof is verified, False otherwise.
         """
+
+        if event.leaf_index == 0:
+            return True
+
         curr_root = pub_roots.get(event.leaf_index + 1)
         prev_root = pub_roots.get(event.leaf_index)
 
@@ -513,6 +517,12 @@ class Audit(ServiceBase):
 
         return verify_consistency_proof(curr_root_hash, prev_root_hash, proof)
 
+    def has_valid_public_key(self, key: Optional[str]) -> bool:
+        if key and not key.startswith("-----"):
+            return True
+
+        return False
+
     def verify_signature(self, audit_envelope: EventEnvelope) -> EventVerification:
         """
         Verify signature
@@ -526,7 +536,7 @@ class Audit(ServiceBase):
         Raise:
           EventCorruption: If signature verification fails
         """
-        if audit_envelope and audit_envelope.signature and audit_envelope.public_key:
+        if audit_envelope and audit_envelope.signature and self.has_valid_public_key(audit_envelope.public_key):
             v = Verifier()
             if v.verifyMessage(
                 audit_envelope.signature, canonicalize_event(audit_envelope.event), audit_envelope.public_key

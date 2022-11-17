@@ -2,9 +2,8 @@
 # Author: Pangea Cyber Corporation
 from typing import Any, Dict, List
 
-from pydantic import BaseModel
-
 from pangea.response import PangeaResponse, PangeaResponseResult
+from pydantic import BaseModel
 
 from .base import ServiceBase
 
@@ -12,6 +11,9 @@ from .base import ServiceBase
 class BaseModelConfig(BaseModel):
     class Config:
         arbitrary_types_allowed = True
+        extra = (
+            "allow"  # allow parameters despite they are not declared in model. Make SDK accept server new parameters
+        )
 
 
 class Config:

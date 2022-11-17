@@ -6,20 +6,31 @@ import enum
 import json
 from typing import Dict, List, Optional, Union
 
-from pydantic import BaseModel
-
 from pangea.response import PangeaResponseResult
+from pydantic import BaseModel
 
 
 class BaseModelConfig(BaseModel):
     class Config:
         arbitrary_types_allowed = True
+        extra = "allow"
 
 
 class EventVerification(str, enum.Enum):
     NONE = "none"
     PASS = "pass"
     FAIL = "fail"
+
+    def __str__(self):
+        return str(self.value)
+
+    def __repr__(self):
+        return str(self.value)
+
+
+class EventSigning(enum.Enum):
+    NONE = 0
+    LOCAL = 1
 
     def __str__(self):
         return str(self.value)
