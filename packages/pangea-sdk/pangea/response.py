@@ -18,6 +18,9 @@ T = TypeVar("T")
 class BaseModelConfig(BaseModel):
     class Config:
         arbitrary_types_allowed = True
+        extra = (
+            "allow"  # allow parameters despite they are not declared in model. Make SDK accept server new parameters
+        )
 
 
 class ErrorField(BaseModelConfig):
@@ -59,6 +62,7 @@ class ResponseStatus(str, enum.Enum):
     SERVICE_NOT_AVAILABLE = "ServiceNotAvailable"
     TREE_NOT_FOUND = "TreeNotFound"
     IP_NOT_FOUND = "IPNotFound"
+    BAD_OFFSET = "BadOffset"
 
 
 class ResponseHeader(BaseModelConfig):
