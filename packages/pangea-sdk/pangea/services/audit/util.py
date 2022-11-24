@@ -13,6 +13,7 @@ from typing import Dict, List, Optional
 
 import requests
 from pangea.services.audit.models import Event, EventEnvelope, PublishedRoot
+from pangea.utils import format_datetime
 
 Hash = bytes
 
@@ -134,13 +135,6 @@ def verify_membership_proof(node_hash: Hash, root_hash: Hash, proof: MembershipP
         proof_hash = proof_item.node_hash
         node_hash = hash_pair(proof_hash, node_hash) if proof_item.side == "left" else hash_pair(node_hash, proof_hash)
     return root_hash == node_hash
-
-
-def format_datetime(dt):
-    """
-    Format a datetime in ISO format, using Z instead of +00:00
-    """
-    return dt.isoformat().replace("+00:00", "Z")
 
 
 def normalize_log(audit: dict) -> dict:

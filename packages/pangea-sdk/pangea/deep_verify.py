@@ -11,7 +11,7 @@ from itertools import groupby
 
 import pangea.services.audit.util as audit_util
 from pangea.services import Audit
-from pangea.tools_util import Event, SequenceFollower, exit_with_error, file_events, init_audit, print_progress_bar
+from pangea.tools import Event, SequenceFollower, exit_with_error, file_events, init_audit, print_progress_bar
 
 
 class Errors(t.TypedDict):

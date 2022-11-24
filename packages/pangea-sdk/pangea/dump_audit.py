@@ -9,10 +9,9 @@ import sys
 from datetime import datetime
 
 import dateutil.parser
-
 from pangea.response import PangeaResponse
 from pangea.services import Audit
-from pangea.tools_util import get_script_name, init_audit, make_aware_datetime, print_progress_bar
+from pangea.tools import get_script_name, init_audit, make_aware_datetime, print_progress_bar
 
 
 def dump_event(output: io.TextIOWrapper, row: dict, resp: PangeaResponse):

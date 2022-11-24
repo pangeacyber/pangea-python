@@ -1,12 +1,32 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+import datetime
 import json
 import os
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 from pangea.response import PangeaResponse
 from pangea.services.audit.exceptions import AuditException, EventCorruption
-from pangea.services.audit.models import *
+from pangea.services.audit.models import (
+    Event,
+    EventEnvelope,
+    EventSigning,
+    EventVerification,
+    LogInput,
+    LogOutput,
+    PublishedRoot,
+    Root,
+    RootInput,
+    RootOutput,
+    RootSource,
+    SearchEvent,
+    SearchInput,
+    SearchOrder,
+    SearchOrderBy,
+    SearchOutput,
+    SearchResultInput,
+    SearchResultOutput,
+)
 from pangea.services.audit.signing import Signer, Verifier
 from pangea.services.audit.util import (
     b64encode_ascii,
@@ -171,7 +191,7 @@ class Audit(ServiceBase):
                 # verify event hash
                 if response.result.hash and not verify_envelope_hash(response.result.envelope, response.result.hash):
                     # it's a extreme case, it's OK to raise an exception
-                    raise EventCorruption(f"Error: Event hash failed.", response.result.envelope)
+                    raise EventCorruption("Error: Event hash failed.", response.result.envelope)
 
                 response.result.signature_verification = self.verify_signature(response.result.envelope)
 

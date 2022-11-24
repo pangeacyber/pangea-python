@@ -4,7 +4,7 @@ import copy
 import datetime
 import enum
 import json
-from typing import Dict, List, Optional, Union
+from typing import List, Optional, Union
 
 from pangea.response import PangeaResponseResult
 from pydantic import BaseModel

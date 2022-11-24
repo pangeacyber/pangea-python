@@ -6,12 +6,6 @@ from typing import Any, Dict, Generic, List, Optional, TypeVar
 import requests
 from pydantic import BaseModel
 
-
-class DataclassConfig:
-    arbitrary_types_allowed = True
-    extra = "ignore"
-
-
 T = TypeVar("T")
 
 
@@ -63,6 +57,7 @@ class ResponseStatus(str, enum.Enum):
     TREE_NOT_FOUND = "TreeNotFound"
     IP_NOT_FOUND = "IPNotFound"
     BAD_OFFSET = "BadOffset"
+    FORBIDDEN_VAULT_OPERATION = "ForbiddenVaultOperation"
 
 
 class ResponseHeader(BaseModelConfig):
