@@ -2,25 +2,12 @@
 # Author: Pangea Cyber Corporation
 from typing import Any, Dict, List
 
-from pangea.response import PangeaResponse, PangeaResponseResult
-from pydantic import BaseModel
+from pangea.response import APIRequestModel, APIResponseModel, PangeaResponse, PangeaResponseResult
 
 from .base import ServiceBase
 
 
-class BaseModelConfig(BaseModel):
-    class Config:
-        arbitrary_types_allowed = True
-        extra = (
-            "allow"  # allow parameters despite they are not declared in model. Make SDK accept server new parameters
-        )
-
-
-class Config:
-    arbitrary_types_allowed = True
-
-
-class IPCheckInput(BaseModelConfig):
+class IPCheckRequest(APIRequestModel):
     """
     Input class to perform a IP check request
 
@@ -31,7 +18,7 @@ class IPCheckInput(BaseModelConfig):
     ip: str
 
 
-class ISOCheckInput(BaseModelConfig):
+class ISOCheckRequest(APIRequestModel):
     """
     Input class to perform a ISO check
 
@@ -42,7 +29,7 @@ class ISOCheckInput(BaseModelConfig):
     iso_code: str
 
 
-class Sanction(BaseModelConfig):
+class Sanction(APIResponseModel):
     """
     TODO: complete
     """
@@ -54,7 +41,7 @@ class Sanction(BaseModelConfig):
     annotations: Dict[str, Any]
 
 
-class EmbargoOutput(PangeaResponseResult):
+class EmbargoResult(PangeaResponseResult):
     """
     Class returned after check request
 
@@ -74,8 +61,6 @@ class Embargo(ServiceBase):
     The following information is needed:
         PANGEA_TOKEN - service token which can be found on the Pangea User
             Console at [https://console.pangea.cloud/project/tokens](https://console.pangea.cloud/project/tokens)
-        EMBARGO_CONFIG_ID - Configuration ID which can be found on the Pangea
-            User Console at [https://console.pangea.cloud/service/embargo](https://console.pangea.cloud/service/embargo)
 
     Examples:
         import os
@@ -85,10 +70,8 @@ class Embargo(ServiceBase):
         from pangea.services import Embargo
 
         PANGEA_TOKEN = os.getenv("PANGEA_TOKEN")
-        EMBARGO_CONFIG_ID = os.getenv("EMBARGO_CONFIG_ID")
 
-        embargo_config = PangeaConfig(domain="pangea.cloud",
-                                        config_id=EMBARGO_CONFIG_ID)
+        embargo_config = PangeaConfig(domain="pangea.cloud")
 
         # Setup Pangea Embargo service
         embargo = Embargo(token=PANGEA_TOKEN, config=embargo_config)
@@ -97,7 +80,7 @@ class Embargo(ServiceBase):
     service_name = "embargo"
     version = "v1"
 
-    def ip_check(self, ip: str) -> PangeaResponse[EmbargoOutput]:
+    def ip_check(self, ip: str) -> PangeaResponse[EmbargoResult]:
         """
         Check IP
 
@@ -148,13 +131,13 @@ class Embargo(ServiceBase):
             }
             \"\"\"
         """
-        input = IPCheckInput(ip=ip)
+        input = IPCheckRequest(ip=ip)
         response = self.request.post("ip/check", data=input.dict())
-        result = EmbargoOutput(**response.raw_result)
+        result = EmbargoResult(**response.raw_result)
         response.result = result
         return response
 
-    def iso_check(self, iso_code: str) -> PangeaResponse[EmbargoOutput]:
+    def iso_check(self, iso_code: str) -> PangeaResponse[EmbargoResult]:
         """
         ISO Code Check
 
@@ -191,7 +174,7 @@ class Embargo(ServiceBase):
             }
             \"\"\"
         """
-        input = ISOCheckInput(iso_code=iso_code)
+        input = ISOCheckRequest(iso_code=iso_code)
         response = self.request.post("iso/check", data=input.dict())
-        response.result = EmbargoOutput(**response.raw_result)
+        response.result = EmbargoResult(**response.raw_result)
         return response

@@ -44,7 +44,7 @@ class ErrorField(APIResponseModel):
     path: Optional[str] = None
 
 
-class PangeaError(APIResponseModel):
+class PangeaError(PangeaResponseResult):
     errors: List[ErrorField] = []
 
 
