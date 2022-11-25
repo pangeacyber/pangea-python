@@ -1,22 +1,15 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 
-from typing import Dict, List, NewType, Optional
+from typing import Any, Dict, List, NewType, Optional
 
-from pangea.response import PangeaResponseResult
-from pydantic import BaseModel
+from pangea.response import APIRequestModel, PangeaResponseResult
 
 Scopes = NewType("Scopes", List[str])
-Profile = NewType("Profile", Dict[str, any])
+Profile = NewType("Profile", Dict[str, Any])
 
 
-class BaseModelConfig(BaseModel):
-    class Config:
-        arbitrary_types_allowed = True
-        extra = "allow"
-
-
-class PasswordUpdateRequest(BaseModelConfig):
+class PasswordUpdateRequest(APIRequestModel):
     email: str
     old_secret: str
     new_secret: str
@@ -29,7 +22,7 @@ class PasswordUpdateResult(PangeaResponseResult):
 
 
 # https://dev.pangea.cloud/docs/api/authn#create-user
-class UserCreateRequest(BaseModelConfig):
+class UserCreateRequest(APIRequestModel):
     email: str
     authenticator: str
     verified: Optional[bool] = None
@@ -50,7 +43,7 @@ class UserCreateResult(PangeaResponseResult):
     last_login_at: str
 
 
-class UserDeleteRequest(BaseModelConfig):
+class UserDeleteRequest(APIRequestModel):
     email: str
 
 
@@ -59,7 +52,7 @@ class UserDeleteResult(PangeaResponseResult):
     pass
 
 
-class UserInviteRequest(BaseModelConfig):
+class UserInviteRequest(APIRequestModel):
     inviter: str
     email: str
     callback: str
@@ -80,7 +73,7 @@ class UserInviteResult(PangeaResponseResult):
     expire: str
 
 
-class UserInviteDeleteRequest(BaseModelConfig):
+class UserInviteDeleteRequest(APIRequestModel):
     id: str
 
 
@@ -89,12 +82,12 @@ class UserInviteDeleteResult(PangeaResponseResult):
     pass
 
 
-class UserListRequest(BaseModelConfig):
+class UserListRequest(APIRequestModel):
     scopes: Scopes
     glob_scopes: Scopes
 
 
-class User(BaseModelConfig):
+class User(APIRequestModel):
     profile: Profile
     identity: str
     email: str
@@ -105,7 +98,7 @@ class UserListResult(PangeaResponseResult):
     users: List[User]
 
 
-class UserLoginRequest(BaseModelConfig):
+class UserLoginRequest(APIRequestModel):
     email: str
     secret: str
     scopes: Optional[Scopes] = None
@@ -124,7 +117,7 @@ class UserLoginResult(PangeaResponseResult):
     created_at: str
 
 
-class UserProfileGetRequest(BaseModelConfig):
+class UserProfileGetRequest(APIRequestModel):
     identity: str
     email: str
 
@@ -141,7 +134,7 @@ class UserProfileGetResult(PangeaResponseResult):
     last_login_at: str
 
 
-class UserProfileUpdateRequest(BaseModelConfig):
+class UserProfileUpdateRequest(APIRequestModel):
     identity: str
     email: str
     profile: Profile
@@ -162,7 +155,7 @@ class UserProfileUpdateResult(PangeaResponseResult):
     last_login_at: str
 
 
-class TOTPCreateRequest(BaseModelConfig):
+class TOTPCreateRequest(APIRequestModel):
     email: str
     issuer: Optional[str] = None
 
@@ -172,7 +165,7 @@ class TOTPCreateResult(PangeaResponseResult):
     secret: str
 
 
-class TOTPVerifyRequest(BaseModelConfig):
+class TOTPVerifyRequest(APIRequestModel):
     secret: str
     code: str
 
@@ -181,7 +174,7 @@ class TOTPVerifyResult(PangeaResponseResult):
     verified: bool
 
 
-class OTPCreateRequest(BaseModelConfig):
+class OTPCreateRequest(APIRequestModel):
     email: str
     otp_provider: str
 
@@ -190,7 +183,7 @@ class OTPCreateResult(PangeaResponseResult):
     otp_provider: str
 
 
-class OTPVerifyRequest(BaseModelConfig):
+class OTPVerifyRequest(APIRequestModel):
     email: str
     code: str
     opt_provider: str
