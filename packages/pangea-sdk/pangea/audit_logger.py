@@ -6,7 +6,7 @@ import pangea.exceptions as pe
 from pangea.config import PangeaConfig
 from pangea.response import PangeaResponse
 from pangea.services import Audit
-from pangea.services.audit.models import LogOutput
+from pangea.services.audit.models import LogResult
 
 SupportedFields = ["actor", "action", "status", "source", "target", "new", "old"]
 
@@ -67,7 +67,7 @@ class AuditLogger(logging.Logger):
                 audit_record[name] = kwargs.pop(name)
 
         try:
-            resp: PangeaResponse[LogOutput] = self.auditor.log(**audit_record)
+            resp: PangeaResponse[LogResult] = self.auditor.log(**audit_record)
             print(f"Response. Hash: {resp.result.hash}")
         except pe.PangeaAPIException as e:
             print(f"Request Error: {e.response.summary}")
