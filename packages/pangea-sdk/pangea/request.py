@@ -50,7 +50,10 @@ class PangeaRequest(object):
         # Custom headers
         self._extra_headers = {}
 
-        self.request = self._init_request()
+        self.session: requests.Session = self._init_session()
+
+    def __del__(self):
+        self.session.close()
 
     def __del__(self):
         self.request.close()
@@ -123,7 +126,7 @@ class PangeaRequest(object):
         """
         url = self._url(f"{endpoint}/{path}")
 
-        requests_response = self.request.get(url, headers=self._headers())
+        requests_response = self.session.get(url, headers=self._headers())
 
         pangea_response = PangeaResponse(requests_response)
 
@@ -142,7 +145,7 @@ class PangeaRequest(object):
             else:
                 return pangea_response
 
-    def _init_request(self) -> requests.Session:
+    def _init_session(self) -> requests.Session:
         retry_config = Retry(
             total=self.retries,
             backoff_factor=self.backoff,

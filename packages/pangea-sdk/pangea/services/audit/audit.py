@@ -51,8 +51,6 @@ class Audit(ServiceBase):
     The following information is needed:
         PANGEA_TOKEN - service token which can be found on the Pangea User
             Console at [https://console.pangea.cloud/project/tokens](https://console.pangea.cloud/project/tokens)
-        AUDIT_CONFIG_ID - Configuration ID which can be found on the Pangea
-            User Console at [https://console.pangea.cloud/service/audit](https://console.pangea.cloud/service/audit)
 
     Examples:
         import os
@@ -104,7 +102,7 @@ class Audit(ServiceBase):
         verify: bool = False,
         signing: EventSigning = EventSigning.NONE,
         verbose: Optional[bool] = None,
-    ) -> PangeaResponse[LogOutput]:
+    ) -> PangeaResponse[LogResult]:
         """
         Log an entry
 
@@ -158,7 +156,7 @@ class Audit(ServiceBase):
         if signing == EventSigning.LOCAL and self.signer is None:
             raise AuditException("Error: the `signing` parameter set, but `signer` is not configured")
 
-        input = LogInput(event=event.get_stringified_copy(), verbose=verbose)
+        input = LogRequest(event=event.get_stringified_copy(), verbose=verbose)
 
         if signing == EventSigning.LOCAL:
             data2sign = canonicalize_event(event)
@@ -179,11 +177,11 @@ class Audit(ServiceBase):
         response = self.request.post(endpoint_name, data=input.dict(exclude_none=True))
         return self.handle_log_response(response, verify=verify)
 
-    def handle_log_response(self, response: PangeaResponse, verify: bool) -> PangeaResponse[LogOutput]:
+    def handle_log_response(self, response: PangeaResponse, verify: bool) -> PangeaResponse[LogResult]:
         if not response.success:
             return response
 
-        response.result = LogOutput(**response.raw_result)
+        response.result = LogResult(**response.raw_result)
         new_unpublished_root_hash = response.result.unpublished_root
 
         if verify:
@@ -286,7 +284,7 @@ class Audit(ServiceBase):
         if verify_consistency:
             verbose = True
 
-        input = SearchInput(
+        input = SearchRequest(
             query=query,
             order=order,
             order_by=order_by,
@@ -338,7 +336,7 @@ class Audit(ServiceBase):
         if offset < 0:
             raise AuditException("The 'offset' argument must be a positive integer")
 
-        input = SearchResultInput(
+        input = SearchResultRequest(
             id=id,
             limit=limit,
             offset=offset,
@@ -567,7 +565,7 @@ class Audit(ServiceBase):
         else:
             return EventVerification.NONE
 
-    def root(self, tree_size: Optional[int] = None) -> PangeaResponse[RootOutput]:
+    def root(self, tree_size: Optional[int] = None) -> PangeaResponse[RootResult]:
         """
         Retrieve tamperproof verification
 
@@ -586,10 +584,10 @@ class Audit(ServiceBase):
         Examples:
             response = audit.root(tree_size=7)
         """
-        input = RootInput(tree_size=tree_size)
+        input = RootRequest(tree_size=tree_size)
         endpoint_name = "root"
         response = self.request.post(endpoint_name, data=input.dict(exclude_none=True))
-        response.result = RootOutput(**response.raw_result)
+        response.result = RootResult(**response.raw_result)
         return response
 
     def get_local_data(self):

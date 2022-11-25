@@ -4,27 +4,16 @@
 import enum
 from typing import Dict, List, Optional, Union
 
-from pangea.response import PangeaResponse, PangeaResponseResult
-from pydantic import BaseModel
+from pangea.response import APIRequestModel, APIResponseModel, PangeaResponse, PangeaResponseResult
 
 from .base import ServiceBase
-
-ConfigIDHeaderName = "X-Pangea-Redact-Config-ID"
-
-
-class BaseModelConfig(BaseModel):
-    class Config:
-        arbitrary_types_allowed = True
-        extra = (
-            "allow"  # allow parameters despite they are not declared in model. Make SDK accept server new parameters
-        )
 
 
 class RedactFormat(str, enum.Enum):
     JSON = "json"
 
 
-class RedactInput(BaseModelConfig):
+class RedactRequest(APIRequestModel):
     """
     Input class to make a redact request
 
@@ -37,7 +26,7 @@ class RedactInput(BaseModelConfig):
     debug: bool = False
 
 
-class RecognizerResult(BaseModelConfig):
+class RecognizerResult(APIResponseModel):
     """
     TODO: complete
 
@@ -60,7 +49,7 @@ class RecognizerResult(BaseModelConfig):
     data_key: Optional[str] = None
 
 
-class DebugReport(BaseModelConfig):
+class DebugReport(APIResponseModel):
     """
     TODO: complete
 
@@ -70,7 +59,7 @@ class DebugReport(BaseModelConfig):
     recognizer_results: List[RecognizerResult]
 
 
-class RedactOutput(PangeaResponseResult):
+class RedactResult(PangeaResponseResult):
     """
     Result class after a redact request
 
@@ -83,7 +72,7 @@ class RedactOutput(PangeaResponseResult):
     report: Optional[DebugReport] = None
 
 
-class StructuredInput(BaseModelConfig):
+class StructuredRequest(APIRequestModel):
     """
     Class input to redact structured data request
 
@@ -100,7 +89,7 @@ class StructuredInput(BaseModelConfig):
     debug: Optional[bool] = None
 
 
-class StructuredOutput(PangeaResponseResult):
+class StructuredResult(PangeaResponseResult):
     """
     TODO: complete
 
@@ -123,8 +112,6 @@ class Redact(ServiceBase):
     The following information is needed:
         PANGEA_TOKEN - service token which can be found on the Pangea User
             Console at [https://console.pangea.cloud/project/tokens](https://console.pangea.cloud/project/tokens)
-        REDACT_CONFIG_ID - Configuration ID which can be found on the Pangea
-            User Console at [https://console.pangea.cloud/service/redact](https://console.pangea.cloud/service/redact)
 
     Examples:
         import os
@@ -133,10 +120,9 @@ class Redact(ServiceBase):
         from pangea.config import PangeaConfig
         from pangea.services import Redact
 
-        PANGEA_TOKEN = os.getenv("PANGEA_TOKEN")
-        REDACT_CONFIG_ID = os.getenv("REDACT_CONFIG_ID")
+        PANGEA_TOKEN = os.getenv("PANGEA_REDACT_TOKEN")
 
-        redact_config = PangeaConfig(domain="pangea.cloud", config_id=REDACT_CONFIG_ID)
+        redact_config = PangeaConfig(domain="pangea.cloud")
 
         # Setup Pangea Redact service client
         redact = Redact(token=PANGEA_TOKEN, config=redact_config)
@@ -148,7 +134,7 @@ class Redact(ServiceBase):
     def __init__(self, token, config=None):
         super().__init__(token, config)
 
-    def redact(self, text: str, debug: bool = False) -> PangeaResponse[RedactOutput]:
+    def redact(self, text: str, debug: bool = False) -> PangeaResponse[RedactResult]:
         """
         Redact
 
@@ -183,9 +169,9 @@ class Redact(ServiceBase):
             }
             \"\"\"
         """
-        input = RedactInput(text=text, debug=debug)
+        input = RedactRequest(text=text, debug=debug)
         response = self.request.post("redact", data=input.dict(exclude_none=True))
-        response.result = RedactOutput(**response.raw_result)
+        response.result = RedactResult(**response.raw_result)
         return response
 
     def redact_structured(
@@ -194,7 +180,7 @@ class Redact(ServiceBase):
         jsonp: Optional[List[str]] = None,
         format: Optional[RedactFormat] = None,
         debug: Optional[bool] = None,
-    ) -> PangeaResponse[StructuredOutput]:
+    ) -> PangeaResponse[StructuredResult]:
         """
         Redact structured
 
@@ -233,7 +219,7 @@ class Redact(ServiceBase):
             }
             \"\"\"
         """
-        input = StructuredInput(data=data, jsonp=jsonp, format=format, debug=debug)
+        input = StructuredRequest(data=data, jsonp=jsonp, format=format, debug=debug)
         response = self.request.post("redact_structured", data=input.dict(exclude_none=True))
-        response.result = StructuredOutput(**response.raw_result)
+        response.result = StructuredResult(**response.raw_result)
         return response
