@@ -6,21 +6,14 @@ from typing import Any, Dict, Generic, List, Optional, TypeVar
 import requests
 from pydantic import BaseModel
 
-
-class DataclassConfig:
-    arbitrary_types_allowed = True
-    extra = "ignore"
-
-
 T = TypeVar("T")
 
 
 class BaseModelConfig(BaseModel):
     class Config:
         arbitrary_types_allowed = True
-        extra = (
-            "allow"  # allow parameters despite they are not declared in model. Make SDK accept server new parameters
-        )
+        # allow parameters despite they are not declared in model. Make SDK accept server new parameters
+        extra = "allow"
 
 
 class ErrorField(BaseModelConfig):

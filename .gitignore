@@ -26,3 +26,4 @@ env/
 
 # test coverage
 .coverage
+packages/pangea-sdk/logs/
