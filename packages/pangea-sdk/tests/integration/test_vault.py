@@ -64,6 +64,7 @@ class TestVault(unittest.TestCase):
         ]  # FIXME: add None to check default cases
         self.expiration_values: List[Optional[datetime.datetime]] = [None, datetime.timedelta(days=2)]
         self.common_param_comb = [{}]
+        self.common_param_comb = combine_lists(self.common_param_comb, self.store_values, "store")
         # FIXME: Uncomment to test all possible combination cases
         # self.common_param_comb = combine_lists(self.common_param_comb, self.name_values, "name")
         # self.common_param_comb = combine_lists(self.common_param_comb, self.folder_values, "folder")
@@ -78,7 +79,6 @@ class TestVault(unittest.TestCase):
 
         # this params will be used just for keys
         self.key_param_comb = combine_lists(self.common_param_comb, self.managed_values, "managed")
-        self.key_param_comb = combine_lists(self.key_param_comb, self.store_values, "store")
 
     def create_secret_check_response(self, response: PangeaResponse[CreateCommonResult], params: Dict[str, any]):
         if ENABLE_ASSERT_RESPONSES is not True:

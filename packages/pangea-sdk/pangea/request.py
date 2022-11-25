@@ -52,6 +52,9 @@ class PangeaRequest(object):
 
         self.request = self._init_request()
 
+    def __del__(self):
+        self.request.close()
+
     def set_extra_headers(self, headers: dict):
         """Sets any additional headers in the request.
 

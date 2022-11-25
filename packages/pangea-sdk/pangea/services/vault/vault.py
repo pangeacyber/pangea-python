@@ -45,6 +45,7 @@ class Vault(ServiceBase):
     # Create endpoints
     def create_secret(
         self,
+        store: Optional[bool] = None,
         name: Optional[str] = None,
         folder: Optional[str] = None,
         metadata: Optional[Medatada] = None,
@@ -55,6 +56,7 @@ class Vault(ServiceBase):
         expiration: Optional[datetime.datetime] = None,
     ) -> PangeaResponse[CreateSecretResult]:
         input = CreateCommonRequest(
+            store=store,
             name=name,
             folder=folder,
             metadata=metadata,
@@ -87,7 +89,7 @@ class Vault(ServiceBase):
             managed=managed,
             store=store,
             name=name,
-            type="symmetric_key",
+            type=ItemType.SYMMETRIC_KEY,
             folder=folder,
             metadata=metadata,
             tags=tags,
@@ -121,7 +123,7 @@ class Vault(ServiceBase):
             managed=managed,
             store=store,
             name=name,
-            type="asymmetric_key",
+            type=ItemType.ASYMMETRIC_KEY,
             folder=folder,
             metadata=metadata,
             tags=tags,
