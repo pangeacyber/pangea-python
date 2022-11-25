@@ -1,8 +1,6 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
-import json
-import os
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
 from pangea.response import PangeaResponse
 from pangea.services.audit.exceptions import AuditException, EventCorruption
@@ -15,7 +13,6 @@ from pangea.services.audit.util import (
     decode_hash,
     decode_membership_proof,
     get_arweave_published_roots,
-    get_root_filename,
     verify_consistency_proof,
     verify_envelope_hash,
     verify_membership_proof,
@@ -59,13 +56,10 @@ class Audit(ServiceBase):
 
         self.pub_roots: Dict[int, Root] = {}
         self.buffer_data: Optional[str] = None
-        self.root_id_filename: str = get_root_filename()
-
         self.signer: Optional[Signer] = Signer(private_key_file) if private_key_file else None
 
         # In case of Arweave failure, ask the server for the roots
         self.allow_server_roots = True
-
         self.prev_unpublished_root_hash: Optional[str] = None
 
     def log(
@@ -569,28 +563,3 @@ class Audit(ServiceBase):
         response = self.request.post(endpoint_name, data=input.dict(exclude_none=True))
         response.result = RootResult(**response.raw_result)
         return response
-
-    def get_local_data(self):
-        if not self.buffer_data:
-            if os.path.exists(self.root_id_filename):
-                try:
-                    with open(self.root_id_filename, "r") as file:
-                        self.buffer_data = file.read()
-                except Exception:
-                    raise AuditException("Error: Failed loading data file from local disk.")
-
-        return self.buffer_data
-
-    def set_local_data(self, last_root_enc: str, pending_roots: List[str]):
-        buffer_dict = dict()
-        buffer_dict["last_root"] = last_root_enc
-        buffer_dict["pending_roots"] = pending_roots
-
-        try:
-            with open(self.root_id_filename, "w") as file:
-                self.buffer_data = json.dumps(buffer_dict)
-                file.write(self.buffer_data)
-        except Exception:
-            raise AuditException("Error: Failed saving data file to local disk.")
-
-        return
