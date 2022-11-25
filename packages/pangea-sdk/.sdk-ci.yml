@@ -1,37 +1,36 @@
-.pangea-sdk:
+.pangea-sdk-base:
   before_script:
+    - cd packages/pangea-sdk/
     - pip install poetry
     - poetry install
   rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      changes:
-        - packages/pangea-sdk/**/*
-      when: on_success
+    - if: $CI_PIPELINE_SOURCE == "push"
 
 .pangea-sdk-publish:
   before_script:
+    - cd packages/pangea-sdk/
     - pip install poetry
     - poetry install
   rules:
-    - if: $CI_COMMIT_BRANCH == "production"
+    - if: $CI_COMMIT_BRANCH == "release"
       changes:
         - packages/pangea-sdk/**/*
       when: on_success
 
 py_lint:
-  extends: .pangea-sdk
+  extends: .pangea-sdk-base
   stage: lint
   script:
     - poetry run black .
 
 testing:
-  extends: .pangea-sdk
+  extends: .pangea-sdk-base
   stage: unit_tests
   script:
-    - poetry run python -m unittest tests
+    - poetry run python -m unittest tests.unit
 
 integration:
-  extends: .pangea-sdk
+  extends: .pangea-sdk-base
   stage: integration_tests
   script:
     - poetry run python -m unittest tests.integration

@@ -50,7 +50,10 @@ class PangeaRequest(object):
         # Custom headers
         self._extra_headers = {}
 
-        self.request = self._init_request()
+        self.session: requests.Session = self._init_session()
+
+    def __del__(self):
+        self.session.close()
 
     def set_extra_headers(self, headers: dict):
         """Sets any additional headers in the request.
@@ -90,7 +93,7 @@ class PangeaRequest(object):
         """
         url = self._url(endpoint)
 
-        requests_response = self.request.post(url, headers=self._headers(), data=json.dumps(data))
+        requests_response = self.session.post(url, headers=self._headers(), data=json.dumps(data))
 
         if self._queued_retry_enabled and requests_response.status_code == 202:
             response_json = requests_response.json()
@@ -119,7 +122,7 @@ class PangeaRequest(object):
         """
         url = self._url(f"{endpoint}/{path}")
 
-        requests_response = self.request.get(url, headers=self._headers())
+        requests_response = self.session.get(url, headers=self._headers())
 
         pangea_response = PangeaResponse(requests_response)
 
@@ -138,7 +141,7 @@ class PangeaRequest(object):
             else:
                 return pangea_response
 
-    def _init_request(self) -> requests.Session:
+    def _init_session(self) -> requests.Session:
         retry_config = Retry(
             total=self.retries,
             backoff_factor=self.backoff,
@@ -202,4 +205,6 @@ class PangeaRequest(object):
             raise exceptions.TreeNotFoundException(summary)
         elif status == ResponseStatus.IP_NOT_FOUND.value:
             raise exceptions.IPNotFoundException(summary)
+        elif status == ResponseStatus.BAD_OFFSET.value:
+            raise exceptions.BadOffsetException(summary)
         raise exceptions.PangeaAPIException(f"{status}: {summary}", response)

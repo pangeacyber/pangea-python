@@ -8,7 +8,7 @@ from pangea.services import Audit
 from pangea.services.audit.models import (
     EventSigning,
     EventVerification,
-    LogOutput,
+    LogResult,
     SearchOrder,
     SearchOrderBy,
     SearchOutput,
@@ -36,7 +36,7 @@ class TestAudit(unittest.TestCase):
         )
 
     def test_log_no_verbose(self):
-        response: PangeaResponse[LogOutput] = self.audit.log(
+        response: PangeaResponse[LogResult] = self.audit.log(
             message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verbose=False
         )
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
@@ -44,7 +44,7 @@ class TestAudit(unittest.TestCase):
         self.assertIsNone(response.result.envelope)
 
     def test_log_verbose_no_verify(self):
-        response: PangeaResponse[LogOutput] = self.audit.log(
+        response: PangeaResponse[LogResult] = self.audit.log(
             message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verify=False, verbose=True
         )
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
@@ -56,7 +56,7 @@ class TestAudit(unittest.TestCase):
         self.assertEqual(response.result.signature_verification, EventVerification.NONE)
 
     def test_log_verify(self):
-        response: PangeaResponse[LogOutput] = self.audit.log(
+        response: PangeaResponse[LogResult] = self.audit.log(
             message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verify=True
         )  # Verify true set verbose to true
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
@@ -69,7 +69,7 @@ class TestAudit(unittest.TestCase):
         self.assertEqual(response.result.membership_verification, EventVerification.PASS)
         self.assertEqual(response.result.signature_verification, EventVerification.NONE)
 
-        response: PangeaResponse[LogOutput] = self.audit.log(
+        response: PangeaResponse[LogResult] = self.audit.log(
             message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verify=True
         )
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
@@ -181,10 +181,10 @@ class TestAudit(unittest.TestCase):
 
     def test_search_results_verbose(self):
         limit = 2
-        max_result = 2
+        max_result = 3
         response_search = self.audit.search(
-            query="message:" + MSG_SIGNED_VAULT,
-            order=SearchOrder.ASC,
+            query="message:" + MSG_SIGNED_LOCAL,
+            order=SearchOrder.DESC,
             limit=limit,
             max_results=max_result,
             verbose=True,
@@ -212,15 +212,11 @@ class TestAudit(unittest.TestCase):
             self.assertEqual(event.consistency_verification, EventVerification.NONE)
             self.assertEqual(event.membership_verification, EventVerification.NONE)
 
-        try:
-            # This should fail because offset is out of range
-            response_results = self.audit.results(id=response_search.result.id, limit=1, offset=max_result + 1)
-            self.assertEqual(len(response_results.result.events), 0)
-        except Exception as e:
-            # FIXME: Remove and fix once endpoint is fixed. Have to return error
-            self.assertTrue(False)
-            self.assertTrue(isinstance(e, pexc.PangeaAPIException))
-            print(e)
+        def resultBadOffset():
+            self.audit.results(id=response_search.result.id, limit=1, offset=max_result + 1)
+
+        # This should fail because offset is out of range
+        self.assertRaises(pexc.BadOffsetException, resultBadOffset)
 
     def test_search_results_no_verbose(self):
         limit = 10
@@ -249,15 +245,11 @@ class TestAudit(unittest.TestCase):
             self.assertEqual(event.consistency_verification, EventVerification.NONE)
             self.assertEqual(event.membership_verification, EventVerification.NONE)
 
-        try:
-            # This should fail because offset is out of range
-            response_results = self.audit.results(id=response_search.result.id, limit=1, offset=max_result + 1)
-            self.assertEqual(len(response_results.result.events), 0)
-        except Exception as e:
-            # FIXME: Remove and fix once endpoint is fixed. Have to return error
-            self.assertTrue(False)
-            self.assertTrue(isinstance(e, pexc.PangeaAPIException))
-            print(e)
+        def resultBadOffset():
+            self.audit.results(id=response_search.result.id, limit=1, offset=max_result + 1)
+
+        # This should fail because offset is out of range
+        self.assertRaises(pexc.BadOffsetException, resultBadOffset)
 
     def test_root_1(self):
         response = self.audit.root()
@@ -286,7 +278,7 @@ class TestAudit(unittest.TestCase):
         self.assertGreaterEqual(len(response.result.data.consistency_proof), 1)
 
     def test_search_verify(self):
-        query = "message:sigtest100"
+        query = f"message:{MSG_SIGNED_LOCAL}"
         response = self.audit.search(
             query=query,
             order=SearchOrder.DESC,
@@ -298,7 +290,7 @@ class TestAudit(unittest.TestCase):
         )
 
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
-        print("events: ", len(response.result.events))
+        self.assertNotEqual(0, len(response.result.events))
         for idx, search_event in enumerate(response.result.events):
             self.assertEqual(search_event.consistency_verification, EventVerification.PASS)
             self.assertEqual(search_event.membership_verification, EventVerification.PASS)
