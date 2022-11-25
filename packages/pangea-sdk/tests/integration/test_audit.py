@@ -252,7 +252,7 @@ class TestAudit(unittest.TestCase):
         self.assertGreaterEqual(len(response.result.data.consistency_proof), 1)
 
     def test_search_verify(self):
-        query = "message:sigtest100"
+        query = f"message:{MSG_SIGNED_LOCAL}"
         response = self.audit.search(
             query=query,
             order=SearchOrder.DESC,
@@ -264,7 +264,7 @@ class TestAudit(unittest.TestCase):
         )
 
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
-        print("events: ", len(response.result.events))
+        self.assertNotEqual(0, len(response.result.events))
         for idx, search_event in enumerate(response.result.events):
             self.assertEqual(search_event.consistency_verification, EventVerification.PASS)
             self.assertEqual(search_event.membership_verification, EventVerification.PASS)
