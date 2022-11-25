@@ -27,7 +27,7 @@ testing:
   extends: .pangea-sdk-base
   stage: unit_tests
   script:
-    - poetry run python -m unittest tests
+    - poetry run python -m unittest tests.unit
 
 integration:
   extends: .pangea-sdk-base
