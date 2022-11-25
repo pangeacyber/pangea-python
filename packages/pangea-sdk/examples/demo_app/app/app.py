@@ -4,15 +4,15 @@ import logging
 import os
 from typing import Tuple
 
-# App related imports
-from utils.db import Db
-from utils.employee import Employee, EmployeeStatus
-
 # Pangea SDK
 from pangea.config import PangeaConfig
 from pangea.services import Audit, Embargo, Redact
 from pangea.services.audit import Event
-from pangea.services.embargo import IPCheckInput
+from pangea.services.embargo import IPCheckRequest
+
+# App related imports
+from utils.db import Db
+from utils.employee import Employee, EmployeeStatus
 
 PANGEA_TOKEN = os.getenv("PANGEA_TOKEN")
 PANGEA_CSP = os.getenv("PANGEA_CSP")
@@ -73,7 +73,7 @@ class App:
         )
 
         # Check client IP against Pangea's Embargo Service
-        resp = self._pangea_embargo.ip_check(IPCheckInput(ip=client_ip))
+        resp = self._pangea_embargo.ip_check(IPCheckRequest(ip=client_ip))
 
         logging.info(f"[App.upload_resume] Embargo response: {resp.request_id}, {resp.result}")
 

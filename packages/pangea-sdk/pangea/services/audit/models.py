@@ -4,16 +4,9 @@ import copy
 import datetime
 import enum
 import json
-from typing import Dict, List, Optional, Union
+from typing import List, Optional, Union
 
-from pangea.response import PangeaResponseResult
-from pydantic import BaseModel
-
-
-class BaseModelConfig(BaseModel):
-    class Config:
-        arbitrary_types_allowed = True
-        extra = "allow"
+from pangea.response import APIRequestModel, APIResponseModel, PangeaResponseResult
 
 
 class EventVerification(str, enum.Enum):
@@ -39,7 +32,7 @@ class EventSigning(enum.Enum):
         return str(self.value)
 
 
-class Event(BaseModelConfig):
+class Event(APIResponseModel):
     """Event to perform an auditable activity
 
     Arguments:
@@ -95,7 +88,7 @@ class Event(BaseModelConfig):
         return json.dumps(message, ensure_ascii=False, allow_nan=False, separators=(",", ":"))
 
 
-class EventEnvelope(BaseModelConfig):
+class EventEnvelope(APIResponseModel):
     """
     Contain extra information about an event.
 
@@ -112,7 +105,7 @@ class EventEnvelope(BaseModelConfig):
     received_at: datetime.datetime
 
 
-class LogInput(BaseModelConfig):
+class LogRequest(APIRequestModel):
     """
     Input class to perform a log action
 
@@ -131,7 +124,7 @@ class LogInput(BaseModelConfig):
     prev_root: Optional[str] = None
 
 
-class LogOutput(PangeaResponseResult):
+class LogResult(PangeaResponseResult):
     """
     Result class after an audit log action
 
@@ -152,7 +145,7 @@ class LogOutput(PangeaResponseResult):
     signature_verification: EventVerification = EventVerification.NONE
 
 
-class SearchRestriction(BaseModelConfig):
+class SearchRestriction(APIResponseModel):
     """
     Set of restrictions when perform an audit search action
 
@@ -187,7 +180,7 @@ class SearchOrderBy(str, enum.Enum):
     TIMESTAMP = "timestamp"
 
 
-class SearchInput(BaseModelConfig):
+class SearchRequest(APIRequestModel):
     """
     Input class to perform an audit search action
 
@@ -224,7 +217,7 @@ class SearchInput(BaseModelConfig):
     verbose: Optional[bool] = None
 
 
-class RootInput(BaseModelConfig):
+class RootRequest(APIRequestModel):
     """
     Input class to perform a root request action
 
@@ -236,7 +229,7 @@ class RootInput(BaseModelConfig):
     tree_size: Optional[int] = None
 
 
-class Root(BaseModelConfig):
+class Root(APIResponseModel):
     """
     Tree root information
 
@@ -263,7 +256,7 @@ class RootSource(str, enum.Enum):
     PANGEA = "pangea"
 
 
-class PublishedRoot(BaseModelConfig):
+class PublishedRoot(APIResponseModel):
     """
     Published root information
 
@@ -282,7 +275,7 @@ class PublishedRoot(BaseModelConfig):
     source: RootSource = RootSource.UNKNOWN
 
 
-class RootOutput(PangeaResponseResult):
+class RootResult(PangeaResponseResult):
     """
     Result class after a root request
     """
@@ -290,7 +283,7 @@ class RootOutput(PangeaResponseResult):
     data: Root
 
 
-class SearchEvent(BaseModelConfig):
+class SearchEvent(APIResponseModel):
     """
     Event information received after a search request
 
@@ -335,7 +328,7 @@ class SearchOutput(PangeaResponseResult):
     unpublished_root: Optional[Root] = None
 
 
-class SearchResultInput(BaseModelConfig):
+class SearchResultRequest(APIRequestModel):
     """
     Class used to paginate search results
 
