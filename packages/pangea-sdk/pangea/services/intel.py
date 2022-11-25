@@ -2,21 +2,12 @@
 # Author: Pangea Cyber Corporation
 from typing import Dict, List, Optional
 
-from pangea.response import PangeaResponse, PangeaResponseResult
-from pydantic import BaseModel
+from pangea.response import APIRequestModel, APIResponseModel, PangeaResponse, PangeaResponseResult
 
 from .base import ServiceBase
 
 
-class BaseModelConfig(BaseModel):
-    class Config:
-        arbitrary_types_allowed = True
-        extra = (
-            "allow"  # allow parameters despite they are not declared in model. Make SDK accept server new parameters
-        )
-
-
-class FileLookupInput(BaseModelConfig):
+class FileLookupRequest(APIRequestModel):
     """
     TODO: complete
 
@@ -34,7 +25,7 @@ class FileLookupInput(BaseModelConfig):
     provider: Optional[str] = None
 
 
-class FileLookupData(BaseModelConfig):
+class FileLookupData(APIResponseModel):
     """
     TODO: complete
     """
@@ -44,7 +35,7 @@ class FileLookupData(BaseModelConfig):
     verdict: str
 
 
-class FileLookupOutput(PangeaResponseResult):
+class FileLookupResult(PangeaResponseResult):
     """
     TODO: complete
     """
@@ -54,7 +45,7 @@ class FileLookupOutput(PangeaResponseResult):
     raw_data: Optional[Dict] = None
 
 
-class IPLookupInput(BaseModelConfig):
+class IPLookupRequest(APIRequestModel):
     """
     TODO: complete
 
@@ -70,7 +61,7 @@ class IPLookupInput(BaseModelConfig):
     provider: Optional[str] = None
 
 
-class DomainLookupInput(BaseModelConfig):
+class DomainLookupRequest(APIRequestModel):
     """
     TODO: complete
 
@@ -86,7 +77,7 @@ class DomainLookupInput(BaseModelConfig):
     provider: Optional[str] = None
 
 
-class DomainLookupData(BaseModelConfig):
+class DomainLookupData(APIResponseModel):
     """
     TODO: complete
     """
@@ -96,7 +87,7 @@ class DomainLookupData(BaseModelConfig):
     verdict: str
 
 
-class DomainLookupOutput(PangeaResponseResult):
+class DomainLookupResult(PangeaResponseResult):
     """
     TODO: complete
     """
@@ -114,8 +105,6 @@ class FileIntel(ServiceBase):
     The following information is needed:
         PANGEA_TOKEN - service token which can be found on the Pangea User
             Console at [https://console.pangea.cloud/project/tokens](https://console.pangea.cloud/project/tokens)
-        FILE_INTEL_CONFIG_ID - Configuration ID which can be found on the Pangea
-            User Console at [https://console.pangea.cloud/service/file-intel](https://console.pangea.cloud/service/file-intel)
 
     Examples:
         import os
@@ -124,11 +113,9 @@ class FileIntel(ServiceBase):
         from pangea.config import PangeaConfig
         from pangea.services import FileIntel
 
-        PANGEA_TOKEN = os.getenv("PANGEA_TOKEN")
-        FILE_INTEL_CONFIG_ID = os.getenv("FILE_INTEL_CONFIG_ID")
+        PANGEA_TOKEN = os.getenv("PANGEA_INTEL_TOKEN")
 
-        file_intel_config = PangeaConfig(domain="pangea.cloud",
-                                        config_id=FILE_INTEL_CONFIG_ID)
+        file_intel_config = PangeaConfig(domain="pangea.cloud")
 
         # Setup Pangea File Intel service
         file_intel = FileIntel(token=PANGEA_TOKEN, config=file_intel_config)
@@ -144,7 +131,7 @@ class FileIntel(ServiceBase):
         provider: Optional[str] = None,
         verbose: Optional[bool] = None,
         raw: Optional[bool] = None,
-    ) -> PangeaResponse[FileLookupOutput]:
+    ) -> PangeaResponse[FileLookupResult]:
         """
         Look up a file
 
@@ -183,9 +170,9 @@ class FileIntel(ServiceBase):
             }
             \"\"\"
         """
-        input = FileLookupInput(hash=hash, hash_type=hash_type, verbose=verbose, raw=raw, provider=provider)
+        input = FileLookupRequest(hash=hash, hash_type=hash_type, verbose=verbose, raw=raw, provider=provider)
         response = self.request.post("lookup", data=input.dict(exclude_none=True))
-        response.result = FileLookupOutput(**response.raw_result)
+        response.result = FileLookupResult(**response.raw_result)
         return response
 
 
@@ -197,8 +184,6 @@ class DomainIntel(ServiceBase):
     The following information is needed:
         PANGEA_TOKEN - service token which can be found on the Pangea User
             Console at [https://console.pangea.cloud/project/tokens](https://console.pangea.cloud/project/tokens)
-        DOMAIN - Configuration ID which can be found on the Pangea
-            User Console at [https://console.pangea.cloud/service/domain-intel](https://console.pangea.cloud/service/domain-intel)
 
     Examples:
         import os
@@ -207,11 +192,9 @@ class DomainIntel(ServiceBase):
         from pangea.config import PangeaConfig
         from pangea.services import DomainIntel
 
-        PANGEA_TOKEN = os.getenv("PANGEA_TOKEN")
-        DOMAIN = os.getenv("DOMAIN_INTEL_CONFIG_ID")
+        PANGEA_TOKEN = os.getenv("PANGEA_INTEL_TOKEN")
 
-        domain_intel_config = PangeaConfig(domain="pangea.cloud",
-                                        config_id=DOMAIN_INTEL_CONFIG_ID)
+        domain_intel_config = PangeaConfig(domain="pangea.cloud")
 
         # Setup Pangea Domain Intel service
         domain_intel = DomainIntel(token=PANGEA_TOKEN, config=domain_intel_config)
@@ -222,7 +205,7 @@ class DomainIntel(ServiceBase):
 
     def lookup(
         self, domain: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
-    ) -> PangeaResponse[DomainLookupOutput]:
+    ) -> PangeaResponse[DomainLookupResult]:
         """
         Look up a domain
 
@@ -266,7 +249,7 @@ class DomainIntel(ServiceBase):
             }
             \"\"\"
         """
-        input = DomainLookupInput(domain=domain, verbose=verbose, provider=provider, raw=raw)
+        input = DomainLookupRequest(domain=domain, verbose=verbose, provider=provider, raw=raw)
         response = self.request.post("lookup", data=input.dict(exclude_none=True))
-        response.result = DomainLookupOutput(**response.raw_result)
+        response.result = DomainLookupResult(**response.raw_result)
         return response
