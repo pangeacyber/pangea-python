@@ -9,7 +9,7 @@ from pangea.services import Audit
 from pangea.services.audit.models import (
     EventSigning,
     EventVerification,
-    LogOutput,
+    LogResult,
     SearchOrder,
     SearchOrderBy,
     SearchOutput,
@@ -36,7 +36,7 @@ class TestAudit(unittest.TestCase):
         )
 
     def test_log_no_verbose(self):
-        response: PangeaResponse[LogOutput] = self.audit.log(
+        response: PangeaResponse[LogResult] = self.audit.log(
             message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verbose=False
         )
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
@@ -44,7 +44,7 @@ class TestAudit(unittest.TestCase):
         self.assertIsNone(response.result.envelope)
 
     def test_log_verbose_no_verify(self):
-        response: PangeaResponse[LogOutput] = self.audit.log(
+        response: PangeaResponse[LogResult] = self.audit.log(
             message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verify=False, verbose=True
         )
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
@@ -56,7 +56,7 @@ class TestAudit(unittest.TestCase):
         self.assertEqual(response.result.signature_verification, EventVerification.NONE)
 
     def test_log_verify(self):
-        response: PangeaResponse[LogOutput] = self.audit.log(
+        response: PangeaResponse[LogResult] = self.audit.log(
             message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verify=True
         )  # Verify true set verbose to true
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
@@ -69,7 +69,7 @@ class TestAudit(unittest.TestCase):
         self.assertEqual(response.result.membership_verification, EventVerification.PASS)
         self.assertEqual(response.result.signature_verification, EventVerification.NONE)
 
-        response: PangeaResponse[LogOutput] = self.audit.log(
+        response: PangeaResponse[LogResult] = self.audit.log(
             message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verify=True
         )
         self.assertEqual(response.status, ResponseStatus.SUCCESS)

@@ -6,24 +6,28 @@ from typing import Any, Dict, Generic, List, Optional, TypeVar
 import requests
 from pydantic import BaseModel
 
-
-class DataclassConfig:
-    arbitrary_types_allowed = True
-    extra = "ignore"
-
-
 T = TypeVar("T")
 
 
-class BaseModelConfig(BaseModel):
+# API response should accept arbitrary fields to make them accept possible new parameters
+class APIResponseModel(BaseModel):
     class Config:
         arbitrary_types_allowed = True
-        extra = (
-            "allow"  # allow parameters despite they are not declared in model. Make SDK accept server new parameters
-        )
+        # allow parameters despite they are not declared in model. Make SDK accept server new parameters
+        extra = "allow"
 
 
-class ErrorField(BaseModelConfig):
+# API request models doesn't not allow arbitrary fields
+class APIRequestModel(BaseModel):
+    class Config:
+        arbitrary_types_allowed = True
+
+
+class PangeaResponseResult(APIResponseModel):
+    pass
+
+
+class ErrorField(PangeaResponseResult):
     """
     Field errors denote errors in fields provided in request payloads
 
@@ -40,12 +44,8 @@ class ErrorField(BaseModelConfig):
     path: Optional[str] = None
 
 
-class PangeaError(BaseModelConfig):
+class PangeaError(PangeaResponseResult):
     errors: List[ErrorField] = []
-
-
-class PangeaResponseResult(BaseModelConfig):
-    pass
 
 
 class ResponseStatus(str, enum.Enum):
@@ -65,7 +65,7 @@ class ResponseStatus(str, enum.Enum):
     BAD_OFFSET = "BadOffset"
 
 
-class ResponseHeader(BaseModelConfig):
+class ResponseHeader(APIResponseModel):
     """
     Pangea response API header.
 
