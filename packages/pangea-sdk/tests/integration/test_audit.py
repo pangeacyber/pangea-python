@@ -1,3 +1,4 @@
+import datetime
 import os
 import time
 import unittest
@@ -225,6 +226,24 @@ class TestAudit(unittest.TestCase):
         # This should fail because offset is out of range
         self.assertRaises(pexc.BadOffsetException, resultBadOffset)
 
+    def test_search_with_dates(self):
+        limit = 2
+        max_result = 3
+        end = datetime.datetime.now()
+        start = end - datetime.timedelta(days=1)
+        response_search = self.audit.search(
+            query="message:",
+            order=SearchOrder.DESC,
+            limit=limit,
+            max_results=max_result,
+            verbose=True,
+            start=start,
+            end=end,
+        )
+        self.assertEqual(response_search.status, ResponseStatus.SUCCESS)
+        self.assertEqual(len(response_search.result.events), limit)
+        self.assertEqual(response_search.result.count, max_result)
+
     def test_root_1(self):
         response = self.audit.root()
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
@@ -260,7 +279,6 @@ class TestAudit(unittest.TestCase):
             max_results=2,
             verify_consistency=True,
             verify_events=True,
-            start="7d",
         )
 
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
