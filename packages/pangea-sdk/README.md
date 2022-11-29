@@ -22,9 +22,9 @@ A Python SDK for integrating with Pangea Services.
 ## Setup
 
 ```
-pip3 install python-pangea
+pip3 install pangea-sdk
 # or
-poetry add python-pangea
+poetry add pangea-sdk
 ```
 
 ## Usage
@@ -212,7 +212,7 @@ The documentation pipeline here looks like:
 
 ### Running the autogen sdk doc script
 
-Make sure you have all the dependencies installed. From the root of the `python-pangea` repo run:
+Make sure you have all the dependencies installed. From the root of the `pangea-sdk` package in the `pangea-python` repo run:
 
 ```shell
 poetry install
