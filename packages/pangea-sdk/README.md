@@ -37,7 +37,7 @@ from pangea.config import PangeaConfig
 from pangea.services import Audit
 
 # Read your project domain from an env variable
-domain = os.getenv("PANGEA_DOMAIN)
+domain = os.getenv("PANGEA_DOMAIN")
 
 # Read your access token from an env variable
 token = os.getenv("PANGEA_TOKEN")
@@ -74,7 +74,7 @@ from pangea.config import PangeaConfig
 from pangea.services import Audit
 
 # Read your project domain from an env variable
-domain = os.getenv("PANGEA_DOMAIN)
+domain = os.getenv("PANGEA_DOMAIN")
 
 # Read your access token from an env variable
 token = os.getenv("PANGEA_TOKEN")
@@ -99,7 +99,7 @@ if response.success:
         f"Found {response.result.count} event(s)",
     )
     for row in response.result.events:
-        print(f"{row.event.received_at}\taction: {row.event.actor}\taction: {row.event.action}\ttarget: {row.event.target}\tstatus: {row.event.status}\tmessage: {row.event.message}")
+        print(f"{row.envelope.received_at}\taction: {row.envelope.event.actor}\taction: {row.envelope.event.action}\ttarget: {row.envelope.event.target}\tstatus: {row.envelope.event.status}\tmessage: {row.envelope.event.message}")
 
 else:
     print("Search Failed:", response.code, response.status)
