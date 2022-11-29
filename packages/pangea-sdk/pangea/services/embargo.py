@@ -56,7 +56,7 @@ class Embargo(ServiceBase):
     """Embargo service client.
 
     Provides methods to interact with Pangea Embargo Service:
-        https://docs.dev.pangea.cloud/docs/api/embargo
+        https://pangea.cloud/docs/api/embargo
 
     The following information is needed:
         PANGEA_TOKEN - service token which can be found on the Pangea User

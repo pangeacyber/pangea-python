@@ -10,10 +10,7 @@ The App simulates an HR application that allows a user to upload resumes, retrie
 ### Environment Setup
 Set the following environment variables:
 - `PANGEA_TOKEN`
-- `EMBARGO_CONFIG_ID`
-- `REDACT_CONFIG_ID`
-- `AUDIT_CONFIG_ID`
-- `PANGEA_DOMAIN` (ex: "aws.us.pangea.cloud")
+- `PANGEA_DOMAIN` (ex: "pangea.cloud")
 
 ### API Documentation
 
@@ -99,4 +96,4 @@ sqlite3 demo-app.db
 ```
 
 ## References
-Viewing Audit Logs: https://console.dev.pangea.cloud/service/audit/logs
+Viewing Audit Logs: https://console.pangea.cloud/service/audit/logs

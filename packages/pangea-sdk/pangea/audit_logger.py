@@ -37,7 +37,7 @@ class AuditLogger(logging.Logger):
             message (str) - the audit message
 
             args, kwargs (dict) - key-value args describing an auditable activity.
-                See [Audit API Reference](https://docs.dev.pangea.cloud/docs/api/audit)
+                See [Audit API Reference](/docs/api/audit)
                 for list of required and optional Audit parameters.
 
         Examples:
@@ -79,7 +79,7 @@ def initLogging(domain: str, token: str):
     """Initializes Audit logging environment
 
     Args:
-        domain (string) : the Pangea domain to use, i.e. "aws.us.pangea.cloud"
+        domain (string) : the Pangea domain to use, i.e. "pangea.cloud"
         token (string) : the Pangea Audit Service token
 
     Examples:
@@ -88,7 +88,6 @@ def initLogging(domain: str, token: str):
         from pangea.audit_logger import AuditLogger, getLogger, initLogging
 
         PANGEA_TOKEN = os.getenv("PANGEA_TOKEN")
-        AUDIT_CONFIG_ID = os.getenv("AUDIT_CONFIG_ID")
         PANGEA_CSP = os.getenv("PANGEA_CSP")
 
         initLogging(PANGEA_DOMAIN, PANGEA_TOKEN)

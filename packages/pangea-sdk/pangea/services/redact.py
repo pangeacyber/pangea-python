@@ -107,7 +107,7 @@ class Redact(ServiceBase):
     """Redact service client.
 
     Provides the methods to interact with the Pangea Redact Service:
-        [https://docs.dev.pangea.cloud/docs/api/redact](https://docs.dev.pangea.cloud/docs/api/redact)
+        [https://pangea.cloud/docs/api/redact](https://pangea.cloud/docs/api/redact)
 
     The following information is needed:
         PANGEA_TOKEN - service token which can be found on the Pangea User

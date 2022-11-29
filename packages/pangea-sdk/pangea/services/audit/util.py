@@ -281,9 +281,8 @@ def verify_consistency_proof(new_root: Hash, prev_root: Hash, proof: Consistency
 
 def get_root_filename():
     token = os.getenv("PANGEA_TOKEN", "")
-    config_id = os.getenv("AUDIT_CONFIG_ID", "")
 
-    root_id = token + "-" + config_id
+    root_id = token
     root_id_filename = hash_str(root_id)
 
     return root_id_filename
