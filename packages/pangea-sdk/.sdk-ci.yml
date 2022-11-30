@@ -23,6 +23,17 @@ py_lint:
   script:
     - poetry run black .
 
+generate_docs:
+  extends: .pangea-sdk-base
+  stage: lint
+  script:
+    - poetry run python parse_module.py > python_sdk.json || exit 1
+  artifacts:
+    expire_in: 1 month
+    expose_as: python_sdk
+    paths: ['packages/pangea-sdk/python_sdk.json']
+    when: on_success
+
 testing:
   extends: .pangea-sdk-base
   stage: unit_tests
