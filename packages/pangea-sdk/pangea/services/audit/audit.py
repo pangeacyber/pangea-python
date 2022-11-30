@@ -116,7 +116,7 @@ class Audit(ServiceBase):
             except pe.PangeaAPIException as e:
                 print(f"Request Error: {e.response.summary}")
                 for err in e.errors:
-                    print(f"\t{err.detail} \n")
+                    print(f"\\t{err.detail} \\n")
         """
 
         endpoint_name = "log"
