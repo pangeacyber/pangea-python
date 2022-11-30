@@ -117,7 +117,7 @@ def _verify_membership_proof(
             if tree_size not in pub_roots:
                 raise ValueError("Published root could was not found")
 
-            root_hash_dec = decode_hash(pub_roots[tree_size]["root_hash"])
+            root_hash_dec = decode_hash(pub_roots[tree_size].root_hash)
             node_hash_dec = decode_hash(node_hash)
             logger.debug("Calculating the proof")
             proof_dec = decode_membership_proof(proof)
@@ -155,8 +155,8 @@ def _verify_consistency_proof(tree_name: str, leaf_index: t.Optional[int]) -> t.
 
             curr_root = pub_roots[leaf_index + 1]
             prev_root = pub_roots[leaf_index]
-            curr_root_hash = decode_hash(curr_root["root_hash"])
-            prev_root_hash = decode_hash(prev_root["root_hash"])
+            curr_root_hash = decode_hash(curr_root.root_hash)
+            prev_root_hash = decode_hash(prev_root.root_hash)
             logger.debug("Calculating the proof")
             proof = decode_consistency_proof(curr_root["consistency_proof"])
             succeeded = verify_consistency_proof(curr_root_hash, prev_root_hash, proof)

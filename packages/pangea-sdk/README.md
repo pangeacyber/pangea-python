@@ -37,17 +37,13 @@ from pangea.config import PangeaConfig
 from pangea.services import Audit
 
 # Read your project domain from an env variable
-domain = os.getenv("PANGEA_DOMAIN)
+domain = os.getenv("PANGEA_DOMAIN")
 
 # Read your access token from an env variable
 token = os.getenv("PANGEA_TOKEN")
 
-# Read the Audit Config ID from an env variable,
-# required for tokens enabled for all services
-config_id = os.getenv("AUDIT_CONFIG_ID")
-
 # Create a Config object contain the Audit Config ID
-config = PangeaConfig(domain=domain, config_id=config_id)
+config = PangeaConfig(domain=domain)
 
 # Initialize an Audit instance using the config object
 audit = Audit(token, config=config)
@@ -77,14 +73,14 @@ import os
 from pangea.config import PangeaConfig
 from pangea.services import Audit
 
+# Read your project domain from an env variable
+domain = os.getenv("PANGEA_DOMAIN")
+
 # Read your access token from an env variable
 token = os.getenv("PANGEA_TOKEN")
 
-# Read the Audit Config ID from an env variable
-config_id = os.getenv("AUDIT_CONFIG_ID")
-
 # Create a Config object contain the Audit Config ID
-config = PangeaConfig(config_id=config_id)
+config = PangeaConfig(domain=domain)
 
 # Initialize an Audit instance using the config object
 audit = Audit(token, config=config)
@@ -103,7 +99,7 @@ if response.success:
         f"Found {response.result.count} event(s)",
     )
     for row in response.result.events:
-        print(f"{row.event.received_at}\taction: {row.event.actor}\taction: {row.event.action}\ttarget: {row.event.target}\tstatus: {row.event.status}\tmessage: {row.event.message}")
+        print(f"{row.envelope.received_at}\taction: {row.envelope.event.actor}\taction: {row.envelope.event.action}\ttarget: {row.envelope.event.target}\tstatus: {row.envelope.event.status}\tmessage: {row.envelope.event.message}")
 
 else:
     print("Search Failed:", response.code, response.status)
@@ -130,7 +126,7 @@ It accepts multiple file formats:
 - a search response from the REST API:
 
 ```
-curl -H "Authorization: Bearer ${PANGEA_TOKEN}" -X POST -H 'Content-Type: application/json'  --data '{"verbose": true}' https://audit.dev.aws.pangea.cloud/v1/search
+curl -H "Authorization: Bearer ${PANGEA_TOKEN}" -X POST -H 'Content-Type: application/json'  --data '{"verbose": true}' https://audit.aws.us.pangea.cloud/v1/search
 ```
 
 
@@ -142,7 +138,7 @@ a variety of formats is supported, including ISO-8601. The result is stored in a
 jsonl file (one json per line)
 
 ```
-usage: python -m pangea.dump_audit [-h] [--token TOKEN] [--domain DOMAIN] [--config-id CONFIG_ID] [--output OUTPUT] start end
+usage: python -m pangea.dump_audit [-h] [--token TOKEN] [--domain DOMAIN] [--output OUTPUT] start end
 
 Pangea Audit Dump Tool
 
@@ -156,8 +152,6 @@ options:
                         Pangea token (default: env PANGEA_TOKEN)
   --domain DOMAIN, -d DOMAIN
                         Pangea base domain (default: env PANGEA_DOMAIN)
-  --config-id CONFIG_ID, -c CONFIG_ID
-                        Audit config id (default: env PANGEA_AUDIT_CONFIG_ID)
   --output OUTPUT, -o OUTPUT
                         Output file name. Default: dump-<timestamp>
 ```
@@ -168,7 +162,7 @@ This script performs extensive verification on a range of events of the log stre
 and the membership proof, it checks that there is no omissions in the stream, i.e. all the events are present and properly located.
 
 ```
-usage: python -m pangea.deep_verify [-h] [--token TOKEN] [--domain DOMAIN] [--config-id CONFIG_ID] --file FILE
+usage: python -m pangea.deep_verify [-h] [--token TOKEN] [--domain DOMAIN] --file FILE
 
 Pangea Audit Event Deep Verifier
 
@@ -178,8 +172,6 @@ options:
                         Pangea token (default: env PANGEA_TOKEN)
   --domain DOMAIN, -d DOMAIN
                         Pangea base domain (default: env PANGEA_DOMAIN)
-  --config-id CONFIG_ID, -c CONFIG_ID
-                        Audit config id (default: env PANGEA_AUDIT_CONFIG_ID)
   --file FILE, -f FILE  Event input file. Must be a collection of JSON Objects separated by newlines
 ```
 
