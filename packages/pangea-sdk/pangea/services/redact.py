@@ -122,7 +122,7 @@ class Redact(ServiceBase):
 
         PANGEA_TOKEN = os.getenv("PANGEA_REDACT_TOKEN")
 
-        redact_config = PangeaConfig(domain="pangea.cloud")
+        redact_config = PangeaConfig(domain="aws.us.pangea.cloud")
 
         # Setup Pangea Redact service client
         redact = Redact(token=PANGEA_TOKEN, config=redact_config)

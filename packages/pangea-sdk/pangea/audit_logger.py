@@ -79,7 +79,7 @@ def initLogging(domain: str, token: str):
     """Initializes Audit logging environment
 
     Args:
-        domain (string) : the Pangea domain to use, i.e. "pangea.cloud"
+        domain (string) : the Pangea domain to use, i.e. "aws.us.pangea.cloud"
         token (string) : the Pangea Audit Service token
 
     Examples:

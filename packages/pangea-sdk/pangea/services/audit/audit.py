@@ -40,7 +40,7 @@ class Audit(ServiceBase):
         from pangea.services import Audit
 
         PANGEA_TOKEN = os.getenv("PANGEA_AUDIT_TOKEN")
-        audit_config = PangeaConfig(domain="pangea.cloud")
+        audit_config = PangeaConfig(domain="aws.us.pangea.cloud")
 
         # Setup Pangea Audit service
         audit = Audit(token=PANGEA_TOKEN, config=audit_config)

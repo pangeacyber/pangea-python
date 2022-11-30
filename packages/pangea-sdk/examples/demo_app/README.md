@@ -10,7 +10,7 @@ The App simulates an HR application that allows a user to upload resumes, retrie
 ### Environment Setup
 Set the following environment variables:
 - `PANGEA_TOKEN`
-- `PANGEA_DOMAIN` (ex: "pangea.cloud")
+- `PANGEA_DOMAIN` (ex: "aws.us.pangea.cloud")
 
 ### API Documentation
 

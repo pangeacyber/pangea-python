@@ -71,7 +71,7 @@ class Embargo(ServiceBase):
 
         PANGEA_TOKEN = os.getenv("PANGEA_TOKEN")
 
-        embargo_config = PangeaConfig(domain="pangea.cloud")
+        embargo_config = PangeaConfig(domain="aws.us.pangea.cloud")
 
         # Setup Pangea Embargo service
         embargo = Embargo(token=PANGEA_TOKEN, config=embargo_config)
