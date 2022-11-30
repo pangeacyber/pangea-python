@@ -27,7 +27,7 @@ generate_docs:
   extends: .pangea-sdk-base
   stage: lint
   script:
-    - poetry run python parse_module.py > python_sdk.json || exit 1
+    - poetry run python parse_module.py > python_sdk.json
   artifacts:
     expire_in: 1 month
     expose_as: python_sdk
