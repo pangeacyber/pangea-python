@@ -198,9 +198,13 @@ def deep_verify(audit: Audit, file: io.TextIOWrapper) -> Errors:
                 continue
 
             path = get_proof_path(event["membership_proof"])
-            hot_path = path[:-cold_path_size]
-            cold_path = path[-cold_path_size:]
-
+            if cold_path_size == 0:
+                hot_path = path
+                cold_path = ""
+            else:
+                hot_path = path[:-cold_path_size]
+                cold_path = path[-cold_path_size:]
+            
             cold_idx = path2index(tree_size, cold_path)
             if cold_idx != leaf_index:
                 errors["wrong_buffer"] += 1
