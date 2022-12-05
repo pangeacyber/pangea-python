@@ -198,9 +198,13 @@ def deep_verify(audit: Audit, file: io.TextIOWrapper) -> Errors:
                 continue
 
             path = get_proof_path(event["membership_proof"])
-            hot_path = path[:-cold_path_size]
-            cold_path = path[-cold_path_size:]
-
+            if cold_path_size == 0:
+                hot_path = path
+                cold_path = ""
+            else:
+                hot_path = path[:-cold_path_size]
+                cold_path = path[-cold_path_size:]
+            
             cold_idx = path2index(tree_size, cold_path)
             if cold_idx != leaf_index:
                 errors["wrong_buffer"] += 1
@@ -235,12 +239,6 @@ def create_parser():
         "--domain", "-d", default=os.getenv("PANGEA_DOMAIN"), help="Pangea domain (default: env PANGEA_DOMAIN)"
     )
     parser.add_argument(
-        "--config-id",
-        "-c",
-        default=os.getenv("PANGEA_AUDIT_CONFIG_ID"),
-        help="Audit config id (default: env PANGEA_AUDIT_CONFIG_ID)",
-    )
-    parser.add_argument(
         "--file",
         "-f",
         required=True,
@@ -273,7 +271,7 @@ def main():
     print("Pangea Audit Event Deep Verifier\n")
 
     try:
-        audit = init_audit(args.token, args.domain, args.config_id)
+        audit = init_audit(args.token, args.domain)
         errors = deep_verify(audit, args.file)
 
         print("\n\nTotal errors:")

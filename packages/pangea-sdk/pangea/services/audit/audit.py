@@ -37,7 +37,7 @@ class Audit(ServiceBase):
         from pangea.services import Audit
 
         PANGEA_TOKEN = os.getenv("PANGEA_AUDIT_TOKEN")
-        audit_config = PangeaConfig(domain="pangea.cloud")
+        audit_config = PangeaConfig(domain="aws.us.pangea.cloud")
 
         # Setup Pangea Audit service
         audit = Audit(token=PANGEA_TOKEN, config=audit_config)
@@ -110,7 +110,7 @@ class Audit(ServiceBase):
             except pe.PangeaAPIException as e:
                 print(f"Request Error: {e.response.summary}")
                 for err in e.errors:
-                    print(f"\t{err.detail} \n")
+                    print(f"\\t{err.detail} \\n")
         """
 
         endpoint_name = "log"
@@ -217,15 +217,15 @@ class Audit(ServiceBase):
         Search for events that match the provided search criteria.
 
         Args:
-            query (str): - Natural search string; list of keywords with optional
-                    `<option>:<value>` qualifiers. The following optional qualifiers are supported:
-                        - action
-                        - actor
-                        - message
-                        - new
-                        - old
-                        - status
-                        - target
+            query (str): Natural search string; list of keywords with optional
+                `<option>:<value>` qualifiers. The following optional qualifiers are supported:
+                    - action
+                    - actor
+                    - message
+                    - new
+                    - old
+                    - status
+                    - target
             order (SearchOrder, optional): Specify the sort order of the response.
             order_by (SearchOrderBy, optional): Name of column to sort the results by.
             last (str, optional): Optional[str] = None,
