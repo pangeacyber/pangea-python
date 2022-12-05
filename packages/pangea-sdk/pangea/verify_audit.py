@@ -16,7 +16,7 @@ import sys
 import typing as t
 from base64 import b64decode
 
-from pangea.services.audit.signing import Signer
+from pangea.services.audit.signing import Verifier
 from pangea.services.audit.util import (
     canonicalize_json,
     decode_consistency_proof,
@@ -215,10 +215,9 @@ def _verify_signature(data: t.Dict) -> t.Optional[bool]:
             logger.debug("Obtaining signature and public key from the event")
             sign_envelope = create_signed_envelope(data["event"])
             public_key_b64 = data["public_key"]
-            public_key_bytes = b64decode(public_key_b64)
-            sign = Signer(hash_message=True)
+            sign_verifier = Verifier()
             logger.debug("Checking the signature")
-            if not sign.verifyMessage(data["signature"], sign_envelope, public_key_bytes):
+            if not sign_verifier.verifyMessage(data["signature"], sign_envelope, public_key_b64):
                 raise ValueError("Signature is invalid")
             succeeded = True
         except Exception:
