@@ -277,7 +277,7 @@ def verify_single(data: t.Dict, counter: t.Optional[int] = None) -> t.Optional[b
     else:
         ok_consistency = True
 
-    all_ok = ok_hash is True and ok_signature is True and ok_membership is True and ok_consistency is True
+    all_ok = ok_hash is True and (ok_signature is True or ok_signature is None) and ok_membership is True and ok_consistency is True
     any_failed = ok_hash is False or ok_signature is False or ok_membership is False or ok_consistency is False
 
     if counter:

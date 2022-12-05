@@ -241,9 +241,8 @@ class Audit(ServiceBase):
             max_results (int, optional): Maximum number of results to return.
             search_restriction (dict, optional): A list of keys to restrict the search results to. Useful for partitioning data available to the query string.
             verbose (bool, optional): If true, response include root and membership and consistency proofs.
-            verify (bool, optional): If set, the consistency and membership proofs are validated for all
-                events returned by `search` and `results`. The fields `consistency_proof_verification` and
-                `membership_proof_verification` are added to each event, with the value `pass`, `fail` or `none`.
+            verify_consistency (bool): True to verify logs consistency
+            verify_events (bool): True to verify hash events and signatures
             verify_signatures (bool, optional):
 
         Raises:
@@ -357,9 +356,7 @@ class Audit(ServiceBase):
         root = response.result.root
         unpublished_root = response.result.unpublished_root
 
-        if verify_consistency:
-            self.update_published_roots(response.result)
-
+        if verify_events:
             for search_event in response.result.events:
                 # verify membership proofs
                 if self.can_verify_membership_proof(search_event):
@@ -368,6 +365,10 @@ class Audit(ServiceBase):
                     else:
                         search_event.membership_verification = EventVerification.FAIL
 
+        if verify_consistency:
+            self.update_published_roots(response.result)
+
+            for search_event in response.result.events:
                 # verify consistency proofs
                 if self.can_verify_consistency_proof(search_event):
                     if self.verify_consistency_proof(self.pub_roots, search_event):
