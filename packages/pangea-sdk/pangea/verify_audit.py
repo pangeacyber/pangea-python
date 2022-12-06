@@ -14,7 +14,6 @@ import json
 import logging
 import sys
 import typing as t
-from base64 import b64decode
 
 from pangea.services.audit.signing import Verifier
 from pangea.services.audit.util import (
@@ -257,6 +256,8 @@ def verify_single(data: t.Dict, counter: t.Optional[int] = None) -> t.Optional[b
     ok_signature = _verify_signature(data["envelope"])
 
     if data["published"]:
+        if not data.get("root"):
+            raise ValueError("Missing 'root' element")
         ok_membership = _verify_membership_proof(
             data["root"]["tree_name"],
             data["root"]["size"],
@@ -264,6 +265,8 @@ def verify_single(data: t.Dict, counter: t.Optional[int] = None) -> t.Optional[b
             data.get("membership_proof"),
         )
     else:
+        if not data.get("unpublished_root"):
+            raise ValueError("Missing 'unpublished_root' element")
         ok_membership = _verify_unpublished_membership_proof(
             data["unpublished_root"]["root_hash"],
             data["hash"],
