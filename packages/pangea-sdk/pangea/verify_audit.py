@@ -165,7 +165,6 @@ def _verify_membership_proof(
 
 def _verify_consistency_proof(tree_name: str, leaf_index: t.Optional[int]) -> t.Optional[bool]:
     global pub_roots
-
     log_section("Checking consistency proof")
 
     if leaf_index is None:
@@ -189,7 +188,7 @@ def _verify_consistency_proof(tree_name: str, leaf_index: t.Optional[int]) -> t.
             curr_root_hash = decode_hash(curr_root.root_hash)
             prev_root_hash = decode_hash(prev_root.root_hash)
             logger.debug("Calculating the proof")
-            proof = decode_consistency_proof(curr_root["consistency_proof"])
+            proof = decode_consistency_proof(curr_root.consistency_proof)
             succeeded = verify_consistency_proof(curr_root_hash, prev_root_hash, proof)
 
         except Exception as e:
@@ -272,7 +271,7 @@ def verify_single(data: t.Dict, counter: t.Optional[int] = None) -> t.Optional[b
         )
 
     if data["published"]:
-        ok_consistency = _verify_consistency_proof(data["root"]["tree_name"], data["envelope"].get("leaf_index"))
+        ok_consistency = _verify_consistency_proof(data["root"]["tree_name"], data.get("leaf_index"))
     else:
         ok_consistency = True
 
