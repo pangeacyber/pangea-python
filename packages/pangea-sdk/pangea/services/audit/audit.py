@@ -241,9 +241,8 @@ class Audit(ServiceBase):
             max_results (int, optional): Maximum number of results to return.
             search_restriction (dict, optional): A list of keys to restrict the search results to. Useful for partitioning data available to the query string.
             verbose (bool, optional): If true, response include root and membership and consistency proofs.
-            verify (bool, optional): If set, the consistency and membership proofs are validated for all
-                events returned by `search` and `results`. The fields `consistency_proof_verification` and
-                `membership_proof_verification` are added to each event, with the value `pass`, `fail` or `none`.
+            verify_consistency (bool): True to verify logs consistency
+            verify_events (bool): True to verify hash events and signatures
             verify_signatures (bool, optional):
 
         Raises:
