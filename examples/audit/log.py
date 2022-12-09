@@ -14,12 +14,12 @@ audit = Audit(token, config=config)
 
 
 def main():
-    msg = "Hello world"
+    msg = "Hello, World!"
     print(f"Logging: {msg}")
 
     try:
         log_response = audit.log(message=msg, verbose=False)
-        print(f"Response. Hash: {log_response.result.hash}")
+        print(f"Response: {log_response.result}")
     except pe.PangeaAPIException as e:
         print(f"Request Error: {e.response.summary}")
         for err in e.errors:
