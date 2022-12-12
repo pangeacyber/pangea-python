@@ -26,7 +26,7 @@ STATUS_SIGNED = "signed"
 
 class TestAudit(unittest.TestCase):
     def setUp(self):
-        self.token = os.getenv("PANGEA_INTEGRATION_AUDIT_TOKEN")
+        self.token = os.getenv("PANGEA_INTEGRATION_TOKEN")
         domain = os.getenv("PANGEA_INTEGRATION_DOMAIN")
         self.config = PangeaConfig(domain=domain)
         self.audit = Audit(self.token, config=self.config)
