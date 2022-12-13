@@ -9,7 +9,7 @@ from pangea.services import DomainIntel, FileIntel, IpIntel
 
 class TestDomainIntel(unittest.TestCase):
     def setUp(self):
-        token = os.getenv("PANGEA_INTEGRATION_DOMAIN_INTEL_TOKEN")
+        token = os.getenv("PANGEA_INTEGRATION_TOKEN")
         domain = os.getenv("PANGEA_INTEGRATION_DOMAIN")
         config = PangeaConfig(domain=domain)
         self.intel_domain = DomainIntel(token, config=config)
@@ -33,7 +33,7 @@ class TestDomainIntel(unittest.TestCase):
 
 class TestFileIntel(unittest.TestCase):
     def setUp(self):
-        token = os.getenv("PANGEA_INTEGRATION_FILE_INTEL_TOKEN")
+        token = os.getenv("PANGEA_INTEGRATION_TOKEN")
         domain = os.getenv("PANGEA_INTEGRATION_DOMAIN")
         config = PangeaConfig(domain=domain)
         self.intel_file = FileIntel(token, config=config)

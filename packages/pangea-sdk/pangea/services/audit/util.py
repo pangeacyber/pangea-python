@@ -9,7 +9,7 @@ from binascii import hexlify, unhexlify
 from dataclasses import dataclass
 from datetime import datetime
 from hashlib import sha256
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 import requests
 from pangea.services.audit.models import Event, EventEnvelope, PublishedRoot
@@ -136,7 +136,7 @@ def verify_membership_proof(node_hash: Hash, root_hash: Hash, proof: MembershipP
     return root_hash == node_hash
 
 
-def format_datetime(dt):
+def format_datetime(dt: datetime):
     """
     Format a datetime in ISO format, using Z instead of +00:00
     """
@@ -277,13 +277,3 @@ def verify_consistency_proof(new_root: Hash, prev_root: Hash, proof: Consistency
             return False
 
     return True
-
-
-def get_root_filename():
-    token = os.getenv("PANGEA_TOKEN", "")
-    config_id = os.getenv("AUDIT_CONFIG_ID", "")
-
-    root_id = token + "-" + config_id
-    root_id_filename = hash_str(root_id)
-
-    return root_id_filename

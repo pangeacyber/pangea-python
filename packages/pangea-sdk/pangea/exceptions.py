@@ -77,22 +77,21 @@ class ServiceNotAvailableException(PangeaAPIException):
 
 
 # Embargo specific exceptions
-class EmbargoException(PangeaException):
+class EmbargoAPIException(PangeaAPIException):
     """Embargo service specific exceptions"""
 
 
-class IPNotFoundException(EmbargoException):
+class IPNotFoundException(EmbargoAPIException):
     """IP address was not found"""
 
 
-# Audit Specific Exceptions
-class AuditException(PangeaException):
-    """Audit service specific exceptions"""
+class AuditAPIException(PangeaAPIException):
+    """Audit API service specific exceptions"""
 
 
-class TreeNotFoundException(AuditException):
+class TreeNotFoundException(AuditAPIException):
     """Tree was not found during a root inspection"""
 
 
-class BadOffsetException(AuditException):
+class BadOffsetException(AuditAPIException):
     """Bad offset in results search"""

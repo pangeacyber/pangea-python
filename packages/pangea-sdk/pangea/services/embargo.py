@@ -56,7 +56,7 @@ class Embargo(ServiceBase):
     """Embargo service client.
 
     Provides methods to interact with Pangea Embargo Service:
-        https://docs.dev.pangea.cloud/docs/api/embargo
+        https://pangea.cloud/docs/api/embargo
 
     The following information is needed:
         PANGEA_TOKEN - service token which can be found on the Pangea User
@@ -71,7 +71,7 @@ class Embargo(ServiceBase):
 
         PANGEA_TOKEN = os.getenv("PANGEA_TOKEN")
 
-        embargo_config = PangeaConfig(domain="pangea.cloud")
+        embargo_config = PangeaConfig(domain="aws.us.pangea.cloud")
 
         # Setup Pangea Embargo service
         embargo = Embargo(token=PANGEA_TOKEN, config=embargo_config)

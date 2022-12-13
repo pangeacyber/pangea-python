@@ -8,7 +8,7 @@ from dataclasses import dataclass
 class PangeaConfig:
     """Holds run time configuration information used by SDK components."""
 
-    domain: str = "pangea.cloud"
+    domain: str = "aws.us.pangea.cloud"
     environment: str = "production"
 
     """
