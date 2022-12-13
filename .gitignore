@@ -27,3 +27,6 @@ env/
 # test coverage
 .coverage
 packages/pangea-sdk/logs/
+
+# generated docs
+python_sdk.json

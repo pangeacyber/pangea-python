@@ -8,7 +8,7 @@ from pangea.services import Embargo
 
 class TestEmbargo(unittest.TestCase):
     def setUp(self):
-        token = os.getenv("PANGEA_INTEGRATION_EMBARGO_TOKEN")
+        token = os.getenv("PANGEA_INTEGRATION_TOKEN")
         domain = os.getenv("PANGEA_INTEGRATION_DOMAIN")
         config = PangeaConfig(domain=domain)
         self.embargo = Embargo(token, config=config)

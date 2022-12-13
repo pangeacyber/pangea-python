@@ -6,7 +6,7 @@ import json
 import os
 import sys
 import typing as t
-from datetime import datetime, timezone
+from datetime import datetime, timezone, date
 
 from pangea.config import PangeaConfig
 from pangea.services import Audit
@@ -82,8 +82,8 @@ def file_events(root_hashes: dict[int, str], f: io.TextIOWrapper) -> t.Iterator[
             exit_with_error(f"failed to parse line {idx}: {str(e)}")
 
 
-def init_audit(token: str, domain: str, config_id: str = "") -> Audit:
-    config = PangeaConfig(domain=domain, config_id=config_id)
+def init_audit(token: str, domain: str) -> Audit:
+    config = PangeaConfig(domain=domain)
     audit = Audit(token, config=config)
     return audit
 
@@ -93,6 +93,23 @@ def make_aware_datetime(d: datetime) -> datetime:
         return d.replace(tzinfo=timezone.utc)
     else:
         return d
+
+
+def json_defaults(obj):
+    if obj is None:
+        return obj
+    elif isinstance(obj, (datetime, date)):
+        return obj.isoformat().replace("+00:00", "Z")
+    else:
+        return str(obj)
+
+
+def filter_deep_none(data: dict) -> dict:
+    return {
+        k: v if not isinstance(v, dict) else filter_deep_none(v)
+        for k, v in data.items()
+        if v is not None
+    }
 
 
 class SequenceFollower:
