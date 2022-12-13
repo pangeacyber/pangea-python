@@ -107,7 +107,7 @@ class Redact(ServiceBase):
     """Redact service client.
 
     Provides the methods to interact with the Pangea Redact Service:
-        [https://docs.dev.pangea.cloud/docs/api/redact](https://docs.dev.pangea.cloud/docs/api/redact)
+        [https://pangea.cloud/docs/api/redact](https://pangea.cloud/docs/api/redact)
 
     The following information is needed:
         PANGEA_TOKEN - service token which can be found on the Pangea User
@@ -122,7 +122,7 @@ class Redact(ServiceBase):
 
         PANGEA_TOKEN = os.getenv("PANGEA_REDACT_TOKEN")
 
-        redact_config = PangeaConfig(domain="pangea.cloud")
+        redact_config = PangeaConfig(domain="aws.us.pangea.cloud")
 
         # Setup Pangea Redact service client
         redact = Redact(token=PANGEA_TOKEN, config=redact_config)
