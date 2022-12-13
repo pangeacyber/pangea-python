@@ -1,8 +1,6 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
-import json
-import os
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
 from pangea.response import PangeaResponse
 from pangea.services.audit.exceptions import AuditException, EventCorruption
@@ -14,8 +12,8 @@ from pangea.services.audit.util import (
     decode_consistency_proof,
     decode_hash,
     decode_membership_proof,
+    format_datetime,
     get_arweave_published_roots,
-    get_root_filename,
     verify_consistency_proof,
     verify_envelope_hash,
     verify_membership_proof,
@@ -40,7 +38,7 @@ class Audit(ServiceBase):
         from pangea.services import Audit
 
         PANGEA_TOKEN = os.getenv("PANGEA_AUDIT_TOKEN")
-        audit_config = PangeaConfig(domain="pangea.cloud")
+        audit_config = PangeaConfig(domain="aws.us.pangea.cloud")
 
         # Setup Pangea Audit service
         audit = Audit(token=PANGEA_TOKEN, config=audit_config)
@@ -59,13 +57,10 @@ class Audit(ServiceBase):
 
         self.pub_roots: Dict[int, Root] = {}
         self.buffer_data: Optional[str] = None
-        self.root_id_filename: str = get_root_filename()
-
         self.signer: Optional[Signer] = Signer(private_key_file) if private_key_file else None
 
         # In case of Arweave failure, ask the server for the roots
         self.allow_server_roots = True
-
         self.prev_unpublished_root_hash: Optional[str] = None
 
     def log(
@@ -116,7 +111,7 @@ class Audit(ServiceBase):
             except pe.PangeaAPIException as e:
                 print(f"Request Error: {e.response.summary}")
                 for err in e.errors:
-                    print(f"\t{err.detail} \n")
+                    print(f"\\t{err.detail} \\n")
         """
 
         endpoint_name = "log"
@@ -223,15 +218,15 @@ class Audit(ServiceBase):
         Search for events that match the provided search criteria.
 
         Args:
-            query (str): - Natural search string; list of keywords with optional
-                    `<option>:<value>` qualifiers. The following optional qualifiers are supported:
-                        - action
-                        - actor
-                        - message
-                        - new
-                        - old
-                        - status
-                        - target
+            query (str): Natural search string; list of keywords with optional
+                `<option>:<value>` qualifiers. The following optional qualifiers are supported:
+                    - action
+                    - actor
+                    - message
+                    - new
+                    - old
+                    - status
+                    - target
             order (SearchOrder, optional): Specify the sort order of the response.
             order_by (SearchOrderBy, optional): Name of column to sort the results by.
             last (str, optional): Optional[str] = None,
@@ -241,9 +236,8 @@ class Audit(ServiceBase):
             max_results (int, optional): Maximum number of results to return.
             search_restriction (dict, optional): A list of keys to restrict the search results to. Useful for partitioning data available to the query string.
             verbose (bool, optional): If true, response include root and membership and consistency proofs.
-            verify (bool, optional): If set, the consistency and membership proofs are validated for all
-                events returned by `search` and `results`. The fields `consistency_proof_verification` and
-                `membership_proof_verification` are added to each event, with the value `pass`, `fail` or `none`.
+            verify_consistency (bool): True to verify logs consistency
+            verify_events (bool): True to verify hash events and signatures
             verify_signatures (bool, optional):
 
         Raises:
@@ -268,8 +262,8 @@ class Audit(ServiceBase):
             query=query,
             order=order,
             order_by=order_by,
-            start=start,
-            end=end,
+            start=None if start is None else format_datetime(start),
+            end=None if end is None else format_datetime(end),
             limit=limit,
             max_results=max_results,
             search_restriction=search_restriction,
@@ -569,28 +563,3 @@ class Audit(ServiceBase):
         response = self.request.post(endpoint_name, data=input.dict(exclude_none=True))
         response.result = RootResult(**response.raw_result)
         return response
-
-    def get_local_data(self):
-        if not self.buffer_data:
-            if os.path.exists(self.root_id_filename):
-                try:
-                    with open(self.root_id_filename, "r") as file:
-                        self.buffer_data = file.read()
-                except Exception:
-                    raise AuditException("Error: Failed loading data file from local disk.")
-
-        return self.buffer_data
-
-    def set_local_data(self, last_root_enc: str, pending_roots: List[str]):
-        buffer_dict = dict()
-        buffer_dict["last_root"] = last_root_enc
-        buffer_dict["pending_roots"] = pending_roots
-
-        try:
-            with open(self.root_id_filename, "w") as file:
-                self.buffer_data = json.dumps(buffer_dict)
-                file.write(self.buffer_data)
-        except Exception:
-            raise AuditException("Error: Failed saving data file to local disk.")
-
-        return
