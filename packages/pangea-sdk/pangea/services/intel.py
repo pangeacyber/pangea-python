@@ -115,7 +115,7 @@ class FileIntel(ServiceBase):
 
         PANGEA_TOKEN = os.getenv("PANGEA_INTEL_TOKEN")
 
-        file_intel_config = PangeaConfig(domain="pangea.cloud")
+        file_intel_config = PangeaConfig(domain="aws.us.pangea.cloud")
 
         # Setup Pangea File Intel service
         file_intel = FileIntel(token=PANGEA_TOKEN, config=file_intel_config)
@@ -194,7 +194,7 @@ class DomainIntel(ServiceBase):
 
         PANGEA_TOKEN = os.getenv("PANGEA_INTEL_TOKEN")
 
-        domain_intel_config = PangeaConfig(domain="pangea.cloud")
+        domain_intel_config = PangeaConfig(domain="aws.us.pangea.cloud")
 
         # Setup Pangea Domain Intel service
         domain_intel = DomainIntel(token=PANGEA_TOKEN, config=domain_intel_config)
