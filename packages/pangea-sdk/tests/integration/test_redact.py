@@ -1,9 +1,8 @@
 import os
 import unittest
 
-import pydantic
-
 import pangea.exceptions as pe
+import pydantic
 from pangea import PangeaConfig
 from pangea.response import ResponseStatus
 from pangea.services import Redact
@@ -11,7 +10,7 @@ from pangea.services import Redact
 
 class TestRedact(unittest.TestCase):
     def setUp(self):
-        token = os.getenv("PANGEA_INTEGRATION_REDACT_TOKEN")
+        token = os.getenv("PANGEA_INTEGRATION_TOKEN")
         domain = os.getenv("PANGEA_INTEGRATION_DOMAIN")
         config = PangeaConfig(domain=domain)
         self.redact = Redact(token, config=config)
