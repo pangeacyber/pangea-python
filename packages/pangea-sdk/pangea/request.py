@@ -65,7 +65,7 @@ class PangeaRequest(object):
             headers (dict): key-value pair containing extra headers to et
 
         Example:
-            set_extra_headers({ "X-Pangea-Audit-Config-ID" : "foobar" })
+            set_extra_headers({ "My-Header" : "foobar" })
         """
         self._extra_headers = headers
 
@@ -206,11 +206,9 @@ class PangeaRequest(object):
         elif status == ResponseStatus.SERVICE_NOT_AVAILABLE.value:
             raise exceptions.ServiceNotAvailableException(summary, response)
         elif status == ResponseStatus.TREE_NOT_FOUND.value:
-            raise exceptions.TreeNotFoundException(summary)
+            raise exceptions.TreeNotFoundException(summary, response)
         elif status == ResponseStatus.IP_NOT_FOUND.value:
             raise exceptions.IPNotFoundException(summary)
         elif status == ResponseStatus.BAD_OFFSET.value:
-            raise exceptions.BadOffsetException(summary)
-        elif status == ResponseStatus.FORBIDDEN_VAULT_OPERATION.value:
-            raise exceptions.ForbiddenVaultOperation(summary, response)
+            raise exceptions.BadOffsetException(summary, response)
         raise exceptions.PangeaAPIException(f"{status}: {summary}", response)

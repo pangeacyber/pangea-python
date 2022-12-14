@@ -423,7 +423,7 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7.2"
-content-hash = "b88d8f2a16ffb76cd91e57daf3fe35838a52da779ea02e899dddcba06ddbd993"
+content-hash = "d551cb2d7616468ed7dca6c9b8201c5c9c01f225f258e37221f45759a7f915bc"
 
 [metadata.files]
 about-time = [

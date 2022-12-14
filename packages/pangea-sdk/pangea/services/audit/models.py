@@ -209,8 +209,8 @@ class SearchRequest(APIRequestModel):
     order: Optional[SearchOrder] = None
     order_by: Optional[SearchOrderBy] = None
     last: Optional[str] = None
-    start: Optional[Union[datetime.time, str]] = None
-    end: Optional[Union[datetime.time, str]] = None
+    start: Optional[str] = None
+    end: Optional[str] = None
     limit: Optional[int] = None
     max_results: Optional[int] = None
     search_restriction: Optional[dict] = None

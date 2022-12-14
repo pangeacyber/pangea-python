@@ -2,20 +2,24 @@ import os
 
 import pangea.exceptions as pe
 from pangea.config import PangeaConfig
-from pangea.services import IpIntel
+from pangea.services import Audit
+from pangea.services.audit.models import Event
 
-token = os.getenv("PANGEA_IP_INTEL_TOKEN")
+token = os.getenv("PANGEA_AUDIT_TOKEN")
 domain = os.getenv("PANGEA_DOMAIN")
 config = PangeaConfig(domain=domain)
-intel = IpIntel(token, config=config)
+audit = Audit(token, config=config)
+
+# This example shows how to perform an audit log
 
 
 def main():
-    print(f"Checking IP...")
+    msg = "Hello, World!"
+    print(f"Logging: {msg}")
 
     try:
-        response = intel.lookup(ip="93.231.182.110", provider="crowdstrike", verbose=True, raw=True)
-        print(f"Response: {response.result}")
+        log_response = audit.log(message=msg, verbose=False)
+        print(f"Response: {log_response.result}")
     except pe.PangeaAPIException as e:
         print(f"Request Error: {e.response.summary}")
         for err in e.errors:

@@ -11,13 +11,14 @@ from datetime import datetime
 import dateutil.parser
 from pangea.response import PangeaResponse
 from pangea.services import Audit
-from pangea.tools import get_script_name, init_audit, make_aware_datetime, print_progress_bar
+from pangea.tools_util import get_script_name, init_audit, make_aware_datetime, print_progress_bar, json_defaults, filter_deep_none
 
 
 def dump_event(output: io.TextIOWrapper, row: dict, resp: PangeaResponse):
-    if "root" in resp.result:
-        row.tree_size = resp.result.root.size
-    output.write(json.dumps(row) + "\n")
+    row_data = filter_deep_none(row.dict())
+    if resp.result.root:
+        row_data["tree_size"] = resp.result.root.size
+    output.write(json.dumps(row_data, default=json_defaults) + "\n")
 
 
 def dump_audit(audit: Audit, output: io.TextIOWrapper, start: datetime, end: datetime) -> int:
@@ -41,6 +42,7 @@ def dump_audit(audit: Audit, output: io.TextIOWrapper, start: datetime, end: dat
 def dump_before(audit: Audit, output: io.TextIOWrapper, start: datetime) -> int:
     print("Dumping before...", end="\r")
     search_res = audit.search(
+        query="",
         start="2000-01-01T10:00:00Z",
         end=start.isoformat(),
         order="desc",
@@ -66,7 +68,12 @@ def dump_before(audit: Audit, output: io.TextIOWrapper, start: datetime) -> int:
 def dump_after(audit: Audit, output: io.TextIOWrapper, start: datetime) -> int:
     print("Dumping after...", end="\r")
     search_res = audit.search(
-        start=start.isoformat(), order="asc", verify_consistency=False, limit=1000, max_results=1000
+        query="",
+        start=start.isoformat(),
+        order="asc",
+        verify_consistency=False,
+        limit=1000,
+        max_results=1000
     )
     if not search_res.success:
         raise ValueError("Error fetching events")
@@ -89,6 +96,7 @@ def dump_page(
 
     print("Dumping...", end="\r")
     search_res = audit.search(
+        query="",
         start=start.isoformat(),
         end=end.isoformat(),
         order="asc",
@@ -118,7 +126,7 @@ def dump_page(
                 raise ValueError("Error fetching events")
         print_progress_bar(offset, count, prefix=msg, suffix="Complete", length=50)
 
-    page_end = dateutil.parser.parse(row.envelope.received_at)
+    page_end = row.envelope.received_at
     return page_end, offset
 
 
@@ -129,12 +137,6 @@ def create_parser():
     )
     parser.add_argument(
         "--domain", "-d", default=os.getenv("PANGEA_DOMAIN"), help="Pangea domain (default: env PANGEA_DOMAIN)"
-    )
-    parser.add_argument(
-        "--config-id",
-        "-c",
-        default=os.getenv("PANGEA_AUDIT_CONFIG_ID"),
-        help="Audit config id (default: env PANGEA_AUDIT_CONFIG_ID)",
     )
     parser.add_argument("--output", "-o", type=argparse.FileType("w"), help="Output file name. Default: stdout")
     parser.add_argument(
@@ -180,7 +182,7 @@ def main():
     print("Pangea Audit Dump Tool\n")
 
     try:
-        audit = init_audit(args.token, args.domain, args.config_id)
+        audit = init_audit(args.token, args.domain)
         cnt = dump_audit(audit, args.output, args.start, args.end)
         print(f"\nFile {args.output.name} created with {cnt} events.")
 
