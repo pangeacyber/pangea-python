@@ -198,39 +198,3 @@ class AuthN(ServiceBase):
         response = self.request.post("user/profile/update", data=input.dict(exclude_none=True))
         response.result = UserProfileUpdateResult(**response.raw_result)
         return response
-
-    #   - path: authn::/v1/totp/create
-    # https://dev.pangea.cloud/docs/api/authn#enroll-totp
-    def totp_create(self, email: str, issuer: Optional[str] = None) -> PangeaResponse[TOTPCreateResult]:
-        input = TOTPCreateRequest(email=email, issuer=issuer)
-        response = self.request.post("totp/create", data=input.dict(exclude_none=True))
-        if response.raw_result is not None:
-            response.result = TOTPCreateResult(**response.raw_result)
-        return response
-
-    #   - path: authn::/v1/totp/verify
-    # https://dev.pangea.cloud/docs/api/authn#verify-totp
-    def topt_verify(self, secret: str, code: str) -> PangeaResponse[TOTPVerifyResult]:
-        input = TOTPVerifyRequest(secret=secret, code=code)
-        response = self.request.post("totp/verify", data=input.dict(exclude_none=True))
-        if response.raw_result is not None:
-            response.result = TOTPVerifyResult(**response.raw_result)
-        return response
-
-    #   - path: authn::/v1/otp/create
-    # https://dev.pangea.cloud/docs/api/authn#send-otp
-    def otp_create(self, email: str, otp_provider: str) -> PangeaResponse[OTPCreateResult]:
-        input = OTPCreateRequest(email=email, otp_provider=otp_provider)
-        response = self.request.post("otp/create", data=input.dict(exclude_none=True))
-        if response.raw_result is not None:
-            response.result = OTPCreateResult(**response.raw_result)
-        return response
-
-    #   - path: authn::/v1/otp/verify
-    # https://dev.pangea.cloud/docs/api/authn#verify-otp
-    def otp_verify(self, email: str, code: str, otp_provider: str) -> PangeaResponse[OTPVerifyResult]:
-        input = OTPVerifyRequest(email=email, code=code, otp_provider=otp_provider)
-        response = self.request.post("otp/verify", data=input.dict(exclude_none=True))
-        if response.raw_result is not None:
-            response.result = OTPVerifyResult(**response.raw_result)
-        return response
