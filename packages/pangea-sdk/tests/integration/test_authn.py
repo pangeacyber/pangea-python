@@ -135,5 +135,11 @@ class TestAuthN(unittest.TestCase):
         self.assertIsNotNone(response.result)
         # FIXME: This should be greater than 0. But there is a bug to solve there
         # Once it's solved uncomment next line. Remove the incorrect, and remove this FIXME. Make yourself a coffee.
-        # self.assertGreater(0, len(response.result.users))
+        # self.assertGreater(len(response.result.users), 0)
         self.assertEqual(0, len(response.result.users))
+
+    def test_authn_user_invite_list(self):
+        response = self.authn.user_invite_list()
+        self.assertEqual(response.status, "Success")
+        self.assertIsNotNone(response.result)
+        self.assertGreater(len(response.result.invites), 0)

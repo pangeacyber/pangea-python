@@ -4,7 +4,7 @@
 import enum
 from typing import Any, Dict, List, NewType, Optional
 
-from pangea.response import APIRequestModel, PangeaResponseResult
+from pangea.response import APIRequestModel, APIResponseModel, PangeaResponseResult
 
 Scopes = NewType("Scopes", List[str])
 Profile = NewType("Profile", Dict[str, Any])
@@ -88,6 +88,22 @@ class UserInviteResult(PangeaResponseResult):
     expire: str
 
 
+class UserInvite(APIResponseModel):
+    id: str
+    inviter: str
+    invite_org: str
+    email: str
+    callback: str
+    state: str
+    require_mfa: bool
+    created_at: str
+    expire: str
+
+
+class UserInviteListResult(PangeaResponseResult):
+    invites: List[UserInvite]
+
+
 class UserInviteDeleteRequest(APIRequestModel):
     id: str
 
@@ -168,41 +184,3 @@ class UserProfileUpdateResult(PangeaResponseResult):
     verified: bool
     last_login_at: str
     disable: Optional[bool] = None
-
-
-class TOTPCreateRequest(APIRequestModel):
-    email: str
-    issuer: Optional[str] = None
-
-
-class TOTPCreateResult(PangeaResponseResult):
-    qr_image: str
-    secret: str
-
-
-class TOTPVerifyRequest(APIRequestModel):
-    secret: str
-    code: str
-
-
-class TOTPVerifyResult(PangeaResponseResult):
-    verified: bool
-
-
-class OTPCreateRequest(APIRequestModel):
-    email: str
-    otp_provider: str
-
-
-class OTPCreateResult(PangeaResponseResult):
-    otp_provider: str
-
-
-class OTPVerifyRequest(APIRequestModel):
-    email: str
-    code: str
-    opt_provider: str
-
-
-class OTPVerifyResult(PangeaResponseResult):
-    verified: bool

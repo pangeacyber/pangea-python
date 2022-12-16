@@ -6,24 +6,17 @@ from typing import Optional
 from pangea.response import PangeaResponse
 from pangea.services.authn.models import (
     IDProvider,
-    OTPCreateRequest,
-    OTPCreateResult,
-    OTPVerifyRequest,
-    OTPVerifyResult,
     PasswordUpdateRequest,
     PasswordUpdateResult,
     Profile,
     Scopes,
-    TOTPCreateRequest,
-    TOTPCreateResult,
-    TOTPVerifyRequest,
-    TOTPVerifyResult,
     UserCreateRequest,
     UserCreateResult,
     UserDeleteRequest,
     UserDeleteResult,
     UserInviteDeleteRequest,
     UserInviteDeleteResult,
+    UserInviteListResult,
     UserInviteRequest,
     UserInviteResult,
     UserListRequest,
@@ -137,8 +130,11 @@ class AuthN(ServiceBase):
 
     #   - path: authn::/v1/user/invite/list
     # https://dev.pangea.cloud/docs/api/authn#list-invites
-    def user_invite_list(self):  # FIXME: Not documented yet
-        pass
+    def user_invite_list(self):
+        response = self.request.post("user/invite/list", data={})
+        if response.raw_result is not None:
+            response.result = UserInviteListResult(**response.raw_result)
+        return response
 
     #   - path: authn::/v1/user/invite/delete
     # https://dev.pangea.cloud/docs/api/authn#delete-an-invite
