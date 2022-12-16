@@ -1,6 +1,7 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 
+import enum
 from typing import Any, Dict, List, NewType, Optional
 
 from pangea.response import APIRequestModel, PangeaResponseResult
@@ -16,15 +17,29 @@ class PasswordUpdateRequest(APIRequestModel):
 
 
 class PasswordUpdateResult(PangeaResponseResult):
-    # FIXME: Update once doc is updated
     # https://dev.pangea.cloud/docs/api/authn#change-a-users-password
     pass
+
+
+class IDProvider(str, enum.Enum):
+    PASSWORD = "password"
+    GOOGLE = "google"
+    GITHUB = "github"
+    FACEBOOK = "facebook"
+    MICROSOFT_ONLINE = "microsoftonline"
+
+    def __str__(self):
+        return self.value
+
+    def __repr__(self):
+        return self.value
 
 
 # https://dev.pangea.cloud/docs/api/authn#create-user
 class UserCreateRequest(APIRequestModel):
     email: str
     authenticator: str
+    id_provider: IDProvider
     verified: Optional[bool] = None
     require_mfa: Optional[bool] = None
     profile: Optional[Profile] = None
@@ -36,11 +51,11 @@ class UserCreateResult(PangeaResponseResult):
     email: str
     profile: Profile
     id_provider: str
-    mfa_provider: List[str]
     require_mfa: bool
     verified: bool
-    disable: bool
     last_login_at: str
+    disable: Optional[bool] = None
+    mfa_provider: Optional[List[str]] = None
 
 
 class UserDeleteRequest(APIRequestModel):
@@ -48,7 +63,7 @@ class UserDeleteRequest(APIRequestModel):
 
 
 class UserDeleteResult(PangeaResponseResult):
-    # FIXME: update once documented # https://dev.pangea.cloud/docs/api/authn#delete-a-user
+    # https://dev.pangea.cloud/docs/api/authn#delete-a-user
     pass
 
 
@@ -64,7 +79,7 @@ class UserInviteRequest(APIRequestModel):
 class UserInviteResult(PangeaResponseResult):
     id: str
     inviter: str
-    invite_ord: str
+    invite_org: str
     email: str
     callback: str
     state: str
@@ -112,14 +127,14 @@ class UserLoginResult(PangeaResponseResult):
     expire: str
     identity: str
     email: str
-    scopes: Scopes
+    scopes: Optional[Scopes] = None
     profile: Profile
     created_at: str
 
 
 class UserProfileGetRequest(APIRequestModel):
-    identity: str
-    email: str
+    identity: Optional[str] = None
+    email: Optional[str] = None
 
 
 class UserProfileGetResult(PangeaResponseResult):
@@ -130,14 +145,14 @@ class UserProfileGetResult(PangeaResponseResult):
     mfa_providers: List[str]
     require_mfa: bool
     verified: bool
-    disable: bool
     last_login_at: str
+    disable: Optional[bool] = None
 
 
 class UserProfileUpdateRequest(APIRequestModel):
-    identity: str
-    email: str
     profile: Profile
+    identity: Optional[str] = None
+    email: Optional[str] = None
     require_mfa: Optional[bool] = None
     mfa_value: Optional[str] = None
     mfa_provider: Optional[str] = None
@@ -151,8 +166,8 @@ class UserProfileUpdateResult(PangeaResponseResult):
     mfa_providers: List[str]
     require_mfa: bool
     verified: bool
-    disable: bool
     last_login_at: str
+    disable: Optional[bool] = None
 
 
 class TOTPCreateRequest(APIRequestModel):
