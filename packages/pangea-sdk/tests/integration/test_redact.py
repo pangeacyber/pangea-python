@@ -1,4 +1,3 @@
-import os
 import unittest
 
 import pangea.exceptions as pe
@@ -6,12 +5,15 @@ import pydantic
 from pangea import PangeaConfig
 from pangea.response import ResponseStatus
 from pangea.services import Redact
+from pangea.tools_util import TestEnvironment, get_test_domain, get_test_token
+
+TEST_ENVIRONMENT = TestEnvironment.PRODUCTION
 
 
 class TestRedact(unittest.TestCase):
     def setUp(self):
-        token = os.getenv("PANGEA_INTEGRATION_TOKEN")
-        domain = os.getenv("PANGEA_INTEGRATION_DOMAIN")
+        token = get_test_token(TEST_ENVIRONMENT)
+        domain = get_test_domain(TEST_ENVIRONMENT)
         config = PangeaConfig(domain=domain)
         self.redact = Redact(token, config=config)
 
@@ -40,11 +42,9 @@ class TestRedact(unittest.TestCase):
 
     def test_redact_with_bad_auth_token(self):
         token = "notarealtoken"
-        domain = os.getenv("PANGEA_INTEGRATION_DOMAIN")
+        domain = get_test_domain(TEST_ENVIRONMENT)
         config = PangeaConfig(domain=domain)
-
         badredact = Redact(token, config=config)
-
         text = "Jenny Jenny... 415-867-5309"
 
         with self.assertRaises(pe.UnauthorizedException):

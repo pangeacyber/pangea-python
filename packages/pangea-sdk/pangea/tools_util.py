@@ -1,15 +1,28 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 
+import enum
 import io
 import json
 import os
 import sys
 import typing as t
-from datetime import datetime, timezone, date
+from datetime import date, datetime, timezone
 
 from pangea.config import PangeaConfig
 from pangea.services import Audit
+
+
+class TestEnvironment(str, enum.Enum):
+    PRODUCTION = "PROD"
+    DEVELOP = "DEV"
+    STAGING = "STG"
+
+    def __str__(self):
+        return str(self.value)
+
+    def __repr__(self):
+        return str(self.value)
 
 
 class Root(t.TypedDict):
@@ -105,11 +118,15 @@ def json_defaults(obj):
 
 
 def filter_deep_none(data: dict) -> dict:
-    return {
-        k: v if not isinstance(v, dict) else filter_deep_none(v)
-        for k, v in data.items()
-        if v is not None
-    }
+    return {k: v if not isinstance(v, dict) else filter_deep_none(v) for k, v in data.items() if v is not None}
+
+
+def get_test_domain(environment: TestEnvironment):
+    return os.getenv(f"PANGEA_INTEGRATION_DOMAIN_{environment}")
+
+
+def get_test_token(environment: TestEnvironment):
+    return os.getenv(f"PANGEA_INTEGRATION_TOKEN_{environment}")
 
 
 class SequenceFollower:
