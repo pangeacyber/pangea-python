@@ -1,5 +1,6 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+import hashlib
 from typing import Dict, List, Optional
 
 from pangea.response import APIRequestModel, APIResponseModel, PangeaResponse, PangeaResponseResult
@@ -138,7 +139,11 @@ class FileIntel(ServiceBase):
         Retrieve file reputation from a provider, using the file's hash.
 
         Args:
-            input (FileLookupInput): input with file information to perform request
+            hash (str): hash to perform lookup
+            hash_type (str): hash type of hash parameter
+            provider (str, optional): intel provider to perfome lookup
+            verbose (bool, optional): true to get more detalied response
+            raw (bool, optional): true to get provider raw response
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -148,7 +153,7 @@ class FileIntel(ServiceBase):
                 response.result field.  Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/file-intel).
 
         Examples:
-            response = file_intel.lookup(FileLookupInput(hash="142b638c6a60b60c7f9928da4fb85a5a8e1422a9ffdc9ee49e17e56ccca9cf6e", hash_type="sha256", provider="reversinglabs"))
+            response = file_intel.lookup(hash="142b638c6a60b60c7f9928da4fb85a5a8e1422a9ffdc9ee49e17e56ccca9cf6e", hash_type="sha256", provider="reversinglabs")
 
             \"\"\"
             response contains:
@@ -171,6 +176,63 @@ class FileIntel(ServiceBase):
             \"\"\"
         """
         input = FileLookupRequest(hash=hash, hash_type=hash_type, verbose=verbose, raw=raw, provider=provider)
+        response = self.request.post("lookup", data=input.dict(exclude_none=True))
+        response.result = FileLookupResult(**response.raw_result)
+        return response
+
+    def lookupFilepath(
+        self,
+        filepath: str,
+        provider: Optional[str] = None,
+        verbose: Optional[bool] = None,
+        raw: Optional[bool] = None,
+    ) -> PangeaResponse[FileLookupResult]:
+        """
+        Look up a file
+
+        Retrieve file reputation from a provider, using the file's hash.
+
+        Args:
+            filepath (str): path file to calculate hash and request a lookup
+            provider (str, optional): intel provider to perfome lookup
+            verbose (bool, optional): true to get more detalied response
+            raw (bool, optional): true to get provider raw response
+
+        Raises:
+            PangeaAPIException: If an API Error happens
+
+        Returns:
+            A PangeaResponse where the sanctioned source(s) are in the
+                response.result field.  Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/file-intel).
+
+        Examples:
+            response = file_intel.lookup(filepath="./myfile.exe", provider="reversinglabs"))
+
+            \"\"\"
+            response contains:
+            {
+                "request_id": "prq_snooq62g4jsolhhpm4ze6pgzhmguflnl",
+                "request_time": "2022-10-10T21:54:19.392Z",
+                "response_time": "2022-10-10T21:54:19.933Z",
+                "status": "Success",
+                "summary": "Hash was found",
+                "result": {
+                    "data": {
+                        "category": [
+                            "Trojan"
+                        ],
+                        "score": 100,
+                        "verdict": "malicious"
+                    }
+                }
+            }
+            \"\"\"
+        """
+
+        data = open(filepath, "rb")
+        hash = hashlib.sha256(data.read()).hexdigest()
+
+        input = FileLookupRequest(hash=hash, hash_type="sha256", verbose=verbose, raw=raw, provider=provider)
         response = self.request.post("lookup", data=input.dict(exclude_none=True))
         response.result = FileLookupResult(**response.raw_result)
         return response
@@ -212,7 +274,10 @@ class DomainIntel(ServiceBase):
         Retrieve Domain reputation from a provider.
 
         Args:
-            input (URLLookupInput): input with domain information to perform request
+            domain (str): domain to request for a lookup
+            provider (str, optional): intel provider to perfome lookup
+            verbose (bool, optional): true to get more detalied response
+            raw (bool, optional): true to get provider raw response
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -222,7 +287,7 @@ class DomainIntel(ServiceBase):
                 response.result field.  Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/domain-intel).
 
         Examples:
-            response = domain_intel.lookup(DomainLookupInput(domain="737updatesboeing.com", provider="domaintools"))
+            response = domain_intel.lookup(domain="737updatesboeing.com", provider="domaintools")
 
             \"\"\"
             response contains:

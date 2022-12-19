@@ -49,6 +49,16 @@ class TestFileIntel(unittest.TestCase):
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertEqual(response.result.data.verdict, "malicious")
 
+    def test_file_lookup_from_filepath(self):
+        response = self.intel_file.lookupFilepath(
+            filepath="./README.md",
+            provider="reversinglabs",
+            verbose=True,
+            raw=True,
+        )
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertEqual(response.result.data.verdict, "unknown")
+
     def test_file_lookup_with_bad_auth_token(self):
         token = "noarealtoken"
         domain = os.getenv("PANGEA_INTEGRATION_DOMAIN")
