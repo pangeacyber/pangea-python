@@ -1,15 +1,17 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 
-import os
 import random
 import unittest
 
 import pangea.exceptions as pexc
 from pangea import PangeaConfig
-from pangea.response import PangeaResponse, ResponseStatus
 from pangea.services.authn.authn import AuthN
 from pangea.services.authn.models import IDProvider
+from pangea.tools_util import TestEnvironment, get_test_domain, get_test_token
+
+TEST_ENVIRONMENT = TestEnvironment.DEVELOP
+
 
 RANDOM_VALUE = random.randint(0, 10000000)
 EMAIL_TEST = f"andres.tournour+test{RANDOM_VALUE}@pangea.cloud"
@@ -32,8 +34,8 @@ def print_api_error(e: pexc.PangeaAPIException):
 
 class TestAuthN(unittest.TestCase):
     def setUp(self):
-        self.token = os.getenv("PANGEA_INTEGRATION_TOKEN")
-        domain = os.getenv("PANGEA_INTEGRATION_DOMAIN")
+        self.token = get_test_token(TEST_ENVIRONMENT)
+        domain = get_test_domain(TEST_ENVIRONMENT)
         self.config = PangeaConfig(domain=domain)
         self.authn = AuthN(self.token, config=self.config)
 
