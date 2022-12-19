@@ -3,7 +3,16 @@
 import enum
 from typing import Optional
 
-from pangea.services.vault.models.common import *
+from pangea.services.vault.models.common import (
+    StoreCommonRequest,
+    StoreCommonResult,
+    CreateCommonRequest,
+    CreateCommonResult,
+    RetrieveCommonRequest,
+    RetrieveCommonResult,
+    RotateCommonRequest,
+    RotateCommonResult,
+)
 
 
 class SecretAlgorithm(str, enum.Enum):
@@ -18,17 +27,30 @@ class SecretAlgorithm(str, enum.Enum):
 
 class StoreSecretRequest(StoreCommonRequest):
     secret: str
+    type: str
 
 
 class StoreSecretResult(StoreCommonResult):
     secret: str
 
 
+class CreateSecretRequest(CreateCommonRequest):
+    type: str
+
+
 class CreateSecretResult(CreateCommonResult):
     secret: str
 
 
+class RetrieveSecretRequest(RetrieveCommonRequest):
+    pass
+
+
 class RetrieveSecretResult(RetrieveCommonResult):
+    secret: str
+
+
+class RotateSecretRequest(RotateCommonRequest):
     secret: str
 
 

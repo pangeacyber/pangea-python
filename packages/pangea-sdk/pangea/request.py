@@ -55,9 +55,6 @@ class PangeaRequest(object):
     def __del__(self):
         self.session.close()
 
-    def __del__(self):
-        self.request.close()
-
     def set_extra_headers(self, headers: dict):
         """Sets any additional headers in the request.
 
@@ -79,7 +76,7 @@ class PangeaRequest(object):
 
         return self._queued_retry_enabled
 
-    def post(self, endpoint: str = "", data: dict | str = {}) -> PangeaResponse:
+    def post(self, endpoint: str = "", data: dict = {}) -> PangeaResponse:
         """Makes the POST call to a Pangea Service endpoint.
 
         If queued_support mode is enabled, progress checks will be made for
@@ -95,10 +92,7 @@ class PangeaRequest(object):
                various properties to retrieve individual fields
         """
         url = self._url(endpoint)
-        # print("post to url: ", url)
-        data = data if type(data) == str else json.dumps(data)
-        requests_response = self.request.post(url, headers=self._headers(), data=data)
-
+        requests_response = self.session.post(url, headers=self._headers(), data=data)
         if self._queued_retry_enabled and requests_response.status_code == 202:
             response_json = requests_response.json()
             request_id = response_json.get("request_id", None)
