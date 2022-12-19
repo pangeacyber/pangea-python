@@ -25,12 +25,12 @@ class TestEnvironment(str, enum.Enum):
         return str(self.value)
 
 
-class Root(t.TypedDict):
+class Root(t.Dict):
     size: int
     tree_name: str
 
 
-class Event(t.TypedDict):
+class Event(t.Dict):
     membership_proof: str
     leaf_index: t.Optional[int]
     event: dict
