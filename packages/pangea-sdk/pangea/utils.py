@@ -8,7 +8,9 @@ def format_datetime(dt: datetime.datetime) -> str:
     """
     Format a datetime in ISO format, using Z instead of +00:00
     """
-    return dt.isoformat().replace("+00:00", "Z")
+    if dt.tzinfo is None:
+        dt = dt.astimezone(datetime.timezone.utc)
+    return dt.isoformat(timespec="seconds").replace("+00:00", "Z")
 
 
 def setup_logger(path, name, log_level, formatter) -> logging.Logger:

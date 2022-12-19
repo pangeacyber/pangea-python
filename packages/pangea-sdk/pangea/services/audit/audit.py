@@ -1,6 +1,7 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
-from typing import Dict, Optional
+from typing import Dict, Optional, Union
+import datetime
 
 from pangea.response import PangeaResponse
 from pangea.services.audit.exceptions import AuditException, EventCorruption
@@ -9,19 +10,19 @@ from pangea.services.audit.models import (
     EventEnvelope,
     EventSigning,
     EventVerification,
-    LogInput,
-    LogOutput,
+    LogRequest,
+    LogResult,
     PublishedRoot,
     Root,
-    RootInput,
-    RootOutput,
+    RootRequest,
+    RootResult,
     RootSource,
     SearchEvent,
-    SearchInput,
+    SearchRequest,
     SearchOrder,
     SearchOrderBy,
     SearchOutput,
-    SearchResultInput,
+    SearchResultRequest,
     SearchResultOutput,
 )
 from pangea.services.audit.signing import Signer, Verifier

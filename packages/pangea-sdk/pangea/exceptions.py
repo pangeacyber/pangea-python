@@ -103,9 +103,13 @@ class VaultExceptions(PangeaException):
 
 
 # Vault API specific exceptions
-class VaultAPIExceptions(PangeaAPIException):
+class VaultAPIException(PangeaAPIException):
     """Vault service specific exceptions"""
 
 
-class ForbiddenVaultOperation(VaultAPIExceptions):
+class ForbiddenVaultOperation(VaultAPIException):
     """Forbiden Vault operation"""
+
+
+class VaultItemNotFound(VaultAPIException):
+    """Vault item not found"""
