@@ -148,7 +148,7 @@ class SequenceFollower:
             self.numbers.remove(min_val)
             min_val += 1
 
-    def holes(self) -> list[int]:
+    def holes(self) -> t.List[int]:
         if not self.numbers:
             return []
 
