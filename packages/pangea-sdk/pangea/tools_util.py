@@ -33,7 +33,7 @@ class Root(t.Dict):
 class Event(t.Dict):
     membership_proof: str
     leaf_index: t.Optional[int]
-    event: dict
+    event: t.Dict
     hash: str
     tree_size: t.Optional[int]
 
@@ -65,7 +65,7 @@ def exit_with_error(message: str):
     sys.exit(1)
 
 
-def file_events(root_hashes: dict[int, str], f: io.TextIOWrapper) -> t.Iterator[Event]:
+def file_events(root_hashes: t.Dict[int, str], f: io.TextIOWrapper) -> t.Iterator[Event]:
     """
     Reads a file containing Events in JSON format with the following fields:
     - membership_proof: str
@@ -117,8 +117,8 @@ def json_defaults(obj):
         return str(obj)
 
 
-def filter_deep_none(data: dict) -> dict:
-    return {k: v if not isinstance(v, dict) else filter_deep_none(v) for k, v in data.items() if v is not None}
+def filter_deep_none(data: t.Dict) -> t.Dict:
+    return {k: v if not isinstance(v, t.Dict) else filter_deep_none(v) for k, v in data.items() if v is not None}
 
 
 def get_test_domain(environment: TestEnvironment):
