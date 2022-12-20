@@ -139,6 +139,8 @@ jsonl file (one json per line)
 
 ```
 usage: python -m pangea.dump_audit [-h] [--token TOKEN] [--domain DOMAIN] [--output OUTPUT] start end
+or
+usage: poetry run python -m pangea.dump_audit [-h] [--token TOKEN] [--domain DOMAIN] [--output OUTPUT] start end
 
 Pangea Audit Dump Tool
 
