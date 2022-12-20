@@ -22,11 +22,11 @@ class PasswordUpdateResult(PangeaResponseResult):
 
 
 class IDProvider(str, enum.Enum):
-    PASSWORD = "password"
-    GOOGLE = "google"
     GITHUB = "github"
+    GOOGLE = "google"
     FACEBOOK = "facebook"
     MICROSOFT_ONLINE = "microsoftonline"
+    PASSWORD = "password"
 
     def __str__(self):
         return self.value
