@@ -98,7 +98,7 @@ def test_update_keys_secret(vault, temp_secret_key, ok):
 @pytest.mark.parametrize(("temp_secret_key", "ok"), [
     ("ok", True),
     ("missing", False),
-    ("expired", False),
+    ("expired", True),
     ("revoked", False),
 ], indirect=["temp_secret_key"])
 def test_rotate_keys_secret(vault, temp_secret_key, ok):

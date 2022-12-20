@@ -163,7 +163,7 @@ def test_update_keys_symmetric(vault, temp_symmetric_key, ok):
 @pytest.mark.parametrize(("temp_symmetric_key", "ok"), [
     ("ok", True),
     ("missing", False),
-    ("expired", False),
+    ("expired", True),
     ("revoked", False),
 ], indirect=["temp_symmetric_key"])
 def test_rotate_keys_symmetric(vault, temp_symmetric_key, ok):
