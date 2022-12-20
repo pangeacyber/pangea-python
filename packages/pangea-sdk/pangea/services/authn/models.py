@@ -22,9 +22,9 @@ class PasswordUpdateResult(PangeaResponseResult):
 
 
 class IDProvider(str, enum.Enum):
+    FACEBOOK = "facebook"
     GITHUB = "github"
     GOOGLE = "google"
-    FACEBOOK = "facebook"
     MICROSOFT_ONLINE = "microsoftonline"
     PASSWORD = "password"
 
