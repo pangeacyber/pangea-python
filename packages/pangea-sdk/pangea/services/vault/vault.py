@@ -1,8 +1,7 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 import datetime
-from base64 import b64encode
 
 from pangea.response import PangeaResponse
 from pangea.services.base import ServiceBase
