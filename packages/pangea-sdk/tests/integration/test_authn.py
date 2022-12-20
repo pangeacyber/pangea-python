@@ -28,8 +28,8 @@ USER_IDENTITY = None  # Will be set once user is created
 
 def print_api_error(e: pexc.PangeaAPIException):
     print(e)
-    for ef in e.errors:
-        print(ef)
+    for error_field in e.errors:
+        print(error_field)
 
 
 class TestAuthN(unittest.TestCase):

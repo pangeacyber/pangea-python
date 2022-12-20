@@ -65,7 +65,7 @@ class AuthN(ServiceBase):
         super().__init__(token, config)
 
     #   - path: authn::/v1/password/update
-    # https://dev.pangea.cloud/docs/api/authn#change-a-users-password
+    # https://dev.pangea.cloud/docs/api/authn#change-a-users-password   # FIXME: Update url once in prod
     def password_update(self, email: str, old_secret: str, new_secret: str) -> PangeaResponse[PasswordUpdateResult]:
         input = PasswordUpdateRequest(email=email, old_secret=old_secret, new_secret=new_secret)
         response = self.request.post("password/update", data=input.dict(exclude_none=True))
@@ -74,7 +74,7 @@ class AuthN(ServiceBase):
         return response
 
     #   - path: authn::/v1/user/create
-    # https://dev.pangea.cloud/docs/api/authn#create-user
+    # https://dev.pangea.cloud/docs/api/authn#create-user   # FIXME: Update url once in prod
     def user_create(
         self,
         email: str,
@@ -101,7 +101,7 @@ class AuthN(ServiceBase):
         return response
 
     #   - path: authn::/v1/user/delete
-    # https://dev.pangea.cloud/docs/api/authn#delete-a-user
+    # https://dev.pangea.cloud/docs/api/authn#delete-a-user # FIXME: Update url once in prod
     def user_delete(self, email: str) -> PangeaResponse[UserDeleteResult]:
         input = UserDeleteRequest(email=email)
         response = self.request.post("user/delete", data=input.dict(exclude_none=True))
@@ -110,7 +110,7 @@ class AuthN(ServiceBase):
         return response
 
     #   - path: authn::/v1/user/invite
-    # https://dev.pangea.cloud/docs/api/authn#invite-a-user
+    # https://dev.pangea.cloud/docs/api/authn#invite-a-user # FIXME: Update url once in prod
     def user_invite(
         self,
         inviter: str,
@@ -129,7 +129,7 @@ class AuthN(ServiceBase):
         return response
 
     #   - path: authn::/v1/user/invite/list
-    # https://dev.pangea.cloud/docs/api/authn#list-invites
+    # https://dev.pangea.cloud/docs/api/authn#list-invites # FIXME: Update url once in prod
     def user_invite_list(self):
         response = self.request.post("user/invite/list", data={})
         if response.raw_result is not None:
@@ -137,7 +137,7 @@ class AuthN(ServiceBase):
         return response
 
     #   - path: authn::/v1/user/invite/delete
-    # https://dev.pangea.cloud/docs/api/authn#delete-an-invite
+    # https://dev.pangea.cloud/docs/api/authn#delete-an-invite # FIXME: Update url once in prod
     def user_invite_delete(self, id: str) -> PangeaResponse[UserInviteDeleteResult]:
         input = UserInviteDeleteRequest(id=id)
         response = self.request.post("user/invite/delete", data=input.dict(exclude_none=True))
@@ -146,7 +146,7 @@ class AuthN(ServiceBase):
         return response
 
     #   - path: authn::/v1/user/list
-    # https://dev.pangea.cloud/docs/api/authn#list-users
+    # https://dev.pangea.cloud/docs/api/authn#list-users # FIXME: Update url once in prod
     def user_list(self, scopes: Scopes, glob_scopes: Scopes) -> PangeaResponse[UserListResult]:
         input = UserListRequest(scopes=scopes, glob_scopes=glob_scopes)
         response = self.request.post("user/list", data=input.dict(exclude_none=True))
@@ -154,7 +154,7 @@ class AuthN(ServiceBase):
         return response
 
     #   - path: authn::/v1/user/login
-    # https://dev.pangea.cloud/docs/api/authn#user-login
+    # https://dev.pangea.cloud/docs/api/authn#user-login # FIXME: Update url once in prod
     def user_login(self, email: str, secret: str, scopes: Optional[Scopes] = None) -> PangeaResponse[UserLoginResult]:
         input = UserLoginRequest(email=email, secret=secret, scopes=scopes)
         response = self.request.post("user/login", data=input.dict(exclude_none=True))
@@ -162,7 +162,7 @@ class AuthN(ServiceBase):
         return response
 
     #   - path: authn::/v1/user/profile/get
-    # https://dev.pangea.cloud/docs/api/authn#get-user
+    # https://dev.pangea.cloud/docs/api/authn#get-user # FIXME: Update url once in prod
     def user_profile_get(
         self, identity: Optional[str] = None, email: Optional[str] = None
     ) -> PangeaResponse[UserProfileGetResult]:
@@ -173,7 +173,7 @@ class AuthN(ServiceBase):
         return response
 
     #   - path: authn::/v1/user/profile/update
-    # https://dev.pangea.cloud/docs/api/authn#update-user
+    # https://dev.pangea.cloud/docs/api/authn#update-user # FIXME: Update url once in prod
     def user_profile_update(
         self,
         profile: Profile,
