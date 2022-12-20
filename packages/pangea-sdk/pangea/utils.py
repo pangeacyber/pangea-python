@@ -10,7 +10,7 @@ def format_datetime(dt: datetime.datetime) -> str:
     """
     if dt.tzinfo is None:
         dt = dt.astimezone(datetime.timezone.utc)
-    return dt.isoformat(timespec="seconds").replace("+00:00", "Z")
+    return dt.isoformat(timespec="milliseconds").replace("+00:00", "Z")
 
 
 def setup_logger(path, name, log_level, formatter) -> logging.Logger:
