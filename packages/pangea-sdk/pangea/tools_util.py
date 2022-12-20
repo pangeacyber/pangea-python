@@ -128,12 +128,16 @@ def get_test_domain(environment: TestEnvironment):
     if not value:
         raise PangeaException(f"{env_var_name} env var need to be set")
 
+    return value
+
 
 def get_test_token(environment: TestEnvironment):
     env_var_name = f"PANGEA_INTEGRATION_TOKEN_{environment}"
     value = os.getenv(env_var_name)
     if not value:
         raise PangeaException(f"{env_var_name} env var need to be set")
+
+    return value
 
 
 class SequenceFollower:
