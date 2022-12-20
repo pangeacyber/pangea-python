@@ -21,7 +21,7 @@ class TestEmbargo(unittest.TestCase):
         self.assertGreaterEqual(len(response.result.sanctions), 1)
 
         sanction = response.result.sanctions[0]
-        self.assertEqual(sanction.list_name, "ITAR")
+        self.assertEqual(sanction.list_name, "US - ITAR")
         self.assertEqual(sanction.embargoed_country_name, "Russia")
         self.assertEqual(sanction.embargoed_country_iso_code, "RU")
         self.assertEqual(sanction.issuing_country, "US")
@@ -33,7 +33,7 @@ class TestEmbargo(unittest.TestCase):
         self.assertGreaterEqual(len(response.result.sanctions), 1)
 
         sanction = response.result.sanctions[0]
-        self.assertEqual(sanction.list_name, "ITAR")
+        self.assertEqual(sanction.list_name, "US - ITAR")
         self.assertEqual(sanction.embargoed_country_name, "Cuba")
         self.assertEqual(sanction.embargoed_country_iso_code, "CU")
         self.assertEqual(sanction.issuing_country, "US")

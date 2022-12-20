@@ -10,12 +10,13 @@ import typing as t
 from datetime import date, datetime, timezone
 
 from pangea.config import PangeaConfig
+from pangea.exceptions import PangeaException
 from pangea.services import Audit
 
 
 class TestEnvironment(str, enum.Enum):
-    PRODUCTION = "PROD"
     DEVELOP = "DEV"
+    PRODUCTION = "PROD"
     STAGING = "STG"
 
     def __str__(self):
@@ -122,11 +123,21 @@ def filter_deep_none(data: t.Dict) -> t.Dict:
 
 
 def get_test_domain(environment: TestEnvironment):
-    return os.getenv(f"PANGEA_INTEGRATION_DOMAIN_{environment}")
+    env_var_name = f"PANGEA_INTEGRATION_DOMAIN_{environment}"
+    value = os.getenv(env_var_name)
+    if not value:
+        raise PangeaException(f"{env_var_name} env var need to be set")
+
+    return value
 
 
 def get_test_token(environment: TestEnvironment):
-    return os.getenv(f"PANGEA_INTEGRATION_TOKEN_{environment}")
+    env_var_name = f"PANGEA_INTEGRATION_TOKEN_{environment}"
+    value = os.getenv(env_var_name)
+    if not value:
+        raise PangeaException(f"{env_var_name} env var need to be set")
+
+    return value
 
 
 class SequenceFollower:
