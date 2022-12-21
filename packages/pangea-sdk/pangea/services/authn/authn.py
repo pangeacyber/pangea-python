@@ -236,7 +236,7 @@ class AuthN(ServiceBase):
 
             #   - path: authn::/v1/user/invite/list
             # https://dev.pangea.cloud/docs/api/authn#list-invites # FIXME: Update url once in prod
-            def list(self):
+            def list(self) -> PangeaResponse[UserInviteListResult]:
                 response = self.request.post("user/invite/list", data={})
                 if response.raw_result is not None:
                     response.result = UserInviteListResult(**response.raw_result)

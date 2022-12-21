@@ -15,7 +15,8 @@ TEST_ENVIRONMENT = TestEnvironment.DEVELOP
 RANDOM_VALUE = random.randint(0, 10000000)
 EMAIL_TEST = f"andres.tournour+test{RANDOM_VALUE}@pangea.cloud"
 EMAIL_DELETE = f"andres.tournour+delete{RANDOM_VALUE}@pangea.cloud"
-EMAIL_INVITE = f"andres.tournour+invite{RANDOM_VALUE}@pangea.cloud"
+EMAIL_INVITE_DELETE = f"andres.tournour+invite_del{RANDOM_VALUE}@pangea.cloud"
+EMAIL_INVITE_KEEP = f"andres.tournour+invite_keep{RANDOM_VALUE}@pangea.cloud"
 PASSWORD_OLD = "My1s+Password"
 PASSWORD_NEW = "My1s+Password_new"
 PROFILE_OLD = {"name": "User name", "country": "Argentina"}
@@ -117,10 +118,22 @@ class TestAuthN(unittest.TestCase):
             print_api_error(e)
             self.assertTrue(False)
 
-    def test_authn_user_invite(self):
+    def test_authn_b1_user_invite(self):
         # This could (should) fail if test_authn_user_create_with_password failed
         response = self.authn.user.invite(
-            inviter=EMAIL_TEST, email=EMAIL_INVITE, callback="https://someurl.com/callbacklink", state="whatshoulditbe"
+            inviter=EMAIL_TEST,
+            email=EMAIL_INVITE_KEEP,
+            callback="https://someurl.com/callbacklink",
+            state="whatshoulditbe",
+        )
+        self.assertEqual(response.status, "Success")
+        self.assertIsNotNone(response.result)
+
+        response = self.authn.user.invite(
+            inviter=EMAIL_TEST,
+            email=EMAIL_INVITE_DELETE,
+            callback="https://someurl.com/callbacklink",
+            state="whatshoulditbe",
         )
         self.assertEqual(response.status, "Success")
         self.assertIsNotNone(response.result)
@@ -130,6 +143,12 @@ class TestAuthN(unittest.TestCase):
         self.assertEqual(response.status, "Success")
         self.assertIsNone(response_delete.result)
 
+    def test_authn_b2_user_invite_list(self):
+        response = self.authn.user.invites.list()
+        self.assertEqual(response.status, "Success")
+        self.assertIsNotNone(response.result)
+        self.assertGreater(len(response.result.invites), 0)
+
     def test_authn_user_list(self):
         response = self.authn.user.list(scopes=[], glob_scopes=[])
         self.assertEqual(response.status, "Success")
@@ -138,9 +157,3 @@ class TestAuthN(unittest.TestCase):
         # Once it's solved uncomment next line. Remove the incorrect, and remove this FIXME. Make yourself a coffee.
         # self.assertGreater(len(response.result.users), 0)
         self.assertEqual(0, len(response.result.users))
-
-    def test_authn_user_invite_list(self):
-        response = self.authn.user.invites.list()
-        self.assertEqual(response.status, "Success")
-        self.assertIsNotNone(response.result)
-        self.assertGreater(len(response.result.invites), 0)
