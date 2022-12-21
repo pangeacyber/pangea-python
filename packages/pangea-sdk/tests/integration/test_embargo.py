@@ -5,7 +5,7 @@ from pangea import PangeaConfig
 from pangea.services import Embargo
 from pangea.tools_util import TestEnvironment, get_test_domain, get_test_token
 
-TEST_ENVIRONMENT = TestEnvironment.PRODUCTION
+TEST_ENVIRONMENT = TestEnvironment.LIVE
 
 
 class TestEmbargo(unittest.TestCase):
