@@ -13,6 +13,7 @@ from pangea.services.vault.models.asymmetric import CreateKeyPairResult, KeyPair
 from pangea.services.vault.models.common import Metadata, Tags
 from pangea.services.vault.models.symmetric import CreateKeyResult, KeyAlgorithm
 from pangea.services.vault.vault import Vault
+from pangea.tools import TestEnvironment, get_test_domain, get_test_token
 from pangea.utils import setup_logger, str2str_b64
 
 TIME = datetime.datetime.now().strftime("%m%d_%H%M%S")
@@ -21,6 +22,8 @@ LOG_PATH = f"./logs/{TIME}/"
 LOG_FORMATTER = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
 THIS_FUNCTION_NAME = lambda: inspect.stack()[1][3]
 ENABLE_ASSERT_RESPONSES = True
+
+TEST_ENVIRONMENT = TestEnvironment.DEVELOP
 
 
 def combine_lists(dict_list: List[Dict], field_values: List, field_name: str):
@@ -35,8 +38,8 @@ def combine_lists(dict_list: List[Dict], field_values: List, field_name: str):
 
 class TestVault(unittest.TestCase):
     def setUp(self):
-        self.token = os.getenv("PANGEA_INTEGRATION_VAULT_TOKEN")
-        # domain = os.getenv("PANGEA_INTEGRATION_DOMAIN")
+        self.token = get_test_token(TEST_ENVIRONMENT)
+        # domain = get_test_domain(TEST_ENVIRONMENT)
         # self.config = PangeaConfig(domain=domain)
 
         domain = os.getenv("PANGEA_BRANCH_DOMAIN")
@@ -176,7 +179,7 @@ class TestVault(unittest.TestCase):
         self.assertNotEqual(data_b64, decrypt_bad.result.plain_text)
 
         # Decrypt wrong id
-        with self.assertRaises(pexc.VaultItemNotFound):
+        with self.assertRaises(pexc.ItemNotFound):
             self.vault.decrypt("thisisnotandid", cipher_v2, 2)
 
         # Revoke key
@@ -234,11 +237,11 @@ class TestVault(unittest.TestCase):
         self.assertTrue(verify_default_resp.result.valid_signature)
 
         # Verify not existing version
-        with self.assertRaises(pexc.VaultItemNotFound):
+        with self.assertRaises(pexc.ItemNotFound):
             self.vault.verify(id, data, signature_v2, 10)
 
         # Verify wrong id
-        with self.assertRaises(pexc.VaultItemNotFound):
+        with self.assertRaises(pexc.ItemNotFound):
             self.vault.verify("thisisnotandid", data, signature_v2, 2)
 
         # Verify wrong signature
@@ -266,7 +269,7 @@ class TestVault(unittest.TestCase):
         logger.critical("Starting...")
         for parameters in self.key_param_comb:
             with self.subTest(parameters=parameters):
-            # try:
+                # try:
                 response = self.vault.create_symmetric(algorithm=KeyAlgorithm.AES, **parameters)
                 logger.debug(f"\nSymmetric parameters: {parameters}")
                 logger.debug(f"Success result: {response.result}")

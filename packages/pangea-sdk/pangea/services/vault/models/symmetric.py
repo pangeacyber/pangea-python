@@ -4,28 +4,29 @@ from typing import Optional
 
 from pangea.response import PangeaResponseResult
 from pangea.services.vault.models.common import (
-    StoreCommonRequest,
-    StoreCommonResult,
+    BaseModelConfig,
     CreateCommonRequest,
     CreateCommonResult,
+    EncodedSymmetricKey,
     KeyAlgorithm,
     RetrieveCommonRequest,
     RetrieveCommonResult,
-    BaseModelConfig,
     RotateCommonRequest,
     RotateCommonResult,
+    StoreCommonRequest,
+    StoreCommonResult,
 )
 
 
 class StoreKeyRequest(StoreCommonRequest):
-    key: str
+    key: EncodedSymmetricKey
     algorithm: KeyAlgorithm
     managed: Optional[bool] = None
 
 
 class StoreKeyResult(StoreCommonResult):
     algorithm: Optional[KeyAlgorithm] = None  # FIXME: Remove optional once backend is updated
-    key: Optional[str] = None
+    key: Optional[EncodedSymmetricKey] = None
 
 
 class CreateKeyRequest(CreateCommonRequest):
@@ -35,7 +36,7 @@ class CreateKeyRequest(CreateCommonRequest):
 
 class CreateKeyResult(CreateCommonResult):
     algorithm: KeyAlgorithm
-    key: Optional[str] = None
+    key: Optional[EncodedSymmetricKey] = None
 
 
 class RetrieveKeyRequest(RetrieveCommonRequest):
@@ -44,7 +45,7 @@ class RetrieveKeyRequest(RetrieveCommonRequest):
 
 class RetrieveKeyResult(RetrieveCommonResult):
     algorithm: KeyAlgorithm
-    key: Optional[str] = None
+    key: Optional[EncodedSymmetricKey] = None
     managed: Optional[bool] = None
 
 
@@ -78,5 +79,5 @@ class RotateKeyRequest(RotateCommonRequest):
 
 
 class RotateKeyResult(RotateCommonResult):
-    key: Optional[str] = None
+    key: Optional[EncodedSymmetricKey] = None
     algorithm: KeyAlgorithm
