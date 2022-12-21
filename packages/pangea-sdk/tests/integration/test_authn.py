@@ -12,7 +12,6 @@ from pangea.tools_util import TestEnvironment, get_test_domain, get_test_token
 
 TEST_ENVIRONMENT = TestEnvironment.DEVELOP
 
-
 RANDOM_VALUE = random.randint(0, 10000000)
 EMAIL_TEST = f"andres.tournour+test{RANDOM_VALUE}@pangea.cloud"
 EMAIL_DELETE = f"andres.tournour+delete{RANDOM_VALUE}@pangea.cloud"
@@ -41,14 +40,14 @@ class TestAuthN(unittest.TestCase):
 
     def test_authn_a1_user_create_with_password(self):
         global USER_IDENTITY
-        response = self.authn.user_create(email=EMAIL_TEST, authenticator=PASSWORD_OLD, id_provider=IDProvider.PASSWORD)
+        response = self.authn.user.create(email=EMAIL_TEST, authenticator=PASSWORD_OLD, id_provider=IDProvider.PASSWORD)
         self.assertEqual(response.status, "Success")
         self.assertIsNotNone(response.result.identity)
         self.assertEqual({}, response.result.profile)
         USER_IDENTITY = response.result.identity
 
         try:
-            response = self.authn.user_create(
+            response = self.authn.user.create(
                 email=EMAIL_DELETE, authenticator=PASSWORD_OLD, id_provider=IDProvider.PASSWORD, profile=PROFILE_NEW
             )
             self.assertEqual(response.status, "Success")
@@ -58,20 +57,20 @@ class TestAuthN(unittest.TestCase):
             self.assertTrue(False)
 
     def test_authn_a2_user_delete(self):
-        response = self.authn.user_delete(email=EMAIL_DELETE)
+        response = self.authn.user.delete(email=EMAIL_DELETE)
         self.assertEqual(response.status, "Success")
         self.assertIsNone(response.result)
 
     def test_authn_a3_password_update(self):
         # This could (should) fail if test_authn_a1_user_create_with_password failed
-        response = self.authn.password_update(email=EMAIL_TEST, old_secret=PASSWORD_OLD, new_secret=PASSWORD_NEW)
+        response = self.authn.password.update(email=EMAIL_TEST, old_secret=PASSWORD_OLD, new_secret=PASSWORD_NEW)
         self.assertEqual(response.status, "Success")
         self.assertIsNone(response.result)
 
     def test_authn_a4_user_login(self):
         # This could (should) fail if test_authn_a1_user_create_with_password failed
         try:
-            response = self.authn.user_login(email=EMAIL_TEST, secret=PASSWORD_NEW)
+            response = self.authn.user.login(email=EMAIL_TEST, secret=PASSWORD_NEW)
             self.assertEqual(response.status, "Success")
             self.assertIsNotNone(response.result)
             self.assertEqual(USER_IDENTITY, response.result.identity)
@@ -84,14 +83,14 @@ class TestAuthN(unittest.TestCase):
 
         try:
             # Get profile by email. Should be empty because it was created without profile parameter
-            response = self.authn.user_profile_get(email=EMAIL_TEST)
+            response = self.authn.user.profile.get(email=EMAIL_TEST)
             self.assertEqual(response.status, "Success")
             self.assertIsNotNone(response.result)
             self.assertEqual(USER_IDENTITY, response.result.identity)
             self.assertEqual(EMAIL_TEST, response.result.email)
             self.assertEqual({}, response.result.profile)
 
-            response = self.authn.user_profile_get(identity=USER_IDENTITY)
+            response = self.authn.user.profile.get(identity=USER_IDENTITY)
             self.assertEqual(response.status, "Success")
             self.assertIsNotNone(response.result)
             self.assertEqual(USER_IDENTITY, response.result.identity)
@@ -99,7 +98,7 @@ class TestAuthN(unittest.TestCase):
             self.assertEqual({}, response.result.profile)
 
             # Update profile
-            response = self.authn.user_profile_update(email=EMAIL_TEST, profile=PROFILE_OLD)
+            response = self.authn.user.profile.update(email=EMAIL_TEST, profile=PROFILE_OLD)
             self.assertEqual(response.status, "Success")
             self.assertIsNotNone(response.result)
             self.assertEqual(USER_IDENTITY, response.result.identity)
@@ -107,7 +106,7 @@ class TestAuthN(unittest.TestCase):
             self.assertEqual(PROFILE_OLD, response.result.profile)
 
             # Add one new field to profile
-            response = self.authn.user_profile_update(identity=USER_IDENTITY, profile=PROFILE_NEW)
+            response = self.authn.user.profile.update(identity=USER_IDENTITY, profile=PROFILE_NEW)
             self.assertEqual(response.status, "Success")
             self.assertIsNotNone(response.result)
             self.assertEqual(USER_IDENTITY, response.result.identity)
@@ -120,19 +119,19 @@ class TestAuthN(unittest.TestCase):
 
     def test_authn_user_invite(self):
         # This could (should) fail if test_authn_user_create_with_password failed
-        response = self.authn.user_invite(
+        response = self.authn.user.invite(
             inviter=EMAIL_TEST, email=EMAIL_INVITE, callback="https://someurl.com/callbacklink", state="whatshoulditbe"
         )
         self.assertEqual(response.status, "Success")
         self.assertIsNotNone(response.result)
 
         # Delete invite
-        response_delete = self.authn.user_invite_delete(response.result.id)
+        response_delete = self.authn.user.invites.delete(response.result.id)
         self.assertEqual(response.status, "Success")
         self.assertIsNone(response_delete.result)
 
     def test_authn_user_list(self):
-        response = self.authn.user_list(scopes=[], glob_scopes=[])
+        response = self.authn.user.list(scopes=[], glob_scopes=[])
         self.assertEqual(response.status, "Success")
         self.assertIsNotNone(response.result)
         # FIXME: This should be greater than 0. But there is a bug to solve there
@@ -141,7 +140,7 @@ class TestAuthN(unittest.TestCase):
         self.assertEqual(0, len(response.result.users))
 
     def test_authn_user_invite_list(self):
-        response = self.authn.user_invite_list()
+        response = self.authn.user.invites.list()
         self.assertEqual(response.status, "Success")
         self.assertIsNotNone(response.result)
         self.assertGreater(len(response.result.invites), 0)
