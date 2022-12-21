@@ -141,7 +141,7 @@ def print_error(msg: str, level: str = "error"):
         dot = "🟡"
     else:
         dot = "🔴"
-    print(f"{dot} {msg:200s}", end="\r")
+    print(f"{dot} {msg:200s}")
 
 
 def deep_verify(audit: Audit, file: io.TextIOWrapper) -> Errors:
