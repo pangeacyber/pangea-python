@@ -11,6 +11,7 @@ from itertools import groupby
 
 import pangea.services.audit.util as audit_util
 from pangea.services import Audit
+from pangea.services.audit.models import EventEnvelope
 from pangea.tools_util import Event, SequenceFollower, exit_with_error, file_events, init_audit, print_progress_bar
 
 
@@ -102,10 +103,8 @@ def verify_hash(data: dict, data_hash: str) -> bool:
     """Verify the hash of an event"""
     succeeded = False
     try:
-        data_canon = audit_util.canonicalize_json(data)
-        computed_hash_dec = audit_util.hash_bytes(data_canon)
-        data_hash_dec = audit_util.decode_hash(data_hash)
-        if computed_hash_dec != data_hash_dec:
+        if not audit_util.verify_envelope_hash(EventEnvelope(**data), data_hash):
+            print("Hash failed: ", data)
             raise ValueError("Hash does not match")
         succeeded = True
     except Exception:
@@ -204,7 +203,7 @@ def deep_verify(audit: Audit, file: io.TextIOWrapper) -> Errors:
             else:
                 hot_path = path[:-cold_path_size]
                 cold_path = path[-cold_path_size:]
-            
+
             cold_idx = path2index(tree_size, cold_path)
             if cold_idx != leaf_index:
                 errors["wrong_buffer"] += 1
