@@ -112,7 +112,9 @@ class TestAuthN(unittest.TestCase):
             self.assertIsNotNone(response.result)
             self.assertEqual(USER_IDENTITY, response.result.identity)
             self.assertEqual(EMAIL_TEST, response.result.email)
-            final_profile = PROFILE_OLD | PROFILE_NEW
+            final_profile: dict = {}
+            final_profile.update(PROFILE_OLD)
+            final_profile.update(PROFILE_NEW)
             self.assertEqual(final_profile, response.result.profile)
         except pexc.PangeaAPIException as e:
             print_api_error(e)
