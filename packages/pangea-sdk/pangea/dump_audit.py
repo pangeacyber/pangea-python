@@ -9,7 +9,6 @@ import sys
 from datetime import datetime
 
 import dateutil.parser
-
 from pangea.response import PangeaResponse
 from pangea.services import Audit
 from pangea.tools_util import get_script_name, init_audit, make_aware_datetime, print_progress_bar, json_defaults, filter_deep_none

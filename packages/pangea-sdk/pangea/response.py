@@ -63,6 +63,7 @@ class ResponseStatus(str, enum.Enum):
     TREE_NOT_FOUND = "TreeNotFound"
     IP_NOT_FOUND = "IPNotFound"
     BAD_OFFSET = "BadOffset"
+    FORBIDDEN_VAULT_OPERATION = "ForbiddenVaultOperation"
 
 
 class ResponseHeader(APIResponseModel):

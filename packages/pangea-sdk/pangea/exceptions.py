@@ -95,3 +95,21 @@ class TreeNotFoundException(AuditAPIException):
 
 class BadOffsetException(AuditAPIException):
     """Bad offset in results search"""
+
+
+# Vault SDK specific exceptions
+class VaultExceptions(PangeaException):
+    """Vault SDK specific exceptions"""
+
+
+# Vault API specific exceptions
+class VaultAPIException(PangeaAPIException):
+    """Vault service specific exceptions"""
+
+
+class ForbiddenVaultOperation(VaultAPIException):
+    """Forbiden Vault operation"""
+
+
+class VaultItemNotFound(VaultAPIException):
+    """Vault item not found"""
