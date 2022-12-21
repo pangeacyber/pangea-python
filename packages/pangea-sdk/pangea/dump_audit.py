@@ -56,7 +56,7 @@ def dump_before(audit: Audit, output: io.TextIOWrapper, start: datetime) -> int:
         verify_consistency=False,
         limit=1000,
         max_results=1000,
-        verify_events=True,
+        verify_events=False,
     )
     if not search_res.success:
         raise ValueError(f"Error fetching events: {search_res.result}")
