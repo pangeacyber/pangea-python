@@ -1,5 +1,4 @@
 import datetime
-import os
 import time
 import unittest
 
@@ -15,6 +14,7 @@ from pangea.services.audit.models import (
     SearchOrderBy,
     SearchOutput,
 )
+from pangea.tools_util import TestEnvironment, get_test_domain, get_test_token
 
 ACTOR = "python-sdk"
 MSG_NO_SIGNED = "test-message"
@@ -23,11 +23,13 @@ MSG_SIGNED_LOCAL = "sign-test-local"
 STATUS_NO_SIGNED = "no-signed"
 STATUS_SIGNED = "signed"
 
+TEST_ENVIRONMENT = TestEnvironment.PRODUCTION
+
 
 class TestAudit(unittest.TestCase):
     def setUp(self):
-        self.token = os.getenv("PANGEA_INTEGRATION_TOKEN")
-        domain = os.getenv("PANGEA_INTEGRATION_DOMAIN")
+        self.token = get_test_token(TEST_ENVIRONMENT)
+        domain = get_test_domain(TEST_ENVIRONMENT)
         self.config = PangeaConfig(domain=domain)
         self.audit = Audit(self.token, config=self.config)
         self.auditSigner = Audit(
