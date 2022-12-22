@@ -177,7 +177,7 @@ def deep_verify(audit: Audit, file: io.TextIOWrapper) -> Errors:
         cold_indexes.add(leaf_index)
 
         cold_path_size: t.Optional[int] = None
-        hot_out_of_order: set[int] = set()
+        hot_indexes: set[int] = set()
         for i, event in enumerate(events_by_idx):
             cnt += 1
             tree_size = get_tree_size(event)
@@ -209,15 +209,13 @@ def deep_verify(audit: Audit, file: io.TextIOWrapper) -> Errors:
                 errors["wrong_buffer"] += 1
 
             hot_idx = path2index(len(events_by_idx), hot_path)
-            if hot_idx in hot_out_of_order:
-                hot_out_of_order.remove(hot_idx)
-            elif hot_idx != i:
-                hot_out_of_order.add(hot_idx)
+            hot_indexes.add(hot_idx)
 
-        if hot_out_of_order:
-            errors["missing"] += len(hot_out_of_order)
+        hot_indexes_diff = set(range(len(events_by_idx))) - hot_indexes
+        if len(hot_indexes_diff) > 0:
+            errors["missing"] += len(hot_indexes_diff)
             print_error(
-                f"Lines {buffer_lines[0]}-{buffer_lines[1]} ({buffer_lines[1]-buffer_lines[0]}), Buffer #{cold_idx}: {len(hot_out_of_order)} event(s) missing"
+                f"Lines {buffer_lines[0]}-{buffer_lines[1]} ({buffer_lines[1]-buffer_lines[0]}), Buffer #{cold_idx}: {len(hot_indexes_diff)} event(s) missing"
             )
 
     cold_holes = cold_indexes.holes()
