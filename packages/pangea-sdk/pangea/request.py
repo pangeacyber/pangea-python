@@ -92,7 +92,7 @@ class PangeaRequest(object):
                various properties to retrieve individual fields
         """
         url = self._url(endpoint)
-        requests_response = self.session.post(url, headers=self._headers(), data=data)
+        requests_response = self.session.post(url, headers=self._headers(), json=data)
         if self._queued_retry_enabled and requests_response.status_code == 202:
             response_json = requests_response.json()
             request_id = response_json.get("request_id", None)
