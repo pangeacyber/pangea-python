@@ -1,57 +1,59 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
-from typing import Dict, Optional
 import datetime
+from typing import Dict, Optional
 
 from pangea.response import PangeaResponse
 from pangea.services.base import ServiceBase
+from pangea.services.vault.models.asymmetric import (
+    CreateKeyPairRequest,
+    CreateKeyPairResult,
+    RotateKeyPairRequest,
+    RotateKeyPairResult,
+    SignRequest,
+    SignResult,
+    StoreKeyPairRequest,
+    StoreKeyPairResult,
+    VerifyRequest,
+    VerifyResult,
+)
 from pangea.services.vault.models.common import (
+    DeleteRequest,
+    DeleteResult,
+    EncodedPrivateKey,
+    EncodedPublicKey,
     ItemType,
     KeyAlgorithm,
-    KeyPairPurpose,
     KeyPairAlgorithm,
+    KeyPairPurpose,
+    ListRequest,
+    ListResult,
     Metadata,
-    Tags,
     RetrieveCommonRequest,
     RetrieveGenericResult,
     RevokeRequest,
     RevokeResult,
-    DeleteRequest,
-    DeleteResult,
-    ListRequest,
-    ListResult,
+    Tags,
     UpdateRequest,
     UpdateResult,
 )
-from pangea.services.vault.models.asymmetric import (
-    CreateKeyPairRequest,
-    CreateKeyPairResult,
-    StoreKeyPairRequest,
-    StoreKeyPairResult,
-    SignRequest,
-    SignResult,
-    VerifyRequest,
-    VerifyResult,
-    RotateKeyPairRequest,
-    RotateKeyPairResult,
-)
 from pangea.services.vault.models.secret import (
-    StoreSecretRequest,
-    StoreSecretResult,
     RotateSecretRequest,
     RotateSecretResult,
+    StoreSecretRequest,
+    StoreSecretResult,
 )
 from pangea.services.vault.models.symmetric import (
     CreateKeyRequest,
     CreateKeyResult,
-    StoreKeyRequest,
-    StoreKeyResult,
-    RotateKeyRequest,
-    RotateKeyResult,
+    DecryptRequest,
+    DecryptResult,
     EncryptRequest,
     EncryptResult,
-    DecryptRequest,
-    DecryptResult
+    RotateKeyRequest,
+    RotateKeyResult,
+    StoreKeyRequest,
+    StoreKeyResult,
 )
 
 
@@ -160,8 +162,8 @@ class Vault(ServiceBase):
     def store_asymmetric(
         self,
         algorithm: KeyPairAlgorithm,
-        public_key: str,
-        private_key: str,
+        public_key: EncodedPublicKey,
+        private_key: EncodedPrivateKey,
         purpose: Optional[KeyPairPurpose] = None,
         name: Optional[str] = None,
         folder: Optional[str] = None,
@@ -301,7 +303,9 @@ class Vault(ServiceBase):
             response.result = RotateSecretResult(**response.raw_result)
         return response
 
-    def rotate_asymmetric(self, id: str, public_key: Optional[str] = None, private_key: Optional[str] = None) -> PangeaResponse[RotateKeyPairResult]:
+    def rotate_asymmetric(
+        self, id: str, public_key: Optional[EncodedPublicKey] = None, private_key: Optional[EncodedPrivateKey] = None
+    ) -> PangeaResponse[RotateKeyPairResult]:
         input = RotateKeyPairRequest(id=id, public_key=public_key, private_key=private_key)
         response = self.request.post("key/rotate", data=input.json(exclude_none=True))
         if response.raw_result is not None:
@@ -363,9 +367,7 @@ class Vault(ServiceBase):
         order_by: Optional[str] = None,
         size: Optional[int] = None,
     ) -> PangeaResponse[ListResult]:
-        input = ListRequest(
-            filter=filter, last=last, order=order, order_by=order_by, size=size
-        )
+        input = ListRequest(filter=filter, last=last, order=order, order_by=order_by, size=size)
         response = self.request.post("list", data=input.json(exclude_none=True))
 
         if response.raw_result is not None:

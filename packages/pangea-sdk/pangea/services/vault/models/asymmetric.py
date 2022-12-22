@@ -1,23 +1,23 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
-import datetime
 from typing import Optional
 
 from pangea.response import PangeaResponseResult
 from pangea.services.vault.models.common import (
+    BaseModelConfig,
     CreateCommonRequest,
     CreateCommonResult,
+    EncodedPrivateKey,
+    EncodedPublicKey,
     KeyPairAlgorithm,
     KeyPairPurpose,
-    StoreCommonRequest,
-    StoreCommonResult,
     RetrieveCommonRequest,
     RetrieveCommonResult,
     RotateCommonRequest,
     RotateCommonResult,
-    BaseModelConfig,
+    StoreCommonRequest,
+    StoreCommonResult,
 )
-from pangea.utils import format_datetime
 
 
 class CreateKeyPairRequest(CreateCommonRequest):
@@ -27,20 +27,20 @@ class CreateKeyPairRequest(CreateCommonRequest):
 
 class CreateKeyPairResult(CreateCommonResult):
     algorithm: KeyPairAlgorithm
-    public_key: str
-    private_key: Optional[str] = None
+    public_key: EncodedPublicKey
+    private_key: Optional[EncodedPrivateKey] = None
 
 
 class StoreKeyPairRequest(StoreCommonRequest):
     algorithm: str
-    public_key: str
-    private_key: str
+    public_key: EncodedPublicKey
+    private_key: EncodedPrivateKey
     purpose: Optional[KeyPairPurpose] = None
 
 
 class StoreKeyPairResult(StoreCommonResult):
-    public_key: str
-    private_key: Optional[str] = None
+    public_key: EncodedPublicKey
+    private_key: Optional[EncodedPrivateKey] = None
     algorithm: str
 
 
@@ -50,20 +50,20 @@ class RetrieveKeyPairRequest(RetrieveCommonRequest):
 
 class RetrieveKeyPairResult(RetrieveCommonResult):
     algorithm: Optional[KeyPairAlgorithm] = None
-    public_key: Optional[str] = None
-    private_key: Optional[str] = None
+    public_key: Optional[EncodedPublicKey] = None
+    private_key: Optional[EncodedPrivateKey] = None
     purpose: Optional[KeyPairPurpose] = None
     managed: Optional[bool] = None
 
 
 class RotateKeyPairRequest(RotateCommonRequest):
-    public_key: Optional[str] = None
-    private_key: Optional[str] = None
+    public_key: Optional[EncodedPublicKey] = None
+    private_key: Optional[EncodedPrivateKey] = None
 
 
 class RotateKeyPairResult(RotateCommonResult):
-    public_key: str
-    private_key: Optional[str] = None
+    public_key: EncodedPublicKey
+    private_key: Optional[EncodedPrivateKey] = None
     algorithm: KeyPairAlgorithm
 
 
@@ -77,7 +77,7 @@ class SignResult(PangeaResponseResult):
     version: int
     signature: str
     algorithm: KeyPairAlgorithm
-    public_key: Optional[str] = None
+    public_key: Optional[EncodedPublicKey] = None
 
 
 class VerifyRequest(BaseModelConfig):

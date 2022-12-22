@@ -1,16 +1,18 @@
-import os
 import unittest
 
 import pangea.exceptions as pe
 from pangea import PangeaConfig
 from pangea.response import ResponseStatus
 from pangea.services import DomainIntel, FileIntel
+from pangea.tools_util import TestEnvironment, get_test_domain, get_test_token
+
+TEST_ENVIRONMENT = TestEnvironment.LIVE
 
 
 class TestDomainIntel(unittest.TestCase):
     def setUp(self):
-        token = os.getenv("PANGEA_INTEGRATION_TOKEN")
-        domain = os.getenv("PANGEA_INTEGRATION_DOMAIN")
+        token = get_test_token(TEST_ENVIRONMENT)
+        domain = get_test_domain(TEST_ENVIRONMENT)
         config = PangeaConfig(domain=domain)
         self.intel_domain = DomainIntel(token, config=config)
 
@@ -23,7 +25,7 @@ class TestDomainIntel(unittest.TestCase):
 
     def test_domain_lookup_with_bad_auth_token(self):
         token = "noarealtoken"
-        domain = os.getenv("PANGEA_INTEGRATION_DOMAIN")
+        domain = get_test_domain(TEST_ENVIRONMENT)
         config = PangeaConfig(domain=domain)
         badintel_domain = DomainIntel(token, config=config)
 
@@ -33,8 +35,8 @@ class TestDomainIntel(unittest.TestCase):
 
 class TestFileIntel(unittest.TestCase):
     def setUp(self):
-        token = os.getenv("PANGEA_INTEGRATION_TOKEN")
-        domain = os.getenv("PANGEA_INTEGRATION_DOMAIN")
+        token = get_test_token(TEST_ENVIRONMENT)
+        domain = get_test_domain(TEST_ENVIRONMENT)
         config = PangeaConfig(domain=domain)
         self.intel_file = FileIntel(token, config=config)
 
@@ -51,7 +53,7 @@ class TestFileIntel(unittest.TestCase):
 
     def test_file_lookup_with_bad_auth_token(self):
         token = "noarealtoken"
-        domain = os.getenv("PANGEA_INTEGRATION_DOMAIN")
+        domain = get_test_domain(TEST_ENVIRONMENT)
         config = PangeaConfig(domain=domain)
         badintel_domain = FileIntel(token, config=config)
 

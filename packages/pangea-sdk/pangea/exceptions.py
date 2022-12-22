@@ -98,7 +98,7 @@ class BadOffsetException(AuditAPIException):
 
 
 # Vault SDK specific exceptions
-class VaultExceptions(PangeaException):
+class VaultException(PangeaException):
     """Vault SDK specific exceptions"""
 
 
@@ -111,5 +111,5 @@ class ForbiddenVaultOperation(VaultAPIException):
     """Forbiden Vault operation"""
 
 
-class VaultItemNotFound(VaultAPIException):
+class ItemNotFound(VaultAPIException):
     """Vault item not found"""

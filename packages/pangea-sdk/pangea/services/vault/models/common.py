@@ -2,12 +2,22 @@
 # Author: Pangea Cyber Corporation
 import datetime
 import enum
-import json
-from typing import Dict, List, NewType, Optional, Union
+from typing import Dict, List, NewType, Optional
 
 from pangea.response import PangeaResponseResult
 from pangea.utils import format_datetime
 from pydantic import BaseModel
+
+# EncodedPublicKey is a PEM public key, with no further encoding (i.e. no base64)
+# It may be used for example in openssh with no further processing
+EncodedPublicKey = NewType("EncodedPublicKey", str)
+
+# EncodedPrivateKey is a PEM private key, with no further encoding (i.e. no base64).
+# It may be used for example in openssh with no further processing
+EncodedPrivateKey = NewType("EncodedPrivateKey", str)
+
+# EncodedSymmetricKey is a base64 encoded key
+EncodedSymmetricKey = NewType("EncodedSymmetricKey", str)
 
 
 class KeyPairPurpose(str, enum.Enum):
@@ -46,9 +56,7 @@ class BaseModelConfig(BaseModel):
     class Config:
         arbitrary_types_allowed = True
         extra = "allow"
-        json_encoders = {
-            datetime.datetime: format_datetime
-        }        
+        json_encoders = {datetime.datetime: format_datetime}
 
 
 Metadata = NewType("Metadata", Dict[str, str])
@@ -168,11 +176,11 @@ class ListRequest(BaseModelConfig):
 
 
 class RetrieveGenericResult(RetrieveCommonResult):
-    public_key: Optional[str] = None
-    private_key: Optional[str] = None
+    public_key: Optional[EncodedPublicKey] = None
+    private_key: Optional[EncodedPrivateKey] = None
     algorithm: Optional[KeyPairAlgorithm | KeyAlgorithm] = None
     purpose: Optional[KeyPairPurpose] = None
-    key: Optional[str]
+    key: Optional[EncodedSymmetricKey]
     managed: Optional[bool] = None
     secret: Optional[str] = None
 
@@ -188,9 +196,9 @@ class RotateCommonResult(PangeaResponseResult):
 
 
 class RotateGenericKeyResult(RotateCommonResult):
-    public_key: Optional[str] = None
-    private_key: Optional[str] = None
-    key: Optional[str] = None
+    public_key: Optional[EncodedPublicKey] = None
+    private_key: Optional[EncodedPrivateKey] = None
+    key: Optional[EncodedSymmetricKey] = None
 
 
 class RevokeRequest(BaseModelConfig):
