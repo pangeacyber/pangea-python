@@ -23,7 +23,7 @@ MSG_SIGNED_LOCAL = "sign-test-local"
 STATUS_NO_SIGNED = "no-signed"
 STATUS_SIGNED = "signed"
 
-TEST_ENVIRONMENT = TestEnvironment.PRODUCTION
+TEST_ENVIRONMENT = TestEnvironment.LIVE
 
 
 class TestAudit(unittest.TestCase):
