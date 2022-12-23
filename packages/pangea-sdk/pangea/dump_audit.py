@@ -37,12 +37,14 @@ def dump_audit(audit: Audit, output: io.TextIOWrapper, start: datetime, end: dat
     page_end = start
     offset = dump_before(audit, output, start)
     while True:
-        page_end, page_size, stop = dump_page(audit, output, page_end, end, first=offset == 0)
+        page_end, page_size, stop, last_hash, last_leaf_index = dump_page(
+            audit, output, page_end, end, first=offset == 0
+        )
         if stop:
             break
         offset += page_size
     print()
-    offset += dump_after(audit, output, end)
+    offset += dump_after(audit, output, end, last_hash, last_leaf_index)
     return offset
 
 
@@ -73,7 +75,7 @@ def dump_before(audit: Audit, output: io.TextIOWrapper, start: datetime) -> int:
     return cnt
 
 
-def dump_after(audit: Audit, output: io.TextIOWrapper, start: datetime) -> int:
+def dump_after(audit: Audit, output: io.TextIOWrapper, start: datetime, last_event_hash, last_leaf_index) -> int:
     print("Dumping after...", end="\r")
     search_res = audit.search(
         query="", start=start, order="asc", verify_consistency=False, limit=1000, max_results=1000, verify_events=False
@@ -84,21 +86,23 @@ def dump_after(audit: Audit, output: io.TextIOWrapper, start: datetime) -> int:
     cnt = 0
     if search_res.result.count > 0:
         leaf_index = search_res.result.events[0].leaf_index
-        for row in search_res.result.events[1:]:
-            if row.leaf_index != leaf_index:
-                break
-            dump_event(output, row, search_res)
-            cnt += 1
+        if leaf_index == last_leaf_index:
+            start = 1 if last_event_hash == search_res.result.events[0].hash else 0
+            for row in search_res.result.events[start:]:
+                if row.leaf_index != leaf_index:
+                    break
+                dump_event(output, row, search_res)
+                cnt += 1
     print(f"Dumping after... {cnt} events")
     return cnt
 
 
 def dump_page(
     audit: Audit, output: io.TextIOWrapper, start: datetime, end: datetime, first: bool = False
-) -> tuple[datetime, int, bool]:
+) -> tuple[datetime, int, bool, str, int]:
     PAGE_SIZE = 1000
     print(start, end)
-    print("Dumping...", end="\r")
+    print("Dumping...")
     search_res = audit.search(
         query="",
         start=start,
@@ -131,7 +135,7 @@ def dump_page(
                 raise ValueError("Error fetching events")
         print_progress_bar(offset, count, prefix=msg, suffix="Complete", length=50)
     page_end = row.envelope.received_at
-    return page_end, offset, search_res.result.count < PAGE_SIZE
+    return page_end, offset, search_res.result.count < PAGE_SIZE, row.hash, row.leaf_index
 
 
 def create_parser() -> argparse.ArgumentParser:

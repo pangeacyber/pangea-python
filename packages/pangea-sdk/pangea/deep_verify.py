@@ -78,7 +78,7 @@ def get_path_size(tree_size: int, leaf_index: int) -> int:
 def _tree_size_left(tree_size: int) -> int:
     """if the tree has size tree_size, return the size of the left child"""
     if tree_size <= 1:
-        return 0
+        return tree_size
     return 2 ** (math.ceil(math.log2(tree_size)) - 1)
 
 
@@ -214,6 +214,11 @@ def deep_verify(audit: Audit, file: io.TextIOWrapper) -> Errors:
         hot_indexes_diff = set(range(len(events_by_idx))) - hot_indexes
         if len(hot_indexes_diff) > 0:
             errors["missing"] += len(hot_indexes_diff)
+            print(f"missing hot indexes: {hot_indexes_diff}")
+            print(f"hot_indexes: {hot_indexes} ")
+            print(f"events:")
+            for e in events_by_idx:
+                print(e)
             print_error(
                 f"Lines {buffer_lines[0]}-{buffer_lines[1]} ({buffer_lines[1]-buffer_lines[0]}), Buffer #{cold_idx}: {len(hot_indexes_diff)} event(s) missing"
             )
