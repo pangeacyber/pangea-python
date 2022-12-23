@@ -52,7 +52,7 @@ def dump_before(audit: Audit, output: io.TextIOWrapper, start: datetime) -> int:
     print("Dumping before...")
     search_res = audit.search(
         query="",
-        start=datetime.strptime("2000-01-01T10:00:00Z", "%Y-%m-%dT%H:%M:%SZ"),
+        start=datetime.strptime("2020-01-01T10:00:00Z", "%Y-%m-%dT%H:%M:%SZ"),
         end=start,
         order="desc",
         verify_consistency=False,
