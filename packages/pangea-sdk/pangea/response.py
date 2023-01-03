@@ -1,9 +1,11 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+import datetime
 import enum
 from typing import Any, Dict, Generic, List, Optional, TypeVar
 
 import requests
+from pangea.utils import format_datetime
 from pydantic import BaseModel
 
 T = TypeVar("T")
@@ -21,6 +23,9 @@ class APIResponseModel(BaseModel):
 class APIRequestModel(BaseModel):
     class Config:
         arbitrary_types_allowed = True
+        json_encoders = {
+            datetime.datetime: format_datetime,
+        }
 
 
 class PangeaResponseResult(APIResponseModel):

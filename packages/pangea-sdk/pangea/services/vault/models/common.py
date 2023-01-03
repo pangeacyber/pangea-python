@@ -4,9 +4,7 @@ import datetime
 import enum
 from typing import Dict, List, NewType, Optional
 
-from pangea.response import PangeaResponseResult
-from pangea.utils import format_datetime
-from pydantic import BaseModel
+from pangea.response import APIRequestModel, PangeaResponseResult
 
 # EncodedPublicKey is a PEM public key, with no further encoding (i.e. no base64)
 # It may be used for example in openssh with no further processing
@@ -52,13 +50,6 @@ class KeyAlgorithm(str, enum.Enum):
         return str(self.value)
 
 
-class BaseModelConfig(BaseModel):
-    class Config:
-        arbitrary_types_allowed = True
-        extra = "allow"
-        json_encoders = {datetime.datetime: format_datetime}
-
-
 Metadata = NewType("Metadata", Dict[str, str])
 Tags = NewType("Tags", List[str])
 
@@ -76,7 +67,8 @@ class ItemType(str, enum.Enum):
         return str(self.value)
 
 
-class StoreCommonRequest(BaseModelConfig):
+class StoreCommonRequest(APIRequestModel):
+    type: ItemType
     name: Optional[str] = None
     folder: Optional[str] = None
     metadata: Optional[Metadata] = None
@@ -94,7 +86,8 @@ class StoreCommonResult(PangeaResponseResult):
     version: int
 
 
-class CreateCommonRequest(BaseModelConfig):
+class CreateCommonRequest(APIRequestModel):
+    type: ItemType
     name: Optional[str] = None
     folder: Optional[str] = None
     metadata: Optional[Metadata] = None
@@ -103,7 +96,7 @@ class CreateCommonRequest(BaseModelConfig):
     rotation_policy: Optional[str] = None
     retain_previous_version: Optional[bool] = None
     store: Optional[bool] = None
-    expiration: Optional[datetime.datetime]  # TODO: should be datetime
+    expiration: Optional[datetime.datetime] = None
     managed: Optional[bool] = None
 
 
@@ -113,7 +106,7 @@ class CreateCommonResult(PangeaResponseResult):
     id: Optional[str] = None
 
 
-class RetrieveCommonRequest(BaseModelConfig):
+class RetrieveCommonRequest(APIRequestModel):
     id: str
     version: Optional[int] = None
     verbose: Optional[bool] = None
@@ -137,7 +130,7 @@ class RetrieveCommonResult(PangeaResponseResult):
     revoked_at: Optional[str] = None  # TODO: should be time
 
 
-class ListItemData(BaseModelConfig):
+class ListItemData(APIRequestModel):
     type: str
     name: Optional[str] = None
     folder: Optional[str] = None
@@ -154,7 +147,7 @@ class ListItemData(BaseModelConfig):
     version: int
 
 
-class ListFolderData(BaseModelConfig):
+class ListFolderData(APIRequestModel):
     type: str
     name: Optional[str] = None
     folder: Optional[str] = None
@@ -166,7 +159,7 @@ class ListResult(PangeaResponseResult):
     last: Optional[str]
 
 
-class ListRequest(BaseModelConfig):
+class ListRequest(APIRequestModel):
     filter: Optional[Dict[str, str]] = None
     restrictions: Optional[Dict[str, List[str]]] = None
     last: Optional[str] = None
@@ -185,7 +178,7 @@ class RetrieveGenericResult(RetrieveCommonResult):
     secret: Optional[str] = None
 
 
-class RotateCommonRequest(BaseModelConfig):
+class RotateCommonRequest(APIRequestModel):
     id: str
 
 
@@ -201,7 +194,7 @@ class RotateGenericKeyResult(RotateCommonResult):
     key: Optional[EncodedSymmetricKey] = None
 
 
-class RevokeRequest(BaseModelConfig):
+class RevokeRequest(APIRequestModel):
     id: str
 
 
@@ -210,7 +203,7 @@ class RevokeResult(PangeaResponseResult):
     pass
 
 
-class DeleteRequest(BaseModelConfig):
+class DeleteRequest(APIRequestModel):
     id: str
 
 
@@ -218,7 +211,7 @@ class DeleteResult(PangeaResponseResult):
     id: str
 
 
-class UpdateRequest(BaseModelConfig):
+class UpdateRequest(APIRequestModel):
     id: str
     name: Optional[str] = None
     folder: Optional[str] = None
@@ -229,5 +222,5 @@ class UpdateRequest(BaseModelConfig):
     expiration: Optional[datetime.datetime] = None
 
 
-class UpdateResult(BaseModelConfig):
+class UpdateResult(APIRequestModel):
     id: str

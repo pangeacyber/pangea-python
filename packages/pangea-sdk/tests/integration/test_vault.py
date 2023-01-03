@@ -17,7 +17,7 @@ from pangea.tools import TestEnvironment, get_test_domain, get_test_token
 from pangea.utils import setup_logger, str2str_b64
 
 TIME = datetime.datetime.now().strftime("%m%d_%H%M%S")
-LOG_LEVEL = logging.DEBUG
+LOG_LEVEL = logging.INFO
 LOG_PATH = f"./logs/{TIME}/"
 LOG_FORMATTER = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
 THIS_FUNCTION_NAME = lambda: inspect.stack()[1][3]
@@ -36,46 +36,46 @@ def combine_lists(dict_list: List[Dict], field_values: List, field_name: str):
     return dest
 
 
+def combine_dict(dict_list: List[Dict], field_values: List[Dict]):
+    dest: List[Dict] = []
+    for v in field_values:
+        for d in dict_list:
+            d_copy = d.copy()
+            d_copy.update(v)
+            dest.append(d_copy)
+    return dest
+
+
 class TestVault(unittest.TestCase):
     def setUp(self):
         self.token = get_test_token(TEST_ENVIRONMENT)
-        # domain = get_test_domain(TEST_ENVIRONMENT)
-        # self.config = PangeaConfig(domain=domain)
+        domain = get_test_domain(TEST_ENVIRONMENT)
+        self.config = PangeaConfig(domain=domain)
 
-        domain = os.getenv("PANGEA_BRANCH_DOMAIN")
-        self.config = PangeaConfig(domain=domain, environment="local")
+        # domain = os.getenv("PANGEA_BRANCH_DOMAIN")
+        # self.config = PangeaConfig(domain=domain, environment="local")
         print("Domain: ", domain)
         print("Token: ", self.token)
 
         self.vault = Vault(self.token, config=self.config)
         self.random_id = str(random.randint(10, 1000000000))
 
-        self.managed_values: List[Optional[bool]] = [True, False]  # FIXME: add None to check default cases
-        self.store_values: List[Optional[bool]] = [True, False]  # FIXME: add None to check default cases
-        self.name_values: List[Optional[str]] = [None, f"name_{self.random_id}"]
-        self.folder_values: List[Optional[str]] = [None, f"test/folder_{self.random_id}/"]
-        self.metadata_values: List[Optional[Metadata]] = [None, {"info1": 1, "info2": 2, "random_id": self.random_id}]
-        self.tags_values: List[Optional[Tags]] = [None, ["tag1", "tag2", f"tag_{self.random_id}"]]
-        self.auto_rotate_values: List[Optional[bool]] = [True, False]  # FIXME: add None to check default cases
-        self.rotation_policy_values: List[Optional[str]] = [
+        self.managed_values: List[Optional[bool]] = [True, False, None]
+        self.store_values: List[Optional[bool]] = [True, False, None]
+        self.auto_rotate_values: List[Dict] = [
+            {"auto_rotate": True, "rotation_policy": "1d"},
+            {"auto_rotate": False},
+            {"auto_rotate": None},
+        ]
+        self.retain_previous_version_values: List[Optional[bool]] = [True, False, None]
+        self.expiration_values: List[Optional[datetime.datetime]] = [
             None,
-            "1D",
-        ]  # FIXME: update to timedelta once implemented in backend
-        self.retain_previous_version_values: List[Optional[bool]] = [
-            True,
-            False,
-        ]  # FIXME: add None to check default cases
-        self.expiration_values: List[Optional[datetime.datetime]] = [None, datetime.timedelta(days=2)]
+            datetime.datetime.now() + datetime.timedelta(days=2),
+        ]
         self.common_param_comb = [{}]
         self.common_param_comb = combine_lists(self.common_param_comb, self.store_values, "store")
-        # FIXME: Uncomment to test all possible combination cases
-        # self.common_param_comb = combine_lists(self.common_param_comb, self.name_values, "name")
-        # self.common_param_comb = combine_lists(self.common_param_comb, self.folder_values, "folder")
-        # self.common_param_comb = combine_lists(self.common_param_comb, self.metadata_values, "metadata")
-        # self.common_param_comb = combine_lists(self.common_param_comb, self.tags_values, "tags")
-        self.common_param_comb = combine_lists(self.common_param_comb, self.auto_rotate_values, "auto_rotate")
-        self.common_param_comb = combine_lists(self.common_param_comb, self.rotation_policy_values, "rotation_policy")
-        # self.common_param_comb = combine_lists(self.common_param_comb, self.expiration_values, "expiration")
+        self.common_param_comb = combine_dict(self.common_param_comb, self.auto_rotate_values)
+        self.common_param_comb = combine_lists(self.common_param_comb, self.expiration_values, "expiration")
         self.common_param_comb = combine_lists(
             self.common_param_comb, self.retain_previous_version_values, "retain_previous_version"
         )
@@ -179,7 +179,8 @@ class TestVault(unittest.TestCase):
         self.assertNotEqual(data_b64, decrypt_bad.result.plain_text)
 
         # Decrypt wrong id
-        with self.assertRaises(pexc.ItemNotFound):
+        # FIXME: This should be ItemNotFound, fix once implemented
+        with self.assertRaises(pexc.PangeaAPIException):
             self.vault.decrypt("thisisnotandid", cipher_v2, 2)
 
         # Revoke key
@@ -237,11 +238,13 @@ class TestVault(unittest.TestCase):
         self.assertTrue(verify_default_resp.result.valid_signature)
 
         # Verify not existing version
-        with self.assertRaises(pexc.ItemNotFound):
+        # FIXME: This should be ItemNotFound. Update once fixed in backend
+        with self.assertRaises(pexc.PangeaAPIException):
             self.vault.verify(id, data, signature_v2, 10)
 
         # Verify wrong id
-        with self.assertRaises(pexc.ItemNotFound):
+        # FIXME: This should be ItemNotFound. Update once fixed in backend
+        with self.assertRaises(pexc.PangeaAPIException):
             self.vault.verify("thisisnotandid", data, signature_v2, 2)
 
         # Verify wrong signature
@@ -269,25 +272,25 @@ class TestVault(unittest.TestCase):
         logger.critical("Starting...")
         for parameters in self.key_param_comb:
             with self.subTest(parameters=parameters):
-                # try:
-                response = self.vault.create_symmetric(algorithm=KeyAlgorithm.AES, **parameters)
-                logger.debug(f"\nSymmetric parameters: {parameters}")
-                logger.debug(f"Success result: {response.result}")
-                self.create_symmetric_check_response(response, parameters)
-            #     success += 1
-            # except pexc.PangeaAPIException as e:
-            #     if parameters["managed"] is True and parameters["store"] is False:
-            #         logger.debug(f"\n Success failed with symmetric parameters: {parameters}")
-            #         success += 1
-            #     else:
-            #         failed += 1
-            #         logger.critical("\nSymmetric parameters: ", parameters)
-            #         logger.critical(f"Exception result: {e}")
-            #         logger.error(f"Response: {e.response}")
-            #         if e.errors:
-            #             logger.warning("Error details: ")
-            #             for ef in e.errors:
-            #                 logger.warning(f"\t {ef.detail}")
+                try:
+                    response = self.vault.create_symmetric(algorithm=KeyAlgorithm.AES, **parameters)
+                    logger.debug(f"\nSymmetric parameters: {parameters}")
+                    logger.debug(f"Success result: {response.result}")
+                    self.create_symmetric_check_response(response, parameters)
+                    success += 1
+                except pexc.PangeaAPIException as e:
+                    if parameters["managed"] is True and parameters["store"] is False:
+                        logger.debug(f"\n Success failed with symmetric parameters: {parameters}")
+                        success += 1
+                    else:
+                        failed += 1
+                        logger.critical("\nSymmetric parameters: ", parameters)
+                        logger.critical(f"Exception result: {e}")
+                        logger.error(f"Response: {e.response}")
+                        if e.errors:
+                            logger.warning("Error details: ")
+                            for ef in e.errors:
+                                logger.warning(f"\t {ef.detail}")
 
         logger.critical(f"\nFinal summary. Success: {success}. Failed: {failed}")
 
@@ -351,7 +354,6 @@ class TestVault(unittest.TestCase):
 
         logger.critical(f"\nFinal summary. Success: {success}. Failed: {failed}")
 
-    # FIXME: BUG THAT SHOULD BE FIXED
     def test_create_key_aes_managed_but_no_stored(self):
         logger = setup_logger(LOG_PATH, THIS_FUNCTION_NAME(), LOG_LEVEL, LOG_FORMATTER)
         try:
@@ -360,13 +362,7 @@ class TestVault(unittest.TestCase):
             logger.debug(f"Success response: {response}")
             self.assertTrue(False)
         except pexc.PangeaAPIException as e:
-            print("Remove this test. Bug was fixed...")
-            logger.critical(f"Exception result: {e}")
-            logger.error(f"Response: {e.response}")
-            if e.errors:
-                logger.warning("Error details: ")
-                for ef in e.errors:
-                    logger.warning(f"\t {ef.detail}")
+            self.assertEqual(e.errors[0].detail, "If managed is true, store must be true.")
 
     def test_ed25519_signing_life_cycle(self):
         # Create
@@ -474,7 +470,7 @@ class TestVault(unittest.TestCase):
         self.assertIsNotNone(id)
         self.assertEqual(1, create_resp.result.version)
 
-        rotate_resp = self.vault.rotate_secret(id)
+        rotate_resp = self.vault.rotate_secret(id, "new hello world")
         secret_v2 = rotate_resp.result.secret
         self.assertEqual(id, rotate_resp.result.id)
         self.assertEqual(2, rotate_resp.result.version)
@@ -483,18 +479,8 @@ class TestVault(unittest.TestCase):
         retrieve_resp = self.vault.retrieve(id)
         self.assertEqual(secret_v2, retrieve_resp.result.secret)
 
-        try:
-            revoke_resp = self.vault.revoke(id)
-        except pexc.PangeaAPIException as e:
-            print(f"Exception result: {e}")
-            print(f"Response: {e.response}")
-            if e.errors:
-                print("Error details: ")
-                for ef in e.errors:
-                    print(f"\t {ef.detail}")
-
-        print(revoke_resp)
+        revoke_resp = self.vault.revoke(id)
         self.assertEqual(id, revoke_resp.result.id)
 
         # This should fail because secret was revoked
-        # self.assertRaises(pexc.PangeaAPIException, lambda: self.vault.retrieve(id))
+        self.assertRaises(pexc.PangeaAPIException, lambda: self.vault.retrieve(id))

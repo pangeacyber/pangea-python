@@ -14,7 +14,7 @@ from pangea.services.audit.models import (
     SearchOrderBy,
     SearchOutput,
 )
-from pangea.tools_util import TestEnvironment, get_test_domain, get_test_token
+from pangea.tools import TestEnvironment, get_test_domain, get_test_token
 
 ACTOR = "python-sdk"
 MSG_NO_SIGNED = "test-message"

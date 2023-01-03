@@ -2,9 +2,8 @@
 # Author: Pangea Cyber Corporation
 from typing import Optional
 
-from pangea.response import PangeaResponseResult
+from pangea.response import APIRequestModel, PangeaResponseResult
 from pangea.services.vault.models.common import (
-    BaseModelConfig,
     CreateCommonRequest,
     CreateCommonResult,
     EncodedPrivateKey,
@@ -67,7 +66,7 @@ class RotateKeyPairResult(RotateCommonResult):
     algorithm: KeyPairAlgorithm
 
 
-class SignRequest(BaseModelConfig):
+class SignRequest(APIRequestModel):
     id: str
     message: str
 
@@ -80,7 +79,7 @@ class SignResult(PangeaResponseResult):
     public_key: Optional[EncodedPublicKey] = None
 
 
-class VerifyRequest(BaseModelConfig):
+class VerifyRequest(APIRequestModel):
     id: str
     version: Optional[int] = None
     message: str

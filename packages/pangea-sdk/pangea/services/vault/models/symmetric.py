@@ -2,9 +2,8 @@
 # Author: Pangea Cyber Corporation
 from typing import Optional
 
-from pangea.response import PangeaResponseResult
+from pangea.response import APIRequestModel, PangeaResponseResult
 from pangea.services.vault.models.common import (
-    BaseModelConfig,
     CreateCommonRequest,
     CreateCommonResult,
     EncodedSymmetricKey,
@@ -49,7 +48,7 @@ class RetrieveKeyResult(RetrieveCommonResult):
     managed: Optional[bool] = None
 
 
-class EncryptRequest(BaseModelConfig):
+class EncryptRequest(APIRequestModel):
     id: str
     plain_text: str
 
@@ -61,7 +60,7 @@ class EncryptResult(PangeaResponseResult):
     cipher_text: str
 
 
-class DecryptRequest(BaseModelConfig):
+class DecryptRequest(APIRequestModel):
     id: str
     version: Optional[int] = None
     cipher_text: str

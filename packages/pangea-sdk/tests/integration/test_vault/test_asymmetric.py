@@ -3,7 +3,9 @@ from base64 import b64encode
 import pangea.exceptions as pexc
 import pytest
 from pangea.services.vault.models.asymmetric import KeyPairAlgorithm
-from util import (
+from pangea.services.vault.vault import Vault
+
+from .util import (
     create_or_store_key_params,
     update_params,
     vault_item_expired,
@@ -23,7 +25,7 @@ def canonical_asymmetric_args():
     }
 
 
-def _asymmetric_key(vault, key_type, test_name, canonical_args, item_name):
+def _asymmetric_key(vault: Vault, key_type, test_name, canonical_args, item_name):
     func = eval(f"vault_item_{item_name}")
     store_func = eval(f"vault.store_{key_type}")
     key_id = func(vault, store_func, f"{test_name}_{key_type}", canonical_args)
@@ -31,7 +33,7 @@ def _asymmetric_key(vault, key_type, test_name, canonical_args, item_name):
 
 
 @pytest.fixture
-def temp_asymmetric_key(vault, test_name, canonical_asymmetric_args, request):
+def temp_asymmetric_key(vault: Vault, test_name, canonical_asymmetric_args, request):
     key_id = _asymmetric_key(vault, "asymmetric", test_name, canonical_asymmetric_args, getattr(request, "param", "ok"))
     yield key_id
     try:
@@ -41,7 +43,7 @@ def temp_asymmetric_key(vault, test_name, canonical_asymmetric_args, request):
 
 
 @pytest.fixture(scope="session")
-def session_asymmetric_key(vault, test_name, canonical_asymmetric_args, request):
+def session_asymmetric_key(vault: Vault, test_name, canonical_asymmetric_args, request):
     name = getattr(request, "param", "ok")
     key_id = _asymmetric_key(vault, "asymmetric", f"{test_name}_session", canonical_asymmetric_args, name)
     yield key_id
@@ -52,14 +54,14 @@ def session_asymmetric_key(vault, test_name, canonical_asymmetric_args, request)
 
 
 @pytest.fixture(scope="session")
-def signature(vault, canonical_asymmetric_args, plain_text, test_name) -> str:
+def signature(vault: Vault, canonical_asymmetric_args, plain_text, test_name) -> str:
     return vault.sign(
         _asymmetric_key(vault, "asymmetric", test_name, canonical_asymmetric_args, "ok"), plain_text
     ).result.signature
 
 
 @pytest.mark.parametrize(("param_name", "param_value", "param_response"), create_or_store_key_params)
-def test_create_asymmetric(vault, param_name, param_value, param_response):
+def test_create_asymmetric(vault: Vault, param_name, param_value, param_response):
     req = {
         "algorithm": KeyPairAlgorithm.Ed25519,
         "name": "test",
@@ -86,7 +88,7 @@ def test_create_asymmetric(vault, param_name, param_value, param_response):
 
 
 @pytest.mark.parametrize(("param_name", "param_value", "param_response"), create_or_store_key_params)
-def test_store_asymmetric(vault, canonical_asymmetric_args, param_name, param_value, param_response):
+def test_store_asymmetric(vault: Vault, canonical_asymmetric_args, param_name, param_value, param_response):
     req = {
         "algorithm": KeyPairAlgorithm.Ed25519,
         "name": "test",
@@ -122,7 +124,7 @@ def test_store_asymmetric(vault, canonical_asymmetric_args, param_name, param_va
     ],
     indirect=["session_asymmetric_key"],
 )
-def test_sign_keys(vault, session_asymmetric_key, plain_text, ok):
+def test_sign_keys(vault: Vault, session_asymmetric_key, plain_text, ok):
     if ok:
         vault.sign(session_asymmetric_key, plain_text)
     else:
@@ -138,7 +140,7 @@ def test_sign_keys(vault, session_asymmetric_key, plain_text, ok):
     ],
     ids=["ok", "not base64"],
 )
-def test_sign_params(vault, session_asymmetric_key, plain_text, ok):
+def test_sign_params(vault: Vault, session_asymmetric_key, plain_text, ok):
     if ok:
         vault.sign(session_asymmetric_key, plain_text)
     else:
@@ -155,7 +157,7 @@ def test_sign_params(vault, session_asymmetric_key, plain_text, ok):
     ],
     indirect=True,
 )
-def test_verify(vault, session_asymmetric_key, plain_text, signature):
+def test_verify(vault: Vault, session_asymmetric_key, plain_text, signature):
     resp = vault.verify(session_asymmetric_key, plain_text, signature)
     assert resp.result.valid_signature
 
@@ -169,7 +171,7 @@ def test_verify(vault, session_asymmetric_key, plain_text, signature):
         ("ok", True),
     ],
 )
-def test_encrypt(vault, session_asymmetric_key, plain_text, ok):
+def test_encrypt(vault: Vault, session_asymmetric_key, plain_text, ok):
     if ok:
         vault.encrypt(session_asymmetric_key, plain_text)
     else:
@@ -186,13 +188,13 @@ def test_encrypt(vault, session_asymmetric_key, plain_text, ok):
         "ok",
     ],
 )
-def test_decrypt(vault, session_asymmetric_key, plain_text, cipher_text, key_name):
+def test_decrypt(vault: Vault, session_asymmetric_key, plain_text, cipher_text, key_name):
     response = vault.decrypt(session_asymmetric_key[key_name], cipher_text)
     assert response.result.plain_text == plain_text
 
 
 @pytest.mark.parametrize(("param_name", "param_value", "param_response"), update_params)
-def test_update_attributes_asymmetric(vault, temp_asymmetric_key, param_name, param_value, param_response):
+def test_update_attributes_asymmetric(vault: Vault, temp_asymmetric_key, param_name, param_value, param_response):
     req = {"id": temp_asymmetric_key, param_name: param_value}
 
     response = vault.update(**req)
@@ -211,7 +213,7 @@ def test_update_attributes_asymmetric(vault, temp_asymmetric_key, param_name, pa
     ],
     indirect=["temp_asymmetric_key"],
 )
-def test_update_keys_asymmetric(vault, temp_asymmetric_key, ok):
+def test_update_keys_asymmetric(vault: Vault, temp_asymmetric_key, ok):
     if ok:
         vault.update(id=temp_asymmetric_key, tags=["pepe"])
     else:
@@ -229,7 +231,7 @@ def test_update_keys_asymmetric(vault, temp_asymmetric_key, ok):
     ],
     indirect=["temp_asymmetric_key"],
 )
-def test_rotate_keys_asymmetric(vault, temp_asymmetric_key, ok):
+def test_rotate_keys_asymmetric(vault: Vault, temp_asymmetric_key, ok):
     if ok:
         vault.rotate_asymmetric(temp_asymmetric_key)
     else:
@@ -260,7 +262,7 @@ def test_rotate_keys_asymmetric(vault, temp_asymmetric_key, ok):
         "wrong",
     ],
 )
-def test_rotate_params_asymmetric(vault, temp_asymmetric_key, canonical_asymmetric_args, params, ok):
+def test_rotate_params_asymmetric(vault: Vault, temp_asymmetric_key, canonical_asymmetric_args, params, ok):
     args = {
         "id": temp_asymmetric_key,
         "public_key": eval(params["public_key"]),
@@ -283,7 +285,7 @@ def test_rotate_params_asymmetric(vault, temp_asymmetric_key, canonical_asymmetr
     [("expired", False), ("revoked", False), ("missing", False), ("ok", True)],
     indirect=["temp_asymmetric_key"],
 )
-def test_revoke(vault, temp_asymmetric_key, ok):
+def test_revoke(vault: Vault, temp_asymmetric_key, ok):
     if ok:
         vault.revoke(temp_asymmetric_key)
     else:
@@ -301,7 +303,7 @@ def test_revoke(vault, temp_asymmetric_key, ok):
     ],
     indirect=["temp_asymmetric_key"],
 )
-def test_delete(vault, temp_asymmetric_key, ok):
+def test_delete(vault: Vault, temp_asymmetric_key, ok):
     if ok:
         vault.delete(temp_asymmetric_key)
         with pytest.raises(pexc.PangeaAPIException):
@@ -312,7 +314,7 @@ def test_delete(vault, temp_asymmetric_key, ok):
 
 
 @pytest.fixture(scope="session")
-def list_asymmetric_keys(vault, test_name, canonical_asymmetric_args):
+def list_asymmetric_keys(vault: Vault, test_name, canonical_asymmetric_args):
     keys = [
         _asymmetric_key(vault, "asymmetric", f"{test_name}_list", canonical_asymmetric_args, name)
         for name in ["ok", "revoked", "expired"]
@@ -342,7 +344,7 @@ def list_asymmetric_keys(vault, test_name, canonical_asymmetric_args):
         "folder",
     ],
 )
-def test_list_filter(vault, test_name, list_asymmetric_keys, filters, num_results):
+def test_list_filter(vault: Vault, test_name, list_asymmetric_keys, filters, num_results):
     filters_eval = {k: v.replace("{test_name}", test_name) for k, v in filters.items()}
     response = vault.list(filters_eval, size=100)
     assert len([x for x in response.result.items if x.type != "folder"]) == num_results
@@ -351,7 +353,7 @@ def test_list_filter(vault, test_name, list_asymmetric_keys, filters, num_result
 # TODO: folders
 
 # TODO: needs improvement
-def test_list_pagination(vault, test_name, list_asymmetric_keys):
+def test_list_pagination(vault: Vault, test_name, list_asymmetric_keys):
     response = vault.list({"folder": f"/{test_name}/"}, size=1)
     total = len(response.result.items)
     count = response.result.count
@@ -363,7 +365,7 @@ def test_list_pagination(vault, test_name, list_asymmetric_keys):
 
 
 # TODO: needs improvement
-def test_list_order(vault, test_name, list_asymmetric_keys):
+def test_list_order(vault: Vault, test_name, list_asymmetric_keys):
     response = vault.list(filter={"folder": test_name}, order_by="name", size=10)
     for curr, next in zip(response.result.items, response.result.items[1:]):
         assert curr.name >= next.name

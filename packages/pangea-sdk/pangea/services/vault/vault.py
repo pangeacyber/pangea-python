@@ -105,11 +105,11 @@ class Vault(ServiceBase):
         managed: Optional[bool] = None,
     ) -> PangeaResponse[CreateKeyResult]:
         input = CreateKeyRequest(
+            type=ItemType.SYMMETRIC_KEY,
             algorithm=algorithm,
             managed=managed,
             store=store,
             name=name,
-            type=ItemType.SYMMETRIC_KEY,
             folder=folder,
             metadata=metadata,
             tags=tags,
@@ -139,12 +139,12 @@ class Vault(ServiceBase):
         expiration: Optional[datetime.datetime] = None,
     ) -> PangeaResponse[CreateKeyPairResult]:
         input = CreateKeyPairRequest(
+            type=ItemType.ASYMMETRIC_KEY,
             algorithm=algorithm,
             purpose=purpose,
             managed=managed,
             store=store,
             name=name,
-            type=ItemType.ASYMMETRIC_KEY,
             folder=folder,
             metadata=metadata,
             tags=tags,

@@ -5,7 +5,7 @@ import pydantic
 from pangea import PangeaConfig
 from pangea.response import ResponseStatus
 from pangea.services import Redact
-from pangea.tools_util import TestEnvironment, get_test_domain, get_test_token
+from pangea.tools import TestEnvironment, get_test_domain, get_test_token
 
 TEST_ENVIRONMENT = TestEnvironment.LIVE
 
