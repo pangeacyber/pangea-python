@@ -14,6 +14,8 @@ from pangea.services.authn.models import (
     UserCreateResult,
     UserDeleteRequest,
     UserDeleteResult,
+    UserinfoRequest,
+    UserinfoResult,
     UserInviteDeleteRequest,
     UserInviteDeleteResult,
     UserInviteListResult,
@@ -27,6 +29,8 @@ from pangea.services.authn.models import (
     UserProfileGetResult,
     UserProfileUpdateRequest,
     UserProfileUpdateResult,
+    UserUpdateRequest,
+    UserUpdateResult,
 )
 from pangea.services.base import ServiceBase
 
@@ -68,6 +72,15 @@ class AuthN(ServiceBase):
         super().__init__(token, config)
         self.user = AuthN.User(token, config)
         self.password = AuthN.Password(token, config)
+
+    # https://dev.pangea.cloud/docs/api/authn/#complete-a-login # FIXME: Update url once in prod
+    def userinfo(self, code: str) -> PangeaResponse[UserinfoResult]:
+        input = UserinfoRequest(code=code)
+
+        response = self.request.post("userinfo", data=input.dict(exclude_none=True))
+        if response.raw_result is not None:
+            response.result = UserinfoResult(**response.raw_result)
+        return response
 
     class Password(ServiceBase):
         service_name: str = SERVICE_NAME
@@ -136,6 +149,28 @@ class AuthN(ServiceBase):
             response = self.request.post("user/delete", data=input.dict(exclude_none=True))
             if response.raw_result is not None:
                 response.result = UserDeleteResult(**response.raw_result)
+            return response
+
+        # https://dev.pangea.cloud/docs/api/authn/#administration-user-update # FIXME: Update url once in prod
+        def update(
+            self,
+            identity: Optional[str] = None,
+            email: Optional[str] = None,
+            authenticator: Optional[str] = None,
+            disabled: Optional[bool] = None,
+            require_mfa: Optional[bool] = None,
+        ) -> PangeaResponse[UserUpdateResult]:
+            input = UserUpdateRequest(
+                identity=identity,
+                email=email,
+                authenticator=authenticator,
+                disabled=disabled,
+                require_mfa=require_mfa,
+            )
+
+            response = self.request.post("user/update", data=input.dict(exclude_none=True))
+            if response.raw_result is not None:
+                response.result = UserUpdateResult(**response.raw_result)
             return response
 
         #   - path: authn::/v1/user/invite

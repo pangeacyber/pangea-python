@@ -53,7 +53,7 @@ class UserCreateResult(PangeaResponseResult):
     id_provider: str
     require_mfa: bool
     verified: bool
-    last_login_at: str
+    last_login_at: Optional[str]
     disable: Optional[bool] = None
     mfa_provider: Optional[List[str]] = None
 
@@ -109,7 +109,6 @@ class UserInviteDeleteRequest(APIRequestModel):
 
 
 class UserInviteDeleteResult(PangeaResponseResult):
-    # FIXME: Update once documented # https://dev.pangea.cloud/docs/api/authn#delete-an-invite
     pass
 
 
@@ -184,3 +183,41 @@ class UserProfileUpdateResult(PangeaResponseResult):
     verified: bool
     last_login_at: str
     disable: Optional[bool] = None
+
+
+class UserUpdateRequest(APIRequestModel):
+    identity: Optional[str] = None
+    email: Optional[str] = None
+    authenticator: Optional[str] = None
+    disabled: Optional[bool] = None
+    require_mfa: Optional[bool] = None
+
+
+class UserUpdateResult(PangeaResponseResult):
+    identity: str
+    email: str
+    profile: Profile
+    scopes: Optional[Scopes] = None
+    id_provider: IDProvider
+    mfa_provider: Optional[List[str]] = None
+    require_mfa: bool
+    verified: bool
+    disabled: bool
+    last_login_at: str
+
+
+class UserinfoResult(PangeaResponseResult):
+    token: str
+    id: str
+    type: str
+    life: int
+    expire: str
+    identity: str
+    email: str
+    scope: Scopes
+    profile: Profile
+    created_at: str
+
+
+class UserinfoRequest(APIRequestModel):
+    code: str

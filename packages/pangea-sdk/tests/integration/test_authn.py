@@ -120,6 +120,15 @@ class TestAuthN(unittest.TestCase):
             print_api_error(e)
             self.assertTrue(False)
 
+    def test_authn_a5_user_update(self):
+        response = self.authn.user.update(email=EMAIL_TEST, disabled=False, require_mfa=False)
+        self.assertEqual(response.status, "Success")
+        self.assertIsNotNone(response.result)
+        self.assertEqual(USER_IDENTITY, response.result.identity)
+        self.assertEqual(EMAIL_TEST, response.result.email)
+        self.assertEqual(False, response.result.require_mfa)
+        self.assertEqual(False, response.result.disabled)
+
     def test_authn_b1_user_invite(self):
         # This could (should) fail if test_authn_user_create_with_password failed
         response = self.authn.user.invite(
