@@ -1,26 +1,40 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 
+import enum
 import io
 import json
 import os
 import sys
 import typing as t
-from datetime import datetime, timezone, date
+from datetime import date, datetime, timezone
 
 from pangea.config import PangeaConfig
+from pangea.exceptions import PangeaException
 from pangea.services import Audit
 
 
-class Root(t.TypedDict):
+class TestEnvironment(str, enum.Enum):
+    DEVELOP = "DEV"
+    LIVE = "LVE"
+    STAGING = "STG"
+
+    def __str__(self):
+        return str(self.value)
+
+    def __repr__(self):
+        return str(self.value)
+
+
+class Root(t.Dict):
     size: int
     tree_name: str
 
 
-class Event(t.TypedDict):
+class Event(t.Dict):
     membership_proof: str
     leaf_index: t.Optional[int]
-    event: dict
+    event: t.Dict
     hash: str
     tree_size: t.Optional[int]
 
@@ -52,7 +66,7 @@ def exit_with_error(message: str):
     sys.exit(1)
 
 
-def file_events(root_hashes: dict[int, str], f: io.TextIOWrapper) -> t.Iterator[Event]:
+def file_events(root_hashes: t.Dict[int, str], f: io.TextIOWrapper) -> t.Iterator[Event]:
     """
     Reads a file containing Events in JSON format with the following fields:
     - membership_proof: str
@@ -104,12 +118,26 @@ def json_defaults(obj):
         return str(obj)
 
 
-def filter_deep_none(data: dict) -> dict:
-    return {
-        k: v if not isinstance(v, dict) else filter_deep_none(v)
-        for k, v in data.items()
-        if v is not None
-    }
+def filter_deep_none(data: t.Dict) -> t.Dict:
+    return {k: v if not isinstance(v, t.Dict) else filter_deep_none(v) for k, v in data.items() if v is not None}
+
+
+def get_test_domain(environment: TestEnvironment):
+    env_var_name = f"PANGEA_INTEGRATION_DOMAIN_{environment}"
+    value = os.getenv(env_var_name)
+    if not value:
+        raise PangeaException(f"{env_var_name} env var need to be set")
+
+    return value
+
+
+def get_test_token(environment: TestEnvironment):
+    env_var_name = f"PANGEA_INTEGRATION_TOKEN_{environment}"
+    value = os.getenv(env_var_name)
+    if not value:
+        raise PangeaException(f"{env_var_name} env var need to be set")
+
+    return value
 
 
 class SequenceFollower:
@@ -131,7 +159,7 @@ class SequenceFollower:
             self.numbers.remove(min_val)
             min_val += 1
 
-    def holes(self) -> list[int]:
+    def holes(self) -> t.List[int]:
         if not self.numbers:
             return []
 

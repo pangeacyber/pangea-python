@@ -11,12 +11,11 @@ intel = FileIntel(token, config=config)
 
 
 def main():
-    print(f"Checking hash...")
+    print(f"Checking file...")
 
     try:
         response = intel.lookup(
-            hash="142b638c6a60b60c7f9928da4fb85a5a8e1422a9ffdc9ee49e17e56ccca9cf6e",
-            hash_type="sha256",
+            filepath="./file.py",
             provider="reversinglabs",
             verbose=True,
             raw=True,
