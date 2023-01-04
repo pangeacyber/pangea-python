@@ -3,7 +3,7 @@ import unittest
 import pangea.exceptions as pe
 from pangea import PangeaConfig
 from pangea.response import ResponseStatus
-from pangea.services import DomainIntel, FileIntel
+from pangea.services import DomainIntel, FileIntel, IpIntel
 from pangea.tools_util import TestEnvironment, get_test_domain, get_test_token
 
 TEST_ENVIRONMENT = TestEnvironment.LIVE
@@ -91,3 +91,31 @@ class TestFileIntel(unittest.TestCase):
                 hash_type="notavalidhashtype",
                 provider="reversinglabs",
             )
+
+
+class TestIPIntel(unittest.TestCase):
+    def setUp(self):
+        token = os.getenv("PANGEA_TEST_INTEGRATION_TOKEN")
+        config_id = os.getenv("INTEL_INTEGRATION_CONFIG_TOKEN")
+        domain = os.getenv("PANGEA_TEST_INTEGRATION_ENDPOINT")
+        config = PangeaConfig(domain=domain, config_id=config_id)
+        self.intel_ip = IpIntel(token, config=config)
+
+    def test_ip_lookup(self):
+        response = self.intel_ip.lookup(ip="93.231.182.110", provider="crowdstrike", verbose=True, raw=True)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertEqual(response.result.data.verdict, "malicious")
+
+    def test_ip_lookup_with_bad_auth_token(self):
+        token = "noarealtoken"
+        config_id = os.getenv("INTEL_INTEGRATION_CONFIG_TOKEN")
+        domain = os.getenv("PANGEA_TEST_INTEGRATION_ENDPOINT")
+        config = PangeaConfig(domain=domain, config_id=config_id)
+        badintel_ip = IpIntel(token, config=config)
+
+        with self.assertRaises(pe.UnauthorizedException):
+            badintel_ip.lookup(ip="93.231.182.110", provider="crowdstrike")
+
+    def test_ip_lookup_with_no_provider(self):
+        with self.assertRaises(pe.PangeaAPIException):
+            self.intel_ip.lookup(ip="93.231.182.110")

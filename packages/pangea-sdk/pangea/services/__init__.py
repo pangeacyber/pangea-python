@@ -1,4 +1,4 @@
 from .audit.audit import Audit
 from .embargo import Embargo
-from .intel import DomainIntel, FileIntel
+from .intel import DomainIntel, FileIntel, IpIntel
 from .redact import Redact
