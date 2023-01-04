@@ -54,8 +54,8 @@ class UserCreateResult(PangeaResponseResult):
     require_mfa: bool
     verified: bool
     last_login_at: Optional[str]
-    disable: Optional[bool] = None
-    mfa_provider: Optional[List[str]] = None
+    disabled: Optional[bool] = None
+    mfa_providers: Optional[List[str]] = None
 
 
 class UserDeleteRequest(APIRequestModel):
@@ -161,7 +161,7 @@ class UserProfileGetResult(PangeaResponseResult):
     require_mfa: bool
     verified: bool
     last_login_at: str
-    disable: Optional[bool] = None
+    disabled: Optional[bool] = None
 
 
 class UserProfileUpdateRequest(APIRequestModel):
@@ -170,7 +170,7 @@ class UserProfileUpdateRequest(APIRequestModel):
     email: Optional[str] = None
     require_mfa: Optional[bool] = None
     mfa_value: Optional[str] = None
-    mfa_provider: Optional[str] = None
+    mfa_providers: Optional[str] = None
 
 
 class UserProfileUpdateResult(PangeaResponseResult):
@@ -182,7 +182,7 @@ class UserProfileUpdateResult(PangeaResponseResult):
     require_mfa: bool
     verified: bool
     last_login_at: str
-    disable: Optional[bool] = None
+    disabled: Optional[bool] = None
 
 
 class UserUpdateRequest(APIRequestModel):
@@ -199,7 +199,7 @@ class UserUpdateResult(PangeaResponseResult):
     profile: Profile
     scopes: Optional[Scopes] = None
     id_provider: IDProvider
-    mfa_provider: Optional[List[str]] = None
+    mfa_providers: Optional[List[str]] = None
     require_mfa: bool
     verified: bool
     disabled: bool
