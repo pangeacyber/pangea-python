@@ -10,7 +10,7 @@ from .base import ServiceBase
 
 class FileLookupRequest(APIRequestModel):
     """
-    TODO: complete
+    File lookup request data
 
     file_hash (str): Hash of the file to be looked up
     hash_type (str): Type of hash, can be "sha256", "sha" or "md5"
@@ -28,7 +28,7 @@ class FileLookupRequest(APIRequestModel):
 
 class FileLookupData(APIResponseModel):
     """
-    TODO: complete
+    File lookup information
     """
 
     category: List[str]
@@ -38,7 +38,7 @@ class FileLookupData(APIResponseModel):
 
 class FileLookupResult(PangeaResponseResult):
     """
-    TODO: complete
+    File lookup result information
     """
 
     data: FileLookupData
@@ -48,7 +48,7 @@ class FileLookupResult(PangeaResponseResult):
 
 class IPLookupRequest(APIRequestModel):
     """
-    TODO: complete
+    IP lookup request data
 
     ip (str): IP address to be looked up
     provider (str, optional): Provider of the reputation information. ("reversinglabs"). Default provider defined by the configuration.
@@ -64,7 +64,7 @@ class IPLookupRequest(APIRequestModel):
 
 class IPLookupData(APIResponseModel):
     """
-    TODO: complete
+    IP lookup information
     """
 
     category: List[str]
@@ -74,7 +74,7 @@ class IPLookupData(APIResponseModel):
 
 class IPLookupResult(PangeaResponseResult):
     """
-    TODO: complete
+    IP lookup result
     """
 
     data: IPLookupData
@@ -84,7 +84,7 @@ class IPLookupResult(PangeaResponseResult):
 
 class DomainLookupRequest(APIRequestModel):
     """
-    TODO: complete
+    Domain lookup request data
 
     domain (str): Domain address to be looked up
     provider (str, optional): Provider of the reputation information. ("domaintools"). Default provider defined by the configuration.
@@ -100,7 +100,7 @@ class DomainLookupRequest(APIRequestModel):
 
 class DomainLookupData(APIResponseModel):
     """
-    TODO: complete
+    Domain lookup information
     """
 
     category: List[str]
@@ -110,7 +110,7 @@ class DomainLookupData(APIResponseModel):
 
 class DomainLookupResult(PangeaResponseResult):
     """
-    TODO: complete
+    Domain lookup result
     """
 
     data: DomainLookupData
@@ -120,7 +120,7 @@ class DomainLookupResult(PangeaResponseResult):
 
 class URLLookupRequest(APIRequestModel):
     """
-    TODO: complete
+    URL lookup request data
 
     url (str): URL address to be looked up
     provider (str, optional): Provider of the reputation information. ("crowdstrike"). Default provider defined by the configuration.
@@ -136,7 +136,7 @@ class URLLookupRequest(APIRequestModel):
 
 class URLLookupData(APIResponseModel):
     """
-    TODO: complete
+    URL lookup information
     """
 
     category: List[str]
@@ -144,9 +144,9 @@ class URLLookupData(APIResponseModel):
     verdict: str
 
 
-class URLLookupOutput(PangeaResponseResult):
+class URLLookupResult(PangeaResponseResult):
     """
-    TODO: complete
+    URL lookup result
     """
 
     data: URLLookupData
@@ -384,8 +384,6 @@ class IpIntel(ServiceBase):
     The following information is needed:
         PANGEA_TOKEN - service token which can be found on the Pangea User
             Console at [https://console.pangea.cloud/project/tokens](https://console.pangea.cloud/project/tokens)
-        IP_INTEL_CONFIG_ID - Configuration ID which can be found on the Pangea
-            User Console at [https://console.pangea.cloud/service/ip-intel](https://console.pangea.cloud/service/ip-intel)
 
     Examples:
         import os
@@ -395,10 +393,8 @@ class IpIntel(ServiceBase):
         from pangea.services import IpIntel
 
         PANGEA_TOKEN = os.getenv("PANGEA_TOKEN")
-        IP_INTEL_CONFIG_ID = os.getenv("IP_INTEL_CONFIG_ID")
 
-        ip_intel_config = PangeaConfig(domain="pangea.cloud",
-                                        config_id=IP_INTEL_CONFIG_ID)
+        ip_intel_config = PangeaConfig(domain="pangea.cloud")
 
         # Setup Pangea IP Intel service
         ip_intel = IpIntel(token=PANGEA_TOKEN, config=ip_intel_config)
@@ -460,8 +456,6 @@ class UrlIntel(ServiceBase):
     The following information is needed:
         PANGEA_TOKEN - service token which can be found on the Pangea User
             Console at [https://console.pangea.cloud/project/tokens](https://console.pangea.cloud/project/tokens)
-        URL_INTEL_CONFIG_ID - Configuration ID which can be found on the Pangea
-            User Console at [https://console.pangea.cloud/service/url-intel](https://console.pangea.cloud/service/url-intel)
 
     Examples:
         import os
@@ -471,10 +465,8 @@ class UrlIntel(ServiceBase):
         from pangea.services import UrlIntel
 
         PANGEA_TOKEN = os.getenv("PANGEA_TOKEN")
-        URL_INTEL_CONFIG_ID = os.getenv("URL_INTEL_CONFIG_ID")
 
-        url_intel_config = PangeaConfig(domain="pangea.cloud",
-                                        config_id=URL_INTEL_CONFIG_ID)
+        url_intel_config = PangeaConfig(domain="pangea.cloud")
 
         # Setup Pangea URL Intel service
         url_intel = UrlIntel(token=PANGEA_TOKEN, config=url_intel_config)
@@ -485,7 +477,7 @@ class UrlIntel(ServiceBase):
 
     def lookup(
         self, url: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
-    ) -> PangeaResponse[URLLookupOutput]:
+    ) -> PangeaResponse[URLLookupResult]:
         """
         Retrieve URL address reputation from a provider.
 
@@ -525,5 +517,5 @@ class UrlIntel(ServiceBase):
 
         input = URLLookupRequest(url=url, provider=provider, verbose=verbose, raw=raw)
         response = self.request.post("lookup", data=input.dict(exclude_none=True))
-        response.result = URLLookupOutput(**response.raw_result)
+        response.result = URLLookupResult(**response.raw_result)
         return response

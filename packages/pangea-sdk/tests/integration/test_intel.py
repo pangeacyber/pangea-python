@@ -7,6 +7,7 @@ from pangea.services import DomainIntel, FileIntel, IpIntel, UrlIntel
 from pangea.tools_util import TestEnvironment, get_test_domain, get_test_token
 
 TEST_ENVIRONMENT = TestEnvironment.LIVE
+TEST_DEVELOP = TestEnvironment.DEVELOP  # FIXME: REMOVE THIS VARIABLE IP AND URL ARE IN PROD AND USE TEST_ENVIRONMENT
 
 
 class TestDomainIntel(unittest.TestCase):
@@ -95,8 +96,8 @@ class TestFileIntel(unittest.TestCase):
 
 class TestIPIntel(unittest.TestCase):
     def setUp(self):
-        token = get_test_token(TEST_ENVIRONMENT)
-        domain = get_test_domain(TEST_ENVIRONMENT)
+        token = get_test_token(TEST_DEVELOP)
+        domain = get_test_domain(TEST_DEVELOP)
         config = PangeaConfig(domain=domain)
         self.intel_ip = IpIntel(token, config=config)
 
@@ -107,7 +108,7 @@ class TestIPIntel(unittest.TestCase):
 
     def test_ip_lookup_with_bad_auth_token(self):
         token = "noarealtoken"
-        domain = get_test_domain(TEST_ENVIRONMENT)
+        domain = get_test_domain(TEST_DEVELOP)
         config = PangeaConfig(domain=domain)
         badintel_ip = IpIntel(token, config=config)
 
@@ -121,8 +122,8 @@ class TestIPIntel(unittest.TestCase):
 
 class TestURLIntel(unittest.TestCase):
     def setUp(self):
-        token = get_test_token(TEST_ENVIRONMENT)
-        domain = get_test_domain(TEST_ENVIRONMENT)
+        token = get_test_token(TEST_DEVELOP)
+        domain = get_test_domain(TEST_DEVELOP)
         config = PangeaConfig(domain=domain)
         self.intel_url = UrlIntel(token, config=config)
 
@@ -135,7 +136,7 @@ class TestURLIntel(unittest.TestCase):
 
     def test_url_lookup_with_bad_auth_token(self):
         token = "noarealtoken"
-        domain = get_test_domain(TEST_ENVIRONMENT)
+        domain = get_test_domain(TEST_DEVELOP)
         config = PangeaConfig(domain=domain)
         badintel_url = UrlIntel(token, config=config)
 
