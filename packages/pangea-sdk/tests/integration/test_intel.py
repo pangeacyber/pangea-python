@@ -6,7 +6,7 @@ from pangea.response import ResponseStatus
 from pangea.services import DomainIntel, FileIntel
 from pangea.tools_util import TestEnvironment, get_test_domain, get_test_token
 
-TEST_ENVIRONMENT = TestEnvironment.PRODUCTION
+TEST_ENVIRONMENT = TestEnvironment.LIVE
 
 
 class TestDomainIntel(unittest.TestCase):

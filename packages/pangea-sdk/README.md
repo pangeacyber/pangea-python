@@ -113,6 +113,8 @@ Verify that an event or a list of events has not been tampered with. Usage:
 
 ```
 usage: python -m pangea.verify_audit [-h] [--file PATH]
+or
+usage: poetry run python -m pangea.verify_audit [-h] [--file PATH]
 
 Pangea Audit Verifier
 
@@ -139,6 +141,8 @@ jsonl file (one json per line)
 
 ```
 usage: python -m pangea.dump_audit [-h] [--token TOKEN] [--domain DOMAIN] [--output OUTPUT] start end
+or
+usage: poetry run python -m pangea.dump_audit [-h] [--token TOKEN] [--domain DOMAIN] [--output OUTPUT] start end
 
 Pangea Audit Dump Tool
 
@@ -163,6 +167,8 @@ and the membership proof, it checks that there is no omissions in the stream, i.
 
 ```
 usage: python -m pangea.deep_verify [-h] [--token TOKEN] [--domain DOMAIN] --file FILE
+or
+usage: poetry run python -m pangea.deep_verify [-h] [--token TOKEN] [--domain DOMAIN] --file FILE
 
 Pangea Audit Event Deep Verifier
 

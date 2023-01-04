@@ -16,7 +16,7 @@ from pangea.services import Audit
 
 class TestEnvironment(str, enum.Enum):
     DEVELOP = "DEV"
-    PRODUCTION = "PROD"
+    LIVE = "LVE"
     STAGING = "STG"
 
     def __str__(self):
