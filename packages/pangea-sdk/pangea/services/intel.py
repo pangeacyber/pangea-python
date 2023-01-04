@@ -118,6 +118,42 @@ class DomainLookupResult(PangeaResponseResult):
     raw_data: Optional[Dict] = None
 
 
+class URLLookupRequest(APIRequestModel):
+    """
+    TODO: complete
+
+    url (str): URL address to be looked up
+    provider (str, optional): Provider of the reputation information. ("crowdstrike"). Default provider defined by the configuration.
+    verbose (bool, optional): Echo back the parameters of the API in the response
+    raw (bool, optional): Return additional details from the provider.
+    """
+
+    url: str
+    verbose: Optional[bool] = None
+    raw: Optional[bool] = None
+    provider: Optional[str] = None
+
+
+class URLLookupData(APIResponseModel):
+    """
+    TODO: complete
+    """
+
+    category: List[str]
+    score: int
+    verdict: str
+
+
+class URLLookupOutput(PangeaResponseResult):
+    """
+    TODO: complete
+    """
+
+    data: URLLookupData
+    parameters: Optional[Dict] = None
+    raw_data: Optional[Dict] = None
+
+
 class FileIntel(ServiceBase):
     """File Intel service client
 
@@ -410,7 +446,84 @@ class IpIntel(ServiceBase):
             }
             \"\"\"
         """
-        input = IPLookupInput(ip=ip, verbose=verbose, raw=raw, provider=provider)
+        input = IPLookupRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
         response = self.request.post("lookup", data=input.dict(exclude_none=True))
         response.result = IPLookupResult(**response.raw_result)
+        return response
+
+
+class UrlIntel(ServiceBase):
+    """URL Intel service client.
+
+    Provides methods to interact with [Pangea URL Intel Service](/docs/api/url-intel)
+
+    The following information is needed:
+        PANGEA_TOKEN - service token which can be found on the Pangea User
+            Console at [https://console.pangea.cloud/project/tokens](https://console.pangea.cloud/project/tokens)
+        URL_INTEL_CONFIG_ID - Configuration ID which can be found on the Pangea
+            User Console at [https://console.pangea.cloud/service/url-intel](https://console.pangea.cloud/service/url-intel)
+
+    Examples:
+        import os
+
+        # Pangea SDK
+        from pangea.config import PangeaConfig
+        from pangea.services import UrlIntel
+
+        PANGEA_TOKEN = os.getenv("PANGEA_TOKEN")
+        URL_INTEL_CONFIG_ID = os.getenv("URL_INTEL_CONFIG_ID")
+
+        url_intel_config = PangeaConfig(domain="pangea.cloud",
+                                        config_id=URL_INTEL_CONFIG_ID)
+
+        # Setup Pangea URL Intel service
+        url_intel = UrlIntel(token=PANGEA_TOKEN, config=url_intel_config)
+    """
+
+    service_name = "url-intel"
+    version = "v1"
+
+    def lookup(
+        self, url: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
+    ) -> PangeaResponse[URLLookupOutput]:
+        """
+        Retrieve URL address reputation from a provider.
+
+        Args:
+            input (URLLookupInput): input with URL information to perform request
+
+        Raises:
+            PangeaAPIException: If an API Error happens
+
+        Returns:
+            A PangeaResponse where the sanctioned source(s) are in the
+                response.result field.  Available response fields can be found in our [API documentation](/docs/api/url-intel)
+
+        Examples:
+            response = url_intel.lookup(URLLookupInput(url="http://113.235.101.11:54384", provider="crowdstrike"))
+
+            \"\"\"
+            response contains:
+            {
+                "request_id": "prq_5ugxruda7vmsgioup6vjvaqmnmvxzbqv",
+                "request_time": "2022-08-23T03:40:03.549Z",
+                "response_time": "2022-08-23T03:40:03.694Z",
+                "status": "success",
+                "summary": "Url was found",
+                "result": {
+                    "data": {
+                        "category": [
+                            "Not Provided"
+                        ],
+                        "score": 80,
+                        "verdict": "malicious"
+                    }
+                }
+            }
+            \"\"\"
+        """
+
+        input = URLLookupRequest(url=url, provider=provider, verbose=verbose, raw=raw)
+        response = self.request.post("lookup", data=input.dict(exclude_none=True))
+        response.result = URLLookupOutput(**response.raw_result)
         return response
