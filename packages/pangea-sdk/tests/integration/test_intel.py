@@ -51,6 +51,15 @@ class TestFileIntel(unittest.TestCase):
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertEqual(response.result.data.verdict, "malicious")
 
+    def test_file_lookup_default_provider(self):
+        response = self.intel_file.lookup(
+            hash="142b638c6a60b60c7f9928da4fb85a5a8e1422a9ffdc9ee49e17e56ccca9cf6e",
+            hash_type="sha256",
+            verbose=True,
+            raw=True,
+        )
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+
     def test_file_lookup_from_filepath(self):
         response = self.intel_file.lookupFilepath(
             filepath="./README.md",
@@ -72,12 +81,6 @@ class TestFileIntel(unittest.TestCase):
                 hash="142b638c6a60b60c7f9928da4fb85a5a8e1422a9ffdc9ee49e17e56ccca9cf6e",
                 hash_type="sha256",
                 provider="reversinglabs",
-            )
-
-    def test_file_lookup_with_no_provider(self):
-        with self.assertRaises(pe.PangeaAPIException):
-            self.intel_file.lookup(
-                hash="142b638c6a60b60c7f9928da4fb85a5a8e1422a9ffdc9ee49e17e56ccca9cf6e", hash_type="sha256"
             )
 
     def test_file_lookup_with_bad_hash(self):
@@ -105,6 +108,10 @@ class TestIPIntel(unittest.TestCase):
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertEqual(response.result.data.verdict, "malicious")
 
+    def test_ip_lookup_default_provider(self):
+        response = self.intel_ip.lookup(ip="93.231.182.110", verbose=True, raw=True)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+
     def test_ip_lookup_with_bad_auth_token(self):
         token = "noarealtoken"
         domain = get_test_domain(TEST_ENVIRONMENT)
@@ -113,10 +120,6 @@ class TestIPIntel(unittest.TestCase):
 
         with self.assertRaises(pe.UnauthorizedException):
             badintel_ip.lookup(ip="93.231.182.110", provider="crowdstrike")
-
-    def test_ip_lookup_with_no_provider(self):
-        with self.assertRaises(pe.PangeaAPIException):
-            self.intel_ip.lookup(ip="93.231.182.110")
 
 
 class TestURLIntel(unittest.TestCase):
@@ -133,6 +136,10 @@ class TestURLIntel(unittest.TestCase):
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertEqual(response.result.data.verdict, "malicious")
 
+    def test_url_lookup_default_provider(self):
+        response = self.intel_url.lookup(url="http://113.235.101.11:54384", verbose=True, raw=True)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+
     def test_url_lookup_with_bad_auth_token(self):
         token = "noarealtoken"
         domain = get_test_domain(TEST_ENVIRONMENT)
@@ -141,7 +148,3 @@ class TestURLIntel(unittest.TestCase):
 
         with self.assertRaises(pe.UnauthorizedException):
             badintel_url.lookup(url="http://113.235.101.11:54384", provider="crowdstrike")
-
-    def test_url_lookup_with_no_provider(self):
-        with self.assertRaises(pe.PangeaAPIException):
-            self.intel_url.lookup(url="http://113.235.101.11:54384")
