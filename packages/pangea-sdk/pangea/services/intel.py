@@ -413,7 +413,7 @@ class IpIntel(ServiceBase):
         Retrieve information about the location of an IP address.
 
         Args:
-            ip (str): ip to request for a geolocate
+            ip (str): IP address to be geolocated
             provider (str, optional): intel provider to perfome lookup
             verbose (bool, optional): true to get more detalied response
             raw (bool, optional): true to get provider raw response
