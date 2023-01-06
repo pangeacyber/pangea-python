@@ -8,6 +8,9 @@ from pangea.tools_util import TestEnvironment, get_test_domain, get_test_token
 
 TEST_ENVIRONMENT = TestEnvironment.LIVE
 
+# FIXME: Remove this before push to prod. It's used to test geolocate now
+TEST_DEVELOP = TestEnvironment.DEVELOP
+
 
 class TestDomainIntel(unittest.TestCase):
     def setUp(self):
@@ -98,8 +101,8 @@ class TestFileIntel(unittest.TestCase):
 
 class TestIPIntel(unittest.TestCase):
     def setUp(self):
-        token = get_test_token(TEST_ENVIRONMENT)
-        domain = get_test_domain(TEST_ENVIRONMENT)
+        token = get_test_token(TEST_DEVELOP)
+        domain = get_test_domain(TEST_DEVELOP)
         config = PangeaConfig(domain=domain)
         self.intel_ip = IpIntel(token, config=config)
 
@@ -111,6 +114,20 @@ class TestIPIntel(unittest.TestCase):
     def test_ip_lookup_default_provider(self):
         response = self.intel_ip.lookup(ip="93.231.182.110", verbose=True, raw=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
+
+    def test_ip_geolocate(self):
+        response = self.intel_ip.geolocate(ip="93.231.182.110", provider="digitalenvoy", verbose=True, raw=True)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertEqual(response.result.data.country, "deu")
+        self.assertEqual(response.result.data.city, "unna")
+        self.assertEqual(response.result.data.postal_code, "59425")
+
+    def test_ip_geolocate_default_provider(self):
+        response = self.intel_ip.geolocate(ip="93.231.182.110", verbose=True, raw=True)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertEqual(response.result.data.country, "deu")
+        self.assertEqual(response.result.data.city, "unna")
+        self.assertEqual(response.result.data.postal_code, "59425")
 
     def test_ip_lookup_with_bad_auth_token(self):
         token = "noarealtoken"
