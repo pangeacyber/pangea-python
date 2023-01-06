@@ -414,7 +414,7 @@ class IpIntel(ServiceBase):
 
         Args:
             ip (str): IP address to be geolocated
-            provider (str, optional): intel provider to perfome lookup
+            provider (str, optional): Use geolocation data from this provider ("digitalenvoy"). Default provider defined by the configuration.
             verbose (bool, optional): true to get more detalied response
             raw (bool, optional): true to get provider raw response
 
