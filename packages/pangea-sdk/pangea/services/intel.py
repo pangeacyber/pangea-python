@@ -408,6 +408,8 @@ class IpIntel(ServiceBase):
         self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
     ) -> PangeaResponse[IPGeolocateResult]:
         """
+        Geolocate an IP
+    
         Retrieve information about the location of an IP address.
 
         Args:
