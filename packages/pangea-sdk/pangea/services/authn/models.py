@@ -25,7 +25,7 @@ class IDProvider(str, enum.Enum):
     FACEBOOK = "facebook"
     GITHUB = "github"
     GOOGLE = "google"
-    MICROSOFT_ONLINE = "microsoftonline"
+    MICROSOFT = "microsoftonline"
     PASSWORD = "password"
 
     def __str__(self):
