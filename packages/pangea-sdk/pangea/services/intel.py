@@ -416,7 +416,7 @@ class IpIntel(ServiceBase):
             ip (str): IP address to be geolocated
             provider (str, optional): Use geolocation data from this provider ("digitalenvoy"). Default provider defined by the configuration.
             verbose (bool, optional): Echo the API parameters in the response
-            raw (bool, optional): true to get provider raw response
+            raw (bool, optional): Include raw data from this provider
 
         Raises:
             PangeaAPIException: If an API Error happens
