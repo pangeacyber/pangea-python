@@ -381,13 +381,15 @@ class IpIntel(ServiceBase):
         self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
     ) -> PangeaResponse[IPLookupResult]:
         """
-        Retrieve IP address reputation from a provider.
+        Look up an IP
+
+        Retrieve a reputation score for an IP address from a provider, including an optional detailed report.
 
         Args:
-            ip (str): ip to request for a lookup
-            provider (str, optional): intel provider to perfome lookup
-            verbose (bool, optional): true to get more detalied response
-            raw (bool, optional): true to get provider raw response
+            input (IPLookupInput): input with IP information to perform request
+            verbose (bool, optional): Echo the API parameters in the response
+            raw (bool, optional): Include raw data from this provider
+            provider (str, optional): Use reputation data from this provider: "crowdstrike"
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -409,7 +411,7 @@ class IpIntel(ServiceBase):
     ) -> PangeaResponse[IPGeolocateResult]:
         """
         Geolocate an IP
-    
+
         Retrieve information about the location of an IP address.
 
         Args:
