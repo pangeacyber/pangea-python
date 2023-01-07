@@ -412,7 +412,7 @@ class IpIntel(ServiceBase):
         Retrieve a reputation score for an IP address from a provider, including an optional detailed report.
 
         Args:
-            input (IPLookupInput): input with IP information to perform request
+            ip (str): The IP to be looked up
             verbose (bool, optional): Echo the API parameters in the response
             raw (bool, optional): Include raw data from this provider
             provider (str, optional): Use reputation data from this provider: "crowdstrike"
@@ -489,7 +489,7 @@ class UrlIntel(ServiceBase):
         Retrieve URL address reputation from a provider.
 
         Args:
-            input (URLLookupInput): input with URL information to perform request
+            url (str): The URL to be looked up
             verbose (bool, optional): Echo the API parameters in the response
             raw (bool, optional): Include raw data from this provider
             provider (str, optional): Use reputation data from this provider: "crowdstrike"
