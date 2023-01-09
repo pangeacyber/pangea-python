@@ -1,15 +1,17 @@
-import os
 import unittest
 
 import pangea.exceptions as pe
 from pangea import PangeaConfig
 from pangea.services import Embargo
+from pangea.tools_util import TestEnvironment, get_test_domain, get_test_token
+
+TEST_ENVIRONMENT = TestEnvironment.LIVE
 
 
 class TestEmbargo(unittest.TestCase):
     def setUp(self):
-        token = os.getenv("PANGEA_INTEGRATION_TOKEN")
-        domain = os.getenv("PANGEA_INTEGRATION_DOMAIN")
+        token = get_test_token(TEST_ENVIRONMENT)
+        domain = get_test_domain(TEST_ENVIRONMENT)
         config = PangeaConfig(domain=domain)
         self.embargo = Embargo(token, config=config)
 
@@ -19,7 +21,7 @@ class TestEmbargo(unittest.TestCase):
         self.assertGreaterEqual(len(response.result.sanctions), 1)
 
         sanction = response.result.sanctions[0]
-        self.assertEqual(sanction.list_name, "ITAR")
+        self.assertEqual(sanction.list_name, "US - ITAR")
         self.assertEqual(sanction.embargoed_country_name, "Russia")
         self.assertEqual(sanction.embargoed_country_iso_code, "RU")
         self.assertEqual(sanction.issuing_country, "US")
@@ -31,14 +33,14 @@ class TestEmbargo(unittest.TestCase):
         self.assertGreaterEqual(len(response.result.sanctions), 1)
 
         sanction = response.result.sanctions[0]
-        self.assertEqual(sanction.list_name, "ITAR")
+        self.assertEqual(sanction.list_name, "US - ITAR")
         self.assertEqual(sanction.embargoed_country_name, "Cuba")
         self.assertEqual(sanction.embargoed_country_iso_code, "CU")
         self.assertEqual(sanction.issuing_country, "US")
 
     def test_embargo_with_bad_auth_token(self):
         token = "noarealauthtoken"
-        domain = os.getenv("PANGEA_INTEGRATION_DOMAIN")
+        domain = get_test_domain(TEST_ENVIRONMENT)
         config = PangeaConfig(domain=domain)
         badembargo = Embargo(token, config=config)
 

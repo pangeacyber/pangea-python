@@ -351,8 +351,10 @@ class Audit(ServiceBase):
                 # verify event hash
                 if event_search.hash and not verify_envelope_hash(event_search.envelope, event_search.hash):
                     # it's a extreme case, it's OK to raise an exception
-                    print(event_search.envelope)
-                    raise EventCorruption(f"Error: Event hash failed.", event_search.envelope)
+                    raise EventCorruption(
+                        f"Event hash verification failed. Received_at: {event_search.envelope.received_at}. Search again with verify_events=False to recover events",
+                        event_search.envelope,
+                    )
 
                 event_search.signature_verification = self.verify_signature(event_search.envelope)
 

@@ -9,10 +9,16 @@ import sys
 from datetime import datetime
 
 import dateutil.parser
-
 from pangea.response import PangeaResponse
 from pangea.services import Audit
-from pangea.tools_util import get_script_name, init_audit, make_aware_datetime, print_progress_bar, json_defaults, filter_deep_none
+from pangea.tools_util import (
+    filter_deep_none,
+    get_script_name,
+    init_audit,
+    json_defaults,
+    make_aware_datetime,
+    print_progress_bar,
+)
 
 
 def dump_event(output: io.TextIOWrapper, row: dict, resp: PangeaResponse):
@@ -31,25 +37,28 @@ def dump_audit(audit: Audit, output: io.TextIOWrapper, start: datetime, end: dat
     page_end = start
     offset = dump_before(audit, output, start)
     while True:
-        page_end, page_size = dump_page(audit, output, page_end, end, first=offset == 0)
-        if page_size == 0:
+        page_end, page_size, stop, last_hash, last_leaf_index = dump_page(
+            audit, output, page_end, end, first=offset == 0
+        )
+        if stop:
             break
         offset += page_size
     print()
-    offset += dump_after(audit, output, end)
+    offset += dump_after(audit, output, end, last_hash, last_leaf_index)
     return offset
 
 
 def dump_before(audit: Audit, output: io.TextIOWrapper, start: datetime) -> int:
-    print("Dumping before...", end="\r")
+    print("Dumping before...")
     search_res = audit.search(
         query="",
-        start="2000-01-01T10:00:00Z",
-        end=start.isoformat(),
+        start=datetime.strptime("2020-01-01T10:00:00Z", "%Y-%m-%dT%H:%M:%SZ"),
+        end=start,
         order="desc",
         verify_consistency=False,
         limit=1000,
         max_results=1000,
+        verify_events=False,
     )
     if not search_res.success:
         raise ValueError(f"Error fetching events: {search_res.result}")
@@ -66,15 +75,10 @@ def dump_before(audit: Audit, output: io.TextIOWrapper, start: datetime) -> int:
     return cnt
 
 
-def dump_after(audit: Audit, output: io.TextIOWrapper, start: datetime) -> int:
+def dump_after(audit: Audit, output: io.TextIOWrapper, start: datetime, last_event_hash, last_leaf_index) -> int:
     print("Dumping after...", end="\r")
     search_res = audit.search(
-        query="",
-        start=start.isoformat(),
-        order="asc",
-        verify_consistency=False,
-        limit=1000,
-        max_results=1000
+        query="", start=start, order="asc", verify_consistency=False, limit=1000, max_results=1000, verify_events=False
     )
     if not search_res.success:
         raise ValueError("Error fetching events")
@@ -82,28 +86,32 @@ def dump_after(audit: Audit, output: io.TextIOWrapper, start: datetime) -> int:
     cnt = 0
     if search_res.result.count > 0:
         leaf_index = search_res.result.events[0].leaf_index
-        for row in search_res.result.events[1:]:
-            if row.leaf_index != leaf_index:
-                break
-            dump_event(output, row, search_res)
-            cnt += 1
+        if leaf_index == last_leaf_index:
+            start = 1 if last_event_hash == search_res.result.events[0].hash else 0
+            for row in search_res.result.events[start:]:
+                if row.leaf_index != leaf_index:
+                    break
+                dump_event(output, row, search_res)
+                cnt += 1
     print(f"Dumping after... {cnt} events")
     return cnt
 
 
 def dump_page(
     audit: Audit, output: io.TextIOWrapper, start: datetime, end: datetime, first: bool = False
-) -> tuple[datetime, int]:
-
-    print("Dumping...", end="\r")
+) -> tuple[datetime, int, bool, str, int]:
+    PAGE_SIZE = 1000
+    print(start, end)
+    print("Dumping...")
     search_res = audit.search(
         query="",
-        start=start.isoformat(),
-        end=end.isoformat(),
+        start=start,
+        end=end,
         order="asc",
         order_by="received_at",
         verify_consistency=False,
-        limit=1000,
+        verify_events=False,
+        limit=PAGE_SIZE,
     )
     if not search_res.success:
         raise ValueError(f"Error fetching events: {search_res.result}")
@@ -122,16 +130,15 @@ def dump_page(
                 dump_event(output, row, search_res)
             offset += 1
         if offset < count:
-            search_res = audit.results(result_id, offset=offset)
+            search_res = audit.results(result_id, offset=offset, verify_events=False)
             if not search_res.success:
                 raise ValueError("Error fetching events")
         print_progress_bar(offset, count, prefix=msg, suffix="Complete", length=50)
-
     page_end = row.envelope.received_at
-    return page_end, offset
+    return page_end, offset, search_res.result.count < PAGE_SIZE, row.hash, row.leaf_index
 
 
-def create_parser():
+def create_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Pangea Audit Dump Tool")
     parser.add_argument(
         "--token", "-t", default=os.getenv("PANGEA_TOKEN"), help="Pangea token (default: env PANGEA_TOKEN)"
@@ -150,7 +157,7 @@ def create_parser():
     return parser
 
 
-def parse_args(parser):
+def parse_args(parser: argparse.ArgumentParser):
     args = parser.parse_args()
 
     if not args.token:
