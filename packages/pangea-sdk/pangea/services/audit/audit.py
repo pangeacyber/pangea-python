@@ -143,13 +143,7 @@ class Audit(ServiceBase):
             else:
                 raise AuditException("Error: failure signing message")
 
-            public_bytes = self.signer.getPublicKeyBytes()
-            input.public_key = b64encode_ascii(public_bytes)
-
-        elif signing == EventSigning.VAULT:
-            input.sign = True
-            input.signature_key_id = signature_key_id
-            input.signature_key_version = signature_key_version
+            input.public_key = self.signer.getPublicKeyPEM()
 
         if verify:
             input.verbose = True
@@ -538,14 +532,15 @@ class Audit(ServiceBase):
         Raise:
           EventCorruption: If signature verification fails
         """
-        if audit_envelope and audit_envelope.signature and self.has_valid_public_key(audit_envelope.public_key):
+        if audit_envelope and audit_envelope.signature and audit_envelope.public_key:
             v = Verifier()
-            if v.verifyMessage(
+            verification = v.verifyMessage(
                 audit_envelope.signature, canonicalize_event(audit_envelope.event), audit_envelope.public_key
-            ):
-                return EventVerification.PASS
+            )
+            if verification is not None:
+                return EventVerification.PASS if verification else EventVerification.FAIL
             else:
-                return EventVerification.FAIL
+                return EventVerification.NONE
         else:
             return EventVerification.NONE
 
