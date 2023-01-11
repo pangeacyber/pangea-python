@@ -106,13 +106,13 @@ class CreateCommonResult(PangeaResponseResult):
     id: Optional[str] = None
 
 
-class RetrieveCommonRequest(APIRequestModel):
+class GetCommonRequest(APIRequestModel):
     id: str
     version: Optional[int] = None
     verbose: Optional[bool] = None
 
 
-class RetrieveCommonResult(PangeaResponseResult):
+class GetCommonResult(PangeaResponseResult):
     id: str
     type: str
     version: int
@@ -168,7 +168,7 @@ class ListRequest(APIRequestModel):
     order_by: Optional[str] = None
 
 
-class RetrieveGenericResult(RetrieveCommonResult):
+class GetGenericResult(GetCommonResult):
     public_key: Optional[EncodedPublicKey] = None
     private_key: Optional[EncodedPrivateKey] = None
     algorithm: Optional[KeyPairAlgorithm | KeyAlgorithm] = None

@@ -4,14 +4,12 @@ import enum
 from typing import Optional
 
 from pangea.services.vault.models.common import (
-    StoreCommonRequest,
-    StoreCommonResult,
     CreateCommonRequest,
     CreateCommonResult,
-    RetrieveCommonRequest,
-    RetrieveCommonResult,
     RotateCommonRequest,
     RotateCommonResult,
+    StoreCommonRequest,
+    StoreCommonResult,
 )
 
 
@@ -39,14 +37,6 @@ class CreateSecretRequest(CreateCommonRequest):
 
 
 class CreateSecretResult(CreateCommonResult):
-    secret: str
-
-
-class RetrieveSecretRequest(RetrieveCommonRequest):
-    pass
-
-
-class RetrieveSecretResult(RetrieveCommonResult):
     secret: str
 
 

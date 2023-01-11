@@ -1,21 +1,24 @@
-import pytest
 import os
-from base64 import b64encode
 import random
+from base64 import b64encode
 
-from pangea.services.vault.vault import Vault
+import pytest
 from pangea import PangeaConfig
+from pangea.services.vault.vault import Vault
+from pangea.tools import TestEnvironment, get_test_domain, get_test_token
+
+TEST_ENVIRONMENT = TestEnvironment.DEVELOP
 
 
 @pytest.fixture(scope="session")
 def config():
-    domain = os.getenv("PANGEA_BRANCH_DOMAIN")
-    return PangeaConfig(domain=domain, environment="local")
+    domain = get_test_domain(TEST_ENVIRONMENT)
+    return PangeaConfig(domain=domain)
 
 
 @pytest.fixture(scope="session")
 def vault(config):
-    token = os.getenv("PANGEA_INTEGRATION_VAULT_TOKEN")
+    token = get_test_token(TEST_ENVIRONMENT)
     return Vault(token, config=config)
 
 

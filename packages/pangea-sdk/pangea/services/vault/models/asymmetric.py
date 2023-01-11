@@ -10,8 +10,6 @@ from pangea.services.vault.models.common import (
     EncodedPublicKey,
     KeyPairAlgorithm,
     KeyPairPurpose,
-    RetrieveCommonRequest,
-    RetrieveCommonResult,
     RotateCommonRequest,
     RotateCommonResult,
     StoreCommonRequest,
@@ -41,18 +39,6 @@ class StoreKeyPairResult(StoreCommonResult):
     public_key: EncodedPublicKey
     private_key: Optional[EncodedPrivateKey] = None
     algorithm: str
-
-
-class RetrieveKeyPairRequest(RetrieveCommonRequest):
-    pass
-
-
-class RetrieveKeyPairResult(RetrieveCommonResult):
-    algorithm: Optional[KeyPairAlgorithm] = None
-    public_key: Optional[EncodedPublicKey] = None
-    private_key: Optional[EncodedPrivateKey] = None
-    purpose: Optional[KeyPairPurpose] = None
-    managed: Optional[bool] = None
 
 
 class RotateKeyPairRequest(RotateCommonRequest):

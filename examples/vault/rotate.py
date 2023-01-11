@@ -1,5 +1,5 @@
-import os
 import base64
+import os
 
 import pangea.exceptions as pe
 from pangea.config import PangeaConfig
@@ -24,16 +24,16 @@ def main():
         vault.rotate_secret(secret_id, secret_2)
 
         # retrieve latest version
-        retrieve_response = vault.retrieve(secret_id)
-        
+        retrieve_response = vault.get(secret_id)
+
         if retrieve_response.result.secret == secret_2:
             print("version 2 ok")
         else:
             print("version 2 is wrong")
 
         # retrieve version 1
-        retrieve_response = vault.retrieve(secret_id, version=1)
-        
+        retrieve_response = vault.get(secret_id, version=1)
+
         if retrieve_response.result.secret == secret_1:
             print("version 1 ok")
         else:

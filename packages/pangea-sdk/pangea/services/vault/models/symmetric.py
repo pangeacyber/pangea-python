@@ -8,8 +8,6 @@ from pangea.services.vault.models.common import (
     CreateCommonResult,
     EncodedSymmetricKey,
     KeyAlgorithm,
-    RetrieveCommonRequest,
-    RetrieveCommonResult,
     RotateCommonRequest,
     RotateCommonResult,
     StoreCommonRequest,
@@ -36,16 +34,6 @@ class CreateKeyRequest(CreateCommonRequest):
 class CreateKeyResult(CreateCommonResult):
     algorithm: KeyAlgorithm
     key: Optional[EncodedSymmetricKey] = None
-
-
-class RetrieveKeyRequest(RetrieveCommonRequest):
-    pass
-
-
-class RetrieveKeyResult(RetrieveCommonResult):
-    algorithm: KeyAlgorithm
-    key: Optional[EncodedSymmetricKey] = None
-    managed: Optional[bool] = None
 
 
 class EncryptRequest(APIRequestModel):

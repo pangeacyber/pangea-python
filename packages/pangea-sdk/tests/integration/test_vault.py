@@ -1,7 +1,6 @@
 import datetime
 import inspect
 import logging
-import os
 import random
 import unittest
 from typing import Dict, List, Optional
@@ -10,7 +9,6 @@ import pangea.exceptions as pexc
 from pangea import PangeaConfig
 from pangea.response import PangeaResponse
 from pangea.services.vault.models.asymmetric import CreateKeyPairResult, KeyPairAlgorithm, KeyPairPurpose
-from pangea.services.vault.models.common import Metadata, Tags
 from pangea.services.vault.models.symmetric import CreateKeyResult, KeyAlgorithm
 from pangea.services.vault.vault import Vault
 from pangea.tools import TestEnvironment, get_test_domain, get_test_token
@@ -51,11 +49,6 @@ class TestVault(unittest.TestCase):
         self.token = get_test_token(TEST_ENVIRONMENT)
         domain = get_test_domain(TEST_ENVIRONMENT)
         self.config = PangeaConfig(domain=domain)
-
-        # domain = os.getenv("PANGEA_BRANCH_DOMAIN")
-        # self.config = PangeaConfig(domain=domain, environment="local")
-        print("Domain: ", domain)
-        print("Token: ", self.token)
 
         self.vault = Vault(self.token, config=self.config)
         self.random_id = str(random.randint(10, 1000000000))
@@ -138,20 +131,20 @@ class TestVault(unittest.TestCase):
                     print(f"\t {ef.detail}")
             self.assertTrue(False)
 
-        # self.assertEqual(id, encrypt1_resp.result.id)
-        # self.assertEqual(1, encrypt1_resp.result.version)
+        self.assertEqual(id, encrypt1_resp.result.id)
+        self.assertEqual(1, encrypt1_resp.result.version)
         cipher_v1 = encrypt1_resp.result.cipher_text
         self.assertIsNotNone(cipher_v1)
 
         # Rotate
-        rotate_resp = self.vault.rotate_symmetric(id)
+        rotate_resp = self.vault.symmetric_rotate(id)
         self.assertEqual(2, rotate_resp.result.version)
         self.assertEqual(id, rotate_resp.result.id)
 
         # Encrypt 2
         encrypt2_resp = self.vault.encrypt(id, data_b64)
-        # self.assertEqual(id, encrypt2_resp.result.id)
-        # self.assertEqual(2, encrypt2_resp.result.version)
+        self.assertEqual(id, encrypt2_resp.result.id)
+        self.assertEqual(2, encrypt2_resp.result.version)
         cipher_v2 = encrypt2_resp.result.cipher_text
         self.assertIsNotNone(cipher_v2)
 
@@ -201,7 +194,7 @@ class TestVault(unittest.TestCase):
         self.assertIsNotNone(signature_v1)
 
         # Rotate
-        rotate_resp = self.vault.rotate_asymmetric(id)
+        rotate_resp = self.vault.asymmetric_rotate(id)
         self.assertEqual(2, rotate_resp.result.version)
         self.assertEqual(id, rotate_resp.result.id)
 
@@ -273,7 +266,7 @@ class TestVault(unittest.TestCase):
         for parameters in self.key_param_comb:
             with self.subTest(parameters=parameters):
                 try:
-                    response = self.vault.create_symmetric(algorithm=KeyAlgorithm.AES, **parameters)
+                    response = self.vault.symmetric_create(algorithm=KeyAlgorithm.AES, **parameters)
                     logger.debug(f"\nSymmetric parameters: {parameters}")
                     logger.debug(f"Success result: {response.result}")
                     self.create_symmetric_check_response(response, parameters)
@@ -301,7 +294,7 @@ class TestVault(unittest.TestCase):
         logger.critical("Starting...")
         for parameters in self.key_param_comb:
             try:
-                response = self.vault.create_asymmetric(
+                response = self.vault.asymmetric_create(
                     algorithm=KeyPairAlgorithm.Ed25519, purpose=KeyPairPurpose.SIGNING, **parameters
                 )
                 logger.debug(f"\nAsymmetric parameters: {parameters}")
@@ -331,7 +324,7 @@ class TestVault(unittest.TestCase):
         logger.critical("Starting...")
         for parameters in self.key_param_comb:
             try:
-                response = self.vault.create_asymmetric(
+                response = self.vault.asymmetric_create(
                     algorithm=KeyPairAlgorithm.Ed25519, purpose=KeyPairPurpose.ENCRYPTION, **parameters
                 )
                 logger.debug(f"\nAsymmetric parameters: {parameters}")
@@ -354,19 +347,9 @@ class TestVault(unittest.TestCase):
 
         logger.critical(f"\nFinal summary. Success: {success}. Failed: {failed}")
 
-    def test_create_key_aes_managed_but_no_stored(self):
-        logger = setup_logger(LOG_PATH, THIS_FUNCTION_NAME(), LOG_LEVEL, LOG_FORMATTER)
-        try:
-            response = self.vault.create_symmetric(algorithm=KeyAlgorithm.AES, managed=True, store=False)
-            logger.debug(f"Success result: {response.result}")
-            logger.debug(f"Success response: {response}")
-            self.assertTrue(False)
-        except pexc.PangeaAPIException as e:
-            self.assertEqual(e.errors[0].detail, "If managed is true, store must be true.")
-
     def test_ed25519_signing_life_cycle(self):
         # Create
-        create_resp = self.vault.create_asymmetric(
+        create_resp = self.vault.asymmetric_create(
             algorithm=KeyPairAlgorithm.Ed25519, purpose=KeyPairPurpose.SIGNING, managed=True, store=True
         )
         id = create_resp.result.id
@@ -377,7 +360,7 @@ class TestVault(unittest.TestCase):
     @unittest.skip("asymmetric encryption not working yet")
     def test_ed25519_encrypting_life_cycle(self):
         # Create
-        create_resp = self.vault.create_asymmetric(
+        create_resp = self.vault.asymmetric_create(
             algorithm=KeyPairAlgorithm.Ed25519, purpose=KeyPairPurpose.ENCRYPTION, managed=True, store=True
         )
         id = create_resp.result.id
@@ -387,7 +370,7 @@ class TestVault(unittest.TestCase):
 
     def test_aes_encrypting_life_cycle(self):
         # Create
-        create_resp = self.vault.create_symmetric(algorithm=KeyAlgorithm.AES, managed=True, store=True)
+        create_resp = self.vault.symmetric_create(algorithm=KeyAlgorithm.AES, managed=True, store=True)
         id = create_resp.result.id
         self.assertIsNotNone(id)
         self.assertEqual(1, create_resp.result.version)
@@ -395,7 +378,7 @@ class TestVault(unittest.TestCase):
 
     def test_ed25519_create_store_signing_life_cycle(self):
         # Create
-        create_resp = self.vault.create_asymmetric(
+        create_resp = self.vault.asymmetric_create(
             algorithm=KeyPairAlgorithm.Ed25519, purpose=KeyPairPurpose.SIGNING, managed=False, store=False
         )
 
@@ -405,7 +388,7 @@ class TestVault(unittest.TestCase):
         self.assertIsNotNone(pub_key)
         self.assertIsNotNone(priv_key)
 
-        store_resp = self.vault.store_asymmetric(
+        store_resp = self.vault.asymmetric_store(
             algorithm=KeyPairAlgorithm.Ed25519,
             purpose=KeyPairPurpose.SIGNING,
             public_key=pub_key,
@@ -423,7 +406,7 @@ class TestVault(unittest.TestCase):
     @unittest.skip("asymmetric encryption not working yet")
     def test_ed25519_create_store_encrypting_life_cycle(self):
         # Create
-        create_resp = self.vault.create_asymmetric(
+        create_resp = self.vault.asymmetric_create(
             algorithm=KeyPairAlgorithm.Ed25519, purpose=KeyPairPurpose.ENCRYPTION, managed=False, store=False
         )
         pub_key = create_resp.result.public_key
@@ -432,7 +415,7 @@ class TestVault(unittest.TestCase):
         self.assertIsNotNone(pub_key)
         self.assertIsNotNone(priv_key)
 
-        store_resp = self.vault.store_asymmetric(
+        store_resp = self.vault.asymmetric_store(
             algorithm=KeyPairAlgorithm.Ed25519,
             purpose=KeyPairPurpose.ENCRYPTION,
             public_key=create_resp.result.public_key,
@@ -450,12 +433,12 @@ class TestVault(unittest.TestCase):
     def test_aes_create_store_encrypting_life_cycle(self):
         # Create
         algorithm = KeyAlgorithm.AES
-        create_resp = self.vault.create_symmetric(algorithm=algorithm, managed=False, store=False)
+        create_resp = self.vault.symmetric_create(algorithm=algorithm, managed=False, store=False)
         self.assertIsNone(create_resp.result.id)
         self.assertIsNotNone(create_resp.result.key)
 
         key = create_resp.result.key
-        store_resp = self.vault.store_symmetric(algorithm=algorithm, key=key, managed=False)
+        store_resp = self.vault.symmetric_store(algorithm=algorithm, key=key, managed=False)
         id = store_resp.result.id
         self.assertIsNotNone(id)
         self.assertEqual(1, store_resp.result.version)
@@ -464,23 +447,23 @@ class TestVault(unittest.TestCase):
         self.encrypting_cycle(id)
 
     def test_secret_life_cycle(self):
-        create_resp = self.vault.store_secret(secret="hello world")
+        create_resp = self.vault.secret_store(secret="hello world")
         id = create_resp.result.id
         secret_v1 = create_resp.result.secret
         self.assertIsNotNone(id)
         self.assertEqual(1, create_resp.result.version)
 
-        rotate_resp = self.vault.rotate_secret(id, "new hello world")
+        rotate_resp = self.vault.secret_rotate(id, "new hello world")
         secret_v2 = rotate_resp.result.secret
         self.assertEqual(id, rotate_resp.result.id)
         self.assertEqual(2, rotate_resp.result.version)
         self.assertNotEqual(secret_v1, secret_v2)
 
-        retrieve_resp = self.vault.retrieve(id)
+        retrieve_resp = self.vault.get(id)
         self.assertEqual(secret_v2, retrieve_resp.result.secret)
 
         revoke_resp = self.vault.revoke(id)
         self.assertEqual(id, revoke_resp.result.id)
 
         # This should fail because secret was revoked
-        self.assertRaises(pexc.PangeaAPIException, lambda: self.vault.retrieve(id))
+        self.assertRaises(pexc.PangeaAPIException, lambda: self.vault.get(id))
