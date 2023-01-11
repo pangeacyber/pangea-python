@@ -64,6 +64,13 @@ class MissingConfigID(PangeaAPIException):
         )
 
 
+class NotFound(PangeaAPIException):
+    """Resource not found"""
+
+    def __init__(self, url: str, response: PangeaResponse):
+        super(NotFound, self).__init__(f"Resource not found: {url}", response)
+
+
 class ProviderErrorException(PangeaAPIException):
     """Downstream provider error"""
 
