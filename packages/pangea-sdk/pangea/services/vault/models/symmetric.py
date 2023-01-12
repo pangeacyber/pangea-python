@@ -62,7 +62,7 @@ class DecryptResult(PangeaResponseResult):
 
 
 class RotateKeyRequest(RotateCommonRequest):
-    pass
+    key: Optional[str]
 
 
 class RotateKeyResult(RotateCommonResult):
