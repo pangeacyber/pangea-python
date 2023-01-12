@@ -25,9 +25,7 @@ class ServiceBase(object):
             self.service_name,
         )
 
-        extra_headers = {
-            "User-Agent": f"pangea-python/${__version__}",
-        }
+        extra_headers = {}
 
         self.request.set_extra_headers(extra_headers)
 
