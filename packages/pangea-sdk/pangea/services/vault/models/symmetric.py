@@ -4,9 +4,9 @@ from typing import Optional
 
 from pangea.response import APIRequestModel, PangeaResponseResult
 from pangea.services.vault.models.common import (
-    CreateCommonRequest,
-    CreateCommonResult,
     EncodedSymmetricKey,
+    GenerateCommonRequest,
+    GenerateCommonResult,
     KeyAlgorithm,
     RotateCommonRequest,
     RotateCommonResult,
@@ -26,12 +26,12 @@ class StoreKeyResult(StoreCommonResult):
     key: Optional[EncodedSymmetricKey] = None
 
 
-class CreateKeyRequest(CreateCommonRequest):
+class GenerateKeyRequest(GenerateCommonRequest):
     algorithm: Optional[KeyAlgorithm] = None
     managed: Optional[bool] = None
 
 
-class CreateKeyResult(CreateCommonResult):
+class GenerateKeyResult(GenerateCommonResult):
     algorithm: KeyAlgorithm
     key: Optional[EncodedSymmetricKey] = None
 

@@ -86,7 +86,7 @@ class StoreCommonResult(PangeaResponseResult):
     version: int
 
 
-class CreateCommonRequest(APIRequestModel):
+class GenerateCommonRequest(APIRequestModel):
     type: ItemType
     name: Optional[str] = None
     folder: Optional[str] = None
@@ -100,7 +100,7 @@ class CreateCommonRequest(APIRequestModel):
     managed: Optional[bool] = None
 
 
-class CreateCommonResult(PangeaResponseResult):
+class GenerateCommonResult(PangeaResponseResult):
     type: str
     version: Optional[int] = None
     id: Optional[str] = None

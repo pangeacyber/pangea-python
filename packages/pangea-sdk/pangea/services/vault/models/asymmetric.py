@@ -4,10 +4,10 @@ from typing import Optional
 
 from pangea.response import APIRequestModel, PangeaResponseResult
 from pangea.services.vault.models.common import (
-    CreateCommonRequest,
-    CreateCommonResult,
     EncodedPrivateKey,
     EncodedPublicKey,
+    GenerateCommonRequest,
+    GenerateCommonResult,
     KeyPairAlgorithm,
     KeyPairPurpose,
     RotateCommonRequest,
@@ -17,12 +17,12 @@ from pangea.services.vault.models.common import (
 )
 
 
-class CreateKeyPairRequest(CreateCommonRequest):
+class GenerateKeyPairRequest(GenerateCommonRequest):
     algorithm: Optional[KeyPairAlgorithm] = None
     purpose: Optional[KeyPairPurpose] = None
 
 
-class CreateKeyPairResult(CreateCommonResult):
+class GenerateKeyPairResult(GenerateCommonResult):
     algorithm: KeyPairAlgorithm
     public_key: EncodedPublicKey
     private_key: Optional[EncodedPrivateKey] = None

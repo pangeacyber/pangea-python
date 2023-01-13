@@ -4,8 +4,8 @@ import enum
 from typing import Optional
 
 from pangea.services.vault.models.common import (
-    CreateCommonRequest,
-    CreateCommonResult,
+    GenerateCommonRequest,
+    GenerateCommonResult,
     RotateCommonRequest,
     RotateCommonResult,
     StoreCommonRequest,
@@ -32,11 +32,11 @@ class StoreSecretResult(StoreCommonResult):
     secret: str
 
 
-class CreateSecretRequest(CreateCommonRequest):
+class CreateSecretRequest(GenerateCommonRequest):
     type: str
 
 
-class CreateSecretResult(CreateCommonResult):
+class CreateSecretResult(GenerateCommonResult):
     secret: str
 
 

@@ -77,7 +77,7 @@ def test_create_asymmetric(vault: Vault, param_name, param_value, param_response
     }
     req[param_name] = param_value
 
-    response = vault.asymmetric_create(**req)
+    response = vault.asymmetric_generate(**req)
     key_id = response.result.id
 
     try:

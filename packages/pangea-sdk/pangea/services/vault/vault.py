@@ -6,8 +6,8 @@ from typing import Dict, Optional
 from pangea.response import PangeaResponse
 from pangea.services.base import ServiceBase
 from pangea.services.vault.models.asymmetric import (
-    CreateKeyPairRequest,
-    CreateKeyPairResult,
+    GenerateKeyPairRequest,
+    GenerateKeyPairResult,
     RotateKeyPairRequest,
     RotateKeyPairResult,
     SignRequest,
@@ -44,12 +44,12 @@ from pangea.services.vault.models.secret import (
     StoreSecretResult,
 )
 from pangea.services.vault.models.symmetric import (
-    CreateKeyRequest,
-    CreateKeyResult,
     DecryptRequest,
     DecryptResult,
     EncryptRequest,
     EncryptResult,
+    GenerateKeyRequest,
+    GenerateKeyResult,
     RotateKeyRequest,
     RotateKeyResult,
     StoreKeyRequest,
@@ -207,7 +207,7 @@ class Vault(ServiceBase):
             response.result = RotateSecretResult(**response.raw_result)
         return response
 
-    def symmetric_create(
+    def symmetric_generate(
         self,
         algorithm: Optional[KeyAlgorithm] = None,
         name: Optional[str] = None,
@@ -220,8 +220,8 @@ class Vault(ServiceBase):
         store: Optional[bool] = None,
         expiration: Optional[datetime.datetime] = None,
         managed: Optional[bool] = None,
-    ) -> PangeaResponse[CreateKeyResult]:
-        input = CreateKeyRequest(
+    ) -> PangeaResponse[GenerateKeyResult]:
+        input = GenerateKeyRequest(
             type=ItemType.SYMMETRIC_KEY,
             algorithm=algorithm,
             managed=managed,
@@ -237,10 +237,10 @@ class Vault(ServiceBase):
         )
         response = self.request.post("key/generate", data=input.json(exclude_none=True))
         if response.raw_result is not None:
-            response.result = CreateKeyResult(**response.raw_result)
+            response.result = GenerateKeyResult(**response.raw_result)
         return response
 
-    def asymmetric_create(
+    def asymmetric_generate(
         self,
         algorithm: Optional[KeyAlgorithm] = None,
         purpose: Optional[KeyPairPurpose] = None,
@@ -254,8 +254,8 @@ class Vault(ServiceBase):
         rotation_policy: Optional[str] = None,
         retain_previous_version: Optional[bool] = None,
         expiration: Optional[datetime.datetime] = None,
-    ) -> PangeaResponse[CreateKeyPairResult]:
-        input = CreateKeyPairRequest(
+    ) -> PangeaResponse[GenerateKeyPairResult]:
+        input = GenerateKeyPairRequest(
             type=ItemType.ASYMMETRIC_KEY,
             algorithm=algorithm,
             purpose=purpose,
@@ -272,7 +272,7 @@ class Vault(ServiceBase):
         )
         response = self.request.post("key/generate", data=input.json(exclude_none=True))
         if response.raw_result is not None:
-            response.result = CreateKeyPairResult(**response.raw_result)
+            response.result = GenerateKeyPairResult(**response.raw_result)
         return response
 
     # Store endpoints
