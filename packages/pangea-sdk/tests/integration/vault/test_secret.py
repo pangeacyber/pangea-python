@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 
 import pangea.exceptions as pexc
 import pytest
-from pangea.services.vault.models.common import KeyAlgorithm
+from pangea.services.vault.models.common import SymmetricAlgorithm
 from pangea.services.vault.vault import Vault
 
 from .util import (

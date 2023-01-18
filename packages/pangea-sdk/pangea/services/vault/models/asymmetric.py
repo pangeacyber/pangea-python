@@ -4,52 +4,39 @@ from typing import Optional
 
 from pangea.response import APIRequestModel, PangeaResponseResult
 from pangea.services.vault.models.common import (
+    AsymmetricAlgorithm,
+    AsymmetricPurpose,
+    CommonGenerateRequest,
+    CommonGenerateResult,
+    CommonStoreRequest,
+    CommonStoreResult,
     EncodedPrivateKey,
     EncodedPublicKey,
-    GenerateCommonRequest,
-    GenerateCommonResult,
-    KeyPairAlgorithm,
-    KeyPairPurpose,
-    RotateCommonRequest,
-    RotateCommonResult,
-    StoreCommonRequest,
-    StoreCommonResult,
 )
 
 
-class GenerateKeyPairRequest(GenerateCommonRequest):
-    algorithm: Optional[KeyPairAlgorithm] = None
-    purpose: Optional[KeyPairPurpose] = None
+class AsymmetricGenerateRequest(CommonGenerateRequest):
+    algorithm: Optional[AsymmetricAlgorithm] = None
+    purpose: Optional[AsymmetricPurpose] = None
 
 
-class GenerateKeyPairResult(GenerateCommonResult):
-    algorithm: KeyPairAlgorithm
+class AsymmetricGenerateResult(CommonGenerateResult):
+    algorithm: AsymmetricAlgorithm
     public_key: EncodedPublicKey
     private_key: Optional[EncodedPrivateKey] = None
 
 
-class StoreKeyPairRequest(StoreCommonRequest):
+class AsymmetricStoreRequest(CommonStoreRequest):
     algorithm: str
     public_key: EncodedPublicKey
     private_key: EncodedPrivateKey
-    purpose: Optional[KeyPairPurpose] = None
+    purpose: Optional[AsymmetricPurpose] = None
 
 
-class StoreKeyPairResult(StoreCommonResult):
+class AsymmetricStoreResult(CommonStoreResult):
     public_key: EncodedPublicKey
     private_key: Optional[EncodedPrivateKey] = None
     algorithm: str
-
-
-class RotateKeyPairRequest(RotateCommonRequest):
-    public_key: Optional[EncodedPublicKey] = None
-    private_key: Optional[EncodedPrivateKey] = None
-
-
-class RotateKeyPairResult(RotateCommonResult):
-    public_key: EncodedPublicKey
-    private_key: Optional[EncodedPrivateKey] = None
-    algorithm: KeyPairAlgorithm
 
 
 class SignRequest(APIRequestModel):
@@ -61,7 +48,7 @@ class SignResult(PangeaResponseResult):
     id: str
     version: int
     signature: str
-    algorithm: KeyPairAlgorithm
+    algorithm: AsymmetricAlgorithm
     public_key: Optional[EncodedPublicKey] = None
 
 
@@ -75,5 +62,5 @@ class VerifyRequest(APIRequestModel):
 class VerifyResult(PangeaResponseResult):
     id: str
     version: int
-    algorithm: KeyPairAlgorithm
+    algorithm: AsymmetricAlgorithm
     valid_signature: bool

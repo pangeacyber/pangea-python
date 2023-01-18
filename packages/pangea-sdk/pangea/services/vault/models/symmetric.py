@@ -4,35 +4,33 @@ from typing import Optional
 
 from pangea.response import APIRequestModel, PangeaResponseResult
 from pangea.services.vault.models.common import (
+    CommonGenerateRequest,
+    CommonGenerateResult,
+    CommonStoreRequest,
+    CommonStoreResult,
     EncodedSymmetricKey,
-    GenerateCommonRequest,
-    GenerateCommonResult,
-    KeyAlgorithm,
-    RotateCommonRequest,
-    RotateCommonResult,
-    StoreCommonRequest,
-    StoreCommonResult,
+    SymmetricAlgorithm,
 )
 
 
-class StoreKeyRequest(StoreCommonRequest):
+class SymmetricStoreRequest(CommonStoreRequest):
     key: EncodedSymmetricKey
-    algorithm: KeyAlgorithm
+    algorithm: SymmetricAlgorithm
     managed: Optional[bool] = None
 
 
-class StoreKeyResult(StoreCommonResult):
-    algorithm: Optional[KeyAlgorithm] = None  # FIXME: Remove optional once backend is updated
+class SymmetricStoreResult(CommonStoreResult):
+    algorithm: Optional[SymmetricAlgorithm] = None  # FIXME: Remove optional once backend is updated
     key: Optional[EncodedSymmetricKey] = None
 
 
-class GenerateKeyRequest(GenerateCommonRequest):
-    algorithm: Optional[KeyAlgorithm] = None
+class SymmetricGenerateRequest(CommonGenerateRequest):
+    algorithm: Optional[SymmetricAlgorithm] = None
     managed: Optional[bool] = None
 
 
-class GenerateKeyResult(GenerateCommonResult):
-    algorithm: KeyAlgorithm
+class SymmetricGenerateResult(CommonGenerateResult):
+    algorithm: SymmetricAlgorithm
     key: Optional[EncodedSymmetricKey] = None
 
 
@@ -44,7 +42,7 @@ class EncryptRequest(APIRequestModel):
 class EncryptResult(PangeaResponseResult):
     id: str
     version: int
-    algorithm: KeyAlgorithm
+    algorithm: SymmetricAlgorithm
     cipher_text: str
 
 
@@ -57,14 +55,5 @@ class DecryptRequest(APIRequestModel):
 class DecryptResult(PangeaResponseResult):
     id: str
     version: Optional[int] = None
-    algorithm: KeyAlgorithm
+    algorithm: SymmetricAlgorithm
     plain_text: str
-
-
-class RotateKeyRequest(RotateCommonRequest):
-    key: Optional[str]
-
-
-class RotateKeyResult(RotateCommonResult):
-    key: Optional[EncodedSymmetricKey] = None
-    algorithm: KeyAlgorithm

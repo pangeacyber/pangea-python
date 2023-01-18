@@ -8,8 +8,8 @@ from typing import Dict, List, Optional
 import pangea.exceptions as pexc
 from pangea import PangeaConfig
 from pangea.response import PangeaResponse
-from pangea.services.vault.models.asymmetric import GenerateKeyPairResult, KeyPairAlgorithm, KeyPairPurpose
-from pangea.services.vault.models.symmetric import GenerateKeyResult, KeyAlgorithm
+from pangea.services.vault.models.asymmetric import AsymmetricAlgorithm, AsymmetricGenerateResult, AsymmetricPurpose
+from pangea.services.vault.models.symmetric import SymmetricAlgorithm, SymmetricGenerateResult
 from pangea.services.vault.vault import Vault
 from pangea.tools import TestEnvironment, get_test_domain, get_test_token
 from pangea.utils import setup_logger, str2str_b64
@@ -77,7 +77,7 @@ class TestVault(unittest.TestCase):
         self.key_param_comb = combine_lists(self.common_param_comb, self.managed_values, "managed")
 
     def create_key_check_common_response(
-        self, response: PangeaResponse[GenerateKeyResult | GenerateKeyPairResult], params: Dict[str, any]
+        self, response: PangeaResponse[SymmetricGenerateResult | AsymmetricGenerateResult], params: Dict[str, any]
     ):
         if ENABLE_ASSERT_RESPONSES is not True:
             return
@@ -88,7 +88,9 @@ class TestVault(unittest.TestCase):
                 self.assertEqual(1, response.result.version)
                 self.assertIsNotNone(response.result.id)
 
-    def create_symmetric_check_response(self, response: PangeaResponse[GenerateKeyResult], params: Dict[str, any]):
+    def create_symmetric_check_response(
+        self, response: PangeaResponse[SymmetricGenerateResult], params: Dict[str, any]
+    ):
         if ENABLE_ASSERT_RESPONSES is not True:
             return
         self.create_key_check_common_response(response, params)
@@ -101,7 +103,9 @@ class TestVault(unittest.TestCase):
                 else:
                     self.assertIsNone(response.result.key)
 
-    def create_asymmetric_check_response(self, response: PangeaResponse[GenerateKeyPairResult], params: Dict[str, any]):
+    def create_asymmetric_check_response(
+        self, response: PangeaResponse[AsymmetricGenerateResult], params: Dict[str, any]
+    ):
         if ENABLE_ASSERT_RESPONSES is not True:
             return
         self.create_key_check_common_response(response, params)
@@ -137,7 +141,7 @@ class TestVault(unittest.TestCase):
         self.assertIsNotNone(cipher_v1)
 
         # Rotate
-        rotate_resp = self.vault.symmetric_rotate(id)
+        rotate_resp = self.vault.key_rotate(id)
         self.assertEqual(2, rotate_resp.result.version)
         self.assertEqual(id, rotate_resp.result.id)
 
@@ -194,7 +198,7 @@ class TestVault(unittest.TestCase):
         self.assertIsNotNone(signature_v1)
 
         # Rotate
-        rotate_resp = self.vault.asymmetric_rotate(id)
+        rotate_resp = self.vault.key_rotate(id)
         self.assertEqual(2, rotate_resp.result.version)
         self.assertEqual(id, rotate_resp.result.id)
 
@@ -266,7 +270,7 @@ class TestVault(unittest.TestCase):
         for parameters in self.key_param_comb:
             with self.subTest(parameters=parameters):
                 try:
-                    response = self.vault.symmetric_generate(algorithm=KeyAlgorithm.AES, **parameters)
+                    response = self.vault.symmetric_generate(algorithm=SymmetricAlgorithm.AES, **parameters)
                     logger.debug(f"\nSymmetric parameters: {parameters}")
                     logger.debug(f"Success result: {response.result}")
                     self.create_symmetric_check_response(response, parameters)
@@ -295,7 +299,7 @@ class TestVault(unittest.TestCase):
         for parameters in self.key_param_comb:
             try:
                 response = self.vault.asymmetric_generate(
-                    algorithm=KeyPairAlgorithm.Ed25519, purpose=KeyPairPurpose.SIGNING, **parameters
+                    algorithm=AsymmetricAlgorithm.Ed25519, purpose=AsymmetricPurpose.SIGNING, **parameters
                 )
                 logger.debug(f"\nAsymmetric parameters: {parameters}")
                 logger.debug(f"Success result: {response.result}")
@@ -325,7 +329,7 @@ class TestVault(unittest.TestCase):
         for parameters in self.key_param_comb:
             try:
                 response = self.vault.asymmetric_generate(
-                    algorithm=KeyPairAlgorithm.Ed25519, purpose=KeyPairPurpose.ENCRYPTION, **parameters
+                    algorithm=AsymmetricAlgorithm.Ed25519, purpose=AsymmetricPurpose.ENCRYPTION, **parameters
                 )
                 logger.debug(f"\nAsymmetric parameters: {parameters}")
                 logger.debug(f"Success result: {response.result}")
@@ -350,7 +354,7 @@ class TestVault(unittest.TestCase):
     def test_ed25519_signing_life_cycle(self):
         # Create
         create_resp = self.vault.asymmetric_generate(
-            algorithm=KeyPairAlgorithm.Ed25519, purpose=KeyPairPurpose.SIGNING, managed=True, store=True
+            algorithm=AsymmetricAlgorithm.Ed25519, purpose=AsymmetricPurpose.SIGNING, managed=True, store=True
         )
         id = create_resp.result.id
         self.assertIsNotNone(id)
@@ -361,7 +365,7 @@ class TestVault(unittest.TestCase):
     def test_ed25519_encrypting_life_cycle(self):
         # Create
         create_resp = self.vault.asymmetric_generate(
-            algorithm=KeyPairAlgorithm.Ed25519, purpose=KeyPairPurpose.ENCRYPTION, managed=True, store=True
+            algorithm=AsymmetricAlgorithm.Ed25519, purpose=AsymmetricPurpose.ENCRYPTION, managed=True, store=True
         )
         id = create_resp.result.id
         self.assertIsNotNone(id)
@@ -370,7 +374,7 @@ class TestVault(unittest.TestCase):
 
     def test_aes_encrypting_life_cycle(self):
         # Create
-        create_resp = self.vault.symmetric_generate(algorithm=KeyAlgorithm.AES, managed=True, store=True)
+        create_resp = self.vault.symmetric_generate(algorithm=SymmetricAlgorithm.AES, managed=True, store=True)
         id = create_resp.result.id
         self.assertIsNotNone(id)
         self.assertEqual(1, create_resp.result.version)
@@ -379,7 +383,7 @@ class TestVault(unittest.TestCase):
     def test_ed25519_create_store_signing_life_cycle(self):
         # Create
         create_resp = self.vault.asymmetric_generate(
-            algorithm=KeyPairAlgorithm.Ed25519, purpose=KeyPairPurpose.SIGNING, managed=False, store=False
+            algorithm=AsymmetricAlgorithm.Ed25519, purpose=AsymmetricPurpose.SIGNING, managed=False, store=False
         )
 
         pub_key = create_resp.result.public_key
@@ -389,8 +393,8 @@ class TestVault(unittest.TestCase):
         self.assertIsNotNone(priv_key)
 
         store_resp = self.vault.asymmetric_store(
-            algorithm=KeyPairAlgorithm.Ed25519,
-            purpose=KeyPairPurpose.SIGNING,
+            algorithm=AsymmetricAlgorithm.Ed25519,
+            purpose=AsymmetricPurpose.SIGNING,
             public_key=pub_key,
             private_key=priv_key,
             managed=False,
@@ -407,7 +411,7 @@ class TestVault(unittest.TestCase):
     def test_ed25519_create_store_encrypting_life_cycle(self):
         # Create
         create_resp = self.vault.asymmetric_generate(
-            algorithm=KeyPairAlgorithm.Ed25519, purpose=KeyPairPurpose.ENCRYPTION, managed=False, store=False
+            algorithm=AsymmetricAlgorithm.Ed25519, purpose=AsymmetricPurpose.ENCRYPTION, managed=False, store=False
         )
         pub_key = create_resp.result.public_key
         priv_key = create_resp.result.private_key
@@ -416,8 +420,8 @@ class TestVault(unittest.TestCase):
         self.assertIsNotNone(priv_key)
 
         store_resp = self.vault.asymmetric_store(
-            algorithm=KeyPairAlgorithm.Ed25519,
-            purpose=KeyPairPurpose.ENCRYPTION,
+            algorithm=AsymmetricAlgorithm.Ed25519,
+            purpose=AsymmetricPurpose.ENCRYPTION,
             public_key=create_resp.result.public_key,
             private_key=create_resp.result.private_key,
             managed=False,
@@ -432,7 +436,7 @@ class TestVault(unittest.TestCase):
 
     def test_aes_create_store_encrypting_life_cycle(self):
         # Create
-        algorithm = KeyAlgorithm.AES
+        algorithm = SymmetricAlgorithm.AES
         create_resp = self.vault.symmetric_generate(algorithm=algorithm, managed=False, store=False)
         self.assertIsNone(create_resp.result.id)
         self.assertIsNotNone(create_resp.result.key)

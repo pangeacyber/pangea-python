@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 
 import pangea.exceptions as pexc
 import pytest
-from pangea.services.vault.models.common import KeyAlgorithm
+from pangea.services.vault.models.common import SymmetricAlgorithm
 from pangea.services.vault.vault import Vault
 
 from .util import (
@@ -20,7 +20,7 @@ from .util import (
 @pytest.fixture(scope="session")
 def canonical_symmetric_args():
     return {
-        "algorithm": KeyAlgorithm.AES,
+        "algorithm": SymmetricAlgorithm.AES,
         "managed": False,
         "key": "oILlp2FUPHWiaqFXl4/1ww==",
     }
@@ -64,7 +64,7 @@ def cipher_text(vault: Vault, canonical_symmetric_args, plain_text, test_name) -
 @pytest.mark.parametrize(("param_name", "param_value", "param_response"), create_or_store_key_params)
 def test_create_symmetric(vault: Vault, param_name, param_value, param_response):
     req = {
-        "algorithm": KeyAlgorithm.AES,
+        "algorithm": SymmetricAlgorithm.AES,
         "name": "test",
         "folder": "/tmp",
         "metadata": {},
@@ -91,7 +91,7 @@ def test_create_symmetric(vault: Vault, param_name, param_value, param_response)
 @pytest.mark.parametrize(("param_name", "param_value", "param_response"), create_or_store_key_params)
 def test_store_symmetric(vault: Vault, canonical_symmetric_args, param_name, param_value, param_response):
     req = {
-        "algorithm": KeyAlgorithm.AES,
+        "algorithm": SymmetricAlgorithm.AES,
         "name": "test",
         "folder": "/tmp",
         "metadata": {},
@@ -191,10 +191,10 @@ def test_update_keys_symmetric(vault: Vault, temp_symmetric_key, ok):
 )
 def test_rotate_keys_symmetric(vault: Vault, temp_symmetric_key, ok):
     if ok:
-        vault.symmetric_rotate(temp_symmetric_key)
+        vault.key_rotate(temp_symmetric_key)
     else:
         with pytest.raises(pexc.PangeaAPIException):
-            vault.symmetric_rotate(temp_symmetric_key)
+            vault.key_rotate(temp_symmetric_key)
 
 
 @pytest.mark.parametrize(
@@ -218,13 +218,13 @@ def test_rotate_params_symmetric(vault: Vault, temp_symmetric_key, canonical_sym
 
     if ok:
         prev_version = vault.get(id=temp_symmetric_key).result.version
-        vault.symmetric_rotate(**args)
+        vault.key_rotate(**args)
         curr_version = vault.get(id=temp_symmetric_key).result.version
         assert curr_version == prev_version + 1
 
     else:
         with pytest.raises(pexc.PangeaAPIException):
-            vault.symmetric_rotate(**args)
+            vault.key_rotate(**args)
 
 
 @pytest.mark.parametrize(

@@ -6,33 +6,34 @@ from typing import Dict, Optional
 from pangea.response import PangeaResponse
 from pangea.services.base import ServiceBase
 from pangea.services.vault.models.asymmetric import (
-    GenerateKeyPairRequest,
-    GenerateKeyPairResult,
-    RotateKeyPairRequest,
-    RotateKeyPairResult,
+    AsymmetricGenerateRequest,
+    AsymmetricGenerateResult,
+    AsymmetricStoreRequest,
+    AsymmetricStoreResult,
     SignRequest,
     SignResult,
-    StoreKeyPairRequest,
-    StoreKeyPairResult,
     VerifyRequest,
     VerifyResult,
 )
 from pangea.services.vault.models.common import (
+    AsymmetricAlgorithm,
+    AsymmetricPurpose,
     DeleteRequest,
     DeleteResult,
     EncodedPrivateKey,
     EncodedPublicKey,
+    EncodedSymmetricKey,
     GetCommonRequest,
-    GetGenericResult,
+    GetResult,
     ItemType,
-    KeyAlgorithm,
-    KeyPairAlgorithm,
-    KeyPairPurpose,
+    KeyRotateRequest,
+    KeyRotateResult,
     ListRequest,
     ListResult,
     Metadata,
     RevokeRequest,
     RevokeResult,
+    SymmetricAlgorithm,
     Tags,
     UpdateRequest,
     UpdateResult,
@@ -48,12 +49,10 @@ from pangea.services.vault.models.symmetric import (
     DecryptResult,
     EncryptRequest,
     EncryptResult,
-    GenerateKeyRequest,
-    GenerateKeyResult,
-    RotateKeyRequest,
-    RotateKeyResult,
-    StoreKeyRequest,
-    StoreKeyResult,
+    SymmetricGenerateRequest,
+    SymmetricGenerateResult,
+    SymmetricStoreRequest,
+    SymmetricStoreResult,
 )
 
 
@@ -116,7 +115,7 @@ class Vault(ServiceBase):
         id: str,
         version: Optional[int] = None,
         verbose: Optional[bool] = None,
-    ) -> PangeaResponse[GetGenericResult]:
+    ) -> PangeaResponse[GetResult]:
         input = GetCommonRequest(
             id=id,
             version=version,
@@ -124,7 +123,7 @@ class Vault(ServiceBase):
         )
         response = self.request.post("get", data=input.json(exclude_none=True))
         if response.raw_result is not None:
-            response.result = GetGenericResult(**response.raw_result)
+            response.result = GetResult(**response.raw_result)
         return response
 
     # List endpoint
@@ -209,7 +208,7 @@ class Vault(ServiceBase):
 
     def symmetric_generate(
         self,
-        algorithm: Optional[KeyAlgorithm] = None,
+        algorithm: Optional[SymmetricAlgorithm] = None,
         name: Optional[str] = None,
         folder: Optional[str] = None,
         metadata: Optional[Metadata] = None,
@@ -220,8 +219,8 @@ class Vault(ServiceBase):
         store: Optional[bool] = None,
         expiration: Optional[datetime.datetime] = None,
         managed: Optional[bool] = None,
-    ) -> PangeaResponse[GenerateKeyResult]:
-        input = GenerateKeyRequest(
+    ) -> PangeaResponse[SymmetricGenerateResult]:
+        input = SymmetricGenerateRequest(
             type=ItemType.SYMMETRIC_KEY,
             algorithm=algorithm,
             managed=managed,
@@ -237,13 +236,13 @@ class Vault(ServiceBase):
         )
         response = self.request.post("key/generate", data=input.json(exclude_none=True))
         if response.raw_result is not None:
-            response.result = GenerateKeyResult(**response.raw_result)
+            response.result = SymmetricGenerateResult(**response.raw_result)
         return response
 
     def asymmetric_generate(
         self,
-        algorithm: Optional[KeyAlgorithm] = None,
-        purpose: Optional[KeyPairPurpose] = None,
+        algorithm: Optional[SymmetricAlgorithm] = None,
+        purpose: Optional[AsymmetricPurpose] = None,
         managed: Optional[bool] = None,
         store: Optional[bool] = None,
         name: Optional[str] = None,
@@ -254,8 +253,8 @@ class Vault(ServiceBase):
         rotation_policy: Optional[str] = None,
         retain_previous_version: Optional[bool] = None,
         expiration: Optional[datetime.datetime] = None,
-    ) -> PangeaResponse[GenerateKeyPairResult]:
-        input = GenerateKeyPairRequest(
+    ) -> PangeaResponse[AsymmetricGenerateResult]:
+        input = AsymmetricGenerateRequest(
             type=ItemType.ASYMMETRIC_KEY,
             algorithm=algorithm,
             purpose=purpose,
@@ -272,16 +271,16 @@ class Vault(ServiceBase):
         )
         response = self.request.post("key/generate", data=input.json(exclude_none=True))
         if response.raw_result is not None:
-            response.result = GenerateKeyPairResult(**response.raw_result)
+            response.result = AsymmetricGenerateResult(**response.raw_result)
         return response
 
     # Store endpoints
     def asymmetric_store(
         self,
-        algorithm: KeyPairAlgorithm,
+        algorithm: AsymmetricAlgorithm,
         public_key: EncodedPublicKey,
         private_key: EncodedPrivateKey,
-        purpose: Optional[KeyPairPurpose] = None,
+        purpose: Optional[AsymmetricPurpose] = None,
         name: Optional[str] = None,
         folder: Optional[str] = None,
         metadata: Optional[Metadata] = None,
@@ -291,8 +290,8 @@ class Vault(ServiceBase):
         auto_rotate: Optional[bool] = None,
         retain_previous_version: Optional[bool] = None,
         expiration: Optional[datetime.datetime] = None,
-    ) -> PangeaResponse[StoreKeyPairResult]:
-        input = StoreKeyPairRequest(
+    ) -> PangeaResponse[AsymmetricStoreResult]:
+        input = AsymmetricStoreRequest(
             type=ItemType.ASYMMETRIC_KEY,
             algorithm=algorithm,
             purpose=purpose,
@@ -310,12 +309,12 @@ class Vault(ServiceBase):
         )
         response = self.request.post("key/store", data=input.json(exclude_none=True))
         if response.raw_result is not None:
-            response.result = StoreKeyPairResult(**response.raw_result)
+            response.result = AsymmetricStoreResult(**response.raw_result)
         return response
 
     def symmetric_store(
         self,
-        algorithm: KeyAlgorithm,
+        algorithm: SymmetricAlgorithm,
         key: str,
         name: Optional[str] = None,
         folder: Optional[str] = None,
@@ -326,8 +325,8 @@ class Vault(ServiceBase):
         auto_rotate: Optional[bool] = None,
         retain_previous_version: Optional[bool] = None,
         expiration: Optional[datetime.datetime] = None,
-    ) -> PangeaResponse[StoreKeyResult]:
-        input = StoreKeyRequest(
+    ) -> PangeaResponse[SymmetricStoreResult]:
+        input = SymmetricStoreRequest(
             type=ItemType.SYMMETRIC_KEY,
             algorithm=algorithm,
             key=key,
@@ -343,24 +342,21 @@ class Vault(ServiceBase):
         )
         response = self.request.post("key/store", data=input.json(exclude_none=True))
         if response.raw_result is not None:
-            response.result = StoreKeyResult(**response.raw_result)
+            response.result = SymmetricStoreResult(**response.raw_result)
         return response
 
     # Rotate endpoint
-    def asymmetric_rotate(
-        self, id: str, public_key: Optional[EncodedPublicKey] = None, private_key: Optional[EncodedPrivateKey] = None
-    ) -> PangeaResponse[RotateKeyPairResult]:
-        input = RotateKeyPairRequest(id=id, public_key=public_key, private_key=private_key)
+    def key_rotate(
+        self,
+        id: str,
+        public_key: Optional[EncodedPublicKey] = None,
+        private_key: Optional[EncodedPrivateKey] = None,
+        key: Optional[EncodedSymmetricKey] = None,
+    ) -> PangeaResponse[KeyRotateResult]:
+        input = KeyRotateRequest(id=id, public_key=public_key, private_key=private_key, key=key)
         response = self.request.post("key/rotate", data=input.json(exclude_none=True))
         if response.raw_result is not None:
-            response.result = RotateKeyPairResult(**response.raw_result)
-        return response
-
-    def symmetric_rotate(self, id: str, key: Optional[str] = None) -> PangeaResponse[RotateKeyResult]:
-        input = RotateKeyRequest(id=id, key=key)
-        response = self.request.post("key/rotate", data=input.json(exclude_none=True))
-        if response.raw_result is not None:
-            response.result = RotateKeyResult(**response.raw_result)
+            response.result = KeyRotateResult(**response.raw_result)
         return response
 
     # Encrypt/Decrypt

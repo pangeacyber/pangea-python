@@ -2,7 +2,7 @@ from base64 import b64encode
 
 import pangea.exceptions as pexc
 import pytest
-from pangea.services.vault.models.asymmetric import KeyPairAlgorithm
+from pangea.services.vault.models.asymmetric import AsymmetricAlgorithm
 from pangea.services.vault.vault import Vault
 
 from .util import (
@@ -63,7 +63,7 @@ def signature(vault: Vault, canonical_asymmetric_args, plain_text, test_name) ->
 @pytest.mark.parametrize(("param_name", "param_value", "param_response"), create_or_store_key_params)
 def test_create_asymmetric(vault: Vault, param_name, param_value, param_response):
     req = {
-        "algorithm": KeyPairAlgorithm.Ed25519,
+        "algorithm": AsymmetricAlgorithm.Ed25519,
         "name": "test",
         "folder": "/tmp",
         "metadata": {},
@@ -90,7 +90,7 @@ def test_create_asymmetric(vault: Vault, param_name, param_value, param_response
 @pytest.mark.parametrize(("param_name", "param_value", "param_response"), create_or_store_key_params)
 def test_store_asymmetric(vault: Vault, canonical_asymmetric_args, param_name, param_value, param_response):
     req = {
-        "algorithm": KeyPairAlgorithm.Ed25519,
+        "algorithm": AsymmetricAlgorithm.Ed25519,
         "name": "test",
         "folder": "/tmp",
         "metadata": {},
@@ -233,10 +233,10 @@ def test_update_keys_asymmetric(vault: Vault, temp_asymmetric_key, ok):
 )
 def test_rotate_keys_asymmetric(vault: Vault, temp_asymmetric_key, ok):
     if ok:
-        vault.asymmetric_rotate(temp_asymmetric_key)
+        vault.key_rotate(temp_asymmetric_key)
     else:
         with pytest.raises(pexc.PangeaAPIException):
-            vault.asymmetric_rotate(temp_asymmetric_key)
+            vault.key_rotate(temp_asymmetric_key)
 
 
 @pytest.mark.parametrize(
@@ -271,13 +271,13 @@ def test_rotate_params_asymmetric(vault: Vault, temp_asymmetric_key, canonical_a
 
     if ok:
         prev_version = vault.get(id=temp_asymmetric_key).result.version
-        vault.asymmetric_rotate(**args)
+        vault.key_rotate(**args)
         curr_version = vault.get(id=temp_asymmetric_key).result.version
         assert curr_version == prev_version + 1
 
     else:
         with pytest.raises(pexc.PangeaAPIException):
-            vault.asymmetric_rotate(**args)
+            vault.key_rotate(**args)
 
 
 @pytest.mark.parametrize(

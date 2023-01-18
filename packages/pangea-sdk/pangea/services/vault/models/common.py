@@ -18,7 +18,7 @@ EncodedPrivateKey = NewType("EncodedPrivateKey", str)
 EncodedSymmetricKey = NewType("EncodedSymmetricKey", str)
 
 
-class KeyPairPurpose(str, enum.Enum):
+class AsymmetricPurpose(str, enum.Enum):
     SIGNING = "signing"
     ENCRYPTION = "encryption"
 
@@ -29,7 +29,7 @@ class KeyPairPurpose(str, enum.Enum):
         return str(self.value)
 
 
-class KeyPairAlgorithm(str, enum.Enum):
+class AsymmetricAlgorithm(str, enum.Enum):
     Ed25519 = "ed25519"
     RSA = "rsa"
 
@@ -40,7 +40,7 @@ class KeyPairAlgorithm(str, enum.Enum):
         return str(self.value)
 
 
-class KeyAlgorithm(str, enum.Enum):
+class SymmetricAlgorithm(str, enum.Enum):
     AES = "aes"
 
     def __str__(self):
@@ -67,7 +67,7 @@ class ItemType(str, enum.Enum):
         return str(self.value)
 
 
-class StoreCommonRequest(APIRequestModel):
+class CommonStoreRequest(APIRequestModel):
     type: ItemType
     name: Optional[str] = None
     folder: Optional[str] = None
@@ -80,13 +80,13 @@ class StoreCommonRequest(APIRequestModel):
     managed: Optional[bool] = None
 
 
-class StoreCommonResult(PangeaResponseResult):
+class CommonStoreResult(PangeaResponseResult):
     id: str
     type: str
     version: int
 
 
-class GenerateCommonRequest(APIRequestModel):
+class CommonGenerateRequest(APIRequestModel):
     type: ItemType
     name: Optional[str] = None
     folder: Optional[str] = None
@@ -100,7 +100,7 @@ class GenerateCommonRequest(APIRequestModel):
     managed: Optional[bool] = None
 
 
-class GenerateCommonResult(PangeaResponseResult):
+class CommonGenerateResult(PangeaResponseResult):
     type: str
     version: Optional[int] = None
     id: Optional[str] = None
@@ -112,7 +112,7 @@ class GetCommonRequest(APIRequestModel):
     verbose: Optional[bool] = None
 
 
-class GetCommonResult(PangeaResponseResult):
+class CommonGetResult(PangeaResponseResult):
     id: str
     type: str
     version: int
@@ -168,30 +168,37 @@ class ListRequest(APIRequestModel):
     order_by: Optional[str] = None
 
 
-class GetGenericResult(GetCommonResult):
+class GetResult(CommonGetResult):
     public_key: Optional[EncodedPublicKey] = None
     private_key: Optional[EncodedPrivateKey] = None
-    algorithm: Optional[KeyPairAlgorithm | KeyAlgorithm] = None
-    purpose: Optional[KeyPairPurpose] = None
+    algorithm: Optional[AsymmetricAlgorithm | SymmetricAlgorithm] = None
+    purpose: Optional[AsymmetricPurpose] = None
     key: Optional[EncodedSymmetricKey]
     managed: Optional[bool] = None
     secret: Optional[str] = None
 
 
-class RotateCommonRequest(APIRequestModel):
+class CommonRotateRequest(APIRequestModel):
     id: str
 
 
-class RotateCommonResult(PangeaResponseResult):
+class CommonRotateResult(PangeaResponseResult):
     id: str
     version: int
     type: str
 
 
-class RotateKeyGenericResult(RotateCommonResult):
+class KeyRotateRequest(CommonRotateRequest):
+    key: Optional[str]
+    public_key: Optional[EncodedPublicKey] = None
+    private_key: Optional[EncodedPrivateKey] = None
+
+
+class KeyRotateResult(CommonRotateResult):
     public_key: Optional[EncodedPublicKey] = None
     private_key: Optional[EncodedPrivateKey] = None
     key: Optional[EncodedSymmetricKey] = None
+    algorithm: SymmetricAlgorithm | AsymmetricAlgorithm
 
 
 class RevokeRequest(APIRequestModel):
@@ -199,8 +206,7 @@ class RevokeRequest(APIRequestModel):
 
 
 class RevokeResult(PangeaResponseResult):
-    # id: str
-    pass
+    id: str
 
 
 class DeleteRequest(APIRequestModel):
