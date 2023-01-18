@@ -32,11 +32,11 @@ class StoreSecretResult(StoreCommonResult):
     secret: str
 
 
-class CreateSecretRequest(GenerateCommonRequest):
+class GenerateSecretRequest(GenerateCommonRequest):
     type: str
 
 
-class CreateSecretResult(GenerateCommonResult):
+class GenerateSecretResult(GenerateCommonResult):
     secret: str
 
 
