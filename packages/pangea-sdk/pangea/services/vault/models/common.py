@@ -124,7 +124,7 @@ class GetCommonResult(PangeaResponseResult):
     auto_rotate: Optional[bool] = None
     last_rotated: Optional[str] = None  # TODO: should be time
     next_rotation: Optional[str] = None  # TODO: should be time
-    retaion_previous_version: Optional[bool] = None
+    retain_previous_version: Optional[bool] = None
     expiration: Optional[str] = None  # TODO: should be time
     created_at: Optional[str] = None  # TODO: should be time
     revoked_at: Optional[str] = None  # TODO: should be time
@@ -188,7 +188,7 @@ class RotateCommonResult(PangeaResponseResult):
     type: str
 
 
-class RotateGenericKeyResult(RotateCommonResult):
+class RotateKeyGenericResult(RotateCommonResult):
     public_key: Optional[EncodedPublicKey] = None
     private_key: Optional[EncodedPrivateKey] = None
     key: Optional[EncodedSymmetricKey] = None
