@@ -231,14 +231,14 @@ class FileIntel(ServiceBase):
         """
         Look up a file
 
-        Retrieve file reputation from a provider, using the file's hash.
+        Retrieve hash-based file reputation from a provider, including an optional detailed report.
 
         Args:
-            hash (str): hash to perform lookup
-            hash_type (str): hash type of hash parameter
-            provider (str, optional): intel provider to perfome lookup
-            verbose (bool, optional): true to get more detalied response
-            raw (bool, optional): true to get provider raw response
+            hash (str): The hash of the file to be looked up
+            hash_type (str): One of "sha256", "sha", "md5"
+            provider (str, optional): Use reputation data from these providers: "reversinglabs" or "crowdstrike"
+            verbose (bool, optional): Echo the API parameters in the response
+            raw (bool, optional): Include raw data from this provider
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -263,15 +263,15 @@ class FileIntel(ServiceBase):
         raw: Optional[bool] = None,
     ) -> PangeaResponse[FileLookupResult]:
         """
-        Look up a file
+        Look up a filepath
 
-        Retrieve file reputation from a provider, using the file's hash.
+        Retrieve hash-based file reputation from a provider, including an optional detailed report.
 
         Args:
-            filepath (str): path file to calculate hash and request a lookup
-            provider (str, optional): intel provider to perfome lookup
-            verbose (bool, optional): true to get more detalied response
-            raw (bool, optional): true to get provider raw response
+            filepath (str): The path to the file to be looked up
+            provider (str, optional): Use reputation data from these providers: "reversinglabs" or "crowdstrike"
+            verbose (bool, optional): Echo the API parameters in the response
+            raw (bool, optional): Include raw data from this provider
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -326,13 +326,13 @@ class DomainIntel(ServiceBase):
         """
         Look up a domain
 
-        Retrieve Domain reputation from a provider.
+        Retrieve reputation for a domain from a provider, including an optional detailed report.
 
         Args:
-            domain (str): domain to request for a lookup
-            provider (str, optional): intel provider to perfome lookup
-            verbose (bool, optional): true to get more detalied response
-            raw (bool, optional): true to get provider raw response
+            domain (str): The domain to be looked up
+            provider (str, optional): Use reputation data from these providers: "domaintools" or "crowdstrike"
+            verbose (bool, optional): Echo the API parameters in the response
+            raw (bool, optional): Include raw data from this provider
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -386,7 +386,7 @@ class IpIntel(ServiceBase):
         Retrieve a reputation score for an IP address from a provider, including an optional detailed report.
 
         Args:
-            input (IPLookupInput): input with IP information to perform request
+            ip (str): The IP to be looked up
             verbose (bool, optional): Echo the API parameters in the response
             raw (bool, optional): Include raw data from this provider
             provider (str, optional): Use reputation data from this provider: "crowdstrike"
@@ -467,10 +467,15 @@ class UrlIntel(ServiceBase):
         self, url: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
     ) -> PangeaResponse[URLLookupResult]:
         """
+        Look up a URL
+
         Retrieve URL address reputation from a provider.
 
         Args:
-            input (URLLookupInput): input with URL information to perform request
+            url (str): The URL to be looked up
+            verbose (bool, optional): Echo the API parameters in the response
+            raw (bool, optional): Include raw data from this provider
+            provider (str, optional): Use reputation data from this provider: "crowdstrike"
 
         Raises:
             PangeaAPIException: If an API Error happens
