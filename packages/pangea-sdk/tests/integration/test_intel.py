@@ -52,7 +52,7 @@ class TestFileIntel(unittest.TestCase):
             raw=True,
         )
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
-        self.assertEqual(response.result.data.verdict, "malicious")
+        self.assertEqual(response.result.data.verdict, "unknown")
 
     def test_file_lookup_default_provider(self):
         response = self.intel_file.lookup(
@@ -129,36 +129,35 @@ class TestIPIntel(unittest.TestCase):
         self.assertEqual(response.result.data.city, "unna")
         self.assertEqual(response.result.data.postal_code, "59425")
 
-    # TODO: complete with right ip values
     def test_ip_domain(self):
-        response = self.intel_ip.get_domain(ip="93.231.182.110", provider="digitalenvoy", verbose=True, raw=True)
+        response = self.intel_ip.get_domain(ip="24.235.114.61", provider="digitalenvoy", verbose=True, raw=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertTrue(response.result.data.domain_found)
-        self.assertEqual("truedomain", response.result.data.domain)
+        self.assertEqual("rogers.com", response.result.data.domain)
 
     def test_ip_domain_default_provider(self):
-        response = self.intel_ip.get_domain(ip="93.231.182.110", verbose=True, raw=True)
+        response = self.intel_ip.get_domain(ip="24.235.114.61", verbose=True, raw=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertTrue(response.result.data.domain_found)
-        self.assertEqual("truedomain", response.result.data.domain)
+        self.assertEqual("rogers.com", response.result.data.domain)
 
     def test_ip_vpn(self):
-        response = self.intel_ip.is_vpn(ip="93.231.182.110", provider="digitalenvoy", verbose=True, raw=True)
+        response = self.intel_ip.is_vpn(ip="1.46.128.165", provider="digitalenvoy", verbose=True, raw=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertTrue(response.result.data.is_vpn)
 
     def test_ip_vpn_default_provider(self):
-        response = self.intel_ip.is_vpn(ip="93.231.182.110", verbose=True, raw=True)
+        response = self.intel_ip.is_vpn(ip="1.46.128.165", verbose=True, raw=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertTrue(response.result.data.is_vpn)
 
     def test_ip_proxy(self):
-        response = self.intel_ip.is_proxy(ip="93.231.182.110", provider="digitalenvoy", verbose=True, raw=True)
+        response = self.intel_ip.is_proxy(ip="34.201.32.172", provider="digitalenvoy", verbose=True, raw=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertTrue(response.result.data.is_proxy)
 
     def test_ip_proxy_default_provider(self):
-        response = self.intel_ip.is_proxy(ip="93.231.182.110", verbose=True, raw=True)
+        response = self.intel_ip.is_proxy(ip="34.201.32.172", verbose=True, raw=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertTrue(response.result.data.is_proxy)
 

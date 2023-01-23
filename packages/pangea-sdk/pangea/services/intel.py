@@ -17,6 +17,10 @@ class IntelCommonRequest(APIRequestModel):
     raw (bool, optional): Return additional details from the provider.
     """
 
+    verbose: Optional[bool] = None
+    raw: Optional[bool] = None
+    provider: Optional[str] = None
+
 
 class IntelCommonResult(PangeaResponseResult):
     """
@@ -230,7 +234,7 @@ class URLCommonRequest(IntelCommonRequest):
     url: str
 
 
-class URLLookupRequest(APIRequestModel):
+class URLLookupRequest(URLCommonRequest):
     """
     URL lookup request data
     """
@@ -552,7 +556,7 @@ class IpIntel(ServiceBase):
             response = ip_intel.is_vpn(ip="93.231.182.110", provider="digitalenvoy")
         """
         input = IPVPNRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
-        response = self.request.post("domain", data=input.dict(exclude_none=True))
+        response = self.request.post("vpn", data=input.dict(exclude_none=True))
         response.result = IPVPNResult(**response.raw_result)
         return response
 
@@ -581,7 +585,7 @@ class IpIntel(ServiceBase):
             response = ip_intel.is_proxy(ip="93.231.182.110", provider="digitalenvoy")
         """
         input = IPProxyRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
-        response = self.request.post("domain", data=input.dict(exclude_none=True))
+        response = self.request.post("proxy", data=input.dict(exclude_none=True))
         response.result = IPProxyResult(**response.raw_result)
         return response
 
