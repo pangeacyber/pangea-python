@@ -8,22 +8,35 @@ from pangea.response import APIRequestModel, APIResponseModel, PangeaResponse, P
 from .base import ServiceBase
 
 
-class FileLookupRequest(APIRequestModel):
+class IntelCommonRequest(APIRequestModel):
+    """
+    Intel common request data
+
+    provider (str, optional): Provider of the information. Default provider defined by the configuration.
+    verbose (bool, optional): Echo back the parameters of the API in the response
+    raw (bool, optional): Return additional details from the provider.
+    """
+
+
+class IntelCommonResult(PangeaResponseResult):
+    """
+    Intel common result data
+    """
+
+    parameters: Optional[Dict] = None
+    raw_data: Optional[Dict] = None
+
+
+class FileLookupRequest(IntelCommonRequest):
     """
     File lookup request data
 
     file_hash (str): Hash of the file to be looked up
     hash_type (str): Type of hash, can be "sha256", "sha" or "md5"
-    provider (str, optional): Provider of the reputation information.  ("reversinglabs"). Default provider defined by the configuration.
-    verbose (bool, optional): Echo back the parameters of the API in the response
-    raw (bool, optional): Return additional details from the provider.
     """
 
     hash: str
     hash_type: str
-    verbose: Optional[bool] = None
-    raw: Optional[bool] = None
-    provider: Optional[str] = None
 
 
 class FileLookupData(APIResponseModel):
@@ -36,30 +49,30 @@ class FileLookupData(APIResponseModel):
     verdict: str
 
 
-class FileLookupResult(PangeaResponseResult):
+class FileLookupResult(IntelCommonResult):
     """
     File lookup result information
     """
 
     data: FileLookupData
-    parameters: Optional[Dict] = None
-    raw_data: Optional[Dict] = None
 
 
-class IPLookupRequest(APIRequestModel):
+class IPCommonRequest(IntelCommonRequest):
     """
-    IP lookup request data
+    IP common request data
 
-    ip (str): IP address to be looked up
-    provider (str, optional): Provider of the reputation information. ("reversinglabs"). Default provider defined by the configuration.
-    verbose (bool, optional): Echo back the parameters of the API in the response
-    raw (bool, optional): Return additional details from the provider.
+    ip (str): IP address to be analyzed
     """
 
     ip: str
-    verbose: Optional[bool] = None
-    raw: Optional[bool] = None
-    provider: Optional[str] = None
+
+
+class IPLookupRequest(IPCommonRequest):
+    """
+    IP lookup request data
+    """
+
+    pass
 
 
 class IPLookupData(APIResponseModel):
@@ -72,30 +85,21 @@ class IPLookupData(APIResponseModel):
     verdict: str
 
 
-class IPLookupResult(PangeaResponseResult):
+class IPLookupResult(IntelCommonResult):
     """
     IP lookup result
     """
 
     data: IPLookupData
-    parameters: Optional[Dict] = None
-    raw_data: Optional[Dict] = None
 
 
-class IPGeolocateRequest(APIRequestModel):
+class IPGeolocateRequest(IPCommonRequest):
     """
     IP geolocate request data
 
-    ip (str): IP address to be geolocated
-    provider (str, optional): Provider of the geolocate information. ("digitalenvoy"). Default provider defined by the configuration.
-    verbose (bool, optional): Echo back the parameters of the API in the response
-    raw (bool, optional): Return additional details from the provider.
     """
 
-    ip: str
-    verbose: Optional[bool] = None
-    raw: Optional[bool] = None
-    provider: Optional[str] = None
+    pass
 
 
 class IPGeolocateData(PangeaResponseResult):
@@ -111,30 +115,91 @@ class IPGeolocateData(PangeaResponseResult):
     country_code: str
 
 
-class IPGeolocateResult(PangeaResponseResult):
+class IPGeolocateResult(IntelCommonResult):
     """
     IP geolocate result
     """
 
     data: IPGeolocateData
-    parameters: Optional[Dict] = None
-    raw_data: Optional[Dict] = None
 
 
-class DomainLookupRequest(APIRequestModel):
+class IPDomainRequest(IPCommonRequest):
+    """
+    IP domain request data
+    """
+
+    pass
+
+
+class IPDomainData(PangeaResponseResult):
+    domain_found: bool
+    domain: Optional[str] = None
+
+
+class IPDomainResult(IntelCommonResult):
+    """
+    IP geolocate result
+    """
+
+    data: IPDomainData
+
+
+class IPVPNRequest(IPCommonRequest):
+    """
+    IP VPN request data
+    """
+
+    pass
+
+
+class IPVPNData(PangeaResponseResult):
+    is_vpn: bool
+
+
+class IPVPNResult(IntelCommonResult):
+    """
+    IP geolocate result
+    """
+
+    data: IPVPNData
+
+
+class IPProxyRequest(IPCommonRequest):
+    """
+    IP VPN request data
+    """
+
+    pass
+
+
+class IPProxyData(PangeaResponseResult):
+    is_proxy: bool
+
+
+class IPProxyResult(IntelCommonResult):
+    """
+    IP geolocate result
+    """
+
+    data: IPProxyData
+
+
+class DomainCommonRequest(IntelCommonRequest):
     """
     Domain lookup request data
 
-    domain (str): Domain address to be looked up
-    provider (str, optional): Provider of the reputation information. ("domaintools"). Default provider defined by the configuration.
-    verbose (bool, optional): Echo back the parameters of the API in the response
-    raw (bool, optional): Return additional details from the provider.
+    domain (str): Domain address to be analyzed
     """
 
     domain: str
-    verbose: Optional[bool] = None
-    raw: Optional[bool] = None
-    provider: Optional[str] = None
+
+
+class DomainLookupRequest(DomainCommonRequest):
+    """
+    Domain lookup request data
+    """
+
+    pass
 
 
 class DomainLookupData(APIResponseModel):
@@ -147,30 +212,30 @@ class DomainLookupData(APIResponseModel):
     verdict: str
 
 
-class DomainLookupResult(PangeaResponseResult):
+class DomainLookupResult(IntelCommonResult):
     """
     Domain lookup result
     """
 
     data: DomainLookupData
-    parameters: Optional[Dict] = None
-    raw_data: Optional[Dict] = None
+
+
+class URLCommonRequest(IntelCommonRequest):
+    """
+    URL common request data
+
+    url (str): URL address to be analyzed
+    """
+
+    url: str
 
 
 class URLLookupRequest(APIRequestModel):
     """
     URL lookup request data
-
-    url (str): URL address to be looked up
-    provider (str, optional): Provider of the reputation information. ("crowdstrike"). Default provider defined by the configuration.
-    verbose (bool, optional): Echo back the parameters of the API in the response
-    raw (bool, optional): Return additional details from the provider.
     """
 
-    url: str
-    verbose: Optional[bool] = None
-    raw: Optional[bool] = None
-    provider: Optional[str] = None
+    pass
 
 
 class URLLookupData(APIResponseModel):
@@ -183,14 +248,12 @@ class URLLookupData(APIResponseModel):
     verdict: str
 
 
-class URLLookupResult(PangeaResponseResult):
+class URLLookupResult(IntelCommonResult):
     """
     URL lookup result
     """
 
     data: URLLookupData
-    parameters: Optional[Dict] = None
-    raw_data: Optional[Dict] = None
 
 
 class FileIntel(ServiceBase):
@@ -433,6 +496,93 @@ class IpIntel(ServiceBase):
         input = IPGeolocateRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
         response = self.request.post("geolocate", data=input.dict(exclude_none=True))
         response.result = IPGeolocateResult(**response.raw_result)
+        return response
+
+    def get_domain(
+        self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
+    ) -> PangeaResponse[IPDomainResult]:
+        """
+        Look up domain for an IP
+
+        Retrieve the domain name associated with an IP address.
+
+        Args:
+            ip (str): IP address to be geolocated
+            provider (str, optional): Use geolocation data from this provider ("digitalenvoy"). Default provider defined by the configuration.
+            verbose (bool, optional): Echo the API parameters in the response
+            raw (bool, optional): Include raw data from this provider
+
+        Raises:
+            PangeaAPIException: If an API Error happens
+
+        Returns:
+            A PangeaResponse where the IP information is in the
+                response.result field.  Available response fields can be found in our [API documentation](/docs/api/ip-intel)
+
+        Examples:
+            response = ip_intel.get_domain(ip="93.231.182.110", provider="digitalenvoy")
+        """
+        input = IPDomainRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
+        response = self.request.post("domain", data=input.dict(exclude_none=True))
+        response.result = IPDomainResult(**response.raw_result)
+        return response
+
+    def is_vpn(
+        self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
+    ) -> PangeaResponse[IPVPNResult]:
+        """
+        Check if an IP is a VPN
+
+        Determine if an IP address is provided by a VPN service.
+
+        Args:
+            ip (str): IP address to be geolocated
+            provider (str, optional): Use geolocation data from this provider ("digitalenvoy"). Default provider defined by the configuration.
+            verbose (bool, optional): Echo the API parameters in the response
+            raw (bool, optional): Include raw data from this provider
+
+        Raises:
+            PangeaAPIException: If an API Error happens
+
+        Returns:
+            A PangeaResponse where the IP information is in the
+                response.result field.  Available response fields can be found in our [API documentation](/docs/api/ip-intel)
+
+        Examples:
+            response = ip_intel.is_vpn(ip="93.231.182.110", provider="digitalenvoy")
+        """
+        input = IPVPNRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
+        response = self.request.post("domain", data=input.dict(exclude_none=True))
+        response.result = IPVPNResult(**response.raw_result)
+        return response
+
+    def is_proxy(
+        self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
+    ) -> PangeaResponse[IPProxyResult]:
+        """
+        Check for proxied IPs
+
+        Determine if an IP address is provided by a proxy service.
+
+        Args:
+            ip (str): IP address to be geolocated
+            provider (str, optional): Use geolocation data from this provider ("digitalenvoy"). Default provider defined by the configuration.
+            verbose (bool, optional): Echo the API parameters in the response
+            raw (bool, optional): Include raw data from this provider
+
+        Raises:
+            PangeaAPIException: If an API Error happens
+
+        Returns:
+            A PangeaResponse where the IP information is in the
+                response.result field.  Available response fields can be found in our [API documentation](/docs/api/ip-intel)
+
+        Examples:
+            response = ip_intel.is_proxy(ip="93.231.182.110", provider="digitalenvoy")
+        """
+        input = IPProxyRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
+        response = self.request.post("domain", data=input.dict(exclude_none=True))
+        response.result = IPProxyResult(**response.raw_result)
         return response
 
 

@@ -129,6 +129,39 @@ class TestIPIntel(unittest.TestCase):
         self.assertEqual(response.result.data.city, "unna")
         self.assertEqual(response.result.data.postal_code, "59425")
 
+    # TODO: complete with right ip values
+    def test_ip_domain(self):
+        response = self.intel_ip.get_domain(ip="93.231.182.110", provider="digitalenvoy", verbose=True, raw=True)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertTrue(response.result.data.domain_found)
+        self.assertEqual("truedomain", response.result.data.domain)
+
+    def test_ip_domain_default_provider(self):
+        response = self.intel_ip.get_domain(ip="93.231.182.110", verbose=True, raw=True)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertTrue(response.result.data.domain_found)
+        self.assertEqual("truedomain", response.result.data.domain)
+
+    def test_ip_vpn(self):
+        response = self.intel_ip.is_vpn(ip="93.231.182.110", provider="digitalenvoy", verbose=True, raw=True)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertTrue(response.result.data.is_vpn)
+
+    def test_ip_vpn_default_provider(self):
+        response = self.intel_ip.is_vpn(ip="93.231.182.110", verbose=True, raw=True)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertTrue(response.result.data.is_vpn)
+
+    def test_ip_proxy(self):
+        response = self.intel_ip.is_proxy(ip="93.231.182.110", provider="digitalenvoy", verbose=True, raw=True)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertTrue(response.result.data.is_proxy)
+
+    def test_ip_proxy_default_provider(self):
+        response = self.intel_ip.is_proxy(ip="93.231.182.110", verbose=True, raw=True)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertTrue(response.result.data.is_proxy)
+
     def test_ip_lookup_with_bad_auth_token(self):
         token = "noarealtoken"
         domain = get_test_domain(TEST_ENVIRONMENT)
