@@ -121,6 +121,24 @@ class TestIPIntel(unittest.TestCase):
         with self.assertRaises(pe.UnauthorizedException):
             badintel_ip.lookup(ip="93.231.182.110", provider="crowdstrike")
 
+    def test_ip_reputation(self):
+        response = self.intel_ip.reputation(ip="93.231.182.110", provider="crowdstrike", verbose=True, raw=True)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertEqual(response.result.data.verdict, "malicious")
+
+    def test_ip_reputation_default_provider(self):
+        response = self.intel_ip.reputation(ip="93.231.182.110", verbose=True, raw=True)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+
+    def test_ip_reputation_with_bad_auth_token(self):
+        token = "noarealtoken"
+        domain = get_test_domain(TEST_ENVIRONMENT)
+        config = PangeaConfig(domain=domain)
+        badintel_ip = IpIntel(token, config=config)
+
+        with self.assertRaises(pe.UnauthorizedException):
+            badintel_ip.reputation(ip="93.231.182.110", provider="crowdstrike")
+
 
 class TestURLIntel(unittest.TestCase):
     def setUp(self):

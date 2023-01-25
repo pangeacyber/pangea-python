@@ -3,6 +3,7 @@
 import hashlib
 from typing import Dict, List, Optional
 
+from deprecated import deprecated
 from pangea.response import APIRequestModel, APIResponseModel, PangeaResponse, PangeaResponseResult
 
 from .base import ServiceBase
@@ -46,7 +47,7 @@ class FileLookupResult(PangeaResponseResult):
     raw_data: Optional[Dict] = None
 
 
-class IPLookupRequest(APIRequestModel):
+class IPRepurationRequest(APIRequestModel):
     """
     IP lookup request data
 
@@ -62,7 +63,11 @@ class IPLookupRequest(APIRequestModel):
     provider: Optional[str] = None
 
 
-class IPLookupData(APIResponseModel):
+class IPLookupRequest(IPRepurationRequest):
+    pass
+
+
+class IPReputationData(APIResponseModel):
     """
     IP lookup information
     """
@@ -72,14 +77,22 @@ class IPLookupData(APIResponseModel):
     verdict: str
 
 
-class IPLookupResult(PangeaResponseResult):
+class IPLookupData(IPReputationData):
+    pass
+
+
+class IPReputationResult(PangeaResponseResult):
     """
     IP lookup result
     """
 
-    data: IPLookupData
+    data: IPReputationData
     parameters: Optional[Dict] = None
     raw_data: Optional[Dict] = None
+
+
+class IPLookupResult(IPReputationResult):
+    pass
 
 
 class DomainLookupRequest(APIRequestModel):
@@ -211,25 +224,6 @@ class FileIntel(ServiceBase):
         Examples:
             response = file_intel.lookup(hash="142b638c6a60b60c7f9928da4fb85a5a8e1422a9ffdc9ee49e17e56ccca9cf6e", hash_type="sha256", provider="reversinglabs")
 
-            \"\"\"
-            response contains:
-            {
-                "request_id": "prq_snooq62g4jsolhhpm4ze6pgzhmguflnl",
-                "request_time": "2022-10-10T21:54:19.392Z",
-                "response_time": "2022-10-10T21:54:19.933Z",
-                "status": "Success",
-                "summary": "Hash was found",
-                "result": {
-                    "data": {
-                        "category": [
-                            "Trojan"
-                        ],
-                        "score": 100,
-                        "verdict": "malicious"
-                    }
-                }
-            }
-            \"\"\"
         """
         input = FileLookupRequest(hash=hash, hash_type=hash_type, verbose=verbose, raw=raw, provider=provider)
         response = self.request.post("lookup", data=input.dict(exclude_none=True))
@@ -263,26 +257,6 @@ class FileIntel(ServiceBase):
 
         Examples:
             response = file_intel.lookup(filepath="./myfile.exe", provider="reversinglabs"))
-
-            \"\"\"
-            response contains:
-            {
-                "request_id": "prq_snooq62g4jsolhhpm4ze6pgzhmguflnl",
-                "request_time": "2022-10-10T21:54:19.392Z",
-                "response_time": "2022-10-10T21:54:19.933Z",
-                "status": "Success",
-                "summary": "Hash was found",
-                "result": {
-                    "data": {
-                        "category": [
-                            "Trojan"
-                        ],
-                        "score": 100,
-                        "verdict": "malicious"
-                    }
-                }
-            }
-            \"\"\"
         """
 
         data = open(filepath, "rb")
@@ -344,31 +318,6 @@ class DomainIntel(ServiceBase):
 
         Examples:
             response = domain_intel.lookup(domain="737updatesboeing.com", provider="domaintools")
-
-            \"\"\"
-            response contains:
-            {
-                "request_id": "prq_gs5konqehibr5zflkxeqe2l2z7haeirx",
-                "request_time": "2022-10-10T21:57:08.860Z",
-                "response_time": "2022-10-10T21:57:09.539Z",
-                "status": "Success",
-                "summary": "Domain was found",
-                "result": {
-                    "data": {
-                        "category": [
-                            "sinkhole",
-                            "proximity",
-                            "threat_profile",
-                            "threat_profile_phishing",
-                            "threat_profile_malware",
-                            "threat_profile_spam"
-                        ],
-                        "score": 100,
-                        "verdict": "malicious"
-                    }
-                }
-            }
-            \"\"\"
         """
         input = DomainLookupRequest(domain=domain, verbose=verbose, provider=provider, raw=raw)
         response = self.request.post("lookup", data=input.dict(exclude_none=True))
@@ -403,9 +352,10 @@ class IpIntel(ServiceBase):
     service_name = "ip-intel"
     version = "v1"
 
+    @deprecated(version="1.2.0", reason="Should use IpIntel.reputation()")
     def lookup(
         self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
-    ) -> PangeaResponse[IPLookupResult]:
+    ) -> PangeaResponse[IPReputationResult]:
         """
         Look up an IP
 
@@ -425,31 +375,41 @@ class IpIntel(ServiceBase):
                 response.result field.  Available response fields can be found in our [API documentation](/docs/api/ip-intel)
 
         Examples:
-            response = ip_intel.lookup(IPLookupInput(ip="93.231.182.110", provider="crowdstrike"))
+            response = ip_intel.lookup(ip="93.231.182.110", provider="crowdstrike")
 
-            \"\"\"
-            response contains:
-            {
-                "request_id": "prq_xoohakngaerteg4yiekikva3issxp4bq",
-                "request_time": "2022-08-23T03:28:20.225Z",
-                "response_time": "2022-08-23T03:28:20.244Z",
-                "status": "success",
-                "summary": "IP was found",
-                "result": {
-                    "data": {
-                        "category": [
-                            "Suspicious"
-                        ],
-                        "score": 0,
-                        "verdict": "malicious"
-                    }
-                }
-            }
-            \"\"\"
         """
-        input = IPLookupRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
-        response = self.request.post("lookup", data=input.dict(exclude_none=True))
-        response.result = IPLookupResult(**response.raw_result)
+        input = IPRepurationRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
+        response = self.request.post("reputation", data=input.dict(exclude_none=True))
+        response.result = IPReputationResult(**response.raw_result)
+        return response
+
+    def reputation(
+        self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
+    ) -> PangeaResponse[IPReputationResult]:
+        """
+        Look up an IP reputation
+
+        Retrieve a reputation score for an IP address from a provider, including an optional detailed report.
+
+        Args:
+            ip (str): The IP to be looked up
+            verbose (bool, optional): Echo the API parameters in the response
+            raw (bool, optional): Include raw data from this provider
+            provider (str, optional): Use reputation data from this provider: "crowdstrike"
+
+        Raises:
+            PangeaAPIException: If an API Error happens
+
+        Returns:
+            A PangeaResponse where the sanctioned source(s) are in the
+                response.result field.  Available response fields can be found in our [API documentation](/docs/api/ip-intel)
+
+        Examples:
+            response = ip_intel.reputation(ip="93.231.182.110", provider="crowdstrike")
+        """
+        input = IPRepurationRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
+        response = self.request.post("reputation", data=input.dict(exclude_none=True))
+        response.result = IPReputationResult(**response.raw_result)
         return response
 
 
@@ -503,26 +463,6 @@ class UrlIntel(ServiceBase):
 
         Examples:
             response = url_intel.lookup(URLLookupInput(url="http://113.235.101.11:54384", provider="crowdstrike"))
-
-            \"\"\"
-            response contains:
-            {
-                "request_id": "prq_5ugxruda7vmsgioup6vjvaqmnmvxzbqv",
-                "request_time": "2022-08-23T03:40:03.549Z",
-                "response_time": "2022-08-23T03:40:03.694Z",
-                "status": "success",
-                "summary": "Url was found",
-                "result": {
-                    "data": {
-                        "category": [
-                            "Not Provided"
-                        ],
-                        "score": 80,
-                        "verdict": "malicious"
-                    }
-                }
-            }
-            \"\"\"
         """
 
         input = URLLookupRequest(url=url, provider=provider, verbose=verbose, raw=raw)
