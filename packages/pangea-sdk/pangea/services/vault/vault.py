@@ -23,7 +23,7 @@ from pangea.services.vault.models.common import (
     EncodedPrivateKey,
     EncodedPublicKey,
     EncodedSymmetricKey,
-    GetCommonRequest,
+    GetRequest,
     GetResult,
     ItemType,
     KeyRotateRequest,
@@ -39,10 +39,10 @@ from pangea.services.vault.models.common import (
     UpdateResult,
 )
 from pangea.services.vault.models.secret import (
-    RotateSecretRequest,
-    RotateSecretResult,
-    StoreSecretRequest,
-    StoreSecretResult,
+    SecretRotateRequest,
+    SecretRotateResult,
+    SecretStoreRequest,
+    SecretStoreResult,
 )
 from pangea.services.vault.models.symmetric import (
     DecryptRequest,
@@ -116,7 +116,7 @@ class Vault(ServiceBase):
         version: Optional[int] = None,
         verbose: Optional[bool] = None,
     ) -> PangeaResponse[GetResult]:
-        input = GetCommonRequest(
+        input = GetRequest(
             id=id,
             version=version,
             verbose=verbose,
@@ -180,8 +180,8 @@ class Vault(ServiceBase):
         auto_rotate: Optional[bool] = None,
         retain_previous_version: Optional[bool] = None,
         expiration: Optional[datetime.datetime] = None,
-    ) -> PangeaResponse[StoreSecretResult]:
-        input = StoreSecretRequest(
+    ) -> PangeaResponse[SecretStoreResult]:
+        input = SecretStoreRequest(
             type=ItemType.SECRET,
             secret=secret,
             name=name,
@@ -195,15 +195,15 @@ class Vault(ServiceBase):
         )
         response = self.request.post("secret/store", data=input.json(exclude_none=True))
         if response.raw_result is not None:
-            response.result = StoreSecretResult(**response.raw_result)
+            response.result = SecretStoreResult(**response.raw_result)
         return response
 
     # Rotate endpoint
-    def secret_rotate(self, id: str, secret: str) -> PangeaResponse[RotateSecretResult]:
-        input = RotateSecretRequest(id=id, secret=secret)
+    def secret_rotate(self, id: str, secret: str) -> PangeaResponse[SecretRotateResult]:
+        input = SecretRotateRequest(id=id, secret=secret)
         response = self.request.post("secret/rotate", data=input.json(exclude_none=True))
         if response.raw_result is not None:
-            response.result = RotateSecretResult(**response.raw_result)
+            response.result = SecretRotateResult(**response.raw_result)
         return response
 
     def symmetric_generate(
@@ -367,9 +367,7 @@ class Vault(ServiceBase):
             response.result = EncryptResult(**response.raw_result)
         return response
 
-    def decrypt(
-        self, id: str, cipher_text: str, version: Optional[int] = None, allow_revoked: Optional[bool] = None
-    ) -> PangeaResponse[DecryptResult]:
+    def decrypt(self, id: str, cipher_text: str, version: Optional[int] = None) -> PangeaResponse[DecryptResult]:
         input = DecryptRequest(id=id, cipher_text=cipher_text, version=version, allow_revoked=allow_revoked)
         response = self.request.post("key/decrypt", data=input.json(exclude_none=True))
         if response.raw_result is not None:

@@ -34,9 +34,9 @@ class AsymmetricStoreRequest(CommonStoreRequest):
 
 
 class AsymmetricStoreResult(CommonStoreResult):
+    algorithm: str
     public_key: EncodedPublicKey
     private_key: Optional[EncodedPrivateKey] = None
-    algorithm: str
 
 
 class SignRequest(APIRequestModel):

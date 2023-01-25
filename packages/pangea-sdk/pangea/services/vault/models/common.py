@@ -106,7 +106,7 @@ class CommonGenerateResult(PangeaResponseResult):
     id: Optional[str] = None
 
 
-class GetCommonRequest(APIRequestModel):
+class GetRequest(APIRequestModel):
     id: str
     version: Optional[int] = None
     verbose: Optional[bool] = None
@@ -226,6 +226,7 @@ class UpdateRequest(APIRequestModel):
     auto_rotate: Optional[bool] = None
     rotation_policy: Optional[str] = None
     expiration: Optional[datetime.datetime] = None
+    retain_previous_version: Optional[bool] = None
 
 
 class UpdateResult(APIRequestModel):
