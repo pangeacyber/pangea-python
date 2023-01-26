@@ -9,9 +9,9 @@ from pangea.response import APIRequestModel, APIResponseModel, PangeaResponse, P
 from .base import ServiceBase
 
 
-class FileLookupRequest(APIRequestModel):
+class FileReputationRequest(APIRequestModel):
     """
-    File lookup request data
+    File reputation request data
 
     file_hash (str): Hash of the file to be looked up
     hash_type (str): Type of hash, can be "sha256", "sha" or "md5"
@@ -27,9 +27,13 @@ class FileLookupRequest(APIRequestModel):
     provider: Optional[str] = None
 
 
-class FileLookupData(APIResponseModel):
+class FileLookupRequest(FileReputationRequest):
+    pass
+
+
+class FileReputationData(APIResponseModel):
     """
-    File lookup information
+    File reputation information
     """
 
     category: List[str]
@@ -37,21 +41,25 @@ class FileLookupData(APIResponseModel):
     verdict: str
 
 
-class FileLookupResult(PangeaResponseResult):
+class FileReputationResult(PangeaResponseResult):
     """
-    File lookup result information
+    File reputation result information
     """
 
-    data: FileLookupData
+    data: FileReputationData
     parameters: Optional[Dict] = None
     raw_data: Optional[Dict] = None
 
 
+class FileLookupResult(FileReputationResult):
+    pass
+
+
 class IPRepurationRequest(APIRequestModel):
     """
-    IP lookup request data
+    IP reputation request data
 
-    ip (str): IP address to be looked up
+    ip (str): IP address to search for reputation information
     provider (str, optional): Provider of the reputation information. ("reversinglabs"). Default provider defined by the configuration.
     verbose (bool, optional): Echo back the parameters of the API in the response
     raw (bool, optional): Return additional details from the provider.
@@ -69,16 +77,12 @@ class IPLookupRequest(IPRepurationRequest):
 
 class IPReputationData(APIResponseModel):
     """
-    IP lookup information
+    IP reputation information
     """
 
     category: List[str]
     score: int
     verdict: str
-
-
-class IPLookupData(IPReputationData):
-    pass
 
 
 class IPReputationResult(PangeaResponseResult):
@@ -95,11 +99,11 @@ class IPLookupResult(IPReputationResult):
     pass
 
 
-class DomainLookupRequest(APIRequestModel):
+class DomainReputationRequest(APIRequestModel):
     """
-    Domain lookup request data
+    Domain reputation request data
 
-    domain (str): Domain address to be looked up
+    domain (str): Domain address to search for reputation information
     provider (str, optional): Provider of the reputation information. ("domaintools"). Default provider defined by the configuration.
     verbose (bool, optional): Echo back the parameters of the API in the response
     raw (bool, optional): Return additional details from the provider.
@@ -111,9 +115,13 @@ class DomainLookupRequest(APIRequestModel):
     provider: Optional[str] = None
 
 
-class DomainLookupData(APIResponseModel):
+class DomainLookupRequest(DomainReputationRequest):
+    pass
+
+
+class DomainReputationData(APIResponseModel):
     """
-    Domain lookup information
+    Domain Reputation information
     """
 
     category: List[str]
@@ -121,21 +129,25 @@ class DomainLookupData(APIResponseModel):
     verdict: str
 
 
-class DomainLookupResult(PangeaResponseResult):
+class DomainReputationResult(PangeaResponseResult):
     """
-    Domain lookup result
+    Domain reputation result
     """
 
-    data: DomainLookupData
+    data: DomainReputationData
     parameters: Optional[Dict] = None
     raw_data: Optional[Dict] = None
 
 
-class URLLookupRequest(APIRequestModel):
-    """
-    URL lookup request data
+class DomainLookupResult(DomainReputationResult):
+    pass
 
-    url (str): URL address to be looked up
+
+class URLReputationRequest(APIRequestModel):
+    """
+    URL reputation request data
+
+    url (str): URL address to search for reputation information
     provider (str, optional): Provider of the reputation information. ("crowdstrike"). Default provider defined by the configuration.
     verbose (bool, optional): Echo back the parameters of the API in the response
     raw (bool, optional): Return additional details from the provider.
@@ -147,9 +159,13 @@ class URLLookupRequest(APIRequestModel):
     provider: Optional[str] = None
 
 
-class URLLookupData(APIResponseModel):
+class URLLookupRequest(URLReputationRequest):
+    pass
+
+
+class URLReputationData(APIResponseModel):
     """
-    URL lookup information
+    URL reputation information
     """
 
     category: List[str]
@@ -157,14 +173,18 @@ class URLLookupData(APIResponseModel):
     verdict: str
 
 
-class URLLookupResult(PangeaResponseResult):
+class URLReputationResult(PangeaResponseResult):
     """
     URL lookup result
     """
 
-    data: URLLookupData
+    data: URLReputationData
     parameters: Optional[Dict] = None
     raw_data: Optional[Dict] = None
+
+
+class URLLookupResult(URLReputationResult):
+    pass
 
 
 class FileIntel(ServiceBase):
@@ -194,6 +214,7 @@ class FileIntel(ServiceBase):
     service_name = "file-intel"
     version = "v1"
 
+    @deprecated(version="1.2.0", reason="Should use FileIntel.hashReputation()")
     def lookup(
         self,
         hash: str,
@@ -225,11 +246,48 @@ class FileIntel(ServiceBase):
             response = file_intel.lookup(hash="142b638c6a60b60c7f9928da4fb85a5a8e1422a9ffdc9ee49e17e56ccca9cf6e", hash_type="sha256", provider="reversinglabs")
 
         """
-        input = FileLookupRequest(hash=hash, hash_type=hash_type, verbose=verbose, raw=raw, provider=provider)
-        response = self.request.post("lookup", data=input.dict(exclude_none=True))
+        input = FileReputationRequest(hash=hash, hash_type=hash_type, verbose=verbose, raw=raw, provider=provider)
+        response = self.request.post("reputation", data=input.dict(exclude_none=True))
         response.result = FileLookupResult(**response.raw_result)
         return response
 
+    def hashReputation(
+        self,
+        hash: str,
+        hash_type: str,
+        provider: Optional[str] = None,
+        verbose: Optional[bool] = None,
+        raw: Optional[bool] = None,
+    ) -> PangeaResponse[FileReputationResult]:
+        """
+        Look up a file hash reputation
+
+        Retrieve hash-based file reputation from a provider, including an optional detailed report.
+
+        Args:
+            hash (str): The hash of the file to be looked up
+            hash_type (str): One of "sha256", "sha", "md5"
+            provider (str, optional): Use reputation data from these providers: "reversinglabs" or "crowdstrike"
+            verbose (bool, optional): Echo the API parameters in the response
+            raw (bool, optional): Include raw data from this provider
+
+        Raises:
+            PangeaAPIException: If an API Error happens
+
+        Returns:
+            A PangeaResponse where the sanctioned source(s) are in the
+                response.result field.  Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/file-intel).
+
+        Examples:
+            response = file_intel.hashReputation(hash="142b638c6a60b60c7f9928da4fb85a5a8e1422a9ffdc9ee49e17e56ccca9cf6e", hash_type="sha256", provider="reversinglabs")
+
+        """
+        input = FileReputationRequest(hash=hash, hash_type=hash_type, verbose=verbose, raw=raw, provider=provider)
+        response = self.request.post("reputation", data=input.dict(exclude_none=True))
+        response.result = FileReputationResult(**response.raw_result)
+        return response
+
+    @deprecated(version="1.2.0", reason="Should use FileIntel.filepathReputation()")
     def lookupFilepath(
         self,
         filepath: str,
@@ -256,15 +314,53 @@ class FileIntel(ServiceBase):
                 response.result field.  Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/file-intel).
 
         Examples:
-            response = file_intel.lookup(filepath="./myfile.exe", provider="reversinglabs"))
+            response = file_intel.lookupFilepath(filepath="./myfile.exe", provider="reversinglabs"))
         """
 
         data = open(filepath, "rb")
         hash = hashlib.sha256(data.read()).hexdigest()
 
-        input = FileLookupRequest(hash=hash, hash_type="sha256", verbose=verbose, raw=raw, provider=provider)
-        response = self.request.post("lookup", data=input.dict(exclude_none=True))
+        input = FileReputationRequest(hash=hash, hash_type="sha256", verbose=verbose, raw=raw, provider=provider)
+        response = self.request.post("reputation", data=input.dict(exclude_none=True))
         response.result = FileLookupResult(**response.raw_result)
+        return response
+
+    def filepathReputation(
+        self,
+        filepath: str,
+        provider: Optional[str] = None,
+        verbose: Optional[bool] = None,
+        raw: Optional[bool] = None,
+    ) -> PangeaResponse[FileReputationResult]:
+        """
+        Look up a filepath reputation
+
+        Retrieve hash-based file reputation from a provider, including an optional detailed report.
+        This function take care of calculate filepath hash and make the request to service
+
+        Args:
+            filepath (str): The path to the file to be looked up
+            provider (str, optional): Use reputation data from these providers: "reversinglabs" or "crowdstrike"
+            verbose (bool, optional): Echo the API parameters in the response
+            raw (bool, optional): Include raw data from this provider
+
+        Raises:
+            PangeaAPIException: If an API Error happens
+
+        Returns:
+            A PangeaResponse where the sanctioned source(s) are in the
+                response.result field.  Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/file-intel).
+
+        Examples:
+            response = file_intel.filepathReputation(filepath="./myfile.exe", provider="reversinglabs"))
+        """
+
+        data = open(filepath, "rb")
+        hash = hashlib.sha256(data.read()).hexdigest()
+
+        input = FileReputationRequest(hash=hash, hash_type="sha256", verbose=verbose, raw=raw, provider=provider)
+        response = self.request.post("reputation", data=input.dict(exclude_none=True))
+        response.result = FileReputationResult(**response.raw_result)
         return response
 
 
@@ -295,6 +391,7 @@ class DomainIntel(ServiceBase):
     service_name = "domain-intel"
     version = "v1"
 
+    @deprecated(version="1.2.0", reason="Should use DomainIntel.reputation()")
     def lookup(
         self, domain: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
     ) -> PangeaResponse[DomainLookupResult]:
@@ -319,9 +416,38 @@ class DomainIntel(ServiceBase):
         Examples:
             response = domain_intel.lookup(domain="737updatesboeing.com", provider="domaintools")
         """
-        input = DomainLookupRequest(domain=domain, verbose=verbose, provider=provider, raw=raw)
-        response = self.request.post("lookup", data=input.dict(exclude_none=True))
+        input = DomainReputationRequest(domain=domain, verbose=verbose, provider=provider, raw=raw)
+        response = self.request.post("reputation", data=input.dict(exclude_none=True))
         response.result = DomainLookupResult(**response.raw_result)
+        return response
+
+    def reputation(
+        self, domain: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
+    ) -> PangeaResponse[DomainReputationResult]:
+        """
+        Look up a domain reputation
+
+        Retrieve reputation for a domain from a provider, including an optional detailed report.
+
+        Args:
+            domain (str): The domain to be looked up
+            provider (str, optional): Use reputation data from these providers: "domaintools" or "crowdstrike"
+            verbose (bool, optional): Echo the API parameters in the response
+            raw (bool, optional): Include raw data from this provider
+
+        Raises:
+            PangeaAPIException: If an API Error happens
+
+        Returns:
+            A PangeaResponse where the sanctioned source(s) are in the
+                response.result field.  Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/domain-intel).
+
+        Examples:
+            response = domain_intel.lookup(domain="737updatesboeing.com", provider="domaintools")
+        """
+        input = DomainReputationRequest(domain=domain, verbose=verbose, provider=provider, raw=raw)
+        response = self.request.post("reputation", data=input.dict(exclude_none=True))
+        response.result = DomainReputationResult(**response.raw_result)
         return response
 
 
@@ -440,6 +566,7 @@ class UrlIntel(ServiceBase):
     service_name = "url-intel"
     version = "v1"
 
+    @deprecated(version="1.2.0", reason="Should use UrlIntel.reputation()")
     def lookup(
         self, url: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
     ) -> PangeaResponse[URLLookupResult]:
@@ -462,10 +589,40 @@ class UrlIntel(ServiceBase):
                 response.result field.  Available response fields can be found in our [API documentation](/docs/api/url-intel)
 
         Examples:
-            response = url_intel.lookup(URLLookupInput(url="http://113.235.101.11:54384", provider="crowdstrike"))
+            response = url_intel.lookup(url="http://113.235.101.11:54384", provider="crowdstrike")
         """
 
-        input = URLLookupRequest(url=url, provider=provider, verbose=verbose, raw=raw)
-        response = self.request.post("lookup", data=input.dict(exclude_none=True))
+        input = URLReputationRequest(url=url, provider=provider, verbose=verbose, raw=raw)
+        response = self.request.post("reputation", data=input.dict(exclude_none=True))
         response.result = URLLookupResult(**response.raw_result)
+        return response
+
+    def reputation(
+        self, url: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
+    ) -> PangeaResponse[URLReputationResult]:
+        """
+        Look up a URL reputation
+
+        Retrieve URL address reputation from a provider.
+
+        Args:
+            url (str): The URL to be looked up
+            verbose (bool, optional): Echo the API parameters in the response
+            raw (bool, optional): Include raw data from this provider
+            provider (str, optional): Use reputation data from this provider: "crowdstrike"
+
+        Raises:
+            PangeaAPIException: If an API Error happens
+
+        Returns:
+            A PangeaResponse where the sanctioned source(s) are in the
+                response.result field.  Available response fields can be found in our [API documentation](/docs/api/url-intel)
+
+        Examples:
+            response = url_intel.reputation(url="http://113.235.101.11:54384", provider="crowdstrike")
+        """
+
+        input = URLReputationRequest(url=url, provider=provider, verbose=verbose, raw=raw)
+        response = self.request.post("reputation", data=input.dict(exclude_none=True))
+        response.result = URLReputationResult(**response.raw_result)
         return response
