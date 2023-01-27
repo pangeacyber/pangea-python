@@ -15,6 +15,6 @@ def pangea_deprecated(*args, **kwargs):
         @wraps(f)
         def wrapper(*iargs, **ikwargs):
             return deprecated(*args, **kwargs)(f)(*iargs, **ikwargs)
-        setattr(wrapper, "_deprecated", True)
+        setattr(wrapper, "_deprecated", kwargs)
         return wrapper
     return decorator
