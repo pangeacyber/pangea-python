@@ -14,6 +14,7 @@ from pangea.services.audit.util import (
     decode_membership_proof,
     format_datetime,
     get_arweave_published_roots,
+    get_public_key,
     verify_consistency_proof,
     verify_envelope_hash,
     verify_membership_proof,
@@ -525,7 +526,7 @@ class Audit(ServiceBase):
           EventVerification: PASS if success, FAIL if fail or NONE in case that there is not enough information to verify it
 
         """
-        public_key = self.get_public_key(audit_envelope.public_key)
+        public_key = get_public_key(audit_envelope.public_key)
 
         if audit_envelope and audit_envelope.signature and public_key:
             v = Verifier()
@@ -544,22 +545,6 @@ class Audit(ServiceBase):
         input.public_key = json.dumps(
             public_key_info, ensure_ascii=False, allow_nan=False, separators=(",", ":"), sort_keys=True
         )
-
-    def get_public_key(self, public_key_info: Optional[str]) -> Optional[str]:
-        if not public_key_info:
-            return None
-
-        try:
-            # Try to parse key_info as a json
-            key_info: dict = json.loads(public_key_info)
-            # If it's a json, public key come in "key" field
-            key = key_info.pop("key", None)
-            return key
-        except json.JSONDecodeError:
-            pass
-
-        # If it's not a json, public key should be used as a string
-        return public_key_info
 
     def root(self, tree_size: Optional[int] = None) -> PangeaResponse[RootResult]:
         """
