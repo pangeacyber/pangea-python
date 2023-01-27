@@ -1,6 +1,7 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 
+import logging
 from typing import Optional
 
 from pangea import __version__
@@ -26,7 +27,6 @@ class ServiceBase(object):
         )
 
         extra_headers = {}
-
         self.request.set_extra_headers(extra_headers)
 
     @property
@@ -36,3 +36,6 @@ class ServiceBase(object):
     @token.setter
     def token(self, value):
         self.request.token = value
+
+    def set_logger_level(self, level: int = logging.INFO):
+        self.request.logger.setLevel(level)

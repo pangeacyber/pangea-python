@@ -4,6 +4,7 @@
 import json
 import logging
 import time
+from logging.handlers import TimedRotatingFileHandler
 
 import pangea
 import requests
@@ -49,11 +50,24 @@ class PangeaRequest(object):
 
         # Custom headers
         self._extra_headers = {}
-
         self.session: requests.Session = self._init_session()
+
+        self.logger = logging.getLogger(self.service)
+        handler = TimedRotatingFileHandler(
+            filename="logs/pange_sdk.log", when="D", interval=1, backupCount=90, encoding="utf-8", delay=False
+        )
+        formatter = logging.Formatter(
+            fmt="{{'time': '%(asctime)s.%(msecs)03d', 'name': '%(name)s', 'level': '%(levelname)s',  'message': %(message)s }}",
+            datefmt="%Y-%m-%d %H:%M:%S",
+        )
+        handler.setFormatter(formatter)
+        self.logger.addHandler(handler)
 
     def __del__(self):
         self.session.close()
+
+    def set_logger_level(self, level: int = logging.INFO):
+        self.logger.setLevel(level)
 
     def set_extra_headers(self, headers: dict):
         """Sets any additional headers in the request.
@@ -92,8 +106,11 @@ class PangeaRequest(object):
                various properties to retrieve individual fields
         """
         url = self._url(endpoint)
+        data_send = json.dumps(data)
 
-        requests_response = self.session.post(url, headers=self._headers(), data=json.dumps(data))
+        self.logger.debug({"action": "post", "url": url, "data": data_send})
+
+        requests_response = self.session.post(url, headers=self._headers(), data=data_send)
 
         if self._queued_retry_enabled and requests_response.status_code == 202:
             response_json = requests_response.json()
@@ -122,10 +139,10 @@ class PangeaRequest(object):
         """
         url = self._url(f"{endpoint}/{path}")
 
+        self.logger.debug({"action": "get", "url": url})
+
         requests_response = self.session.get(url, headers=self._headers())
-
         pangea_response = PangeaResponse(requests_response)
-
         self._check_response(pangea_response)
         return pangea_response
 
@@ -184,6 +201,8 @@ class PangeaRequest(object):
             return
         else:
             response.result = None
+
+        self.logger.error({"action": "api_error", "summary": summary, "result": response.raw_result})
 
         if status == ResponseStatus.VALIDATION_ERR.value:
             raise exceptions.ValidationException(summary, response)
