@@ -168,7 +168,7 @@ class PangeaRequest(object):
     def _headers(self) -> dict:
         headers = {
             "Content-Type": "application/json",
-            "User-Agent": f"Pangea Python v{pangea.__version__}",
+            "User-Agent": f"pangea-python/{pangea.__version__}",
             "Authorization": f"Bearer {self.token}",
         }
 

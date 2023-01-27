@@ -1,7 +1,7 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
-from typing import Dict, Optional, Union
 import datetime
+from typing import Dict, Optional, Union
 
 from pangea.response import PangeaResponse
 from pangea.services.audit.exceptions import AuditException, EventCorruption
@@ -18,12 +18,12 @@ from pangea.services.audit.models import (
     RootResult,
     RootSource,
     SearchEvent,
-    SearchRequest,
     SearchOrder,
     SearchOrderBy,
     SearchOutput,
-    SearchResultRequest,
+    SearchRequest,
     SearchResultOutput,
+    SearchResultRequest,
 )
 from pangea.services.audit.signing import Signer, Verifier
 from pangea.services.audit.util import (
@@ -251,14 +251,13 @@ class Audit(ServiceBase):
             order_by (SearchOrderBy, optional): Name of column to sort the results by.
             last (str, optional): Optional[str] = None,
             start (datetime, optional): An RFC-3339 formatted timestamp, or relative time adjustment from the current time.
-            end: (datetime, optional): An RFC-3339 formatted timestamp, or relative time adjustment from the current time.
+            end (datetime, optional): An RFC-3339 formatted timestamp, or relative time adjustment from the current time.
             limit (int, optional): Optional[int] = None,
             max_results (int, optional): Maximum number of results to return.
             search_restriction (dict, optional): A list of keys to restrict the search results to. Useful for partitioning data available to the query string.
             verbose (bool, optional): If true, response include root and membership and consistency proofs.
             verify_consistency (bool): True to verify logs consistency
             verify_events (bool): True to verify hash events and signatures
-            verify_signatures (bool, optional):
 
         Raises:
             AuditException: If an audit based api exception happens
@@ -364,7 +363,10 @@ class Audit(ServiceBase):
                 # verify event hash
                 if event_search.hash and not verify_envelope_hash(event_search.envelope, event_search.hash):
                     # it's a extreme case, it's OK to raise an exception
-                    raise EventCorruption(f"Error: Event hash failed.", event_search.envelope)
+                    raise EventCorruption(
+                        f"Event hash verification failed. Received_at: {event_search.envelope.received_at}. Search again with verify_events=False to recover events",
+                        event_search.envelope,
+                    )
 
                 event_search.signature_verification = self.verify_signature(event_search.envelope)
 
