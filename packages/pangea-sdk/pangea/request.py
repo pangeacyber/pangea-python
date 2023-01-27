@@ -54,7 +54,7 @@ class PangeaRequest(object):
 
         self.logger = logging.getLogger(self.service)
         handler = TimedRotatingFileHandler(
-            filename="logs/pange_sdk.log", when="D", interval=1, backupCount=90, encoding="utf-8", delay=False
+            filename="pange_sdk.log", when="D", interval=1, backupCount=90, encoding="utf-8", delay=False
         )
         formatter = logging.Formatter(
             fmt="{{'time': '%(asctime)s.%(msecs)03d', 'name': '%(name)s', 'level': '%(levelname)s',  'message': %(message)s }}",
