@@ -3,7 +3,7 @@
 import hashlib
 from typing import Dict, List, Optional
 
-from deprecated import deprecated
+from pangea.deprecated import pangea_deprecated
 from pangea.response import APIRequestModel, APIResponseModel, PangeaResponse, PangeaResponseResult
 
 from .base import ServiceBase
@@ -214,7 +214,7 @@ class FileIntel(ServiceBase):
     service_name = "file-intel"
     version = "v1"
 
-    @deprecated(version="1.2.0", reason="Should use FileIntel.hashReputation()")
+    @pangea_deprecated(version="1.2.0", reason="Should use FileIntel.hashReputation()")
     def lookup(
         self,
         hash: str,
@@ -287,7 +287,7 @@ class FileIntel(ServiceBase):
         response.result = FileReputationResult(**response.raw_result)
         return response
 
-    @deprecated(version="1.2.0", reason="Should use FileIntel.filepathReputation()")
+    @pangea_deprecated(version="1.2.0", reason="Should use FileIntel.filepathReputation()")
     def lookupFilepath(
         self,
         filepath: str,
@@ -391,7 +391,7 @@ class DomainIntel(ServiceBase):
     service_name = "domain-intel"
     version = "v1"
 
-    @deprecated(version="1.2.0", reason="Should use DomainIntel.reputation()")
+    @pangea_deprecated(version="1.2.0", reason="Should use DomainIntel.reputation()")
     def lookup(
         self, domain: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
     ) -> PangeaResponse[DomainLookupResult]:
@@ -478,7 +478,7 @@ class IpIntel(ServiceBase):
     service_name = "ip-intel"
     version = "v1"
 
-    @deprecated(version="1.2.0", reason="Should use IpIntel.reputation()")
+    @pangea_deprecated(version="1.2.0", reason="Should use IpIntel.reputation()")
     def lookup(
         self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
     ) -> PangeaResponse[IPReputationResult]:
@@ -566,7 +566,7 @@ class UrlIntel(ServiceBase):
     service_name = "url-intel"
     version = "v1"
 
-    @deprecated(version="1.2.0", reason="Should use UrlIntel.reputation()")
+    @pangea_deprecated(version="1.2.0", reason="Should use UrlIntel.reputation()")
     def lookup(
         self, url: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
     ) -> PangeaResponse[URLLookupResult]:
