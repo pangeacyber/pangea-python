@@ -42,7 +42,7 @@ class ServiceBase(object):
                     logger_config.logger_name if logger_config.logger_name else self.service_name
                 )
                 handler = TimedRotatingFileHandler(
-                    filename="pange_sdk.log", when="D", interval=1, backupCount=90, encoding="utf-8", delay=False
+                    filename="pangea_sdk_logs.json", when="D", interval=1, backupCount=90, encoding="utf-8", delay=False
                 )
                 formatter = logging.Formatter(
                     fmt="{{'time': '%(asctime)s.%(msecs)03d', 'name': '%(name)s', 'level': '%(levelname)s',  'message': %(message)s }}",
