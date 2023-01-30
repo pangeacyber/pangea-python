@@ -4,7 +4,7 @@
 import json
 import logging
 import time
-from logging.handlers import TimedRotatingFileHandler
+from typing import Optional
 
 import pangea
 import requests
@@ -12,8 +12,6 @@ from pangea import exceptions
 from pangea.config import PangeaConfig
 from pangea.response import PangeaResponse, ResponseStatus
 from requests.adapters import HTTPAdapter, Retry
-
-logger = logging.getLogger(__name__)
 
 
 class PangeaRequest(object):
@@ -26,11 +24,7 @@ class PangeaRequest(object):
     """
 
     def __init__(
-        self,
-        config: PangeaConfig,
-        token: str,
-        version: str,
-        service: str,
+        self, config: PangeaConfig, token: str, version: str, service: str, logger: Optional[logging.Logger] = None
     ):
         self.config = config
         self.token = token
@@ -52,22 +46,10 @@ class PangeaRequest(object):
         self._extra_headers = {}
         self.session: requests.Session = self._init_session()
 
-        self.logger = logging.getLogger(self.service)
-        handler = TimedRotatingFileHandler(
-            filename="pange_sdk.log", when="D", interval=1, backupCount=90, encoding="utf-8", delay=False
-        )
-        formatter = logging.Formatter(
-            fmt="{{'time': '%(asctime)s.%(msecs)03d', 'name': '%(name)s', 'level': '%(levelname)s',  'message': %(message)s }}",
-            datefmt="%Y-%m-%d %H:%M:%S",
-        )
-        handler.setFormatter(formatter)
-        self.logger.addHandler(handler)
+        self.logger = logger
 
     def __del__(self):
         self.session.close()
-
-    def set_logger_level(self, level: int = logging.INFO):
-        self.logger.setLevel(level)
 
     def set_extra_headers(self, headers: dict):
         """Sets any additional headers in the request.
@@ -108,7 +90,8 @@ class PangeaRequest(object):
         url = self._url(endpoint)
         data_send = json.dumps(data)
 
-        self.logger.debug({"action": "post", "url": url, "data": data_send})
+        if self.logger:
+            self.logger.debug({"service": self.service, "action": "post", "url": url, "data": data_send})
 
         requests_response = self.session.post(url, headers=self._headers(), data=data_send)
 
@@ -139,7 +122,8 @@ class PangeaRequest(object):
         """
         url = self._url(f"{endpoint}/{path}")
 
-        self.logger.debug({"action": "get", "url": url})
+        if self.logger:
+            self.logger.debug({"service": self.service, "action": "get", "url": url})
 
         requests_response = self.session.get(url, headers=self._headers())
         pangea_response = PangeaResponse(requests_response)
@@ -202,7 +186,10 @@ class PangeaRequest(object):
         else:
             response.result = None
 
-        self.logger.error({"action": "api_error", "summary": summary, "result": response.raw_result})
+        if self.logger:
+            self.logger.error(
+                {"service": self.service, "action": "api_error", "summary": summary, "result": response.raw_result}
+            )
 
         if status == ResponseStatus.VALIDATION_ERR.value:
             raise exceptions.ValidationException(summary, response)
