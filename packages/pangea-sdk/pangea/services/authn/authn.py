@@ -351,7 +351,7 @@ class AuthN(ServiceBase):
         #   - path: authn::/v1/flow/start
         # https://dev.pangea.cloud/docs/api/authn#start-a-new-signup-or-signin-flow
         def start(
-            self, cb_uri: str, email: Optional[str] = None, flow_types: Optional[List[str]] = None
+            self, cb_uri: str, email: Optional[str] = None, flow_types: Optional[List[m.FlowType]] = None
         ) -> PangeaResponse[m.FlowStartResult]:
             input = m.FlowStartRequest(cb_uri=cb_uri, email=email, flow_types=flow_types)
             response = self.request.post("flow/start", data=input.dict(exclude_none=True))

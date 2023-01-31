@@ -47,6 +47,17 @@ class MFAProvider(enum.Enum):
         return self.value
 
 
+class FlowType(enum.Enum):
+    SIGNIN = "signin"
+    SIGNUP = "signup"
+
+    def __str__(self):
+        return self.value
+
+    def __repr__(self):
+        return self.value
+
+
 # https://dev.pangea.cloud/docs/api/authn#create-user
 class UserCreateRequest(APIRequestModel):
     email: str
@@ -182,7 +193,7 @@ class UserProfileUpdateRequest(APIRequestModel):
     email: Optional[str] = None
     require_mfa: Optional[bool] = None
     mfa_value: Optional[str] = None
-    mfa_providers: Optional[str] = None
+    mfa_providers: Optional[MFAProvider] = None
 
 
 class UserProfileUpdateResult(PangeaResponseResult):
@@ -288,7 +299,7 @@ class PasswordSignup:
 
 
 class VerifyCaptcha:
-    sike_key: str
+    site_key: str
 
 
 class VerifyMFAStart:
@@ -314,18 +325,18 @@ class VerifySocial:
 
 class CommonFlowResult(PangeaResponseResult):
     flow_id: str
-    error: str
     next_step: str
-    complete: dict
-    enroll_mfa_start: EnrollMFAStart
-    enroll_mfa_complete: EnrollMFAComplete
-    signup: Signup
-    verify_captcha: VerifyCaptcha
-    verify_email: dict
-    verify_mfa_start: VerifyMFAStart
-    verify_mfa_complete: dict
-    verify_password: VerifyPassword
-    verify_social: VerifySocial
+    error: Optional[str] = None
+    complete: Optional[dict] = None
+    enroll_mfa_start: Optional[EnrollMFAStart] = None
+    enroll_mfa_complete: Optional[EnrollMFAComplete] = None
+    signup: Optional[Signup] = None
+    verify_captcha: Optional[VerifyCaptcha] = None
+    verify_email: Optional[dict] = None
+    verify_mfa_start: Optional[VerifyMFAStart] = None
+    verify_mfa_complete: Optional[dict] = None
+    verify_password: Optional[VerifyPassword] = None
+    verify_social: Optional[VerifySocial] = None
 
 
 class FlowEnrollMFAcompleteResult(CommonFlowResult):
@@ -373,7 +384,7 @@ class FlowSignupSocialResult(CommonFlowResult):
 class FlowStartRequest(APIRequestModel):
     cb_uri: str
     email: Optional[str] = None
-    flow_types: Optional[List[str]] = None
+    flow_types: Optional[List[FlowType]] = None
 
 
 class FlowStartResult(CommonFlowResult):
