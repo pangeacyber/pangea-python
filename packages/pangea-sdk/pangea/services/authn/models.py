@@ -303,7 +303,7 @@ class VerifyPassword:
     password_punct_min: int
 
 
-class SignUp:
+class Signup:
     social_signup: SocialSignup
     password_signup: PasswordSignup
 
@@ -319,7 +319,7 @@ class CommonFlowResult(PangeaResponseResult):
     complete: dict
     enroll_mfa_start: EnrollMFAStart
     enroll_mfa_complete: EnrollMFAComplete
-    signup: SignUp
+    signup: Signup
     verify_captcha: VerifyCaptcha
     verify_email: dict
     verify_mfa_start: VerifyMFAStart
