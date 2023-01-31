@@ -262,7 +262,7 @@ class FlowEnrollMFACompleteRequest(APIRequestModel):
     cancel: Optional[bool] = None
 
 
-class EnrollMFAstart:
+class EnrollMFAStart:
     mfa_providers: List[str]
 
 
@@ -271,7 +271,7 @@ class TOTPsecret:
     secret: str
 
 
-class EnrollMFAcomplete:
+class EnrollMFAComplete:
     totp_secret: TOTPsecret
 
 
@@ -291,7 +291,7 @@ class VerifyCaptcha:
     sike_key: str
 
 
-class VerifyMFAstart:
+class VerifyMFAStart:
     mfa_providers: List[str]
 
 
@@ -317,12 +317,12 @@ class CommonFlowResult(PangeaResponseResult):
     error: str
     next_step: str
     complete: dict
-    enroll_mfa_start: EnrollMFAstart
-    enroll_mfa_complete: EnrollMFAcomplete
+    enroll_mfa_start: EnrollMFAStart
+    enroll_mfa_complete: EnrollMFAComplete
     signup: SignUp
     verify_captcha: VerifyCaptcha
     verify_email: dict
-    verify_mfa_start: VerifyMFAstart
+    verify_mfa_start: VerifyMFAStart
     verify_mfa_complete: dict
     verify_password: VerifyPassword
     verify_social: VerifySocial
@@ -334,12 +334,12 @@ class FlowEnrollMFAcompleteResult(CommonFlowResult):
 
 #   - path: authn::/v1/flow/enroll/mfa/start
 # https://dev.pangea.cloud/docs/api/authn#start-the-process-of-enrolling-an-mfa
-class FlowEnrollMFAstartRequest(APIRequestModel):
+class FlowEnrollMFAStartRequest(APIRequestModel):
     flow_id: str
     mfa_provider: MFAProvider
 
 
-class FlowEnrollMFAstartResult(CommonFlowResult):
+class FlowEnrollMFAStartResult(CommonFlowResult):
     pass
 
 
@@ -405,23 +405,23 @@ class FlowVerifyEmailResult(CommonFlowResult):
 
 #   - path: authn::/v1/flow/verify/mfa/complete
 # https://dev.pangea.cloud/docs/api/authn#complete-mfa-verification
-class FlowVerifyMFAcompleteRequest(APIRequestModel):
+class FlowVerifyMFACompleteRequest(APIRequestModel):
     flow_id: str
     code: str
 
 
-class FlowVerifyMFAcompleteResult(CommonFlowResult):
+class FlowVerifyMFACompleteResult(CommonFlowResult):
     pass
 
 
 #   - path: authn::/v1/flow/verify/mfa/start
 # https://dev.pangea.cloud/docs/api/authn#start-the-process-of-mfa-verification
-class FlowVerifyMFAstartRequest(APIRequestModel):
+class FlowVerifyMFAStartRequest(APIRequestModel):
     flow_id: str
     mfa_provider: MFAProvider
 
 
-class FlowVerifyMFAstartResult(CommonFlowResult):
+class FlowVerifyMFAStartResult(CommonFlowResult):
     pass
 
 
@@ -450,36 +450,36 @@ class FlowVerifySocialResult(CommonFlowResult):
 
 #   - path: authn::/v1/user/mfa/delete
 # https://dev.pangea.cloud/docs/api/authn#delete-mfa-enrollment-for-a-user
-class UserMFAdeleteRequest(APIRequestModel):
+class UserMFADeleteRequest(APIRequestModel):
     user_id: str
     mfa_provider: MFAProvider
 
 
-class UserMFAdeleteResult(PangeaResponseResult):
+class UserMFADeleteResult(PangeaResponseResult):
     pass
 
 
 #   - path: authn::/v1/user/mfa/enroll
 # https://dev.pangea.cloud/docs/api/authn#enroll-mfa-for-a-user
-class UserMFAenrollRequest(APIRequestModel):
+class UserMFAEnrollRequest(APIRequestModel):
     user_id: str
     mfa_provider: MFAProvider
     code: str
 
 
-class UserMFAenrollResult(PangeaResponseResult):
+class UserMFAEnrollResult(PangeaResponseResult):
     pass
 
 
 #   - path: authn::/v1/user/mfa/start
 # https://dev.pangea.cloud/docs/api/authn#start-mfa-verification-for-a-user
-class UserMFAstartRequest(APIRequestModel):
+class UserMFAStartRequest(APIRequestModel):
     user_id: str
     mfa_provider: MFAProvider
     enroll: Optional[bool] = None
 
 
-class UserMFAstartResult(PangeaResponseResult):
+class UserMFAStartResult(PangeaResponseResult):
     pass
 
 

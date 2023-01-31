@@ -214,33 +214,33 @@ class AuthN(ServiceBase):
 
             #   - path: authn::/v1/user/mfa/delete
             # https://dev.pangea.cloud/docs/api/authn#delete-mfa-enrollment-for-a-user
-            def delete(self, user_id: str, mfa_provider: m.MFAProvider) -> PangeaResponse[m.UserMFAdeleteResult]:
-                input = m.UserMFAdeleteRequest(user_id=user_id, mfa_provider=mfa_provider)
+            def delete(self, user_id: str, mfa_provider: m.MFAProvider) -> PangeaResponse[m.UserMFADeleteResult]:
+                input = m.UserMFADeleteRequest(user_id=user_id, mfa_provider=mfa_provider)
                 response = self.request.post("user/mfa/delete", data=input.dict(exclude_none=True))
                 if response.raw_result is not None:
-                    response.result = m.UserMFAdeleteResult(**response.raw_result)
+                    response.result = m.UserMFADeleteResult(**response.raw_result)
                 return response
 
             #   - path: authn::/v1/user/mfa/enroll
             # https://dev.pangea.cloud/docs/api/authn#enroll-mfa-for-a-user
             def enroll(
                 self, user_id: str, mfa_provider: m.MFAProvider, code: str
-            ) -> PangeaResponse[m.UserMFAenrollResult]:
-                input = m.UserMFAenrollRequest(user_id=user_id, mfa_provider=mfa_provider, code=code)
+            ) -> PangeaResponse[m.UserMFAEnrollResult]:
+                input = m.UserMFAEnrollRequest(user_id=user_id, mfa_provider=mfa_provider, code=code)
                 response = self.request.post("user/mfa/enroll", data=input.dict(exclude_none=True))
                 if response.raw_result is not None:
-                    response.result = m.UserMFAenrollResult(**response.raw_result)
+                    response.result = m.UserMFAEnrollResult(**response.raw_result)
                 return response
 
             #   - path: authn::/v1/user/mfa/start
             # https://dev.pangea.cloud/docs/api/authn#start-mfa-verification-for-a-user
             def start(
                 self, user_id: str, mfa_provider: m.MFAProvider, enroll: Optional[bool] = None
-            ) -> PangeaResponse[m.UserMFAstartResult]:
-                input = m.UserMFAstartRequest(user_id=user_id, mfa_provider=mfa_provider, enroll=enroll)
+            ) -> PangeaResponse[m.UserMFAStartResult]:
+                input = m.UserMFAStartRequest(user_id=user_id, mfa_provider=mfa_provider, enroll=enroll)
                 response = self.request.post("user/mfa/start", data=input.dict(exclude_none=True))
                 if response.raw_result is not None:
-                    response.result = m.UserMFAenrollResult(**response.raw_result)
+                    response.result = m.UserMFAEnrollResult(**response.raw_result)
                 return response
 
             #   - path: authn::/v1/user/mfa/verify
@@ -396,11 +396,11 @@ class AuthN(ServiceBase):
                 # https://dev.pangea.cloud/docs/api/authn#start-the-process-of-enrolling-an-mfa
                 def start(
                     self, flow_id: str, mfa_provider: m.MFAProvider
-                ) -> PangeaResponse[m.FlowEnrollMFAstartResult]:
-                    input = m.FlowEnrollMFAstartRequest(flow_id=flow_id, mfa_provider=mfa_provider)
+                ) -> PangeaResponse[m.FlowEnrollMFAStartResult]:
+                    input = m.FlowEnrollMFAStartRequest(flow_id=flow_id, mfa_provider=mfa_provider)
                     response = self.request.post("flow/enroll/mfa/start", data=input.dict(exclude_none=True))
                     if response.raw_result is not None:
-                        response.result = m.FlowEnrollMFAstartResult(**response.raw_result)
+                        response.result = m.FlowEnrollMFAStartResult(**response.raw_result)
                     return response
 
         class Signup(ServiceBase):
@@ -496,20 +496,20 @@ class AuthN(ServiceBase):
 
                 #   - path: authn::/v1/flow/verify/mfa/complete
                 # https://dev.pangea.cloud/docs/api/authn#complete-mfa-verification
-                def complete(self, flow_id: str, code: str) -> PangeaResponse[m.FlowVerifyMFAcompleteResult]:
-                    input = m.FlowVerifyMFAcompleteRequest()
+                def complete(self, flow_id: str, code: str) -> PangeaResponse[m.FlowVerifyMFACompleteResult]:
+                    input = m.FlowVerifyMFACompleteRequest()
                     response = self.request.post("flow/verify/mfa/complete", data=input.dict(exclude_none=True))
                     if response.raw_result is not None:
-                        response.result = m.FlowVerifyMFAcompleteResult(**response.raw_result)
+                        response.result = m.FlowVerifyMFACompleteResult(**response.raw_result)
                     return response
 
                 #   - path: authn::/v1/flow/verify/mfa/start
                 # https://dev.pangea.cloud/docs/api/authn#start-the-process-of-mfa-verification
                 def start(
                     self, flow_id: str, mfa_provider: m.MFAProvider
-                ) -> PangeaResponse[m.FlowVerifyMFAstartResult]:
-                    input = m.FlowVerifyMFAstartRequest(flow_id=flow_id, mfa_provider=mfa_provider)
+                ) -> PangeaResponse[m.FlowVerifyMFAStartResult]:
+                    input = m.FlowVerifyMFAStartRequest(flow_id=flow_id, mfa_provider=mfa_provider)
                     response = self.request.post("flow/verify/mfa/start", data=input.dict(exclude_none=True))
                     if response.raw_result is not None:
-                        response.result = m.FlowVerifyMFAstartResult(**response.raw_result)
+                        response.result = m.FlowVerifyMFAStartResult(**response.raw_result)
                     return response
