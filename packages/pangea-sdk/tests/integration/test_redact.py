@@ -24,6 +24,7 @@ class TestRedact(unittest.TestCase):
         response = self.redact.redact(text=text)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertEqual(response.result.redacted_text, expected)
+        self.assertEqual(response.result.count, 2)
 
     def test_redact_structured(self):
         data = {"phone": "415-867-5309"}
@@ -32,6 +33,7 @@ class TestRedact(unittest.TestCase):
         response = self.redact.redact_structured(data=data)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertEqual(response.result.redacted_data, expected)
+        self.assertEqual(response.result.count, 1)
 
     # call plain redact with structured data, should throw a 400
     def test_redact_with_structured_data(self):

@@ -69,6 +69,7 @@ class RedactResult(PangeaResponseResult):
     """
 
     redacted_text: str
+    count: int
     report: Optional[DebugReport] = None
 
 
@@ -96,6 +97,7 @@ class StructuredResult(PangeaResponseResult):
     """
 
     redacted_data: Union[Dict, str]  # FIXME: this should be raw json
+    count: int
     report: Optional[DebugReport] = None
 
 
