@@ -539,7 +539,7 @@ class Audit(ServiceBase):
         else:
             return EventVerification.NONE
 
-    def set_public_key(input: LogRequest, signer: Signer, public_key_info: dict[str, str]):
+    def set_public_key(self, input: LogRequest, signer: Signer, public_key_info: dict[str, str]):
         public_key_info["key"] = signer.getPublicKeyPEM()
         input.public_key = json.dumps(
             public_key_info, ensure_ascii=False, allow_nan=False, separators=(",", ":"), sort_keys=True

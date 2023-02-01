@@ -103,8 +103,6 @@ class EventEnvelope(APIResponseModel):
     signature: Optional[str] = None
     public_key: Optional[str] = None
     received_at: datetime.datetime
-    signature_key_id: Optional[str] = None
-    signature_key_version: Optional[int] = None
 
 
 class LogRequest(APIRequestModel):

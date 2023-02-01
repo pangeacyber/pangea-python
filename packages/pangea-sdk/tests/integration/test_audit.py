@@ -133,7 +133,7 @@ class TestAudit(unittest.TestCase):
         self.assertEqual(response.result.signature_verification, EventVerification.PASS)
         self.assertEqual(
             response.result.envelope.public_key,
-            "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAlvOyDMpK2DQ16NI8G41yINl01wMHzINBahtDPoh4+mE=\n-----END PUBLIC KEY-----\n",
+            r'{"key":"-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAlvOyDMpK2DQ16NI8G41yINl01wMHzINBahtDPoh4+mE=\n-----END PUBLIC KEY-----\n"}',
         )
 
     def test_log_sign_vault_and_verify(self):
@@ -153,8 +153,6 @@ class TestAudit(unittest.TestCase):
         self.assertIsNotNone(response.result.envelope)
         self.assertIsNone(response.result.consistency_proof)
         self.assertIsNotNone(response.result.membership_proof)
-        self.assertIsNotNone(response.result.envelope.signature_key_id)
-        self.assertIsNotNone(response.result.envelope.signature_key_version)
         self.assertIsNotNone(response.result.envelope.public_key)
         self.assertIsNotNone(response.result.envelope.signature)
         self.assertEqual(response.result.consistency_verification, EventVerification.NONE)
@@ -290,7 +288,7 @@ class TestAudit(unittest.TestCase):
         limit = 2
         max_result = 3
         end = datetime.datetime.now()
-        start = end - datetime.timedelta(days=1)
+        start = end - datetime.timedelta(days=10)
         response_search = self.audit.search(
             query="message:",
             order=SearchOrder.DESC,
