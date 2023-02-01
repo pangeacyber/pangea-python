@@ -14,7 +14,7 @@ def main():
     print(f"Checking hash...")
 
     try:
-        response = intel.lookup(
+        response = intel.hashReputation(
             hash="142b638c6a60b60c7f9928da4fb85a5a8e1422a9ffdc9ee49e17e56ccca9cf6e",
             hash_type="sha256",
             provider="reversinglabs",
