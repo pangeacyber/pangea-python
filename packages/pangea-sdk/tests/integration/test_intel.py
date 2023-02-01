@@ -35,6 +35,22 @@ class TestDomainIntel(unittest.TestCase):
         with self.assertRaises(pe.UnauthorizedException):
             badintel_domain.lookup(domain="737updatesboeing.com", provider="domaintools")
 
+    def test_domain_reputation(self):
+        response = self.intel_domain.reputation(
+            domain="737updatesboeing.com", provider="domaintools", verbose=True, raw=True
+        )
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertEqual(response.result.data.verdict, "malicious")
+
+    def test_domain_reputation_with_bad_auth_token(self):
+        token = "noarealtoken"
+        domain = get_test_domain(TEST_ENVIRONMENT)
+        config = PangeaConfig(domain=domain)
+        badintel_domain = DomainIntel(token, config=config)
+
+        with self.assertRaises(pe.UnauthorizedException):
+            badintel_domain.reputation(domain="737updatesboeing.com", provider="domaintools")
+
 
 class TestFileIntel(unittest.TestCase):
     def setUp(self):
@@ -93,6 +109,61 @@ class TestFileIntel(unittest.TestCase):
     def test_file_lookup_with_no_provider(self):
         with self.assertRaises(pe.PangeaAPIException):
             self.intel_file.lookup(
+                hash="142b638c6a60b60c7f9928da4fb85a5a8e1422a9ffdc9ee49e17e56ccca9cf6e",
+                hash_type="notavalidhashtype",
+                provider="reversinglabs",
+            )
+
+    def test_file_reputation(self):
+        response = self.intel_file.hashReputation(
+            hash="142b638c6a60b60c7f9928da4fb85a5a8e1422a9ffdc9ee49e17e56ccca9cf6e",
+            hash_type="sha256",
+            provider="reversinglabs",
+            verbose=True,
+            raw=True,
+        )
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertEqual(response.result.data.verdict, "unknown")
+
+    def test_file_reputation_default_provider(self):
+        response = self.intel_file.hashReputation(
+            hash="142b638c6a60b60c7f9928da4fb85a5a8e1422a9ffdc9ee49e17e56ccca9cf6e",
+            hash_type="sha256",
+            verbose=True,
+            raw=True,
+        )
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+
+    def test_file_reputation_from_filepath(self):
+        response = self.intel_file.filepathReputation(
+            filepath="./README.md",
+            provider="reversinglabs",
+            verbose=True,
+            raw=True,
+        )
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertEqual(response.result.data.verdict, "unknown")
+
+    def test_file_reputation_with_bad_auth_token(self):
+        token = "noarealtoken"
+        domain = get_test_domain(TEST_ENVIRONMENT)
+        config = PangeaConfig(domain=domain)
+        badintel_domain = FileIntel(token, config=config)
+
+        with self.assertRaises(pe.UnauthorizedException):
+            badintel_domain.hashReputation(
+                hash="142b638c6a60b60c7f9928da4fb85a5a8e1422a9ffdc9ee49e17e56ccca9cf6e",
+                hash_type="sha256",
+                provider="reversinglabs",
+            )
+
+    def test_file_reputation_with_bad_hash(self):
+        with self.assertRaises(pe.PangeaAPIException):
+            self.intel_file.hashReputation(hash="notarealhash", hash_type="sha256", provider="reversinglabs")
+
+    def test_file_reputation_with_no_provider(self):
+        with self.assertRaises(pe.PangeaAPIException):
+            self.intel_file.hashReputation(
                 hash="142b638c6a60b60c7f9928da4fb85a5a8e1422a9ffdc9ee49e17e56ccca9cf6e",
                 hash_type="notavalidhashtype",
                 provider="reversinglabs",
@@ -170,6 +241,24 @@ class TestIPIntel(unittest.TestCase):
         with self.assertRaises(pe.UnauthorizedException):
             badintel_ip.lookup(ip="93.231.182.110", provider="crowdstrike")
 
+    def test_ip_reputation(self):
+        response = self.intel_ip.reputation(ip="93.231.182.110", provider="crowdstrike", verbose=True, raw=True)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertEqual(response.result.data.verdict, "malicious")
+
+    def test_ip_reputation_default_provider(self):
+        response = self.intel_ip.reputation(ip="93.231.182.110", verbose=True, raw=True)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+
+    def test_ip_reputation_with_bad_auth_token(self):
+        token = "noarealtoken"
+        domain = get_test_domain(TEST_ENVIRONMENT)
+        config = PangeaConfig(domain=domain)
+        badintel_ip = IpIntel(token, config=config)
+
+        with self.assertRaises(pe.UnauthorizedException):
+            badintel_ip.reputation(ip="93.231.182.110", provider="crowdstrike")
+
 
 class TestURLIntel(unittest.TestCase):
     def setUp(self):
@@ -197,3 +286,23 @@ class TestURLIntel(unittest.TestCase):
 
         with self.assertRaises(pe.UnauthorizedException):
             badintel_url.lookup(url="http://113.235.101.11:54384", provider="crowdstrike")
+
+    def test_url_reputation(self):
+        response = self.intel_url.reputation(
+            url="http://113.235.101.11:54384", provider="crowdstrike", verbose=True, raw=True
+        )
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertEqual(response.result.data.verdict, "malicious")
+
+    def test_url_reputation_default_provider(self):
+        response = self.intel_url.reputation(url="http://113.235.101.11:54384", verbose=True, raw=True)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+
+    def test_url_reputation_with_bad_auth_token(self):
+        token = "noarealtoken"
+        domain = get_test_domain(TEST_ENVIRONMENT)
+        config = PangeaConfig(domain=domain)
+        badintel_url = UrlIntel(token, config=config)
+
+        with self.assertRaises(pe.UnauthorizedException):
+            badintel_url.reputation(url="http://113.235.101.11:54384", provider="crowdstrike")

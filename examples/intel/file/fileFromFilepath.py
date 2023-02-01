@@ -14,7 +14,7 @@ def main():
     print(f"Checking file...")
 
     try:
-        response = intel.lookup(
+        response = intel.filepathReputation(
             filepath="./file.py",
             provider="reversinglabs",
             verbose=True,
