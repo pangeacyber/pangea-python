@@ -16,28 +16,25 @@ class RedactFormat(str, enum.Enum):
 class RedactRequest(APIRequestModel):
     """
     Input class to make a redact request
-
-    Arguments:
-    text -- Text to apply redact functionality
-    debug -- Setting this value to true will provide a detailed analysis of the redacted data and the rules that caused redaction.
     """
 
     text: str
-    debug: bool = False
+    debug: Optional[bool] = None
+    rules: Optional[List[str]] = None
 
 
 class RecognizerResult(APIResponseModel):
     """
-    TODO: complete
+    The scoring result of a rule
 
     Arguments:
-    field_type --
-    score --
-    text --
-    start --
-    end --
-    redacted --
-    data_ket --
+    field_type: The entity name
+    score: The certainty score that the entity matches this specific snippet
+    text: The text snippet that matched
+    start: The starting index of a snippet
+    end: The ending index of a snippet
+    redacted: Indicates if this rule was used to anonymize a text snippet
+    data_key: If this result relates to a specific structured text field, the key pointing to this text will be provided
     """
 
     field_type: str
@@ -51,8 +48,7 @@ class RecognizerResult(APIResponseModel):
 
 class DebugReport(APIResponseModel):
     """
-    TODO: complete
-
+    Describes the decision process for redactions
     """
 
     summary_counts: Dict[str, int]
@@ -64,8 +60,9 @@ class RedactResult(PangeaResponseResult):
     Result class after a redact request
 
     Arguments:
-    redact_text -- Redacted text result
-    report -- TODO: complete
+    redact_text: Redacted text result
+    count: Number of redactions present in the text
+    report: Describes the decision process for redactions
     """
 
     redacted_text: str
@@ -78,25 +75,26 @@ class StructuredRequest(APIRequestModel):
     Class input to redact structured data request
 
     Arguments:
-    data -- Structured data to redact
-    jsonp -- JSON path(s) used to identify the specific JSON fields to redact in the structured data. Note: If jsonp parameter is used, the data parameter must be in JSON format.
-    format -- The format of the structured data to redact. (default is JSON)
-    debug -- Setting this value to true will provide a detailed analysis of the redacted data and the rules that caused redaction.
+    data: Structured data to redact
+    jsonp: JSON path(s) used to identify the specific JSON fields to redact in the structured data. Note: If jsonp parameter is used, the data parameter must be in JSON format.
+    format: The format of the structured data to redact. (default is JSON)
+    debug: Setting this value to true will provide a detailed analysis of the redacted data and the rules that caused redaction.
     """
 
     data: Union[Dict, str]
     jsonp: Optional[List[str]] = None
     format: Optional[RedactFormat] = None
     debug: Optional[bool] = None
+    rules: Optional[List[str]] = None
 
 
 class StructuredResult(PangeaResponseResult):
     """
-    TODO: complete
+    Result class after a structured redact request
 
     """
 
-    redacted_data: Union[Dict, str]  # FIXME: this should be raw json
+    redacted_data: Union[Dict, str]
     count: int
     report: Optional[DebugReport] = None
 
@@ -136,7 +134,9 @@ class Redact(ServiceBase):
     def __init__(self, token, config=None):
         super().__init__(token, config)
 
-    def redact(self, text: str, debug: bool = False) -> PangeaResponse[RedactResult]:
+    def redact(
+        self, text: str, debug: Optional[bool] = None, rules: Optional[List[str]] = None
+    ) -> PangeaResponse[RedactResult]:
         """
         Redact
 
@@ -145,6 +145,7 @@ class Redact(ServiceBase):
         Args:
             text (str): The text to be redacted
             debug (bool, optional): Return debug output
+            rules (list[str], optional): An array of redact ruleset short names
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -155,23 +156,10 @@ class Redact(ServiceBase):
                 [API Documentation](https://pangea.cloud/docs/api/redact#redact).
 
         Examples:
-            response = redact.redact(RedactInput(text="Jenny Jenny... 415-867-5309"))
-
-            \"\"\"
-            response contains:
-            {
-                "request_id": "prq_2aonw26nr3n5hjovo476252npmekem4u",
-                "request_time": "2022-07-06T23:34:46.666Z",
-                "response_time": "2022-07-06T23:34:46.679Z",
-                "status": "success",
-                "result": {
-                    "redacted_text": "\"<PERSON>... <PHONE_NUMBER>\""
-                },
-                "summary": "Success. Redacted 2 item(s) from text"
-            }
-            \"\"\"
+            response = redact.redact(text="Jenny Jenny... 415-867-5309")
         """
-        input = RedactRequest(text=text, debug=debug)
+
+        input = RedactRequest(text=text, debug=debug, rules=rules)
         response = self.request.post("redact", data=input.dict(exclude_none=True))
         response.result = RedactResult(**response.raw_result)
         return response
@@ -182,6 +170,7 @@ class Redact(ServiceBase):
         jsonp: Optional[List[str]] = None,
         format: Optional[RedactFormat] = None,
         debug: Optional[bool] = None,
+        rules: Optional[List[str]] = None,
     ) -> PangeaResponse[StructuredResult]:
         """
         Redact structured
@@ -189,9 +178,11 @@ class Redact(ServiceBase):
         Redacts text within a structured object.
 
         Args:
-            obj (obj): The object that should be redacted
-            redact_format (RedactFormat, optional): The format of the passed data
+            data (dict, str): The object that should be redacted
+            jsonp (list[str]): SON path(s) used to identify the specific JSON fields to redact in the structured data
+            format (RedactFormat, optional): The format of the passed data
             debug (bool, optional): Return debug output
+            rules (list[str], optional): An array of redact ruleset short names
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -202,26 +193,10 @@ class Redact(ServiceBase):
                 [API Documentation](https://pangea.cloud/docs/api/redact#redact-structured)
 
         Examples:
-            response = redact.redact_structured(obj={ "number": "415-867-5309", "ip": "1.1.1.1" }, redact_format="json")
-
-            \"\"\"
-            response contains:
-            {
-                "request_id": "prq_m2z76gv4mcsbysy4ssu4covympg3sske",
-                "request_time": "2022-07-06T23:35:41.524Z",
-                "response_time": "2022-07-06T23:35:41.543Z",
-                "status": "success",
-                "result": {
-                    "redacted_data": {
-                    "number": "<PHONE_NUMBER>",
-                    "ip": "<IP_ADDRESS>"
-                    }
-                },
-                "summary": "Success. Redacted 2 item(s) from data"
-            }
-            \"\"\"
+            response = redact.redact_structured(data={"number": "415-867-5309", "ip": "1.1.1.1"}, redact_format="json")
         """
-        input = StructuredRequest(data=data, jsonp=jsonp, format=format, debug=debug)
+
+        input = StructuredRequest(data=data, jsonp=jsonp, format=format, debug=debug, rules=rules)
         response = self.request.post("redact_structured", data=input.dict(exclude_none=True))
         response.result = StructuredResult(**response.raw_result)
         return response
