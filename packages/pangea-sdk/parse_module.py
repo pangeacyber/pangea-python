@@ -107,6 +107,7 @@ def _parse_function(function, function_cache=set()) -> t.Optional[dict]:
         "examples": [ex.description for ex in parsed_doc.examples],
         "parameters": [],
         "returns": None,
+        "deprecated": getattr(function, "_deprecated", False),
         # "raises": parsed_fn.raises
     }
 
