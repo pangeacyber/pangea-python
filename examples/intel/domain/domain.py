@@ -14,7 +14,7 @@ def main():
     print(f"Checking domain...")
 
     try:
-        response = intel.lookup(domain="737updatesboeing.com", provider="domaintools", verbose=True, raw=True)
+        response = intel.reputation(domain="737updatesboeing.com", provider="domaintools", verbose=True, raw=True)
         print(f"Response: {response.result}")
     except pe.PangeaAPIException as e:
         print(f"Request Error: {e.response.summary}")

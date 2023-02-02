@@ -238,14 +238,13 @@ class Audit(ServiceBase):
             order_by (SearchOrderBy, optional): Name of column to sort the results by.
             last (str, optional): Optional[str] = None,
             start (datetime, optional): An RFC-3339 formatted timestamp, or relative time adjustment from the current time.
-            end: (datetime, optional): An RFC-3339 formatted timestamp, or relative time adjustment from the current time.
+            end (datetime, optional): An RFC-3339 formatted timestamp, or relative time adjustment from the current time.
             limit (int, optional): Optional[int] = None,
             max_results (int, optional): Maximum number of results to return.
             search_restriction (dict, optional): A list of keys to restrict the search results to. Useful for partitioning data available to the query string.
             verbose (bool, optional): If true, response include root and membership and consistency proofs.
             verify_consistency (bool): True to verify logs consistency
             verify_events (bool): True to verify hash events and signatures
-            verify_signatures (bool, optional):
 
         Raises:
             AuditException: If an audit based api exception happens
