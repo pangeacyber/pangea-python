@@ -140,12 +140,13 @@ class Redact(ServiceBase):
         """
         Redact
 
-        Redacts the content of a single text string.
+        Redacts the content of a single text string
 
         Args:
             text (str): The text to be redacted
-            debug (bool, optional): Return debug output
-            rules (list[str], optional): An array of redact ruleset short names
+            debug (bool, optional): Setting this value to true will provide a detailed analysis of 
+                the redacted data and the rules that caused redaction
+            rules (list[str], optional): An array of redact rule short names
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -175,14 +176,17 @@ class Redact(ServiceBase):
         """
         Redact structured
 
-        Redacts text within a structured object.
+        Redacts text within a structured object
 
         Args:
-            data (dict, str): The object that should be redacted
-            jsonp (list[str]): SON path(s) used to identify the specific JSON fields to redact in the structured data
-            format (RedactFormat, optional): The format of the passed data
-            debug (bool, optional): Return debug output
-            rules (list[str], optional): An array of redact ruleset short names
+            data (dict, str): Structured data to redact
+            jsonp (list[str]): JSON path(s) used to identify the specific JSON fields to redact in 
+                the structured data. Note: If jsonp parameter is used, the data parameter must be 
+                in JSON format.
+            format (RedactFormat, optional): The format of the passed data. Default: "json"
+            debug (bool, optional): Setting this value to true will provide a detailed analysis of 
+                the redacted data and the rules that caused redaction
+            rules (list[str], optional): An array of redact rule short names
 
         Raises:
             PangeaAPIException: If an API Error happens
