@@ -1,18 +1,26 @@
 import unittest
 
 import pangea.exceptions as pexc
-from pangea.services.audit.signing import Signer
+from pangea.services.audit.signing import Signer, Verifier
 
 
 class TestSigner(unittest.TestCase):
     def test_signer(self):
+        msg = "signthismessage"
         signer = Signer("./tests/testdata/privkey")
-        pubkey = signer.getPublicKeyBytes()
-        signature = signer.signMessage("signthismessage")
-        self.assertNotEqual(pubkey, {})
+        pubkey = signer.getPublicKeyPEM()
+        signature = signer.signMessage(msg)
+        self.assertEqual(
+            pubkey,
+            "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAlvOyDMpK2DQ16NI8G41yINl01wMHzINBahtDPoh4+mE=\n-----END PUBLIC KEY-----\n",
+        )
         self.assertEqual(
             signature, "yRqaZIAXEuhaCN6n7inzQVdn0Zdh947cDbF1sS+YPQGl6vyEGesBdkuDjbo1HlcHk11BgJYXu30ZfrNx/BY1Bg=="
         )
+
+        v = Verifier()
+        verification = v.verifyMessage(signature, msg, pubkey)
+        self.assertTrue(verification)
 
     def test_signer_no_file(self):
         with self.assertRaises(Exception):

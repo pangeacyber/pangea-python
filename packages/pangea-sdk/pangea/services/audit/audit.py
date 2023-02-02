@@ -1,5 +1,6 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+import json
 from typing import Dict, Optional
 
 from pangea.response import PangeaResponse
@@ -7,13 +8,13 @@ from pangea.services.audit.exceptions import AuditException, EventCorruption
 from pangea.services.audit.models import *
 from pangea.services.audit.signing import Signer, Verifier
 from pangea.services.audit.util import (
-    b64encode_ascii,
     canonicalize_event,
     decode_consistency_proof,
     decode_hash,
     decode_membership_proof,
     format_datetime,
     get_arweave_published_roots,
+    get_public_key,
     verify_consistency_proof,
     verify_envelope_hash,
     verify_membership_proof,
@@ -79,6 +80,7 @@ class Audit(ServiceBase):
         signature_key_id: Optional[str] = None,
         signature_key_version: Optional[str] = None,
         verbose: Optional[bool] = None,
+        public_key_info: dict[str, str] = {},
     ) -> PangeaResponse[LogResult]:
         """
         Log an entry
@@ -97,6 +99,7 @@ class Audit(ServiceBase):
             verify (bool, optional): True to verify logs consistency after response.
             signing (bool, optional): True to sign event.
             verbose (bool, optional): True to get a more verbose response.
+            public_key_info (dict[str, str]): Extra information about public_key to be send with log in public_key field
         Raises:
             AuditException: If an audit based api exception happens
             PangeaAPIException: If an API Error happens
@@ -143,8 +146,8 @@ class Audit(ServiceBase):
             else:
                 raise AuditException("Error: failure signing message")
 
-            public_bytes = self.signer.getPublicKeyBytes()
-            input.public_key = b64encode_ascii(public_bytes)
+            # Add public key value to public key info and serialize
+            self.set_public_key(input, self.signer, public_key_info)
 
         elif signing == EventSigning.VAULT:
             input.sign = True
@@ -518,12 +521,6 @@ class Audit(ServiceBase):
 
         return verify_consistency_proof(curr_root_hash, prev_root_hash, proof)
 
-    def has_valid_public_key(self, key: Optional[str]) -> bool:
-        if key and not key.startswith("-----"):
-            return True
-
-        return False
-
     def verify_signature(self, audit_envelope: EventEnvelope) -> EventVerification:
         """
         Verify signature
@@ -532,21 +529,28 @@ class Audit(ServiceBase):
             audit_envelope (EventEnvelope): Object to verify
 
         Returns:
-          EventVerification: PASS if success or NONE in case that there is not enough information to verify it
+          EventVerification: PASS if success, FAIL if fail or NONE in case that there is not enough information to verify it
 
-        Raise:
-          EventCorruption: If signature verification fails
         """
-        if audit_envelope and audit_envelope.signature and self.has_valid_public_key(audit_envelope.public_key):
+        public_key = get_public_key(audit_envelope.public_key)
+
+        if audit_envelope and audit_envelope.signature and public_key:
             v = Verifier()
-            if v.verifyMessage(
-                audit_envelope.signature, canonicalize_event(audit_envelope.event), audit_envelope.public_key
-            ):
-                return EventVerification.PASS
+            verification = v.verifyMessage(
+                audit_envelope.signature, canonicalize_event(audit_envelope.event), public_key
+            )
+            if verification is not None:
+                return EventVerification.PASS if verification else EventVerification.FAIL
             else:
-                return EventVerification.FAIL
+                return EventVerification.NONE
         else:
             return EventVerification.NONE
+
+    def set_public_key(self, input: LogRequest, signer: Signer, public_key_info: dict[str, str]):
+        public_key_info["key"] = signer.getPublicKeyPEM()
+        input.public_key = json.dumps(
+            public_key_info, ensure_ascii=False, allow_nan=False, separators=(",", ":"), sort_keys=True
+        )
 
     def root(self, tree_size: Optional[int] = None) -> PangeaResponse[RootResult]:
         """

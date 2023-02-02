@@ -14,7 +14,7 @@ from pangea.services.audit.models import (
     SearchOrderBy,
     SearchOutput,
 )
-from pangea.tools_util import TestEnvironment, get_test_domain, get_test_token
+from pangea.tools_util import TestEnvironment, get_test_domain, get_test_token, get_vault_signature_test_token
 
 ACTOR = "python-sdk"
 MSG_NO_SIGNED = "test-message"
@@ -24,20 +24,23 @@ MSG_SIGNED_VAULT = "sign-test-vault"
 STATUS_NO_SIGNED = "no-signed"
 STATUS_SIGNED = "signed"
 
-TEST_ENVIRONMENT = TestEnvironment.LIVE
+TEST_ENVIRONMENT = TestEnvironment.DEVELOP
 
 
 class TestAudit(unittest.TestCase):
     def setUp(self):
         self.token = get_test_token(TEST_ENVIRONMENT)
+        self.vaultToken = get_vault_signature_test_token(TEST_ENVIRONMENT)
+
         domain = get_test_domain(TEST_ENVIRONMENT)
         self.config = PangeaConfig(domain=domain)
         self.audit = Audit(self.token, config=self.config)
-        self.auditSigner = Audit(
+        self.auditLocalSign = Audit(
             self.token,
             config=self.config,
             private_key_file="./tests/testdata/privkey",
         )
+        self.auditVaultSign = Audit(self.vaultToken, config=self.config)
 
     def test_log_no_verbose(self):
         response: PangeaResponse[LogResult] = self.audit.log(
@@ -108,7 +111,7 @@ class TestAudit(unittest.TestCase):
         self.assertEqual(response.result.signature_verification, EventVerification.NONE)
 
     def test_log_sign_local_and_verify(self):
-        response = self.auditSigner.log(
+        response = self.auditLocalSign.log(
             message=MSG_SIGNED_LOCAL,
             actor=ACTOR,
             action="Action",
@@ -128,7 +131,33 @@ class TestAudit(unittest.TestCase):
         self.assertEqual(response.result.consistency_verification, EventVerification.NONE)
         self.assertEqual(response.result.membership_verification, EventVerification.PASS)
         self.assertEqual(response.result.signature_verification, EventVerification.PASS)
-        self.assertEqual(response.result.envelope.public_key, "lvOyDMpK2DQ16NI8G41yINl01wMHzINBahtDPoh4+mE=")
+        self.assertEqual(
+            response.result.envelope.public_key,
+            r'{"key":"-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAlvOyDMpK2DQ16NI8G41yINl01wMHzINBahtDPoh4+mE=\n-----END PUBLIC KEY-----\n"}',
+        )
+
+    def test_log_sign_vault_and_verify(self):
+        response = self.auditVaultSign.log(
+            message=MSG_SIGNED_VAULT,
+            actor=ACTOR,
+            action="Action",
+            source="Source",
+            status=STATUS_SIGNED,
+            target="Target",
+            new="New",
+            old="Old",
+            verify=True,
+        )
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+
+        self.assertIsNotNone(response.result.envelope)
+        self.assertIsNone(response.result.consistency_proof)
+        self.assertIsNotNone(response.result.membership_proof)
+        self.assertIsNotNone(response.result.envelope.public_key)
+        self.assertIsNotNone(response.result.envelope.signature)
+        self.assertEqual(response.result.consistency_verification, EventVerification.NONE)
+        self.assertEqual(response.result.membership_verification, EventVerification.PASS)
+        self.assertEqual(response.result.signature_verification, EventVerification.PASS)
 
     def test_log_sign_vault_and_verify(self):
         response = self.audit.log(
@@ -160,7 +189,7 @@ class TestAudit(unittest.TestCase):
         new = {"customtag3": "mycustommsg3", "ct4": "cm4"}
         old = {"customtag5": "mycustommsg5", "ct6": "cm6"}
 
-        response = self.auditSigner.log(
+        response = self.auditLocalSign.log(
             message=MSG_JSON,
             actor=ACTOR,
             action="Action",
@@ -170,6 +199,32 @@ class TestAudit(unittest.TestCase):
             new=new,
             old=old,
             signing=EventSigning.LOCAL,
+            verify=True,
+        )
+
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertIsNotNone(response.result.envelope)
+        self.assertIsInstance(response.result.envelope.event.new, dict)
+        self.assertIsInstance(response.result.envelope.event.old, dict)
+        self.assertIsNotNone(response.result.envelope)
+        self.assertIsNone(response.result.consistency_proof)
+        self.assertIsNotNone(response.result.membership_proof)
+        self.assertEqual(response.result.membership_verification, EventVerification.PASS)
+        self.assertEqual(response.result.signature_verification, EventVerification.PASS)
+
+    def test_log_json_sign_vault_and_verify(self):
+        new = {"customtag3": "mycustommsg3", "ct4": "cm4"}
+        old = {"customtag5": "mycustommsg5", "ct6": "cm6"}
+
+        response = self.auditVaultSign.log(
+            message=MSG_JSON,
+            actor=ACTOR,
+            action="Action",
+            source="Source",
+            status=STATUS_NO_SIGNED,
+            target="Target",
+            new=new,
+            old=old,
             verify=True,
         )
 
@@ -259,7 +314,7 @@ class TestAudit(unittest.TestCase):
         limit = 2
         max_result = 3
         end = datetime.datetime.now()
-        start = end - datetime.timedelta(days=1)
+        start = end - datetime.timedelta(days=10)
         response_search = self.audit.search(
             query="message:",
             order=SearchOrder.DESC,
