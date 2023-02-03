@@ -61,7 +61,7 @@ event = {
     "message": "despicable act prevented",
 }
 
-response = audit.log(event)
+response = audit.log(**event)
 
 print(response.result)
 ```
