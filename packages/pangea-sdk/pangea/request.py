@@ -23,9 +23,7 @@ class PangeaRequest(object):
     be set in PangeaConfig.
     """
 
-    def __init__(
-        self, config: PangeaConfig, token: str, version: str, service: str, logger: Optional[logging.Logger] = None
-    ):
+    def __init__(self, config: PangeaConfig, token: str, version: str, service: str, logger: logging.Logger):
         self.config = config
         self.token = token
         self.version = version
@@ -90,8 +88,7 @@ class PangeaRequest(object):
         url = self._url(endpoint)
         data_send = json.dumps(data)
 
-        if self.logger:
-            self.logger.debug({"service": self.service, "action": "post", "url": url, "data": data_send})
+        self.logger.debug(json.dumps({"service": self.service, "action": "post", "url": url, "data": data}))
 
         requests_response = self.session.post(url, headers=self._headers(), data=data_send)
 
@@ -122,8 +119,7 @@ class PangeaRequest(object):
         """
         url = self._url(f"{endpoint}/{path}")
 
-        if self.logger:
-            self.logger.debug({"service": self.service, "action": "get", "url": url})
+        self.logger.debug(json.dupms({"service": self.service, "action": "get", "url": url}))
 
         requests_response = self.session.get(url, headers=self._headers())
         pangea_response = PangeaResponse(requests_response)
@@ -186,10 +182,11 @@ class PangeaRequest(object):
         else:
             response.result = None
 
-        if self.logger:
-            self.logger.error(
+        self.logger.error(
+            json.dumps(
                 {"service": self.service, "action": "api_error", "summary": summary, "result": response.raw_result}
             )
+        )
 
         if status == ResponseStatus.VALIDATION_ERR.value:
             raise exceptions.ValidationException(summary, response)
