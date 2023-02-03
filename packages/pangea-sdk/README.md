@@ -33,6 +33,7 @@ poetry add pangea-sdk
 
 ```
 import os
+import pangea.exceptions as pe
 from pangea.config import PangeaConfig
 from pangea.services import Audit
 
@@ -50,26 +51,34 @@ audit = Audit(token, config=config)
 
 # Create test data
 # All input fields are listed, only `message` is required
-event = {
-    "action": "reboot",
-    "actor": "villan",
-    "target": "world",
-    "status": "error",
-    "source": "test",
-    "old" : "on",
-    "new" : "restart",
-    "message": "despicable act prevented",
-}
+print(f"Logging...")
+try:
+    # Create test data
+    # All input fields are listed, only `message` is required
+    log_response = audit.log(
+        message="despicable act prevented",
+        action="reboot",
+        actor="villan",
+        target="world",
+        status="error",
+        source="some device",
+        verbose=True
+    )
+    print(f"Response: {log_response.result}")
+except pe.PangeaAPIException as e:
+    # Catch exception in case something fails
+    print(f"Request Error: {e.response.summary}")
+    for err in e.errors:
+        print(f"\t{err.detail} \n")
 
-response = audit.log(**event)
-
-print(response.result)
 ```
 
 ### Secure Audit Service - Search Data
 
 ```
+# This is a search example to be used on repo readme file
 import os
+import pangea.exceptions as pe
 from pangea.config import PangeaConfig
 from pangea.services import Audit
 
@@ -77,32 +86,37 @@ from pangea.services import Audit
 domain = os.getenv("PANGEA_DOMAIN")
 
 # Read your access token from an env variable
-token = os.getenv("PANGEA_TOKEN")
+token = os.getenv("PANGEA_AUDIT_TOKEN")
 
-# Create a Config object contain the Audit Config ID
+# Create a Config object contain the Audit Config
 config = PangeaConfig(domain=domain)
 
 # Initialize an Audit instance using the config object
 audit = Audit(token, config=config)
 
-# Search for 'message' containing 'reboot'
-# filtered on 'source=test', with 5 results per-page
-response = audit.search(
-        query="message:prevented",
-        limit=5
-    )
+print(f"Searching...")
+try:
+    # Search for 'message' containing 'prevented'
+    # filtered on 'source=test', with 5 results per-page
+    response = audit.search(
+            query="message:prevented",
+            limit=5
+        )
+except pe.PangeaAPIException as e:
+    # Catch exception in case something fails and print error
+    print(f"Request Error: {e.response.summary}")
+    for err in e.errors:
+        print(f"\t{err.detail} \n")
+    exit()
 
-if response.success:
-    print("Search Request ID:", response.request_id, "\n")
+print("Search Request ID:", response.request_id, "\n")
 
-    print(
-        f"Found {response.result.count} event(s)",
-    )
-    for row in response.result.events:
-        print(f"{row.envelope.received_at}\taction: {row.envelope.event.actor}\taction: {row.envelope.event.action}\ttarget: {row.envelope.event.target}\tstatus: {row.envelope.event.status}\tmessage: {row.envelope.event.message}")
+print(
+    f"Found {response.result.count} event(s)",
+)
+for row in response.result.events:
+    print(f"{row.envelope.received_at}\t| actor: {row.envelope.event.actor}\t| action: {row.envelope.event.action}\t| target: {row.envelope.event.target}\t| status: {row.envelope.event.status}\t| message: {row.envelope.event.message}")
 
-else:
-    print("Search Failed:", response.code, response.status)
 ```
 
 ### Secure Audit Service - Integrity Tools
@@ -130,7 +144,6 @@ It accepts multiple file formats:
 ```
 curl -H "Authorization: Bearer ${PANGEA_TOKEN}" -X POST -H 'Content-Type: application/json'  --data '{"verbose": true}' https://audit.aws.us.pangea.cloud/v1/search
 ```
-
 
 
 #### Bulk Download Audit Data
