@@ -53,12 +53,14 @@ class Audit(ServiceBase):
         token,
         config=None,
         private_key_file: str = "",
+        public_key_info: dict[str, str] = {},
     ):
         super().__init__(token, config)
 
         self.pub_roots: Dict[int, Root] = {}
         self.buffer_data: Optional[str] = None
         self.signer: Optional[Signer] = Signer(private_key_file) if private_key_file else None
+        self.public_key_info = public_key_info
 
         # In case of Arweave failure, ask the server for the roots
         self.allow_server_roots = True
@@ -80,7 +82,6 @@ class Audit(ServiceBase):
         signature_key_id: Optional[str] = None,
         signature_key_version: Optional[str] = None,
         verbose: Optional[bool] = None,
-        public_key_info: dict[str, str] = {},
     ) -> PangeaResponse[LogResult]:
         """
         Log an entry
@@ -99,7 +100,6 @@ class Audit(ServiceBase):
             verify (bool, optional): True to verify logs consistency after response.
             signing (bool, optional): True to sign event.
             verbose (bool, optional): True to get a more verbose response.
-            public_key_info (dict[str, str]): Extra information about public_key to be send with log in public_key field
         Raises:
             AuditException: If an audit based api exception happens
             PangeaAPIException: If an API Error happens
@@ -147,7 +147,7 @@ class Audit(ServiceBase):
                 raise AuditException("Error: failure signing message")
 
             # Add public key value to public key info and serialize
-            self.set_public_key(input, self.signer, public_key_info)
+            self.set_public_key(input, self.signer, self.public_key_info)
 
         elif signing == EventSigning.VAULT:
             input.sign = True
