@@ -17,7 +17,6 @@ from pangea.services.vault.models.asymmetric import (
 )
 from pangea.services.vault.models.common import (
     AsymmetricAlgorithm,
-    AsymmetricPurpose,
     DeleteRequest,
     DeleteResult,
     EncodedPrivateKey,
@@ -26,6 +25,7 @@ from pangea.services.vault.models.common import (
     GetRequest,
     GetResult,
     ItemType,
+    KeyPurpose,
     KeyRotateRequest,
     KeyRotateResult,
     ListRequest,
@@ -242,7 +242,7 @@ class Vault(ServiceBase):
     def asymmetric_generate(
         self,
         algorithm: Optional[SymmetricAlgorithm] = None,
-        purpose: Optional[AsymmetricPurpose] = None,
+        purpose: Optional[KeyPurpose] = None,
         managed: Optional[bool] = None,
         store: Optional[bool] = None,
         name: Optional[str] = None,
@@ -280,7 +280,7 @@ class Vault(ServiceBase):
         algorithm: AsymmetricAlgorithm,
         public_key: EncodedPublicKey,
         private_key: EncodedPrivateKey,
-        purpose: Optional[AsymmetricPurpose] = None,
+        purpose: Optional[KeyPurpose] = None,
         name: Optional[str] = None,
         folder: Optional[str] = None,
         metadata: Optional[Metadata] = None,

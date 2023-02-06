@@ -18,7 +18,7 @@ EncodedPrivateKey = NewType("EncodedPrivateKey", str)
 EncodedSymmetricKey = NewType("EncodedSymmetricKey", str)
 
 
-class AsymmetricPurpose(str, enum.Enum):
+class KeyPurpose(str, enum.Enum):
     SIGNING = "signing"
     ENCRYPTION = "encryption"
 
@@ -58,7 +58,6 @@ class ItemType(str, enum.Enum):
     ASYMMETRIC_KEY = "asymmetric_key"
     SYMMETRIC_KEY = "symmetric_key"
     SECRET = "secret"
-    MASTER_KEY = "master_key"
 
     def __str__(self):
         return str(self.value)
@@ -172,7 +171,7 @@ class GetResult(CommonGetResult):
     public_key: Optional[EncodedPublicKey] = None
     private_key: Optional[EncodedPrivateKey] = None
     algorithm: Optional[AsymmetricAlgorithm | SymmetricAlgorithm] = None
-    purpose: Optional[AsymmetricPurpose] = None
+    purpose: Optional[KeyPurpose] = None
     key: Optional[EncodedSymmetricKey]
     managed: Optional[bool] = None
     secret: Optional[str] = None

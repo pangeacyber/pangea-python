@@ -8,7 +8,7 @@ from typing import Dict, List, Optional
 import pangea.exceptions as pexc
 from pangea import PangeaConfig
 from pangea.response import PangeaResponse
-from pangea.services.vault.models.asymmetric import AsymmetricAlgorithm, AsymmetricGenerateResult, AsymmetricPurpose
+from pangea.services.vault.models.asymmetric import AsymmetricAlgorithm, AsymmetricGenerateResult, KeyPurpose
 from pangea.services.vault.models.symmetric import SymmetricAlgorithm, SymmetricGenerateResult
 from pangea.services.vault.vault import Vault
 from pangea.tools import TestEnvironment, get_test_domain, get_test_token
@@ -299,7 +299,7 @@ class TestVault(unittest.TestCase):
         for parameters in self.key_param_comb:
             try:
                 response = self.vault.asymmetric_generate(
-                    algorithm=AsymmetricAlgorithm.Ed25519, purpose=AsymmetricPurpose.SIGNING, **parameters
+                    algorithm=AsymmetricAlgorithm.Ed25519, purpose=KeyPurpose.SIGNING, **parameters
                 )
                 logger.debug(f"\nAsymmetric parameters: {parameters}")
                 logger.debug(f"Success result: {response.result}")
@@ -329,7 +329,7 @@ class TestVault(unittest.TestCase):
         for parameters in self.key_param_comb:
             try:
                 response = self.vault.asymmetric_generate(
-                    algorithm=AsymmetricAlgorithm.Ed25519, purpose=AsymmetricPurpose.ENCRYPTION, **parameters
+                    algorithm=AsymmetricAlgorithm.Ed25519, purpose=KeyPurpose.ENCRYPTION, **parameters
                 )
                 logger.debug(f"\nAsymmetric parameters: {parameters}")
                 logger.debug(f"Success result: {response.result}")
@@ -354,7 +354,7 @@ class TestVault(unittest.TestCase):
     def test_ed25519_signing_life_cycle(self):
         # Create
         create_resp = self.vault.asymmetric_generate(
-            algorithm=AsymmetricAlgorithm.Ed25519, purpose=AsymmetricPurpose.SIGNING, managed=True, store=True
+            algorithm=AsymmetricAlgorithm.Ed25519, purpose=KeyPurpose.SIGNING, managed=True, store=True
         )
         id = create_resp.result.id
         self.assertIsNotNone(id)
@@ -365,7 +365,7 @@ class TestVault(unittest.TestCase):
     def test_ed25519_encrypting_life_cycle(self):
         # Create
         create_resp = self.vault.asymmetric_generate(
-            algorithm=AsymmetricAlgorithm.Ed25519, purpose=AsymmetricPurpose.ENCRYPTION, managed=True, store=True
+            algorithm=AsymmetricAlgorithm.Ed25519, purpose=KeyPurpose.ENCRYPTION, managed=True, store=True
         )
         id = create_resp.result.id
         self.assertIsNotNone(id)
@@ -383,7 +383,7 @@ class TestVault(unittest.TestCase):
     def test_ed25519_create_store_signing_life_cycle(self):
         # Create
         create_resp = self.vault.asymmetric_generate(
-            algorithm=AsymmetricAlgorithm.Ed25519, purpose=AsymmetricPurpose.SIGNING, managed=False, store=False
+            algorithm=AsymmetricAlgorithm.Ed25519, purpose=KeyPurpose.SIGNING, managed=False, store=False
         )
 
         pub_key = create_resp.result.public_key
@@ -394,7 +394,7 @@ class TestVault(unittest.TestCase):
 
         store_resp = self.vault.asymmetric_store(
             algorithm=AsymmetricAlgorithm.Ed25519,
-            purpose=AsymmetricPurpose.SIGNING,
+            purpose=KeyPurpose.SIGNING,
             public_key=pub_key,
             private_key=priv_key,
             managed=False,
@@ -411,7 +411,7 @@ class TestVault(unittest.TestCase):
     def test_ed25519_create_store_encrypting_life_cycle(self):
         # Create
         create_resp = self.vault.asymmetric_generate(
-            algorithm=AsymmetricAlgorithm.Ed25519, purpose=AsymmetricPurpose.ENCRYPTION, managed=False, store=False
+            algorithm=AsymmetricAlgorithm.Ed25519, purpose=KeyPurpose.ENCRYPTION, managed=False, store=False
         )
         pub_key = create_resp.result.public_key
         priv_key = create_resp.result.private_key
@@ -421,7 +421,7 @@ class TestVault(unittest.TestCase):
 
         store_resp = self.vault.asymmetric_store(
             algorithm=AsymmetricAlgorithm.Ed25519,
-            purpose=AsymmetricPurpose.ENCRYPTION,
+            purpose=KeyPurpose.ENCRYPTION,
             public_key=create_resp.result.public_key,
             private_key=create_resp.result.private_key,
             managed=False,

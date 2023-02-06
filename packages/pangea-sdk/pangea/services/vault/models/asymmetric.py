@@ -5,32 +5,32 @@ from typing import Optional
 from pangea.response import APIRequestModel, PangeaResponseResult
 from pangea.services.vault.models.common import (
     AsymmetricAlgorithm,
-    AsymmetricPurpose,
     CommonGenerateRequest,
     CommonGenerateResult,
     CommonStoreRequest,
     CommonStoreResult,
     EncodedPrivateKey,
     EncodedPublicKey,
+    KeyPurpose,
 )
 
 
 class AsymmetricGenerateRequest(CommonGenerateRequest):
     algorithm: Optional[AsymmetricAlgorithm] = None
-    purpose: Optional[AsymmetricPurpose] = None
+    purpose: Optional[KeyPurpose] = None
 
 
 class AsymmetricGenerateResult(CommonGenerateResult):
-    algorithm: AsymmetricAlgorithm
+    algorithm: str
     public_key: EncodedPublicKey
     private_key: Optional[EncodedPrivateKey] = None
 
 
 class AsymmetricStoreRequest(CommonStoreRequest):
-    algorithm: str
+    algorithm: AsymmetricAlgorithm
     public_key: EncodedPublicKey
     private_key: EncodedPrivateKey
-    purpose: Optional[AsymmetricPurpose] = None
+    purpose: Optional[KeyPurpose] = None
 
 
 class AsymmetricStoreResult(CommonStoreResult):
@@ -62,5 +62,5 @@ class VerifyRequest(APIRequestModel):
 class VerifyResult(PangeaResponseResult):
     id: str
     version: int
-    algorithm: AsymmetricAlgorithm
+    algorithm: str
     valid_signature: bool
