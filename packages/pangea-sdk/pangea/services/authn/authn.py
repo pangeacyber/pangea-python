@@ -45,6 +45,7 @@ class AuthN(ServiceBase):
         super().__init__(token, config)
         self.user = AuthN.User(token, config)
         self.password = AuthN.Password(token, config)
+        self.flow = AuthN.Flow(token, config)
 
     # https://dev.pangea.cloud/docs/api/authn/#complete-a-login # FIXME: Update url once in prod
     def userinfo(self, code: str) -> PangeaResponse[m.UserinfoResult]:
@@ -87,6 +88,7 @@ class AuthN(ServiceBase):
             super().__init__(token, config)
             self.profile = AuthN.User.Profile(token, config)
             self.invites = AuthN.User.Invites(token, config)
+            self.mfa = AuthN.User.MFA(token, config)
 
         #   - path: authn::/v1/user/create
         # https://dev.pangea.cloud/docs/api/authn#create-user   # FIXME: Update url once in prod
@@ -196,7 +198,7 @@ class AuthN(ServiceBase):
             self, id_provider: m.IDProvider, email: str, authenticator: str
         ) -> PangeaResponse[m.UserVerifyResult]:
             input = m.UserVerifyRequest(id_provider=id_provider, email=email, authenticator=authenticator)
-            response = self.request.post("user/login", data=input.dict(exclude_none=True))
+            response = self.request.post("user/verify", data=input.dict(exclude_none=True))
             if response.raw_result is not None:
                 response.result = m.UserVerifyResult(**response.raw_result)
             return response
@@ -285,7 +287,7 @@ class AuthN(ServiceBase):
                 email: Optional[str] = None,
                 require_mfa: Optional[bool] = None,
                 mfa_value: Optional[str] = None,
-                mfa_provider: Optional[str] = None,
+                mfa_provider: Optional[m.MFAProvider] = None,
             ) -> PangeaResponse[m.UserProfileUpdateResult]:
                 input = m.UserProfileUpdateRequest(
                     identity=identity,
@@ -338,6 +340,9 @@ class AuthN(ServiceBase):
             config=None,
         ):
             super().__init__(token, config)
+            self.enroll = AuthN.Flow.Enroll(token, config)
+            self.signup = AuthN.Flow.Signup(token, config)
+            self.verify = AuthN.Flow.Verify(token, config)
 
         #   - path: authn::/v1/flow/complete
         # https://dev.pangea.cloud/docs/api/authn#complete-a-login-or-signup-flow
@@ -369,6 +374,7 @@ class AuthN(ServiceBase):
                 config=None,
             ):
                 super().__init__(token, config)
+                self.mfa = AuthN.Flow.Enroll.MFA(token, config)
 
             class MFA(ServiceBase):
                 service_name: str = SERVICE_NAME
@@ -386,7 +392,7 @@ class AuthN(ServiceBase):
                 def complete(
                     self, flow_id: str, code: str, cancel: Optional[bool] = None
                 ) -> PangeaResponse[m.FlowEnrollMFAcompleteResult]:
-                    input = m.FlowEnrollMFACompleteRequest()
+                    input = m.FlowEnrollMFACompleteRequest(flow_id=flow_id, code=code, cancel=cancel)
                     response = self.request.post("flow/enroll/mfa/comple", data=input.dict(exclude_none=True))
                     if response.raw_result is not None:
                         response.result = m.FlowEnrollMFAcompleteResult(**response.raw_result)
@@ -446,6 +452,7 @@ class AuthN(ServiceBase):
                 config=None,
             ):
                 super().__init__(token, config)
+                self.mfa = AuthN.Flow.Verify.MFA(token, config)
 
             #   - path: authn::/v1/flow/verify/captcha
             # https://dev.pangea.cloud/docs/api/authn#verify-a-captcha-during-a-signup-or-signin-flow
@@ -497,7 +504,7 @@ class AuthN(ServiceBase):
                 #   - path: authn::/v1/flow/verify/mfa/complete
                 # https://dev.pangea.cloud/docs/api/authn#complete-mfa-verification
                 def complete(self, flow_id: str, code: str) -> PangeaResponse[m.FlowVerifyMFACompleteResult]:
-                    input = m.FlowVerifyMFACompleteRequest()
+                    input = m.FlowVerifyMFACompleteRequest(flow_id=flow_id, code=code)
                     response = self.request.post("flow/verify/mfa/complete", data=input.dict(exclude_none=True))
                     if response.raw_result is not None:
                         response.result = m.FlowVerifyMFACompleteResult(**response.raw_result)

@@ -99,18 +99,6 @@ class UserInviteRequest(APIRequestModel):
     require_mfa: Optional[bool] = None
 
 
-class UserInviteResult(PangeaResponseResult):
-    id: str
-    inviter: str
-    invite_org: str
-    email: str
-    callback: str
-    state: str
-    require_mfa: bool
-    created_at: str
-    expire: str
-
-
 class UserInvite(APIResponseModel):
     id: str
     inviter: str
@@ -121,6 +109,10 @@ class UserInvite(APIResponseModel):
     require_mfa: bool
     created_at: str
     expire: str
+
+
+class UserInviteResult(PangeaResponseResult, UserInvite):
+    pass
 
 
 class UserInviteListResult(PangeaResponseResult):
