@@ -24,6 +24,8 @@ from pangea.services.vault.models.common import (
     EncodedSymmetricKey,
     GetRequest,
     GetResult,
+    ItemOrder,
+    ItemOrderBy,
     ItemType,
     KeyPurpose,
     KeyRotateRequest,
@@ -131,8 +133,8 @@ class Vault(ServiceBase):
         self,
         filter: Optional[Dict[str, str]] = None,
         last: Optional[str] = None,
-        order: Optional[str] = None,
-        order_by: Optional[str] = None,
+        order: Optional[ItemOrder] = None,
+        order_by: Optional[ItemOrderBy] = None,
         size: Optional[int] = None,
     ) -> PangeaResponse[ListResult]:
         input = ListRequest(filter=filter, last=last, order=order, order_by=order_by, size=size)
@@ -182,7 +184,6 @@ class Vault(ServiceBase):
         expiration: Optional[datetime.datetime] = None,
     ) -> PangeaResponse[SecretStoreResult]:
         input = SecretStoreRequest(
-            type=ItemType.SECRET,
             secret=secret,
             name=name,
             folder=folder,
@@ -215,7 +216,6 @@ class Vault(ServiceBase):
         tags: Optional[Tags] = None,
         auto_rotate: Optional[bool] = None,
         rotation_policy: Optional[str] = None,
-        retain_previous_version: Optional[bool] = None,
         store: Optional[bool] = None,
         expiration: Optional[datetime.datetime] = None,
         managed: Optional[bool] = None,
@@ -231,7 +231,6 @@ class Vault(ServiceBase):
             tags=tags,
             auto_rotate=auto_rotate,
             rotation_policy=rotation_policy,
-            retain_previous_version=retain_previous_version,
             expiration=expiration,
         )
         response = self.request.post("key/generate", data=input.json(exclude_none=True))
@@ -251,7 +250,6 @@ class Vault(ServiceBase):
         tags: Optional[Tags] = None,
         auto_rotate: Optional[bool] = None,
         rotation_policy: Optional[str] = None,
-        retain_previous_version: Optional[bool] = None,
         expiration: Optional[datetime.datetime] = None,
     ) -> PangeaResponse[AsymmetricGenerateResult]:
         input = AsymmetricGenerateRequest(
@@ -266,7 +264,6 @@ class Vault(ServiceBase):
             tags=tags,
             auto_rotate=auto_rotate,
             rotation_policy=rotation_policy,
-            retain_previous_version=retain_previous_version,
             expiration=expiration,
         )
         response = self.request.post("key/generate", data=input.json(exclude_none=True))
@@ -288,7 +285,6 @@ class Vault(ServiceBase):
         managed: Optional[bool] = None,
         rotation_policy: Optional[str] = None,
         auto_rotate: Optional[bool] = None,
-        retain_previous_version: Optional[bool] = None,
         expiration: Optional[datetime.datetime] = None,
     ) -> PangeaResponse[AsymmetricStoreResult]:
         input = AsymmetricStoreRequest(
@@ -304,7 +300,6 @@ class Vault(ServiceBase):
             managed=managed,
             rotation_policy=rotation_policy,
             auto_rotate=auto_rotate,
-            retain_previous_version=retain_previous_version,
             expiration=expiration,
         )
         response = self.request.post("key/store", data=input.json(exclude_none=True))
@@ -323,7 +318,6 @@ class Vault(ServiceBase):
         managed: Optional[bool] = None,
         rotation_policy: Optional[str] = None,
         auto_rotate: Optional[bool] = None,
-        retain_previous_version: Optional[bool] = None,
         expiration: Optional[datetime.datetime] = None,
     ) -> PangeaResponse[SymmetricStoreResult]:
         input = SymmetricStoreRequest(
@@ -337,7 +331,6 @@ class Vault(ServiceBase):
             managed=managed,
             rotation_policy=rotation_policy,
             auto_rotate=auto_rotate,
-            retain_previous_version=retain_previous_version,
             expiration=expiration,
         )
         response = self.request.post("key/store", data=input.json(exclude_none=True))
@@ -368,7 +361,7 @@ class Vault(ServiceBase):
         return response
 
     def decrypt(self, id: str, cipher_text: str, version: Optional[int] = None) -> PangeaResponse[DecryptResult]:
-        input = DecryptRequest(id=id, cipher_text=cipher_text, version=version, allow_revoked=allow_revoked)
+        input = DecryptRequest(id=id, cipher_text=cipher_text, version=version)
         response = self.request.post("key/decrypt", data=input.json(exclude_none=True))
         if response.raw_result is not None:
             response.result = DecryptResult(**response.raw_result)

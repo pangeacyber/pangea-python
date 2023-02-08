@@ -69,7 +69,7 @@ class ResponseStatus(str, enum.Enum):
     IP_NOT_FOUND = "IPNotFound"
     BAD_OFFSET = "BadOffset"
     FORBIDDEN_VAULT_OPERATION = "ForbiddenVaultOperation"
-    ITEM_NOT_FOUND = "ItemNotFound"
+    VAULT_ITEM_NOT_FOUND = "VaultItemNotFound"
 
 
 class ResponseHeader(APIResponseModel):

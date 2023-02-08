@@ -210,6 +210,6 @@ class PangeaRequest(object):
             raise exceptions.BadOffsetException(summary, response)
         elif status == ResponseStatus.FORBIDDEN_VAULT_OPERATION.value:
             raise exceptions.ForbiddenVaultOperation(summary, response)
-        elif status == ResponseStatus.ITEM_NOT_FOUND.value:
+        elif status == ResponseStatus.VAULT_ITEM_NOT_FOUND.value:
             raise exceptions.ItemNotFound(summary, response)
         raise exceptions.PangeaAPIException(f"{status}: {summary}", response)

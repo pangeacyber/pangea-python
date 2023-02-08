@@ -9,12 +9,15 @@ from pangea.services.vault.models.common import (
     CommonStoreRequest,
     CommonStoreResult,
     EncodedSymmetricKey,
+    ItemType,
     KeyPurpose,
     SymmetricAlgorithm,
 )
 
 
 class SymmetricStoreRequest(CommonStoreRequest):
+    type: ItemType
+    managed: Optional[bool] = None
     key: EncodedSymmetricKey
     algorithm: SymmetricAlgorithm
     purpose: Optional[KeyPurpose] = None
@@ -55,6 +58,6 @@ class DecryptRequest(APIRequestModel):
 
 class DecryptResult(PangeaResponseResult):
     id: str
-    version: Optional[int] = None
+    version: int
     algorithm: str
     plain_text: str

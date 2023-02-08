@@ -11,6 +11,7 @@ from pangea.services.vault.models.common import (
     CommonStoreResult,
     EncodedPrivateKey,
     EncodedPublicKey,
+    ItemType,
     KeyPurpose,
 )
 
@@ -27,6 +28,8 @@ class AsymmetricGenerateResult(CommonGenerateResult):
 
 
 class AsymmetricStoreRequest(CommonStoreRequest):
+    managed: Optional[bool] = None
+    type: ItemType
     algorithm: AsymmetricAlgorithm
     public_key: EncodedPublicKey
     private_key: EncodedPrivateKey
@@ -48,7 +51,7 @@ class SignResult(PangeaResponseResult):
     id: str
     version: int
     signature: str
-    algorithm: AsymmetricAlgorithm
+    algorithm: str
     public_key: Optional[EncodedPublicKey] = None
 
 

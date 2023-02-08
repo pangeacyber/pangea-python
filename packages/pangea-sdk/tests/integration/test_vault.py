@@ -69,7 +69,9 @@ class TestVault(unittest.TestCase):
         self.common_param_comb = combine_lists(self.common_param_comb, self.store_values, "store")
         self.common_param_comb = combine_dict(self.common_param_comb, self.auto_rotate_values)
         self.common_param_comb = combine_lists(self.common_param_comb, self.expiration_values, "expiration")
-        self.common_param_comb = combine_lists(
+
+        # this params will be used just for secret
+        self.secret_param_comb = combine_lists(
             self.common_param_comb, self.retain_previous_version_values, "retain_previous_version"
         )
 
@@ -176,8 +178,7 @@ class TestVault(unittest.TestCase):
         self.assertNotEqual(data_b64, decrypt_bad.result.plain_text)
 
         # Decrypt wrong id
-        # FIXME: This should be ItemNotFound, fix once implemented
-        with self.assertRaises(pexc.PangeaAPIException):
+        with self.assertRaises(pexc.ItemNotFound):
             self.vault.decrypt("thisisnotandid", cipher_v2, 2)
 
         # Revoke key
@@ -235,13 +236,11 @@ class TestVault(unittest.TestCase):
         self.assertTrue(verify_default_resp.result.valid_signature)
 
         # Verify not existing version
-        # FIXME: This should be ItemNotFound. Update once fixed in backend
-        with self.assertRaises(pexc.PangeaAPIException):
+        with self.assertRaises(pexc.ItemNotFound):
             self.vault.verify(id, data, signature_v2, 10)
 
         # Verify wrong id
-        # FIXME: This should be ItemNotFound. Update once fixed in backend
-        with self.assertRaises(pexc.PangeaAPIException):
+        with self.assertRaises(pexc.ItemNotFound):
             self.vault.verify("thisisnotandid", data, signature_v2, 2)
 
         # Verify wrong signature

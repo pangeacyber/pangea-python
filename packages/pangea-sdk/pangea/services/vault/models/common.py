@@ -32,6 +32,9 @@ class KeyPurpose(str, enum.Enum):
 class AsymmetricAlgorithm(str, enum.Enum):
     Ed25519 = "ed25519"
     RSA = "rsa"
+    ES256 = "es256"
+    ES384 = "es384"
+    ES512 = "es512"
 
     def __str__(self):
         return str(self.value)
@@ -42,6 +45,9 @@ class AsymmetricAlgorithm(str, enum.Enum):
 
 class SymmetricAlgorithm(str, enum.Enum):
     AES = "aes"
+    HS256 = "hs256"
+    HS384 = "hs384"
+    HS512 = "hs512"
 
     def __str__(self):
         return str(self.value)
@@ -52,6 +58,38 @@ class SymmetricAlgorithm(str, enum.Enum):
 
 Metadata = NewType("Metadata", Dict[str, str])
 Tags = NewType("Tags", List[str])
+
+
+class ItemOrder(str, enum.Enum):
+    ASC = "asc"
+    DESC = "desc"
+
+    def __str__(self):
+        return str(self.value)
+
+    def __repr__(self):
+        return str(self.value)
+
+
+class ItemOrderBy(str, enum.Enum):
+    TYPE = "type"
+    CREATED_AT = "created_at"
+    REVOKED_AT = "revoked_at"
+    IDENTITY = "identity"
+    MANAGED = "managed"
+    PURPOSE = "purpose"
+    EXPIRATION = "expiration"
+    LAST_ROTATED = "last_rotated"
+    NEXT_ROTATION = "next_rotation"
+    NAME = "name"
+    FOLDER = "folder"
+    VERSION = "version"
+
+    def __str__(self):
+        return str(self.value)
+
+    def __repr__(self):
+        return str(self.value)
 
 
 class ItemType(str, enum.Enum):
@@ -67,16 +105,13 @@ class ItemType(str, enum.Enum):
 
 
 class CommonStoreRequest(APIRequestModel):
-    type: ItemType
     name: Optional[str] = None
     folder: Optional[str] = None
     metadata: Optional[Metadata] = None
     tags: Optional[Tags] = None
     auto_rotate: Optional[bool] = None
     rotation_policy: Optional[str] = None
-    retain_previous_version: Optional[bool] = None
     expiration: Optional[datetime.datetime] = None
-    managed: Optional[bool] = None
 
 
 class CommonStoreResult(PangeaResponseResult):
@@ -93,7 +128,6 @@ class CommonGenerateRequest(APIRequestModel):
     tags: Optional[Tags] = None
     auto_rotate: Optional[bool] = None
     rotation_policy: Optional[str] = None
-    retain_previous_version: Optional[bool] = None
     store: Optional[bool] = None
     expiration: Optional[datetime.datetime] = None
     managed: Optional[bool] = None
@@ -112,48 +146,43 @@ class GetRequest(APIRequestModel):
 
 
 class CommonGetResult(PangeaResponseResult):
-    id: str
     type: str
+    id: str
     version: int
     name: Optional[str] = None
     folder: Optional[str] = None
     metadata: Optional[Metadata] = None
     tags: Optional[Tags] = None
-    rotation_policy: Optional[str] = None
     auto_rotate: Optional[bool] = None
+    rotation_policy: Optional[str] = None
     last_rotated: Optional[str] = None  # TODO: should be time
     next_rotation: Optional[str] = None  # TODO: should be time
-    retain_previous_version: Optional[bool] = None
     expiration: Optional[str] = None  # TODO: should be time
     created_at: Optional[str] = None  # TODO: should be time
     revoked_at: Optional[str] = None  # TODO: should be time
+    retain_previous_version: Optional[bool] = None
 
 
 class ListItemData(APIRequestModel):
-    type: str
-    name: Optional[str] = None
-    folder: Optional[str] = None
     id: str
-    created_at: str  # TODO: should be time
-    revoked_at: Optional[str] = None  # TODO: should be time
-    tags: Optional[Tags] = None
-    metadata: Optional[Metadata] = None
-    managed: Optional[bool] = None
+    type: str
+    managed: bool
+    last_rotated: Optional[str] = None  # TODO: should be time
     next_rotation: Optional[str] = None  # TODO: should be time
     expiration: Optional[str] = None  # TODO: should be time
     rotation_policy: Optional[str] = None
     identity: str
     version: int
-
-
-class ListFolderData(APIRequestModel):
-    type: str
     name: Optional[str] = None
     folder: Optional[str] = None
+    metadata: Optional[Metadata] = None
+    tags: Optional[Tags] = None
+    created_at: str  # TODO: should be time
+    revoked_at: Optional[str] = None  # TODO: should be time
 
 
 class ListResult(PangeaResponseResult):
-    items: List[ListItemData | ListFolderData] = []
+    items: List[ListItemData] = []
     count: int
     last: Optional[str]
 
@@ -161,20 +190,20 @@ class ListResult(PangeaResponseResult):
 class ListRequest(APIRequestModel):
     filter: Optional[Dict[str, str]] = None
     restrictions: Optional[Dict[str, List[str]]] = None
-    last: Optional[str] = None
     size: Optional[int] = None
-    order: Optional[str] = None
-    order_by: Optional[str] = None
+    order: Optional[ItemOrder] = None
+    order_by: Optional[ItemOrderBy] = None
+    last: Optional[str] = None
 
 
 class GetResult(CommonGetResult):
     public_key: Optional[EncodedPublicKey] = None
     private_key: Optional[EncodedPrivateKey] = None
+    secret: Optional[str] = None
+    key: Optional[EncodedSymmetricKey]
     algorithm: Optional[AsymmetricAlgorithm | SymmetricAlgorithm] = None
     purpose: Optional[KeyPurpose] = None
-    key: Optional[EncodedSymmetricKey]
     managed: Optional[bool] = None
-    secret: Optional[str] = None
 
 
 class CommonRotateRequest(APIRequestModel):
@@ -224,8 +253,8 @@ class UpdateRequest(APIRequestModel):
     tags: Optional[Tags] = None
     auto_rotate: Optional[bool] = None
     rotation_policy: Optional[str] = None
-    expiration: Optional[datetime.datetime] = None
     retain_previous_version: Optional[bool] = None
+    expiration: Optional[datetime.datetime] = None
 
 
 class UpdateResult(APIRequestModel):
