@@ -175,7 +175,7 @@ class UserProfileGetResult(PangeaResponseResult):
     mfa_providers: List[str]
     require_mfa: bool
     verified: bool
-    last_login_at: str
+    last_login_at: Optional[str] = None
     disabled: Optional[bool] = None
 
 
@@ -196,7 +196,7 @@ class UserProfileUpdateResult(PangeaResponseResult):
     mfa_providers: List[str]
     require_mfa: bool
     verified: bool
-    last_login_at: str
+    last_login_at: Optional[str] = None
     disabled: Optional[bool] = None
 
 
@@ -218,7 +218,7 @@ class UserUpdateResult(PangeaResponseResult):
     require_mfa: bool
     verified: bool
     disabled: bool
-    last_login_at: str
+    last_login_at: Optional[str] = None
 
 
 class UserinfoResult(PangeaResponseResult):
