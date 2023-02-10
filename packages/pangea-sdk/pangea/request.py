@@ -4,7 +4,7 @@
 import json
 import logging
 import time
-from typing import Dict
+from typing import Dict, Union
 
 import pangea
 import requests
@@ -77,7 +77,7 @@ class PangeaRequest(object):
 
         return self._queued_retry_enabled
 
-    def post(self, endpoint: str = "", data: str | dict = {}) -> PangeaResponse:
+    def post(self, endpoint: str = "", data: Union(str, Dict) = {}) -> PangeaResponse:
         """Makes the POST call to a Pangea Service endpoint.
 
         If queued_support mode is enabled, progress checks will be made for
