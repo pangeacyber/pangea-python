@@ -58,6 +58,33 @@ class FlowType(enum.Enum):
         return self.value
 
 
+class ItemOrder(enum.Enum):
+    ASC = "asc"
+    DESC = "desc"
+
+    def __str__(self):
+        return self.value
+
+    def __repr__(self):
+        return self.value
+
+
+class SessionListOrderBy(enum.Enum):
+    ID = "id"
+    CREATED_AT = "created_at"
+    TYPE = "type"
+    IDENTITY = "identity"
+    EMAIL = "email"
+    EXPIRE = "expire"
+    ACTIVE_TOKEN_ID = "active_token_id"
+
+    def __str__(self):
+        return self.value
+
+    def __repr__(self):
+        return self.value
+
+
 # https://dev.pangea.cloud/docs/api/authn#create-user
 class UserCreateRequest(APIRequestModel):
     email: str
@@ -143,13 +170,13 @@ class UserListResult(PangeaResponseResult):
     users: List[User]
 
 
-class UserLoginRequest(APIRequestModel):
+class UserLoginPasswordRequest(APIRequestModel):
     email: str
-    secret: str
-    scopes: Optional[Scopes] = None
+    password: str
+    extra_profile: Optional[Profile] = None
 
 
-class UserLoginResult(PangeaResponseResult):
+class LoginToken(APIResponseModel):
     token: str
     id: str
     type: str
@@ -157,9 +184,31 @@ class UserLoginResult(PangeaResponseResult):
     expire: str
     identity: str
     email: str
-    scopes: Optional[Scopes] = None
     profile: Profile
     created_at: str
+
+
+# {'token': 'ptr_mjl7snb74cnxjtu7lypouafrayyydlfu',
+# 'id': 'pmt_557qjw27bokucj2ccxyqnbo2vxq6dci2',
+# 'type': 'session',
+# 'life': 172799,
+# 'expire': '2023-02-11T20:16:52.750157Z',
+# 'identity': 'pui_a5dhmqsmpayxcohb2intdidwttkxxza2',
+# 'email': 'andres.tournour+test2591827@pangea.cloud',
+# 'profile': {},
+# 'created_at': '2023-02-09T20:16:52.753810Z'}
+
+
+class UserLoginResult(PangeaResponseResult):
+    refresh_token: LoginToken
+    active_token: LoginToken
+
+
+class UserLoginSocialRequest(APIRequestModel):
+    provider: IDProvider
+    email: str
+    social_id: str
+    extra_profile: Optional[Profile] = None
 
 
 class UserProfileGetRequest(APIRequestModel):
@@ -221,7 +270,7 @@ class UserUpdateResult(PangeaResponseResult):
     last_login_at: Optional[str] = None
 
 
-class UserinfoResult(PangeaResponseResult):
+class ClientUserinfoResult(PangeaResponseResult):
     token: str
     id: str
     type: str
@@ -234,7 +283,7 @@ class UserinfoResult(PangeaResponseResult):
     created_at: str
 
 
-class UserinfoRequest(APIRequestModel):
+class ClientUserinfoRequest(APIRequestModel):
     code: str
 
 
@@ -516,3 +565,97 @@ class UserVerifyResult(PangeaResponseResult):
     verified: bool
     disabled: bool
     last_login_at: str
+
+
+class ClientSessionInvalidateRequest(APIRequestModel):
+    token: str
+    session_id: str
+
+
+class ClientSessionInvalidateResult(PangeaResponseResult):
+    pass
+
+
+class ClientSessionListRequest(APIRequestModel):
+    token: str
+    filter: Optional[dict[str, str]] = None
+    last: Optional[str] = None
+    order: Optional[ItemOrder] = None
+    order_by: Optional[SessionListOrderBy] = None
+    size: Optional[int] = None
+
+
+class SessionToken(APIResponseModel):
+    id: str
+    type: str
+    life: str
+    expire: str
+    email: str
+    scopes: Scopes
+    profile: Profile
+    created_at: str
+
+
+class SessionItem(APIResponseModel):
+    # FIXME: Review this and SessionToken
+    id: str
+    type: str
+    life: int
+    expire: str
+    identity: str
+    email: str
+    scopes: Scopes
+    profile: Profile
+    created_at: str
+    active_token: SessionToken
+    last: str
+
+
+class ClientSessionListResults(PangeaResponseResult):
+    sessions: List[SessionItem]
+
+
+class SessionListResults(PangeaResponseResult):
+    sessions: List[SessionItem]
+
+
+class ClientSessionLogoutRequest(APIRequestModel):
+    token: str
+
+
+class ClientSessionLogoutResult(PangeaResponseResult):
+    pass
+
+
+class ClientSessionRefreshRequest(APIRequestModel):
+    refresh_token: LoginToken
+    user_token: Optional[LoginToken] = None
+
+
+class ClientSessionRefreshResult(PangeaResponseResult):
+    refresh_token: LoginToken
+    active_token: LoginToken
+
+
+class SessionInvalidateRequest(APIRequestModel):
+    session_id: str
+
+
+class SessionInvalidateResult(PangeaResponseResult):
+    pass
+
+
+class SessionListRequest(APIRequestModel):
+    filter: Optional[dict[str, str]] = None
+    last: Optional[str] = None
+    order: Optional[ItemOrder] = None
+    order_by: Optional[SessionListOrderBy] = None
+    size: Optional[int] = None
+
+
+class SessionLogoutRequest(APIRequestModel):
+    user_id: str
+
+
+class SessionLogoutResult(PangeaResponseResult):
+    pass

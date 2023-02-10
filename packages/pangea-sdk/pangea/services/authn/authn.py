@@ -46,15 +46,147 @@ class AuthN(ServiceBase):
         self.user = AuthN.User(token, config)
         self.password = AuthN.Password(token, config)
         self.flow = AuthN.Flow(token, config)
+        self.client = AuthN.Client(token, config)
+        self.session = AuthN.Session(token, config)
 
-    # https://dev.pangea.cloud/docs/api/authn/#complete-a-login # FIXME: Update url once in prod
-    def userinfo(self, code: str) -> PangeaResponse[m.UserinfoResult]:
-        input = m.UserinfoRequest(code=code)
+    class Session(ServiceBase):
+        service_name: str = SERVICE_NAME
+        version: str = VERSION
 
-        response = self.request.post("userinfo", data=input.dict(exclude_none=True))
-        if response.raw_result is not None:
-            response.result = m.UserinfoResult(**response.raw_result)
-        return response
+        def __init__(
+            self,
+            token,
+            config=None,
+        ):
+            super().__init__(token, config)
+
+        # https://dev.pangea.cloud/docs/api/authn#invalidate-a-session-by-session-id
+        # - path: authn::/v1/session/invalidate
+        def invalidate(self, session_id: str) -> PangeaResponse[m.SessionInvalidateResult]:
+            input = m.SessionInvalidateRequest(session_id=session_id)
+            response = self.request.post("session/invalidate", data=input.dict(exclude_none=True))
+            if response.raw_result is not None:
+                response.result = m.SessionInvalidateResult(**response.raw_result)
+            return response
+
+        # https://dev.pangea.cloud/docs/api/authn#list-sessions
+        # - path: authn::/v1/session/list
+        def list(
+            self,
+            filter: Optional[dict[str, str]] = None,
+            last: Optional[str] = None,
+            order: Optional[m.ItemOrder] = None,
+            order_by: Optional[m.SessionListOrderBy] = None,
+            size: Optional[int] = None,
+        ) -> PangeaResponse[m.SessionListResults]:
+            input = m.SessionListRequest(filter=filter, last=last, order=order, order_by=order_by, size=size)
+            response = self.request.post("session/list", data=input.dict(exclude_none=True))
+            if response.raw_result is not None:
+                response.result = m.SessionListResults(**response.raw_result)
+            return response
+
+        # https://dev.pangea.cloud/docs/api/authn#invalidate-all-sessions-belonging-to-a-user
+        # - path: authn::/v1/session/logout
+        def logout(self, user_id: str) -> PangeaResponse[m.SessionLogoutResult]:
+            input = m.SessionLogoutRequest(user_id=user_id)
+            response = self.request.post("session/logout", data=input.dict(exclude_none=True))
+            if response.raw_result is not None:
+                response.result = m.SessionLogoutResult(**response.raw_result)
+            return response
+
+    class Client(ServiceBase):
+        service_name: str = SERVICE_NAME
+        version: str = VERSION
+
+        def __init__(
+            self,
+            token,
+            config=None,
+        ):
+            super().__init__(token, config)
+            self.session = AuthN.Client.Session(token, config)
+            self.token = AuthN.Client.Token(token, config)
+
+        def userinfo(self, code: str) -> PangeaResponse[m.ClientUserinfoResult]:
+            input = m.ClientUserinfoRequest(code=code)
+
+            response = self.request.post("client/userinfo", data=input.dict(exclude_none=True))
+            if response.raw_result is not None:
+                response.result = m.ClientUserinfoResult(**response.raw_result)
+            return response
+
+        class Session(ServiceBase):
+            service_name: str = SERVICE_NAME
+            version: str = VERSION
+
+            def __init__(
+                self,
+                token,
+                config=None,
+            ):
+                super().__init__(token, config)
+
+            # - path: authn::/v1/client/session/invalidate
+            # https://dev.pangea.cloud/docs/api/authn?focus=authn#invalidate-a-session-by-session-id-using-a-client-token
+            def invalidate(self, token: str, session_id: str) -> PangeaResponse[m.ClientSessionInvalidateResult]:
+                input = m.ClientSessionInvalidateRequest(token=token, session_id=session_id)
+                response = self.request.post("client/session/invalidate", data=input.dict(exclude_none=True))
+                if response.raw_result is not None:
+                    response.result = m.ClientSessionInvalidateResult(**response.raw_result)
+                return response
+
+            # https://dev.pangea.cloud/docs/api/authn#list-sessions-using-a-client-token
+            # - path: authn::/v1/client/session/list
+            def list(
+                self,
+                token: str,
+                filter: Optional[dict[str, str]] = None,
+                last: Optional[str] = None,
+                order: Optional[m.ItemOrder] = None,
+                order_by: Optional[m.SessionListOrderBy] = None,
+                size: Optional[int] = None,
+            ) -> PangeaResponse[m.ClientSessionListResults]:
+                input = m.ClientSessionInvalidateRequest(
+                    token=token, filter=filter, last=last, order=order, order_by=order_by, size=size
+                )
+                response = self.request.post("client/session/list", data=input.dict(exclude_none=True))
+                if response.raw_result is not None:
+                    response.result = m.ClientSessionListResults(**response.raw_result)
+                return response
+
+            # https://dev.pangea.cloud/docs/api/authn#log-out-the-current-users-session
+            # - path: authn::/v1/client/session/logout
+            def logout(self, token: str) -> PangeaResponse[m.ClientSessionLogoutResult]:
+                input = m.ClientSessionLogoutRequest(token=token)
+                response = self.request.post("client/session/logout", data=input.dict(exclude_none=True))
+                if response.raw_result is not None:
+                    response.result = m.ClientSessionLogoutResult(**response.raw_result)
+                return response
+
+            # https://dev.pangea.cloud/docs/api/authn#refresh-a-session-token
+            # - path: authn::/v1/client/session/refresh
+            def refresh(
+                self, refresh_token: str, user_token: Optional[str] = None
+            ) -> PangeaResponse[m.ClientSessionRefreshResult]:
+                input = m.ClientSessionRefreshRequest(refresh_token=refresh_token, user_token=user_token)
+                response = self.request.post("client/session/refresh", data=input.dict(exclude_none=True))
+                if response.raw_result is not None:
+                    response.result = m.ClientSessionRefreshResult(**response.raw_result)
+                return response
+
+        class Token(ServiceBase):
+            service_name: str = SERVICE_NAME
+            version: str = VERSION
+
+            def __init__(
+                self,
+                token,
+                config=None,
+            ):
+                super().__init__(token, config)
+
+            # TODO:
+            # - path: authn::/v1/client/token/check
 
     class Password(ServiceBase):
         service_name: str = SERVICE_NAME
@@ -68,7 +200,7 @@ class AuthN(ServiceBase):
             super().__init__(token, config)
 
         #   - path: authn::/v1/password/update
-        # https://dev.pangea.cloud/docs/api/authn#change-a-users-password   # FIXME: Update url once in prod
+        # https://dev.pangea.cloud/docs/api/authn#change-a-users-password
         def update(self, email: str, old_secret: str, new_secret: str) -> PangeaResponse[m.PasswordUpdateResult]:
             input = m.PasswordUpdateRequest(email=email, old_secret=old_secret, new_secret=new_secret)
             response = self.request.post("password/update", data=input.dict(exclude_none=True))
@@ -89,9 +221,10 @@ class AuthN(ServiceBase):
             self.profile = AuthN.User.Profile(token, config)
             self.invites = AuthN.User.Invites(token, config)
             self.mfa = AuthN.User.MFA(token, config)
+            self.login = AuthN.User.Login(token, config)
 
         #   - path: authn::/v1/user/create
-        # https://dev.pangea.cloud/docs/api/authn#create-user   # FIXME: Update url once in prod
+        # https://dev.pangea.cloud/docs/api/authn#create-user
         def create(
             self,
             email: str,
@@ -118,7 +251,7 @@ class AuthN(ServiceBase):
             return response
 
         #   - path: authn::/v1/user/delete
-        # https://dev.pangea.cloud/docs/api/authn#delete-a-user # FIXME: Update url once in prod
+        # https://dev.pangea.cloud/docs/api/authn#delete-a-user
         def delete(self, email: str) -> PangeaResponse[m.UserDeleteResult]:
             input = m.UserDeleteRequest(email=email)
             response = self.request.post("user/delete", data=input.dict(exclude_none=True))
@@ -126,7 +259,7 @@ class AuthN(ServiceBase):
                 response.result = m.UserDeleteResult(**response.raw_result)
             return response
 
-        # https://dev.pangea.cloud/docs/api/authn/#administration-user-update # FIXME: Update url once in prod
+        # https://dev.pangea.cloud/docs/api/authn/#administration-user-update
         def update(
             self,
             identity: Optional[str] = None,
@@ -149,7 +282,7 @@ class AuthN(ServiceBase):
             return response
 
         #   - path: authn::/v1/user/invite
-        # https://dev.pangea.cloud/docs/api/authn#invite-a-user # FIXME: Update url once in prod
+        # https://dev.pangea.cloud/docs/api/authn#invite-a-user
         def invite(
             self,
             inviter: str,
@@ -173,23 +306,12 @@ class AuthN(ServiceBase):
             return response
 
         #   - path: authn::/v1/user/list
-        # https://dev.pangea.cloud/docs/api/authn#list-users # FIXME: Update url once in prod
+        # https://dev.pangea.cloud/docs/api/authn#list-users
         def list(self, scopes: m.Scopes, glob_scopes: m.Scopes) -> PangeaResponse[m.UserListResult]:
             input = m.UserListRequest(scopes=scopes, glob_scopes=glob_scopes)
             response = self.request.post("user/list", data=input.dict(exclude_none=True))
             if response.raw_result is not None:
                 response.result = m.UserListResult(**response.raw_result)
-            return response
-
-        #   - path: authn::/v1/user/login
-        # https://dev.pangea.cloud/docs/api/authn#user-login # FIXME: Update url once in prod
-        def login(
-            self, email: str, secret: str, scopes: Optional[m.Scopes] = None
-        ) -> PangeaResponse[m.UserLoginResult]:
-            input = m.UserLoginRequest(email=email, secret=secret, scopes=scopes)
-            response = self.request.post("user/login", data=input.dict(exclude_none=True))
-            if response.raw_result is not None:
-                response.result = m.UserLoginResult(**response.raw_result)
             return response
 
         #   - path: authn::/v1/user/verify
@@ -202,6 +324,39 @@ class AuthN(ServiceBase):
             if response.raw_result is not None:
                 response.result = m.UserVerifyResult(**response.raw_result)
             return response
+
+        class Login(ServiceBase):
+            service_name: str = SERVICE_NAME
+            version: str = VERSION
+
+            def __init__(
+                self,
+                token,
+                config=None,
+            ):
+                super().__init__(token, config)
+
+            # https://dev.pangea.cloud/docs/api/authn#user-login-with-a-password
+            def password(
+                self, email: str, password: str, extra_profile: Optional[m.Profile] = None
+            ) -> PangeaResponse[m.UserLoginResult]:
+                input = m.UserLoginPasswordRequest(email=email, password=password, extra_profile=extra_profile)
+                response = self.request.post("user/login/password", data=input.dict(exclude_none=True))
+                if response.raw_result is not None:
+                    response.result = m.UserLoginResult(**response.raw_result)
+                return response
+
+            # https://dev.pangea.cloud/docs/api/authn#user-login-with-a-social-provider
+            def social(
+                self, provider: m.IDProvider, email: str, social_id: str, extra_profile: Optional[m.Profile] = None
+            ) -> PangeaResponse[m.UserLoginResult]:
+                input = m.UserLoginSocialRequest(
+                    provider=provider, email=email, social_id=social_id, extra_profile=extra_profile
+                )
+                response = self.request.post("user/login/social", data=input.dict(exclude_none=True))
+                if response.raw_result is not None:
+                    response.result = m.UserLoginResult(**response.raw_result)
+                return response
 
         class MFA(ServiceBase):
             service_name: str = SERVICE_NAME
@@ -268,7 +423,7 @@ class AuthN(ServiceBase):
                 super().__init__(token, config)
 
             #   - path: authn::/v1/user/profile/get
-            # https://dev.pangea.cloud/docs/api/authn#get-user # FIXME: Update url once in prod
+            # https://dev.pangea.cloud/docs/api/authn#get-user
             def get(
                 self, identity: Optional[str] = None, email: Optional[str] = None
             ) -> PangeaResponse[m.UserProfileGetResult]:
@@ -279,7 +434,7 @@ class AuthN(ServiceBase):
                 return response
 
             #   - path: authn::/v1/user/profile/update
-            # https://dev.pangea.cloud/docs/api/authn#update-user # FIXME: Update url once in prod
+            # https://dev.pangea.cloud/docs/api/authn#update-user
             def update(
                 self,
                 profile: m.Profile,
@@ -314,7 +469,7 @@ class AuthN(ServiceBase):
                 super().__init__(token, config)
 
             #   - path: authn::/v1/user/invite/list
-            # https://dev.pangea.cloud/docs/api/authn#list-invites # FIXME: Update url once in prod
+            # https://dev.pangea.cloud/docs/api/authn#list-invites
             def list(self) -> PangeaResponse[m.UserInviteListResult]:
                 response = self.request.post("user/invite/list", data={})
                 if response.raw_result is not None:
@@ -322,7 +477,7 @@ class AuthN(ServiceBase):
                 return response
 
             #   - path: authn::/v1/user/invite/delete
-            # https://dev.pangea.cloud/docs/api/authn#delete-an-invite # FIXME: Update url once in prod
+            # https://dev.pangea.cloud/docs/api/authn#delete-an-invite
             def delete(self, id: str) -> PangeaResponse[m.UserInviteDeleteResult]:
                 input = m.UserInviteDeleteRequest(id=id)
                 response = self.request.post("user/invite/delete", data=input.dict(exclude_none=True))

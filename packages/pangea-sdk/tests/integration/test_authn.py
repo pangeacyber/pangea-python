@@ -73,10 +73,11 @@ class TestAuthN(unittest.TestCase):
     def test_authn_a4_user_login(self):
         # This could (should) fail if test_authn_a1_user_create_with_password failed
         try:
-            response = self.authn.user.login(email=EMAIL_TEST, secret=PASSWORD_NEW)
+            response = self.authn.user.login.password(email=EMAIL_TEST, password=PASSWORD_NEW)
             self.assertEqual(response.status, "Success")
             self.assertIsNotNone(response.result)
-            self.assertEqual(USER_IDENTITY, response.result.identity)
+            self.assertIsNotNone(response.result.active_token)
+            self.assertIsNotNone(response.result.refresh_token)
         except pexc.PangeaAPIException as e:
             print_api_error(e)
             self.assertTrue(False)
