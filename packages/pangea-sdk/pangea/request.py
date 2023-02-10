@@ -77,7 +77,7 @@ class PangeaRequest(object):
 
         return self._queued_retry_enabled
 
-    def post(self, endpoint: str = "", data: Union(str, Dict) = {}) -> PangeaResponse:
+    def post(self, endpoint: str = "", data: Union[str, Dict] = {}) -> PangeaResponse:
         """Makes the POST call to a Pangea Service endpoint.
 
         If queued_support mode is enabled, progress checks will be made for
