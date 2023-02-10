@@ -2,7 +2,7 @@
 # Author: Pangea Cyber Corporation
 import datetime
 import enum
-from typing import Dict, List, NewType, Optional
+from typing import Dict, List, NewType, Optional, Union
 
 from pangea.response import APIRequestModel, PangeaResponseResult
 
@@ -201,7 +201,7 @@ class GetResult(CommonGetResult):
     private_key: Optional[EncodedPrivateKey] = None
     secret: Optional[str] = None
     key: Optional[EncodedSymmetricKey]
-    algorithm: Optional[AsymmetricAlgorithm | SymmetricAlgorithm] = None
+    algorithm: Optional[Union[AsymmetricAlgorithm, SymmetricAlgorithm]] = None
     purpose: Optional[KeyPurpose] = None
     managed: Optional[bool] = None
 
@@ -226,7 +226,7 @@ class KeyRotateResult(CommonRotateResult):
     public_key: Optional[EncodedPublicKey] = None
     private_key: Optional[EncodedPrivateKey] = None
     key: Optional[EncodedSymmetricKey] = None
-    algorithm: SymmetricAlgorithm | AsymmetricAlgorithm
+    algorithm: Union[SymmetricAlgorithm, AsymmetricAlgorithm]
 
 
 class RevokeRequest(APIRequestModel):

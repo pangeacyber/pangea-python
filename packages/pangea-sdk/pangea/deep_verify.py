@@ -161,7 +161,7 @@ def deep_verify(audit: Audit, file: io.TextIOWrapper) -> Errors:
     }
 
     events = file_events(root_hashes, file)
-    events_by_idx: list[Event] | t.Iterator[Event]
+    events_by_idx: t.Union[list[Event], t.Iterator[Event]]
     cold_indexes = SequenceFollower()
     for leaf_index, events_by_idx in groupby(events, lambda event: event.get("leaf_index")):
         events_by_idx = list(events_by_idx)

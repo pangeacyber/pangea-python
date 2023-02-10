@@ -3,7 +3,7 @@ import inspect
 import logging
 import random
 import unittest
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 import pangea.exceptions as pexc
 from pangea import PangeaConfig
@@ -79,7 +79,7 @@ class TestVault(unittest.TestCase):
         self.key_param_comb = combine_lists(self.common_param_comb, self.managed_values, "managed")
 
     def create_key_check_common_response(
-        self, response: PangeaResponse[SymmetricGenerateResult | AsymmetricGenerateResult], params: Dict[str, any]
+        self, response: PangeaResponse[Union[SymmetricGenerateResult, AsymmetricGenerateResult]], params: Dict[str, any]
     ):
         if ENABLE_ASSERT_RESPONSES is not True:
             return
