@@ -588,7 +588,7 @@ class ClientSessionListRequest(APIRequestModel):
 class SessionToken(APIResponseModel):
     id: str
     type: str
-    life: str
+    life: int
     expire: str
     email: str
     scopes: Scopes
@@ -628,8 +628,8 @@ class ClientSessionLogoutResult(PangeaResponseResult):
 
 
 class ClientSessionRefreshRequest(APIRequestModel):
-    refresh_token: LoginToken
-    user_token: Optional[LoginToken] = None
+    refresh_token: str
+    user_token: Optional[str] = None
 
 
 class ClientSessionRefreshResult(PangeaResponseResult):
