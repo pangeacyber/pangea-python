@@ -168,6 +168,12 @@ class SearchOrder(str, enum.Enum):
     ASC = "desc"
     DESC = "asc"
 
+    def __str__(self):
+        return str(self.value)
+
+    def __repr__(self):
+        return str(self.value)
+
 
 class SearchOrderBy(str, enum.Enum):
     ACTOR = "actor"
@@ -178,6 +184,12 @@ class SearchOrderBy(str, enum.Enum):
     STATUS = "status"
     TARGET = "target"
     TIMESTAMP = "timestamp"
+
+    def __str__(self):
+        return str(self.value)
+
+    def __repr__(self):
+        return str(self.value)
 
 
 class SearchRequest(APIRequestModel):

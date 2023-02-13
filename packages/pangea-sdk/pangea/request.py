@@ -4,6 +4,7 @@
 import json
 import logging
 import time
+from typing import Dict, Union
 
 import pangea
 import requests
@@ -76,7 +77,7 @@ class PangeaRequest(object):
 
         return self._queued_retry_enabled
 
-    def post(self, endpoint: str = "", data: dict = {}) -> PangeaResponse:
+    def post(self, endpoint: str = "", data: Union[str, Dict] = {}) -> PangeaResponse:
         """Makes the POST call to a Pangea Service endpoint.
 
         If queued_support mode is enabled, progress checks will be made for
@@ -92,9 +93,9 @@ class PangeaRequest(object):
                various properties to retrieve individual fields
         """
         url = self._url(endpoint)
+        data = data if type(data) == str else json.dumps(data)
 
-        requests_response = self.session.post(url, headers=self._headers(), data=json.dumps(data))
-
+        requests_response = self.session.post(url, headers=self._headers(), data=data)
         if self._queued_retry_enabled and requests_response.status_code == 202:
             response_json = requests_response.json()
             request_id = response_json.get("request_id", None)
@@ -207,4 +208,8 @@ class PangeaRequest(object):
             raise exceptions.IPNotFoundException(summary)
         elif status == ResponseStatus.BAD_OFFSET.value:
             raise exceptions.BadOffsetException(summary, response)
+        elif status == ResponseStatus.FORBIDDEN_VAULT_OPERATION.value:
+            raise exceptions.ForbiddenVaultOperation(summary, response)
+        elif status == ResponseStatus.VAULT_ITEM_NOT_FOUND.value:
+            raise exceptions.ItemNotFound(summary, response)
         raise exceptions.PangeaAPIException(f"{status}: {summary}", response)
