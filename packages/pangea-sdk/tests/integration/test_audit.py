@@ -46,6 +46,18 @@ class TestAudit(unittest.TestCase):
         self.assertIsNotNone(response.result.hash)
         self.assertIsNone(response.result.envelope)
 
+    def test_log_with_timestamp(self):
+        response: PangeaResponse[LogResult] = self.audit.log(
+            message=MSG_NO_SIGNED,
+            actor=ACTOR,
+            status=STATUS_NO_SIGNED,
+            timestamp=datetime.datetime.now(),
+            verbose=False,
+        )
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertIsNotNone(response.result.hash)
+        self.assertIsNone(response.result.envelope)
+
     def test_log_verbose_no_verify(self):
         response: PangeaResponse[LogResult] = self.audit.log(
             message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verify=False, verbose=True
