@@ -1,27 +1,26 @@
-import base64
 import os
 
 import pangea.exceptions as pe
 from pangea.config import PangeaConfig
 from pangea.services import Vault
 
-token = os.getenv("PANGEA_VAULT_TOKEN")
-domain = os.getenv("PANGEA_DOMAIN")
-config = PangeaConfig(domain=domain)
-vault = Vault(token, config=config)
-
 
 def main():
+    token = os.getenv("PANGEA_VAULT_TOKEN")
+    domain = os.getenv("PANGEA_DOMAIN")
+    config = PangeaConfig(domain=domain)
+    vault = Vault(token, config=config)
+
     try:
         secret_1 = "my first secret"
         secret_2 = "my second secret"
 
         # store a secret
-        create_response = vault.store_secret(name="very secret", secret=secret_1)
+        create_response = vault.secret_store(name="very secret", secret=secret_1)
         secret_id = create_response.result.id
 
         # rotate it
-        vault.rotate_secret(secret_id, secret_2)
+        vault.secret_rotate(secret_id, secret_2)
 
         # retrieve latest version
         retrieve_response = vault.get(secret_id)

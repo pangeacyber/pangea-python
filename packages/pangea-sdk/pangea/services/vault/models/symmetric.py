@@ -16,7 +16,6 @@ from pangea.services.vault.models.common import (
 
 
 class SymmetricStoreRequest(CommonStoreRequest):
-    type: ItemType
     managed: Optional[bool] = None
     key: EncodedSymmetricKey
     algorithm: SymmetricAlgorithm
