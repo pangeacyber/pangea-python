@@ -1,4 +1,5 @@
 import datetime
+import json
 import time
 import unittest
 
@@ -45,6 +46,18 @@ class TestAudit(unittest.TestCase):
     def test_log_no_verbose(self):
         response: PangeaResponse[LogResult] = self.audit.log(
             message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verbose=False
+        )
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertIsNotNone(response.result.hash)
+        self.assertIsNone(response.result.envelope)
+
+    def test_log_with_timestamp(self):
+        response: PangeaResponse[LogResult] = self.audit.log(
+            message=MSG_NO_SIGNED,
+            actor=ACTOR,
+            status=STATUS_NO_SIGNED,
+            timestamp=datetime.datetime.now(),
+            verbose=False,
         )
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertIsNotNone(response.result.hash)
@@ -160,7 +173,7 @@ class TestAudit(unittest.TestCase):
         self.assertEqual(response.result.signature_verification, EventVerification.PASS)
 
     def test_log_sign_vault_and_verify(self):
-        response = self.audit.log(
+        response = self.auditVaultSign.log(
             message=MSG_SIGNED_VAULT,
             actor=ACTOR,
             action="Action",
@@ -177,13 +190,15 @@ class TestAudit(unittest.TestCase):
         self.assertIsNotNone(response.result.envelope)
         self.assertIsNone(response.result.consistency_proof)
         self.assertIsNotNone(response.result.membership_proof)
-        self.assertIsNotNone(response.result.envelope.signature_key_id)
-        self.assertIsNotNone(response.result.envelope.signature_key_version)
         self.assertIsNotNone(response.result.envelope.public_key)
+        key: dict = json.loads(response.result.envelope.public_key)
+        self.assertIsNotNone(key.get("vault_key_id", None))
+        self.assertIsNotNone(key.get("vault_key_version", None))
+        self.assertIsNotNone(key.get("key", None))
         self.assertIsNotNone(response.result.envelope.signature)
         self.assertEqual(response.result.consistency_verification, EventVerification.NONE)
         self.assertEqual(response.result.membership_verification, EventVerification.PASS)
-        self.assertEqual(response.result.signature_verification, EventVerification.NONE)
+        self.assertEqual(response.result.signature_verification, EventVerification.PASS)
 
     def test_log_json_sign_local_and_verify(self):
         new = {"customtag3": "mycustommsg3", "ct4": "cm4"}
@@ -314,7 +329,7 @@ class TestAudit(unittest.TestCase):
         limit = 2
         max_result = 3
         end = datetime.datetime.now()
-        start = end - datetime.timedelta(days=10)
+        start = end - datetime.timedelta(days=30)
         response_search = self.audit.search(
             query="message:",
             order=SearchOrder.DESC,
