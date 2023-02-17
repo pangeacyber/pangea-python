@@ -264,7 +264,7 @@ class UpdateResult(APIRequestModel):
     id: str
 
 
-class JWTGetRequest(APIRequestModel):
+class JWKGetRequest(APIRequestModel):
     id: str
     version: Optional[str] = None
 
@@ -300,7 +300,7 @@ class JWKSet(PangeaResponseResult):
     keys: List[Union[JWKec, JWKrsa, JWK]]
 
 
-class JWTGetResult(PangeaResponseResult):
+class JWKGetResult(PangeaResponseResult):
     jwk: JWKSet
 
 

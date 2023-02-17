@@ -27,8 +27,8 @@ from pangea.services.vault.models.common import (
     ItemOrder,
     ItemOrderBy,
     ItemType,
-    JWTGetRequest,
-    JWTGetResult,
+    JWKGetRequest,
+    JWKGetResult,
     JWTSignRequest,
     JWTSignResult,
     JWTVerifyRequest,
@@ -215,7 +215,6 @@ class Vault(ServiceBase):
         tags: Optional[Tags] = None,
         rotation_policy: Optional[str] = None,
         auto_rotate: Optional[bool] = None,
-        retain_previous_version: Optional[bool] = None,
         expiration: Optional[datetime.datetime] = None,
     ) -> PangeaResponse[SecretStoreResult]:
         input = SecretStoreRequest(
@@ -227,7 +226,6 @@ class Vault(ServiceBase):
             tags=tags,
             rotation_policy=rotation_policy,
             auto_rotate=auto_rotate,
-            retain_previous_version=retain_previous_version,
             expiration=expiration,
         )
         response = self.request.post("secret/store", data=input.json(exclude_none=True))
@@ -236,7 +234,7 @@ class Vault(ServiceBase):
         return response
 
     # Rotate endpoint
-    def secret_rotate(self, id: str, secret: Optional[str] = None) -> PangeaResponse[SecretRotateResult]:
+    def secret_rotate(self, id: str, secret: str) -> PangeaResponse[SecretRotateResult]:
         input = SecretRotateRequest(id=id, secret=secret)
         response = self.request.post("secret/rotate", data=input.json(exclude_none=True))
         if response.raw_result is not None:
@@ -452,9 +450,9 @@ class Vault(ServiceBase):
         return response
 
     # Get endpoint
-    def jwt_get(self, id: str, version: Optional[str] = None) -> PangeaResponse[JWTGetResult]:
-        input = JWTGetRequest(id=id, version=version)
+    def jwk_get(self, id: str, version: Optional[str] = None) -> PangeaResponse[JWKGetResult]:
+        input = JWKGetRequest(id=id, version=version)
         response = self.request.post("get/jwk", data=input.json(exclude_none=True))
         if response.raw_result is not None:
-            response.result = JWTGetResult(**response.raw_result)
+            response.result = JWKGetResult(**response.raw_result)
         return response
