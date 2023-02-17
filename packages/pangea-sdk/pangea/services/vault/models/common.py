@@ -2,7 +2,7 @@
 # Author: Pangea Cyber Corporation
 import datetime
 import enum
-from typing import Dict, List, NewType, Optional, Union
+from typing import Any, Dict, List, NewType, Optional, Union
 
 from pangea.response import APIRequestModel, PangeaResponseResult
 
@@ -21,6 +21,7 @@ EncodedSymmetricKey = NewType("EncodedSymmetricKey", str)
 class KeyPurpose(str, enum.Enum):
     SIGNING = "signing"
     ENCRYPTION = "encryption"
+    JWT = "jwt"
 
     def __str__(self):
         return str(self.value)
@@ -96,6 +97,7 @@ class ItemType(str, enum.Enum):
     ASYMMETRIC_KEY = "asymmetric_key"
     SYMMETRIC_KEY = "symmetric_key"
     SECRET = "secret"
+    PANGEA_TOKEN = "pangea_token"
 
     def __str__(self):
         return str(self.value)
@@ -105,6 +107,7 @@ class ItemType(str, enum.Enum):
 
 
 class CommonStoreRequest(APIRequestModel):
+    type: ItemType
     name: Optional[str] = None
     folder: Optional[str] = None
     metadata: Optional[Metadata] = None
@@ -259,3 +262,60 @@ class UpdateRequest(APIRequestModel):
 
 class UpdateResult(APIRequestModel):
     id: str
+
+
+class JWKGetRequest(APIRequestModel):
+    id: str
+    version: Optional[str] = None
+
+
+class JWKHeader(PangeaResponseResult):
+    alg: str
+    kid: Optional[str] = None
+    kty: str
+    use: Optional[str] = None
+
+
+class JWK(JWKHeader):
+    # Generic JWK
+    pass
+
+
+class JWKec(JWKHeader):
+    # Eliptyc curve JWK
+    crv: str
+    d: Optional[str] = None
+    x: str
+    y: str
+
+
+class JWKrsa(JWKHeader):
+    # RSA JWK
+    n: str
+    e: str
+    d: Optional[str] = None
+
+
+class JWKSet(PangeaResponseResult):
+    keys: List[Union[JWKec, JWKrsa, JWK]]
+
+
+class JWKGetResult(PangeaResponseResult):
+    jwk: JWKSet
+
+
+class JWTVerifyRequest(APIRequestModel):
+    jws: str
+
+
+class JWTVerifyResult(PangeaResponseResult):
+    valid_signature: bool
+
+
+class JWTSignRequest(APIRequestModel):
+    id: str
+    payload: str
+
+
+class JWTSignResult(PangeaResponseResult):
+    jws: str

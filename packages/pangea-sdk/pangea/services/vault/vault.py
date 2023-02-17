@@ -27,6 +27,12 @@ from pangea.services.vault.models.common import (
     ItemOrder,
     ItemOrderBy,
     ItemType,
+    JWKGetRequest,
+    JWKGetResult,
+    JWTSignRequest,
+    JWTSignResult,
+    JWTVerifyRequest,
+    JWTVerifyResult,
     KeyPurpose,
     KeyRotateRequest,
     KeyRotateResult,
@@ -184,6 +190,7 @@ class Vault(ServiceBase):
         expiration: Optional[datetime.datetime] = None,
     ) -> PangeaResponse[SecretStoreResult]:
         input = SecretStoreRequest(
+            type=ItemType.SECRET,
             secret=secret,
             name=name,
             folder=folder,
@@ -199,9 +206,44 @@ class Vault(ServiceBase):
             response.result = SecretStoreResult(**response.raw_result)
         return response
 
+    def pangea_token_store(
+        self,
+        pangea_token: str,
+        name: Optional[str] = None,
+        folder: Optional[str] = None,
+        metadata: Optional[Metadata] = None,
+        tags: Optional[Tags] = None,
+        rotation_policy: Optional[str] = None,
+        auto_rotate: Optional[bool] = None,
+        expiration: Optional[datetime.datetime] = None,
+    ) -> PangeaResponse[SecretStoreResult]:
+        input = SecretStoreRequest(
+            type=ItemType.PANGEA_TOKEN,
+            secret=pangea_token,
+            name=name,
+            folder=folder,
+            metadata=metadata,
+            tags=tags,
+            rotation_policy=rotation_policy,
+            auto_rotate=auto_rotate,
+            expiration=expiration,
+        )
+        response = self.request.post("secret/store", data=input.json(exclude_none=True))
+        if response.raw_result is not None:
+            response.result = SecretStoreResult(**response.raw_result)
+        return response
+
     # Rotate endpoint
     def secret_rotate(self, id: str, secret: str) -> PangeaResponse[SecretRotateResult]:
         input = SecretRotateRequest(id=id, secret=secret)
+        response = self.request.post("secret/rotate", data=input.json(exclude_none=True))
+        if response.raw_result is not None:
+            response.result = SecretRotateResult(**response.raw_result)
+        return response
+
+    # Rotate endpoint
+    def pangea_token_rotate(self, id: str) -> PangeaResponse[SecretRotateResult]:
+        input = SecretRotateRequest(id=id)
         response = self.request.post("secret/rotate", data=input.json(exclude_none=True))
         if response.raw_result is not None:
             response.result = SecretRotateResult(**response.raw_result)
@@ -219,11 +261,13 @@ class Vault(ServiceBase):
         store: Optional[bool] = None,
         expiration: Optional[datetime.datetime] = None,
         managed: Optional[bool] = None,
+        purpose: Optional[KeyPurpose] = None,
     ) -> PangeaResponse[SymmetricGenerateResult]:
         input = SymmetricGenerateRequest(
             type=ItemType.SYMMETRIC_KEY,
             algorithm=algorithm,
             managed=managed,
+            purpose=purpose,
             store=store,
             name=name,
             folder=folder,
@@ -319,6 +363,7 @@ class Vault(ServiceBase):
         rotation_policy: Optional[str] = None,
         auto_rotate: Optional[bool] = None,
         expiration: Optional[datetime.datetime] = None,
+        purpose: Optional[KeyPurpose] = None,
     ) -> PangeaResponse[SymmetricStoreResult]:
         input = SymmetricStoreRequest(
             type=ItemType.SYMMETRIC_KEY,
@@ -332,6 +377,7 @@ class Vault(ServiceBase):
             rotation_policy=rotation_policy,
             auto_rotate=auto_rotate,
             expiration=expiration,
+            purpose=purpose,
         )
         response = self.request.post("key/store", data=input.json(exclude_none=True))
         if response.raw_result is not None:
@@ -387,4 +433,26 @@ class Vault(ServiceBase):
         response = self.request.post("key/verify", data=input.json(exclude_none=True))
         if response.raw_result is not None:
             response.result = VerifyResult(**response.raw_result)
+        return response
+
+    def jwt_verify(self, jws: str) -> PangeaResponse[JWTVerifyResult]:
+        input = JWTVerifyRequest(jws=jws)
+        response = self.request.post("key/verify/jwt", data=input.json(exclude_none=True))
+        if response.raw_result is not None:
+            response.result = JWTVerifyResult(**response.raw_result)
+        return response
+
+    def jwt_sign(self, id: str, payload: str) -> PangeaResponse[JWTSignResult]:
+        input = JWTSignRequest(id=id, payload=payload)
+        response = self.request.post("key/sign/jwt", data=input.json(exclude_none=True))
+        if response.raw_result is not None:
+            response.result = JWTSignResult(**response.raw_result)
+        return response
+
+    # Get endpoint
+    def jwk_get(self, id: str, version: Optional[str] = None) -> PangeaResponse[JWKGetResult]:
+        input = JWKGetRequest(id=id, version=version)
+        response = self.request.post("get/jwk", data=input.json(exclude_none=True))
+        if response.raw_result is not None:
+            response.result = JWKGetResult(**response.raw_result)
         return response

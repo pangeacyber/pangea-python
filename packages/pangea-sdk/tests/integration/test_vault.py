@@ -1,5 +1,6 @@
 import datetime
 import inspect
+import json
 import logging
 import random
 import unittest
@@ -10,7 +11,7 @@ from pangea import PangeaConfig
 from pangea.response import PangeaResponse
 from pangea.services.vault.models.asymmetric import AsymmetricAlgorithm, AsymmetricGenerateResult, KeyPurpose
 from pangea.services.vault.models.symmetric import SymmetricAlgorithm, SymmetricGenerateResult
-from pangea.services.vault.vault import Vault
+from pangea.services.vault.vault import ItemType, Vault
 from pangea.tools import TestEnvironment, get_test_domain, get_test_token
 from pangea.utils import setup_logger, str2str_b64
 
@@ -189,7 +190,7 @@ class TestVault(unittest.TestCase):
         decrypt1_revoked_resp = self.vault.decrypt(id, cipher_v1, 1)
         self.assertEqual(data_b64, decrypt1_revoked_resp.result.plain_text)
 
-    def signing_cycle(self, id):
+    def asymmetric_signing_cycle(self, id):
         data = "thisisamessagetosign"
         # Sign 1
         sign1_resp = self.vault.sign(id, data)
@@ -211,14 +212,7 @@ class TestVault(unittest.TestCase):
         self.assertIsNotNone(signature_v2)
 
         # Verify 1
-        try:
-            verify1_resp = self.vault.verify(id, data, signature_v1, 1)
-        except pexc.PangeaAPIException as e:
-            print(f"Response: {e.response}")
-            if e.errors:
-                print("Error details: ")
-                for ef in e.errors:
-                    print(f"\t {ef.detail}")
+        verify1_resp = self.vault.verify(id, data, signature_v1, 1)
         self.assertEqual(id, verify1_resp.result.id)
         self.assertEqual(1, verify1_resp.result.version)
         self.assertTrue(verify1_resp.result.valid_signature)
@@ -358,7 +352,12 @@ class TestVault(unittest.TestCase):
         id = create_resp.result.id
         self.assertIsNotNone(id)
         self.assertEqual(1, create_resp.result.version)
-        self.signing_cycle(id)
+
+        try:
+            self.asymmetric_signing_cycle(id)
+        except pexc.PangeaAPIException as e:
+            print(e)
+            self.assertTrue(False)
 
     @unittest.skip("asymmetric encryption not working yet")
     def test_ed25519_encrypting_life_cycle(self):
@@ -404,7 +403,12 @@ class TestVault(unittest.TestCase):
         self.assertEqual(pub_key, store_resp.result.public_key)
         self.assertEqual(priv_key, store_resp.result.private_key)
         self.assertEqual(1, store_resp.result.version)
-        self.signing_cycle(id)
+
+        try:
+            self.asymmetric_signing_cycle(id)
+        except pexc.PangeaAPIException as e:
+            print(e)
+            self.assertTrue(False)
 
     @unittest.skip("asymmetric encryption not working yet")
     def test_ed25519_create_store_encrypting_life_cycle(self):
@@ -455,18 +459,132 @@ class TestVault(unittest.TestCase):
         secret_v1 = create_resp.result.secret
         self.assertIsNotNone(id)
         self.assertEqual(1, create_resp.result.version)
+        self.assertEqual(ItemType.SECRET, create_resp.result.type)
 
         rotate_resp = self.vault.secret_rotate(id, "new hello world")
         secret_v2 = rotate_resp.result.secret
         self.assertEqual(id, rotate_resp.result.id)
         self.assertEqual(2, rotate_resp.result.version)
+        self.assertEqual(ItemType.SECRET, rotate_resp.result.type)
         self.assertNotEqual(secret_v1, secret_v2)
 
-        retrieve_resp = self.vault.get(id)
-        self.assertEqual(secret_v2, retrieve_resp.result.secret)
+        get_resp = self.vault.get(id)
+        self.assertEqual(secret_v2, get_resp.result.secret)
+        self.assertEqual(2, get_resp.result.version)
+        self.assertEqual(ItemType.SECRET, get_resp.result.type)
 
         revoke_resp = self.vault.revoke(id)
         self.assertEqual(id, revoke_resp.result.id)
 
         # This should fail because secret was revoked
-        self.assertRaises(pexc.PangeaAPIException, lambda: self.vault.get(id))
+        get_resp = self.vault.get(id)
+        self.assertEqual(id, get_resp.result.id)
+
+    def jwt_signing_cycle(self, id):
+        data = {"message": "message to sign", "data": "Some extra data"}
+        payload = json.dumps(data)
+
+        # Sign 1
+        sign1_resp = self.vault.jwt_sign(id, payload)
+        jws_v1 = sign1_resp.result.jws
+        self.assertIsNotNone(jws_v1)
+
+        # Rotate
+        rotate_resp = self.vault.key_rotate(id)
+        self.assertEqual(2, rotate_resp.result.version)
+        self.assertEqual(id, rotate_resp.result.id)
+
+        # Sign 2
+        sign2_resp = self.vault.jwt_sign(id, payload)
+        jws_v2 = sign2_resp.result.jws
+        self.assertIsNotNone(jws_v2)
+
+        # Verify 1
+        verify1_resp = self.vault.jwt_verify(jws_v1)
+        self.assertTrue(verify1_resp.result.valid_signature)
+
+        # Verify 2
+        verify2_resp = self.vault.jwt_verify(jws_v2)
+        self.assertTrue(verify2_resp.result.valid_signature)
+
+        # Get default
+        get_resp = self.vault.jwk_get(id)
+        self.assertEqual(1, len(get_resp.result.jwk.keys))
+
+        # Get version 1
+        get_resp = self.vault.jwk_get(id, 1)
+        self.assertEqual(1, len(get_resp.result.jwk.keys))
+
+        # Get all
+        get_resp = self.vault.jwk_get(id, "all")
+        self.assertEqual(2, len(get_resp.result.jwk.keys))
+
+        # Get version -1
+        get_resp = self.vault.jwk_get(id, "-1")
+        self.assertEqual(2, len(get_resp.result.jwk.keys))
+
+        # Revoke key
+        revoke_resp = self.vault.revoke(id)
+        self.assertEqual(id, revoke_resp.result.id)
+
+        # Verify after revoked.
+        verify1_revoked_resp = self.vault.jwt_verify(jws_v1)
+        self.assertTrue(verify1_revoked_resp.result.valid_signature)
+
+    def test_jwt_asym_es256_life_cycle(self):
+        # Create
+        algorithm = AsymmetricAlgorithm.ES256
+        purpose = KeyPurpose.JWT
+        create_resp = self.vault.asymmetric_generate(algorithm=algorithm, purpose=purpose, managed=False, store=False)
+
+        pub_key = create_resp.result.public_key
+        priv_key = create_resp.result.private_key
+        self.assertIsNone(create_resp.result.id)
+        self.assertIsNotNone(pub_key)
+        self.assertIsNotNone(priv_key)
+
+        store_resp = self.vault.asymmetric_store(
+            algorithm=algorithm,
+            purpose=purpose,
+            public_key=pub_key,
+            private_key=priv_key,
+            managed=False,
+        )
+
+        id = store_resp.result.id
+        self.assertIsNotNone(id)
+        self.assertEqual(pub_key, store_resp.result.public_key)
+        self.assertEqual(priv_key, store_resp.result.private_key)
+        self.assertEqual(1, store_resp.result.version)
+        try:
+            self.jwt_signing_cycle(id)
+        except pexc.PangeaAPIException as e:
+            print(e)
+            self.assertTrue(False)
+
+    def test_jwt_sym_hs256_life_cycle(self):
+        # Create
+        algorithm = SymmetricAlgorithm.HS256
+        purpose = KeyPurpose.JWT
+        create_resp = self.vault.symmetric_generate(algorithm=algorithm, purpose=purpose, managed=False, store=False)
+
+        key = create_resp.result.key
+        self.assertIsNone(create_resp.result.id)
+        self.assertIsNotNone(key)
+
+        store_resp = self.vault.symmetric_store(
+            algorithm=algorithm,
+            purpose=purpose,
+            key=key,
+            managed=False,
+        )
+
+        id = store_resp.result.id
+        self.assertIsNotNone(id)
+        self.assertEqual(key, store_resp.result.key)
+        self.assertEqual(1, store_resp.result.version)
+        try:
+            self.jwt_signing_cycle(id)
+        except pexc.PangeaAPIException as e:
+            print(e)
+            self.assertTrue(False)

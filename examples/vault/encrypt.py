@@ -1,25 +1,28 @@
 import os
-import base64
 
 import pangea.exceptions as pe
 from pangea.config import PangeaConfig
-from pangea.services import Vault
-
-token = os.getenv("PANGEA_VAULT_TOKEN")
-domain = os.getenv("PANGEA_DOMAIN")
-config = PangeaConfig(domain=domain)
-vault = Vault(token, config=config)
+from pangea.services.vault.models.asymmetric import AsymmetricAlgorithm
+from pangea.services.vault.models.common import KeyPurpose
+from pangea.services.vault.vault import Vault
+from pangea.utils import str2str_b64
 
 
 def main():
-    try:
+    token = os.getenv("PANGEA_VAULT_TOKEN")
+    domain = os.getenv("PANGEA_DOMAIN")
+    config = PangeaConfig(domain=domain)
+    vault = Vault(token, config=config)
 
+    try:
         # create a symmetric key with Pangea-provided material and default parameters
-        create_response = vault.create_symmetric(name="test key")
+        create_response = vault.symmetric_generate(
+            purpose=KeyPurpose.ENCRYPTION, algorithm=AsymmetricAlgorithm.RSA, name="test key"
+        )
         key_id = create_response.result.id
 
         # encrypt a message
-        msg = base64.b64encode(b"hello world").decode()
+        msg = str2str_b64("hello world")
         encrypt_response = vault.encrypt(key_id, msg)
         cipher_text = encrypt_response.result.cipher_text
 
