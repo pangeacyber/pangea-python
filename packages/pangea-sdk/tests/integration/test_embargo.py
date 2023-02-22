@@ -3,7 +3,7 @@ import unittest
 import pangea.exceptions as pe
 from pangea import PangeaConfig
 from pangea.services import Embargo
-from pangea.tools_util import TestEnvironment, get_test_domain, get_test_token
+from pangea.tools_util import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
 
 TEST_ENVIRONMENT = TestEnvironment.LIVE
 
@@ -14,6 +14,7 @@ class TestEmbargo(unittest.TestCase):
         domain = get_test_domain(TEST_ENVIRONMENT)
         config = PangeaConfig(domain=domain)
         self.embargo = Embargo(token, config=config)
+        logger_set_pangea_config(logger_name=self.embargo.logger.name)
 
     def test_ip_check(self):
         response = self.embargo.ip_check(ip="213.24.238.26")
