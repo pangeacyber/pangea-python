@@ -42,6 +42,7 @@ class PangeaRequest(object):
 
         # Custom headers
         self._extra_headers = {}
+        self._custom_user_agent = ""
         self.session: requests.Session = self._init_session()
 
         self.logger = logger
@@ -58,7 +59,12 @@ class PangeaRequest(object):
         Example:
             set_extra_headers({ "My-Header" : "foobar" })
         """
-        self._extra_headers = headers
+
+        if isinstance(headers, dict):
+            self._extra_headers = headers
+
+    def set_custom_user_agent(self, user_agent: str):
+        self._custom_user_agent = user_agent
 
     def queued_support(self, value: bool):
         """Sets or returns the queued retry support mode.
@@ -164,14 +170,13 @@ class PangeaRequest(object):
     def _headers(self) -> dict:
         headers = {
             "Content-Type": "application/json",
-            "User-Agent": f"pangea-python/{pangea.__version__}",
+            "User-Agent": f"pangea-python/{pangea.__version__} {self._custom_user_agent}",
             "Authorization": f"Bearer {self.token}",
         }
 
-        if self._extra_headers:
-            headers.update(self._extra_headers)
-
-        return headers
+        # We want to ignore previous headers if user tryed to set them, so we will overwrite them.
+        self._extra_headers.update(headers)
+        return self._extra_headers
 
     def _check_response(self, response: PangeaResponse):
         status = response.status
