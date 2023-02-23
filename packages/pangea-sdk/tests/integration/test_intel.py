@@ -213,12 +213,12 @@ class TestIPIntel(unittest.TestCase):
         self.assertEqual("rogers.com", response.result.data.domain)
 
     def test_ip_vpn(self):
-        response = self.intel_ip.is_vpn(ip="1.46.128.165", provider="digitalenvoy", verbose=True, raw=True)
+        response = self.intel_ip.is_vpn(ip="2.25.119.42", provider="digitalenvoy", verbose=True, raw=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertTrue(response.result.data.is_vpn)
 
     def test_ip_vpn_default_provider(self):
-        response = self.intel_ip.is_vpn(ip="1.46.128.165", verbose=True, raw=True)
+        response = self.intel_ip.is_vpn(ip="2.25.119.42", verbose=True, raw=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertTrue(response.result.data.is_vpn)
 
