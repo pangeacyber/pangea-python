@@ -30,3 +30,4 @@ packages/pangea-sdk/logs/
 
 # generated docs
 python_sdk.json
+pangea_sdk_logs.json

@@ -297,7 +297,7 @@ class FileIntel(ServiceBase):
         raw: Optional[bool] = None,
     ) -> PangeaResponse[FileReputationResult]:
         """
-        Look up a file
+        File reputation
 
         Retrieve hash-based file reputation from a provider, including an optional detailed report.
 
@@ -332,7 +332,7 @@ class FileIntel(ServiceBase):
         raw: Optional[bool] = None,
     ) -> PangeaResponse[FileReputationResult]:
         """
-        Look up a file hash reputation
+        File reputation
 
         Retrieve hash-based file reputation from a provider, including an optional detailed report.
 
@@ -368,7 +368,7 @@ class FileIntel(ServiceBase):
         raw: Optional[bool] = None,
     ) -> PangeaResponse[FileReputationResult]:
         """
-        Look up a filepath
+        File reputation, from filepath
 
         Retrieve hash-based file reputation from a provider, including an optional detailed report.
 
@@ -405,7 +405,7 @@ class FileIntel(ServiceBase):
         raw: Optional[bool] = None,
     ) -> PangeaResponse[FileReputationResult]:
         """
-        Look up a filepath reputation
+        File reputation, from filepath
 
         Retrieve hash-based file reputation from a provider, including an optional detailed report.
         This function take care of calculate filepath hash and make the request to service
@@ -468,7 +468,7 @@ class DomainIntel(ServiceBase):
         self, domain: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
     ) -> PangeaResponse[DomainReputationResult]:
         """
-        Look up a domain
+        Domain reputation
 
         Retrieve reputation for a domain from a provider, including an optional detailed report.
 
@@ -497,7 +497,7 @@ class DomainIntel(ServiceBase):
         self, domain: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
     ) -> PangeaResponse[DomainReputationResult]:
         """
-        Look up a domain reputation
+        Domain reputation
 
         Retrieve reputation for a domain from a provider, including an optional detailed report.
 
@@ -555,7 +555,7 @@ class IpIntel(ServiceBase):
         self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
     ) -> PangeaResponse[IPReputationResult]:
         """
-        Look up an IP
+        IP reputation
 
         Retrieve a reputation score for an IP address from a provider, including an optional detailed report.
 
@@ -585,7 +585,7 @@ class IpIntel(ServiceBase):
         self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
     ) -> PangeaResponse[IPReputationResult]:
         """
-        Look up an IP reputation
+        IP reputation
 
         Retrieve a reputation score for an IP address from a provider, including an optional detailed report.
 
@@ -759,7 +759,7 @@ class UrlIntel(ServiceBase):
         self, url: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
     ) -> PangeaResponse[URLReputationResult]:
         """
-        Look up a URL
+        URL reputation
 
         Retrieve URL address reputation from a provider.
 
@@ -789,7 +789,7 @@ class UrlIntel(ServiceBase):
         self, url: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
     ) -> PangeaResponse[URLReputationResult]:
         """
-        Look up a URL reputation
+        URL reputation
 
         Retrieve URL address reputation from a provider.
 
