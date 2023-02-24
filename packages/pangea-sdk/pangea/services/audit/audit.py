@@ -52,8 +52,9 @@ class Audit(ServiceBase):
         token,
         config=None,
         private_key_file: str = "",
+        logger_name="pangea",
     ):
-        super().__init__(token, config)
+        super().__init__(token, config, logger_name)
 
         self.pub_roots: Dict[int, Root] = {}
         self.buffer_data: Optional[str] = None
