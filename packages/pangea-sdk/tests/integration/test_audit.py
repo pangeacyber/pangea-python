@@ -14,7 +14,7 @@ from pangea.services.audit.models import (
     SearchOrderBy,
     SearchOutput,
 )
-from pangea.tools import TestEnvironment, get_test_domain, get_test_token
+from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
 
 ACTOR = "python-sdk"
 MSG_NO_SIGNED = "test-message"
@@ -33,14 +33,25 @@ class TestAudit(unittest.TestCase):
         self.config = PangeaConfig(domain=domain)
         self.audit = Audit(self.token, config=self.config)
         self.auditSigner = Audit(
-            self.token,
-            config=self.config,
-            private_key_file="./tests/testdata/privkey",
+            self.token, config=self.config, private_key_file="./tests/testdata/privkey", logger_name="pangea"
         )
+        logger_set_pangea_config(logger_name=self.audit.logger.name)
 
     def test_log_no_verbose(self):
         response: PangeaResponse[LogResult] = self.audit.log(
             message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verbose=False
+        )
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertIsNotNone(response.result.hash)
+        self.assertIsNone(response.result.envelope)
+
+    def test_log_with_timestamp(self):
+        response: PangeaResponse[LogResult] = self.audit.log(
+            message=MSG_NO_SIGNED,
+            actor=ACTOR,
+            status=STATUS_NO_SIGNED,
+            timestamp=datetime.datetime.now(),
+            verbose=False,
         )
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertIsNotNone(response.result.hash)
