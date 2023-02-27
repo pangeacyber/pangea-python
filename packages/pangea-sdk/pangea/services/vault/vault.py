@@ -27,6 +27,7 @@ from pangea.services.vault.models.common import (
     ItemOrder,
     ItemOrderBy,
     ItemType,
+    ItemVersionState,
     JWKGetRequest,
     JWKGetResult,
     JWTSignRequest,
@@ -41,6 +42,8 @@ from pangea.services.vault.models.common import (
     Metadata,
     RevokeRequest,
     RevokeResult,
+    StateChangeRequest,
+    StateChangeResult,
     SymmetricAlgorithm,
     Tags,
     UpdateRequest,
@@ -158,9 +161,10 @@ class Vault(ServiceBase):
         folder: Optional[str] = None,
         metadata: Optional[Metadata] = None,
         tags: Optional[Tags] = None,
-        auto_rotate: Optional[bool] = None,
-        rotation_policy: Optional[str] = None,
+        rotation_frequency: Optional[str] = None,
+        rotation_state: Optional[ItemVersionState] = None,
         expiration: Optional[datetime.datetime] = None,
+        state: Optional[str] = None,  # FIXME: This should be VersionState, shouldn't it?
     ) -> PangeaResponse[UpdateResult]:
         input = UpdateRequest(
             id=id,
@@ -168,9 +172,10 @@ class Vault(ServiceBase):
             folder=folder,
             metadata=metadata,
             tags=tags,
-            auto_rotate=auto_rotate,
-            rotation_policy=rotation_policy,
+            rotation_frequency=rotation_frequency,
+            rotation_state=rotation_state,
             expiration=expiration,
+            state=state,
         )
         response = self.request.post("update", data=input.json(exclude_none=True))
         if response.raw_result is not None:
@@ -184,9 +189,8 @@ class Vault(ServiceBase):
         folder: Optional[str] = None,
         metadata: Optional[Metadata] = None,
         tags: Optional[Tags] = None,
-        rotation_policy: Optional[str] = None,
-        auto_rotate: Optional[bool] = None,
-        retain_previous_version: Optional[bool] = None,
+        rotation_frequency: Optional[str] = None,
+        rotation_state: Optional[ItemVersionState] = None,
         expiration: Optional[datetime.datetime] = None,
     ) -> PangeaResponse[SecretStoreResult]:
         input = SecretStoreRequest(
@@ -196,9 +200,8 @@ class Vault(ServiceBase):
             folder=folder,
             metadata=metadata,
             tags=tags,
-            rotation_policy=rotation_policy,
-            auto_rotate=auto_rotate,
-            retain_previous_version=retain_previous_version,
+            rotation_frequency=rotation_frequency,
+            rotation_state=rotation_state,
             expiration=expiration,
         )
         response = self.request.post("secret/store", data=input.json(exclude_none=True))
@@ -213,8 +216,8 @@ class Vault(ServiceBase):
         folder: Optional[str] = None,
         metadata: Optional[Metadata] = None,
         tags: Optional[Tags] = None,
-        rotation_policy: Optional[str] = None,
-        auto_rotate: Optional[bool] = None,
+        rotation_frequency: Optional[str] = None,
+        rotation_state: Optional[ItemVersionState] = None,
         expiration: Optional[datetime.datetime] = None,
     ) -> PangeaResponse[SecretStoreResult]:
         input = SecretStoreRequest(
@@ -224,8 +227,8 @@ class Vault(ServiceBase):
             folder=folder,
             metadata=metadata,
             tags=tags,
-            rotation_policy=rotation_policy,
-            auto_rotate=auto_rotate,
+            rotation_frequency=rotation_frequency,
+            rotation_state=rotation_state,
             expiration=expiration,
         )
         response = self.request.post("secret/store", data=input.json(exclude_none=True))
@@ -252,29 +255,25 @@ class Vault(ServiceBase):
     def symmetric_generate(
         self,
         algorithm: Optional[SymmetricAlgorithm] = None,
+        purpose: Optional[KeyPurpose] = None,
         name: Optional[str] = None,
         folder: Optional[str] = None,
         metadata: Optional[Metadata] = None,
         tags: Optional[Tags] = None,
-        auto_rotate: Optional[bool] = None,
-        rotation_policy: Optional[str] = None,
-        store: Optional[bool] = None,
+        rotation_frequency: Optional[str] = None,
+        rotation_state: Optional[ItemVersionState] = None,
         expiration: Optional[datetime.datetime] = None,
-        managed: Optional[bool] = None,
-        purpose: Optional[KeyPurpose] = None,
     ) -> PangeaResponse[SymmetricGenerateResult]:
         input = SymmetricGenerateRequest(
             type=ItemType.SYMMETRIC_KEY,
             algorithm=algorithm,
-            managed=managed,
             purpose=purpose,
-            store=store,
             name=name,
             folder=folder,
             metadata=metadata,
             tags=tags,
-            auto_rotate=auto_rotate,
-            rotation_policy=rotation_policy,
+            rotation_frequency=rotation_frequency,
+            rotation_state=rotation_state,
             expiration=expiration,
         )
         response = self.request.post("key/generate", data=input.json(exclude_none=True))
@@ -286,28 +285,24 @@ class Vault(ServiceBase):
         self,
         algorithm: Optional[SymmetricAlgorithm] = None,
         purpose: Optional[KeyPurpose] = None,
-        managed: Optional[bool] = None,
-        store: Optional[bool] = None,
         name: Optional[str] = None,
         folder: Optional[str] = None,
         metadata: Optional[Metadata] = None,
         tags: Optional[Tags] = None,
-        auto_rotate: Optional[bool] = None,
-        rotation_policy: Optional[str] = None,
+        rotation_frequency: Optional[str] = None,
+        rotation_state: Optional[ItemVersionState] = None,
         expiration: Optional[datetime.datetime] = None,
     ) -> PangeaResponse[AsymmetricGenerateResult]:
         input = AsymmetricGenerateRequest(
             type=ItemType.ASYMMETRIC_KEY,
             algorithm=algorithm,
             purpose=purpose,
-            managed=managed,
-            store=store,
             name=name,
             folder=folder,
             metadata=metadata,
             tags=tags,
-            auto_rotate=auto_rotate,
-            rotation_policy=rotation_policy,
+            rotation_frequency=rotation_frequency,
+            rotation_state=rotation_state,
             expiration=expiration,
         )
         response = self.request.post("key/generate", data=input.json(exclude_none=True))
@@ -326,9 +321,7 @@ class Vault(ServiceBase):
         folder: Optional[str] = None,
         metadata: Optional[Metadata] = None,
         tags: Optional[Tags] = None,
-        managed: Optional[bool] = None,
-        rotation_policy: Optional[str] = None,
-        auto_rotate: Optional[bool] = None,
+        rotation_frequency: Optional[str] = None,
         expiration: Optional[datetime.datetime] = None,
     ) -> PangeaResponse[AsymmetricStoreResult]:
         input = AsymmetricStoreRequest(
@@ -341,9 +334,7 @@ class Vault(ServiceBase):
             folder=folder,
             metadata=metadata,
             tags=tags,
-            managed=managed,
-            rotation_policy=rotation_policy,
-            auto_rotate=auto_rotate,
+            rotation_frequency=rotation_frequency,
             expiration=expiration,
         )
         response = self.request.post("key/store", data=input.json(exclude_none=True))
@@ -355,29 +346,27 @@ class Vault(ServiceBase):
         self,
         algorithm: SymmetricAlgorithm,
         key: str,
+        purpose: Optional[KeyPurpose] = None,
         name: Optional[str] = None,
         folder: Optional[str] = None,
         metadata: Optional[Metadata] = None,
         tags: Optional[Tags] = None,
-        managed: Optional[bool] = None,
-        rotation_policy: Optional[str] = None,
-        auto_rotate: Optional[bool] = None,
+        rotation_frequency: Optional[str] = None,
+        rotation_state: Optional[ItemVersionState] = None,
         expiration: Optional[datetime.datetime] = None,
-        purpose: Optional[KeyPurpose] = None,
     ) -> PangeaResponse[SymmetricStoreResult]:
         input = SymmetricStoreRequest(
             type=ItemType.SYMMETRIC_KEY,
             algorithm=algorithm,
+            purpose=purpose,
             key=key,
             name=name,
             folder=folder,
             metadata=metadata,
             tags=tags,
-            managed=managed,
-            rotation_policy=rotation_policy,
-            auto_rotate=auto_rotate,
+            rotation_frequency=rotation_frequency,
+            rotation_state=rotation_state,
             expiration=expiration,
-            purpose=purpose,
         )
         response = self.request.post("key/store", data=input.json(exclude_none=True))
         if response.raw_result is not None:
@@ -391,8 +380,11 @@ class Vault(ServiceBase):
         public_key: Optional[EncodedPublicKey] = None,
         private_key: Optional[EncodedPrivateKey] = None,
         key: Optional[EncodedSymmetricKey] = None,
+        rotation_state: Optional[ItemVersionState] = None,
     ) -> PangeaResponse[KeyRotateResult]:
-        input = KeyRotateRequest(id=id, public_key=public_key, private_key=private_key, key=key)
+        input = KeyRotateRequest(
+            id=id, public_key=public_key, private_key=private_key, key=key, rotation_state=rotation_state
+        )
         response = self.request.post("key/rotate", data=input.json(exclude_none=True))
         if response.raw_result is not None:
             response.result = KeyRotateResult(**response.raw_result)
@@ -455,4 +447,14 @@ class Vault(ServiceBase):
         response = self.request.post("get/jwk", data=input.json(exclude_none=True))
         if response.raw_result is not None:
             response.result = JWKGetResult(**response.raw_result)
+        return response
+
+    # State change
+    def state_change(
+        self, id: str, state: ItemVersionState, version: Optional[str] = None
+    ) -> PangeaResponse[StateChangeResult]:
+        input = StateChangeRequest(id=id, state=state, version=version)
+        response = self.request.post("state/change", data=input.json(exclude_none=True))
+        if response.raw_result is not None:
+            response.result = StateChangeResult(**response.raw_result)
         return response

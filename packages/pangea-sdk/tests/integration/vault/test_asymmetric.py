@@ -19,7 +19,6 @@ from .util import (
 def canonical_asymmetric_args():
     return {
         "algorithm": "ed25519",
-        "managed": False,
         "private_key": "-----BEGIN PRIVATE KEY-----\nMC4CAQAwBQYDK2VwBCIEIGthqegkjgddRAn0PWN2FeYC6HcCVQf/Ph9sUbeprTBO\n-----END PRIVATE KEY-----\n",
         "public_key": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAPlGrDliJXUbPc2YWEhFxlL2UbBfLHc3ed1f36FrDtTc=\n-----END PUBLIC KEY-----\n",
     }
@@ -68,12 +67,8 @@ def test_create_asymmetric(vault: Vault, param_name, param_value, param_response
         "folder": "/tmp",
         "metadata": {},
         "tags": [],
-        "auto_rotate": False,
-        "rotation_policy": None,
-        # "retain_previous_version": True,
-        "store": True,
+        "rotation_frequency": None,
         "expiration": None,
-        "managed": False,
     }
     req[param_name] = param_value
 
@@ -95,11 +90,8 @@ def test_store_asymmetric(vault: Vault, canonical_asymmetric_args, param_name, p
         "folder": "/tmp",
         "metadata": {},
         "tags": [],
-        "auto_rotate": False,
-        "rotation_policy": None,
-        # "retain_previous_version": True,
+        "rotation_frequency": None,
         "expiration": None,
-        "managed": False,
     }
     req["public_key"] = canonical_asymmetric_args["public_key"]
     req["private_key"] = canonical_asymmetric_args["private_key"]

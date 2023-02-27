@@ -11,7 +11,6 @@ from pangea.services.vault.models.common import (
 
 
 class SecretStoreRequest(CommonStoreRequest):
-    retain_previous_version: Optional[bool] = None
     secret: str
 
 

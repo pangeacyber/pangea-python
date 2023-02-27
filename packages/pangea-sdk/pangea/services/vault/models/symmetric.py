@@ -9,14 +9,12 @@ from pangea.services.vault.models.common import (
     CommonStoreRequest,
     CommonStoreResult,
     EncodedSymmetricKey,
-    ItemType,
     KeyPurpose,
     SymmetricAlgorithm,
 )
 
 
 class SymmetricStoreRequest(CommonStoreRequest):
-    managed: Optional[bool] = None
     key: EncodedSymmetricKey
     algorithm: SymmetricAlgorithm
     purpose: Optional[KeyPurpose] = None
@@ -24,7 +22,6 @@ class SymmetricStoreRequest(CommonStoreRequest):
 
 class SymmetricStoreResult(CommonStoreResult):
     algorithm: Optional[SymmetricAlgorithm] = None  # FIXME: Remove optional once backend is updated
-    key: Optional[EncodedSymmetricKey] = None
 
 
 class SymmetricGenerateRequest(CommonGenerateRequest):
@@ -34,12 +31,12 @@ class SymmetricGenerateRequest(CommonGenerateRequest):
 
 class SymmetricGenerateResult(CommonGenerateResult):
     algorithm: str
-    key: Optional[EncodedSymmetricKey] = None
 
 
 class EncryptRequest(APIRequestModel):
     id: str
     plain_text: str
+    version: Optional[int] = None
 
 
 class EncryptResult(PangeaResponseResult):
