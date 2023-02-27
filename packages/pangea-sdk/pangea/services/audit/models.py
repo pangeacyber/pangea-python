@@ -81,6 +81,10 @@ class Event(APIResponseModel):
             v = getattr(aux, f, None)
             if v is not None and type(v) is dict:
                 setattr(aux, f, self._dict_to_canonicalized_str(v))
+
+        if isinstance(aux.timestamp, (datetime.datetime, datetime.date)):
+            aux.timestamp = aux.timestamp.isoformat().replace("+00:00", "Z")
+
         return aux
 
     def _dict_to_canonicalized_str(self, message: dict) -> str:
