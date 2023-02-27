@@ -97,25 +97,16 @@ class Vault(ServiceBase):
         self,
         token,
         config=None,
+        logger_name="pangea",
     ):
-        super().__init__(token, config)
-
-    # Revoke endpoint
-    def revoke(self, id: str) -> PangeaResponse[RevokeResult]:
-        input = RevokeRequest(
-            id=id,
-        )
-        response = self.request.post("revoke", data=input.json(exclude_none=True))
-        if response.raw_result is not None:
-            response.result = RevokeResult(**response.raw_result)
-        return response
+        super().__init__(token, config, logger_name)
 
     # Delete endpoint
     def delete(self, id: str) -> PangeaResponse[DeleteResult]:
         input = DeleteRequest(
             id=id,
         )
-        response = self.request.post("delete", data=input.json(exclude_none=True))
+        response = self.request.post("delete", data=input.dict(exclude_none=True))
         if response.raw_result is not None:
             response.result = DeleteResult(**response.raw_result)
         return response
@@ -132,7 +123,7 @@ class Vault(ServiceBase):
             version=version,
             verbose=verbose,
         )
-        response = self.request.post("get", data=input.json(exclude_none=True))
+        response = self.request.post("get", data=input.dict(exclude_none=True))
         if response.raw_result is not None:
             response.result = GetResult(**response.raw_result)
         return response
@@ -147,7 +138,7 @@ class Vault(ServiceBase):
         size: Optional[int] = None,
     ) -> PangeaResponse[ListResult]:
         input = ListRequest(filter=filter, last=last, order=order, order_by=order_by, size=size)
-        response = self.request.post("list", data=input.json(exclude_none=True))
+        response = self.request.post("list", data=input.dict(exclude_none=True))
 
         if response.raw_result is not None:
             response.result = ListResult(**response.raw_result)
@@ -177,7 +168,7 @@ class Vault(ServiceBase):
             expiration=expiration,
             state=state,
         )
-        response = self.request.post("update", data=input.json(exclude_none=True))
+        response = self.request.post("update", data=input.dict(exclude_none=True))
         if response.raw_result is not None:
             response.result = UpdateResult(**response.raw_result)
         return response
@@ -204,7 +195,7 @@ class Vault(ServiceBase):
             rotation_state=rotation_state,
             expiration=expiration,
         )
-        response = self.request.post("secret/store", data=input.json(exclude_none=True))
+        response = self.request.post("secret/store", data=input.dict(exclude_none=True))
         if response.raw_result is not None:
             response.result = SecretStoreResult(**response.raw_result)
         return response
@@ -231,7 +222,7 @@ class Vault(ServiceBase):
             rotation_state=rotation_state,
             expiration=expiration,
         )
-        response = self.request.post("secret/store", data=input.json(exclude_none=True))
+        response = self.request.post("secret/store", data=input.dict(exclude_none=True))
         if response.raw_result is not None:
             response.result = SecretStoreResult(**response.raw_result)
         return response
@@ -239,7 +230,7 @@ class Vault(ServiceBase):
     # Rotate endpoint
     def secret_rotate(self, id: str, secret: str) -> PangeaResponse[SecretRotateResult]:
         input = SecretRotateRequest(id=id, secret=secret)
-        response = self.request.post("secret/rotate", data=input.json(exclude_none=True))
+        response = self.request.post("secret/rotate", data=input.dict(exclude_none=True))
         if response.raw_result is not None:
             response.result = SecretRotateResult(**response.raw_result)
         return response
@@ -247,7 +238,7 @@ class Vault(ServiceBase):
     # Rotate endpoint
     def pangea_token_rotate(self, id: str) -> PangeaResponse[SecretRotateResult]:
         input = SecretRotateRequest(id=id)
-        response = self.request.post("secret/rotate", data=input.json(exclude_none=True))
+        response = self.request.post("secret/rotate", data=input.dict(exclude_none=True))
         if response.raw_result is not None:
             response.result = SecretRotateResult(**response.raw_result)
         return response
@@ -276,7 +267,7 @@ class Vault(ServiceBase):
             rotation_state=rotation_state,
             expiration=expiration,
         )
-        response = self.request.post("key/generate", data=input.json(exclude_none=True))
+        response = self.request.post("key/generate", data=input.dict(exclude_none=True))
         if response.raw_result is not None:
             response.result = SymmetricGenerateResult(**response.raw_result)
         return response
@@ -305,7 +296,7 @@ class Vault(ServiceBase):
             rotation_state=rotation_state,
             expiration=expiration,
         )
-        response = self.request.post("key/generate", data=input.json(exclude_none=True))
+        response = self.request.post("key/generate", data=input.dict(exclude_none=True))
         if response.raw_result is not None:
             response.result = AsymmetricGenerateResult(**response.raw_result)
         return response
@@ -322,6 +313,7 @@ class Vault(ServiceBase):
         metadata: Optional[Metadata] = None,
         tags: Optional[Tags] = None,
         rotation_frequency: Optional[str] = None,
+        rotation_state: Optional[ItemVersionState] = None,
         expiration: Optional[datetime.datetime] = None,
     ) -> PangeaResponse[AsymmetricStoreResult]:
         input = AsymmetricStoreRequest(
@@ -335,9 +327,10 @@ class Vault(ServiceBase):
             metadata=metadata,
             tags=tags,
             rotation_frequency=rotation_frequency,
+            rotation_state=rotation_state,
             expiration=expiration,
         )
-        response = self.request.post("key/store", data=input.json(exclude_none=True))
+        response = self.request.post("key/store", data=input.dict(exclude_none=True))
         if response.raw_result is not None:
             response.result = AsymmetricStoreResult(**response.raw_result)
         return response
@@ -368,7 +361,7 @@ class Vault(ServiceBase):
             rotation_state=rotation_state,
             expiration=expiration,
         )
-        response = self.request.post("key/store", data=input.json(exclude_none=True))
+        response = self.request.post("key/store", data=input.dict(exclude_none=True))
         if response.raw_result is not None:
             response.result = SymmetricStoreResult(**response.raw_result)
         return response
@@ -377,15 +370,15 @@ class Vault(ServiceBase):
     def key_rotate(
         self,
         id: str,
+        rotation_state: ItemVersionState,
         public_key: Optional[EncodedPublicKey] = None,
         private_key: Optional[EncodedPrivateKey] = None,
         key: Optional[EncodedSymmetricKey] = None,
-        rotation_state: Optional[ItemVersionState] = None,
     ) -> PangeaResponse[KeyRotateResult]:
         input = KeyRotateRequest(
             id=id, public_key=public_key, private_key=private_key, key=key, rotation_state=rotation_state
         )
-        response = self.request.post("key/rotate", data=input.json(exclude_none=True))
+        response = self.request.post("key/rotate", data=input.dict(exclude_none=True))
         if response.raw_result is not None:
             response.result = KeyRotateResult(**response.raw_result)
         return response
@@ -393,14 +386,14 @@ class Vault(ServiceBase):
     # Encrypt/Decrypt
     def encrypt(self, id: str, plain_text: str) -> PangeaResponse[EncryptResult]:
         input = EncryptRequest(id=id, plain_text=plain_text)
-        response = self.request.post("key/encrypt", data=input.json(exclude_none=True))
+        response = self.request.post("key/encrypt", data=input.dict(exclude_none=True))
         if response.raw_result is not None:
             response.result = EncryptResult(**response.raw_result)
         return response
 
     def decrypt(self, id: str, cipher_text: str, version: Optional[int] = None) -> PangeaResponse[DecryptResult]:
         input = DecryptRequest(id=id, cipher_text=cipher_text, version=version)
-        response = self.request.post("key/decrypt", data=input.json(exclude_none=True))
+        response = self.request.post("key/decrypt", data=input.dict(exclude_none=True))
         if response.raw_result is not None:
             response.result = DecryptResult(**response.raw_result)
         return response
@@ -408,7 +401,7 @@ class Vault(ServiceBase):
     # Sign/Verify endpoints
     def sign(self, id: str, message: str) -> PangeaResponse[SignResult]:
         input = SignRequest(id=id, message=message)
-        response = self.request.post("key/sign", data=input.json(exclude_none=True))
+        response = self.request.post("key/sign", data=input.dict(exclude_none=True))
         if response.raw_result is not None:
             response.result = SignResult(**response.raw_result)
         return response
@@ -422,21 +415,21 @@ class Vault(ServiceBase):
             signature=signature,
             version=version,
         )
-        response = self.request.post("key/verify", data=input.json(exclude_none=True))
+        response = self.request.post("key/verify", data=input.dict(exclude_none=True))
         if response.raw_result is not None:
             response.result = VerifyResult(**response.raw_result)
         return response
 
     def jwt_verify(self, jws: str) -> PangeaResponse[JWTVerifyResult]:
         input = JWTVerifyRequest(jws=jws)
-        response = self.request.post("key/verify/jwt", data=input.json(exclude_none=True))
+        response = self.request.post("key/verify/jwt", data=input.dict(exclude_none=True))
         if response.raw_result is not None:
             response.result = JWTVerifyResult(**response.raw_result)
         return response
 
     def jwt_sign(self, id: str, payload: str) -> PangeaResponse[JWTSignResult]:
         input = JWTSignRequest(id=id, payload=payload)
-        response = self.request.post("key/sign/jwt", data=input.json(exclude_none=True))
+        response = self.request.post("key/sign/jwt", data=input.dict(exclude_none=True))
         if response.raw_result is not None:
             response.result = JWTSignResult(**response.raw_result)
         return response
@@ -444,17 +437,15 @@ class Vault(ServiceBase):
     # Get endpoint
     def jwk_get(self, id: str, version: Optional[str] = None) -> PangeaResponse[JWKGetResult]:
         input = JWKGetRequest(id=id, version=version)
-        response = self.request.post("get/jwk", data=input.json(exclude_none=True))
+        response = self.request.post("get/jwk", data=input.dict(exclude_none=True))
         if response.raw_result is not None:
             response.result = JWKGetResult(**response.raw_result)
         return response
 
     # State change
-    def state_change(
-        self, id: str, state: ItemVersionState, version: Optional[str] = None
-    ) -> PangeaResponse[StateChangeResult]:
+    def state_change(self, id: str, state: ItemVersionState, version: int) -> PangeaResponse[StateChangeResult]:
         input = StateChangeRequest(id=id, state=state, version=version)
-        response = self.request.post("state/change", data=input.json(exclude_none=True))
+        response = self.request.post("state/change", data=input.dict(exclude_none=True))
         if response.raw_result is not None:
             response.result = StateChangeResult(**response.raw_result)
         return response

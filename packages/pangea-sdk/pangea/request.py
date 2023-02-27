@@ -11,6 +11,7 @@ import requests
 from pangea import exceptions
 from pangea.config import PangeaConfig
 from pangea.response import PangeaResponse, ResponseStatus
+from pangea.utils import default_encoder
 from requests.adapters import HTTPAdapter, Retry
 
 
@@ -92,9 +93,10 @@ class PangeaRequest(object):
                various properties to retrieve individual fields
         """
         url = self._url(endpoint)
-        data_send = json.dumps(data)
-
-        self.logger.debug(json.dumps({"service": self.service, "action": "post", "url": url, "data": data}))
+        data_send = json.dumps(data, default=default_encoder) if isinstance(data, dict) else data
+        self.logger.debug(
+            json.dumps({"service": self.service, "action": "post", "url": url, "data": data}, default=default_encoder)
+        )
 
         requests_response = self.session.post(url, headers=self._headers(), data=data_send)
 

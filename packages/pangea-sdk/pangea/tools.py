@@ -170,7 +170,14 @@ class SequenceFollower:
         return [val for val in range(min_val, max_val) if val not in self.numbers]
 
 
+loggers = {}
+
+
 def logger_set_pangea_config(logger_name: str, level=logging.DEBUG):
+    if loggers.get(logger_name, None) is not None:
+        return
+
+    loggers[logger_name] = True
     logger = logging.getLogger(logger_name)
     logger.setLevel(level)
     handler = TimedRotatingFileHandler(

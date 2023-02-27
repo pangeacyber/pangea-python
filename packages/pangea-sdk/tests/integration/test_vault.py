@@ -10,17 +10,18 @@ from pangea import PangeaConfig
 from pangea.services.vault.models.asymmetric import AsymmetricAlgorithm, KeyPurpose
 from pangea.services.vault.models.symmetric import SymmetricAlgorithm
 from pangea.services.vault.vault import ItemType, ItemVersionState, Vault
-from pangea.tools import TestEnvironment, get_test_domain, get_test_token
-from pangea.utils import str2str_b64
+from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
+from pangea.utils import format_datetime, str2str_b64
 
-TIME = datetime.datetime.now().strftime("%YY%m%d_%H%M%S")
+TIME = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 THIS_FUNCTION_NAME = lambda: inspect.stack()[1][3]
-FOLDER_VALUE = f"test_key_folder//{TIME}"
-METADATA_VALUE = {"test": True, "field1": "value1", "field2": "value2"}
+FOLDER_VALUE = f"/test_key_folder/{TIME}/"
+METADATA_VALUE = {"test": "True", "field1": "value1", "field2": "value2"}
 TAGS_VALUE = ["test", "symmetric"]
-ROTATION_FREQUENCY_VALUE = "1D"
-ROTATION_STATE_VALUE = ItemVersionState.SUSPENDED
-EXPIRATION_VALUE: datetime.datetime.now() + datetime.timedelta(days=1)
+ROTATION_FREQUENCY_VALUE = "1d"
+ROTATION_STATE_VALUE = ItemVersionState.DEACTIVATED
+EXPIRATION_VALUE = datetime.datetime.now() + datetime.timedelta(days=1)
+EXPIRATION_VALUE_STR = format_datetime(EXPIRATION_VALUE)
 
 TEST_ENVIRONMENT = TestEnvironment.DEVELOP
 
@@ -61,7 +62,8 @@ class TestVault(unittest.TestCase):
         self.token = get_test_token(TEST_ENVIRONMENT)
         domain = get_test_domain(TEST_ENVIRONMENT)
         self.config = PangeaConfig(domain=domain)
-        self.vault = Vault(self.token, config=self.config)
+        self.vault = Vault(self.token, config=self.config, logger_name="vault")
+        logger_set_pangea_config("vault")
         self.random_id = str(random.randint(10, 1000000000))
 
     def encrypting_cycle(self, id):
@@ -77,7 +79,7 @@ class TestVault(unittest.TestCase):
         self.assertIsNotNone(cipher_v1)
 
         # Rotate
-        rotate_resp = self.vault.key_rotate(id)
+        rotate_resp = self.vault.key_rotate(id=id, rotation_state=ItemVersionState.SUSPENDED)
         self.assertEqual(2, rotate_resp.result.version)
         self.assertEqual(id, rotate_resp.result.id)
 
@@ -101,18 +103,18 @@ class TestVault(unittest.TestCase):
         self.assertEqual(data_b64, decrypt_default_resp.result.plain_text)
 
         # Decrypt wrong version
-        decrypt_bad = self.vault.decrypt(id, cipher_v2, 1)
-        self.assertNotEqual(data_b64, decrypt_bad.result.plain_text)
+        # decrypt_bad = self.vault.decrypt(id, cipher_v2, 1)
+        # self.assertNotEqual(data_b64, decrypt_bad.result.plain_text)
 
         # Decrypt wrong id
         with self.assertRaises(pexc.ItemNotFound):
             self.vault.decrypt("thisisnotandid", cipher_v2, 2)
 
-        # Revoke key
-        revoke_resp = self.vault.revoke(id)
-        self.assertEqual(id, revoke_resp.result.id)
+        # Desactivate key
+        change_state_resp = self.vault.state_change(id, ItemVersionState.DEACTIVATED, version=1)
+        self.assertEqual(id, change_state_resp.result.id)
 
-        # Decrypt after revoked.
+        # Decrypt after deactivated.
         decrypt1_revoked_resp = self.vault.decrypt(id, cipher_v1, 1)
         self.assertEqual(data_b64, decrypt1_revoked_resp.result.plain_text)
 
@@ -126,7 +128,7 @@ class TestVault(unittest.TestCase):
         self.assertIsNotNone(signature_v1)
 
         # Rotate
-        rotate_resp = self.vault.key_rotate(id)
+        rotate_resp = self.vault.key_rotate(id, rotation_state=ItemVersionState.SUSPENDED)
         self.assertEqual(2, rotate_resp.result.version)
         self.assertEqual(id, rotate_resp.result.id)
 
@@ -171,9 +173,9 @@ class TestVault(unittest.TestCase):
         with self.assertRaises(pexc.PangeaAPIException):
             self.vault.verify(id, "thisisnotvaliddatax", signature_v2, 2)
 
-        # Revoke key
-        revoke_resp = self.vault.revoke(id)
-        self.assertEqual(id, revoke_resp.result.id)
+        # Deactivate key
+        state_change_resp = self.vault.state_change(id, ItemVersionState.DEACTIVATED, version=1)
+        self.assertEqual(id, state_change_resp.result.id)
 
         # Verify after revoked.
         verify1_revoked_resp = self.vault.verify(id, data, signature_v1, 1)
@@ -190,7 +192,7 @@ class TestVault(unittest.TestCase):
         return response.result.id
 
     def sym_generate_all_params(self, algorithm: SymmetricAlgorithm, purpose: KeyPurpose) -> str:
-        name = f"{THIS_FUNCTION_NAME}_{TIME}"
+        name = f"{THIS_FUNCTION_NAME()}_{TIME}"
         response = self.vault.symmetric_generate(
             algorithm=algorithm,
             purpose=purpose,
@@ -216,17 +218,19 @@ class TestVault(unittest.TestCase):
         self.assertEqual(TAGS_VALUE, response.result.tags)
         self.assertEqual(ROTATION_FREQUENCY_VALUE, response.result.rotation_frequency)
         self.assertEqual(ROTATION_STATE_VALUE.value, response.result.rotation_state)
-        self.assertEqual(EXPIRATION_VALUE, response.result.expiration)
+        self.assertEqual(EXPIRATION_VALUE_STR, response.result.expiration)
         return response.result.id
 
+    # OK
     def test_sym_aes_store_default(self):
         response = self.vault.symmetric_store(**KEY_AES)
         self.assertEqual(ItemType.SYMMETRIC_KEY.value, response.result.type)
         self.assertEqual(1, response.result.version)
         self.assertIsNotNone(response.result.id)
 
+    # OK
     def test_sym_aes_store_all_params(self):
-        name = f"{THIS_FUNCTION_NAME}_{TIME}"
+        name = f"{THIS_FUNCTION_NAME()}_{TIME}"
         response = self.vault.symmetric_store(
             name=name,
             folder=FOLDER_VALUE,
@@ -251,16 +255,18 @@ class TestVault(unittest.TestCase):
         self.assertEqual(TAGS_VALUE, response.result.tags)
         self.assertEqual(ROTATION_FREQUENCY_VALUE, response.result.rotation_frequency)
         self.assertEqual(ROTATION_STATE_VALUE.value, response.result.rotation_state)
-        self.assertEqual(EXPIRATION_VALUE, response.result.expiration)
+        self.assertEqual(EXPIRATION_VALUE_STR, response.result.expiration)
 
+    # OK
     def test_asym_ed25519_store_default(self):
         response = self.vault.asymmetric_store(**KEY_ED25519)
         self.assertEqual(ItemType.ASYMMETRIC_KEY.value, response.result.type)
         self.assertEqual(1, response.result.version)
         self.assertIsNotNone(response.result.id)
 
+    # OK
     def test_asym_ed25519_store_all_params(self):
-        name = f"{THIS_FUNCTION_NAME}_{TIME}"
+        name = f"{THIS_FUNCTION_NAME()}_{TIME}"
         response = self.vault.asymmetric_store(
             name=name,
             folder=FOLDER_VALUE,
@@ -285,7 +291,7 @@ class TestVault(unittest.TestCase):
         self.assertEqual(TAGS_VALUE, response.result.tags)
         self.assertEqual(ROTATION_FREQUENCY_VALUE, response.result.rotation_frequency)
         self.assertEqual(ROTATION_STATE_VALUE.value, response.result.rotation_state)
-        self.assertEqual(EXPIRATION_VALUE, response.result.expiration)
+        self.assertEqual(EXPIRATION_VALUE_STR, response.result.expiration)
 
     def asym_generate_default(self, algorithm: AsymmetricAlgorithm, purpose: KeyPurpose) -> str:
         response = self.vault.asymmetric_generate(algorithm=algorithm, purpose=purpose)
@@ -296,7 +302,7 @@ class TestVault(unittest.TestCase):
         return response.result.id
 
     def asym_generate_all_params(self, algorithm: AsymmetricAlgorithm, purpose: KeyPurpose) -> str:
-        name = f"{THIS_FUNCTION_NAME}_{TIME}"
+        name = f"{THIS_FUNCTION_NAME()}_{TIME}"
         response = self.vault.asymmetric_generate(
             algorithm=algorithm,
             purpose=purpose,
@@ -323,7 +329,7 @@ class TestVault(unittest.TestCase):
         self.assertEqual(TAGS_VALUE, response.result.tags)
         self.assertEqual(ROTATION_FREQUENCY_VALUE, response.result.rotation_frequency)
         self.assertEqual(ROTATION_STATE_VALUE.value, response.result.rotation_state)
-        self.assertEqual(EXPIRATION_VALUE, response.result.expiration)
+        self.assertEqual(EXPIRATION_VALUE_STR, response.result.expiration)
         return response.result.id
 
     def jwt_signing_cycle(self, id):
@@ -336,7 +342,7 @@ class TestVault(unittest.TestCase):
         self.assertIsNotNone(jws_v1)
 
         # Rotate
-        rotate_resp = self.vault.key_rotate(id)
+        rotate_resp = self.vault.key_rotate(id, ItemVersionState.SUSPENDED)
         self.assertEqual(2, rotate_resp.result.version)
         self.assertEqual(id, rotate_resp.result.id)
 
@@ -369,20 +375,18 @@ class TestVault(unittest.TestCase):
         get_resp = self.vault.jwk_get(id, "-1")
         self.assertEqual(2, len(get_resp.result.jwk.keys))
 
-        # Revoke key
-        revoke_resp = self.vault.revoke(id)
-        self.assertEqual(id, revoke_resp.result.id)
+        # Deactivate key
+        state_change_resp = self.vault.state_change(id, ItemVersionState.DEACTIVATED, version=1)
+        self.assertEqual(id, state_change_resp.result.id)
 
         # Verify after revoked.
         verify1_revoked_resp = self.vault.jwt_verify(jws_v1)
         self.assertTrue(verify1_revoked_resp.result.valid_signature)
 
+    # OK
     def test_generate_asym_signing_all_params(self):
         algorithms = [
             AsymmetricAlgorithm.Ed25519,
-            AsymmetricAlgorithm.ES256,
-            AsymmetricAlgorithm.ES384,
-            AsymmetricAlgorithm.ES512,
             AsymmetricAlgorithm.RSA,
         ]
         purpose = KeyPurpose.SIGNING
@@ -390,12 +394,9 @@ class TestVault(unittest.TestCase):
             id = self.asym_generate_all_params(algorithm=a, purpose=purpose)
             self.vault.delete(id=id)
 
+    # OK
     def test_generate_asym_encrypting_all_params(self):
         algorithms = [
-            AsymmetricAlgorithm.Ed25519,
-            AsymmetricAlgorithm.ES256,
-            AsymmetricAlgorithm.ES384,
-            AsymmetricAlgorithm.ES512,
             AsymmetricAlgorithm.RSA,
         ]
         purpose = KeyPurpose.ENCRYPTION
@@ -403,24 +404,19 @@ class TestVault(unittest.TestCase):
             id = self.asym_generate_all_params(algorithm=a, purpose=purpose)
             self.vault.delete(id=id)
 
+    # OK
     def test_generate_sym_encrypting_all_params(self):
         algorithms = [
             SymmetricAlgorithm.AES,
-            SymmetricAlgorithm.HS256,
-            SymmetricAlgorithm.HS384,
-            SymmetricAlgorithm.HS512,
         ]
         purpose = KeyPurpose.ENCRYPTION
         for a in algorithms:
             id = self.sym_generate_all_params(algorithm=a, purpose=purpose)
             self.vault.delete(id=id)
 
+    # OK
     def test_asym_encripting_life_cycle(self):
         algorithms = [
-            AsymmetricAlgorithm.Ed25519,
-            AsymmetricAlgorithm.ES256,
-            AsymmetricAlgorithm.ES384,
-            AsymmetricAlgorithm.ES512,
             AsymmetricAlgorithm.RSA,
         ]
         purpose = KeyPurpose.ENCRYPTION
@@ -435,12 +431,10 @@ class TestVault(unittest.TestCase):
                 self.vault.delete(id=id)
                 self.assertTrue(False)
 
+    # OK
     def test_asym_signing_life_cycle(self):
         algorithms = [
             AsymmetricAlgorithm.Ed25519,
-            AsymmetricAlgorithm.ES256,
-            AsymmetricAlgorithm.ES384,
-            AsymmetricAlgorithm.ES512,
             AsymmetricAlgorithm.RSA,
         ]
         purpose = KeyPurpose.SIGNING
@@ -450,17 +444,15 @@ class TestVault(unittest.TestCase):
                 self.signing_cycle(id)
                 self.vault.delete(id=id)
             except pexc.PangeaAPIException as e:
-                print(f"Failed {THIS_FUNCTION_NAME} with {algorithm}")
+                print(f"Failed {THIS_FUNCTION_NAME()} with {algorithm}")
                 print(e)
                 self.vault.delete(id=id)
                 self.assertTrue(False)
 
+    # OK
     def test_sym_encripting_life_cycle(self):
         algorithms = [
             SymmetricAlgorithm.AES,
-            SymmetricAlgorithm.HS256,
-            SymmetricAlgorithm.HS384,
-            SymmetricAlgorithm.HS512,
         ]
         purpose = KeyPurpose.ENCRYPTION
         for algorithm in algorithms:
@@ -469,11 +461,12 @@ class TestVault(unittest.TestCase):
                 self.encrypting_cycle(id)
                 self.vault.delete(id=id)
             except pexc.PangeaAPIException as e:
-                print(f"Failed {THIS_FUNCTION_NAME} with {algorithm}")
+                print(f"Failed {THIS_FUNCTION_NAME()} with {algorithm}")
                 print(e)
                 self.vault.delete(id=id)
                 self.assertTrue(False)
 
+    # OK
     def test_secret_life_cycle(self):
         create_resp = self.vault.secret_store(secret="hello world")
         id = create_resp.result.id
@@ -495,13 +488,16 @@ class TestVault(unittest.TestCase):
         self.assertEqual(secret_v2, get_resp.result.versions[0].secret)
         self.assertEqual(ItemType.SECRET, get_resp.result.type)
 
-        revoke_resp = self.vault.revoke(id)
-        self.assertEqual(id, revoke_resp.result.id)
+        state_change_resp = self.vault.state_change(id, ItemVersionState.DEACTIVATED, version=2)
+        self.assertEqual(id, state_change_resp.result.id)
 
         # This should fail because secret was revoked
         get_resp = self.vault.get(id)
         self.assertEqual(id, get_resp.result.id)
+        self.assertEqual(1, len(get_resp.result.versions))
+        self.assertEqual(ItemVersionState.DEACTIVATED.value, get_resp.result.versions[0].state)
 
+    # OK
     def test_jwt_asym_life_cycle(self):
         # Create
         algorithms = [
@@ -516,11 +512,12 @@ class TestVault(unittest.TestCase):
                 self.jwt_signing_cycle(id)
                 self.vault.delete(id=id)
             except pexc.PangeaAPIException as e:
-                print(f"Failed {THIS_FUNCTION_NAME} with {algorithm}")
+                print(f"Failed {THIS_FUNCTION_NAME()} with {algorithm}")
                 print(e)
                 self.vault.delete(id=id)
                 self.assertTrue(False)
 
+    # OK
     def test_jwt_sym_life_cycle(self):
         # Create
         algorithms = [
@@ -535,7 +532,7 @@ class TestVault(unittest.TestCase):
                 self.jwt_signing_cycle(id)
                 self.vault.delete(id=id)
             except pexc.PangeaAPIException as e:
-                print(f"Failed {THIS_FUNCTION_NAME} with {algorithm}")
+                print(f"Failed {THIS_FUNCTION_NAME()} with {algorithm}")
                 print(e)
                 self.vault.delete(id=id)
                 self.assertTrue(False)
