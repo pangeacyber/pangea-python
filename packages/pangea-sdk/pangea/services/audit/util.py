@@ -9,7 +9,7 @@ from binascii import hexlify, unhexlify
 from dataclasses import dataclass
 from datetime import datetime
 from hashlib import sha256
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import requests
 from pangea.services.audit.models import Event, EventEnvelope, PublishedRoot
@@ -277,3 +277,20 @@ def verify_consistency_proof(new_root: Hash, prev_root: Hash, proof: Consistency
             return False
 
     return True
+
+
+def get_public_key(public_key_info: Optional[str]) -> Optional[str]:
+    if not public_key_info:
+        return None
+
+    try:
+        # Try to parse key_info as a json
+        key_info: dict = json.loads(public_key_info)
+        # If it's a json, public key come in "key" field
+        key = key_info.pop("key", None)
+        return key
+    except json.JSONDecodeError:
+        pass
+
+    # If it's not a json, public key should be used as a string
+    return public_key_info
