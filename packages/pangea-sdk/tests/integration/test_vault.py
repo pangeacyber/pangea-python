@@ -115,8 +115,8 @@ class TestVault(unittest.TestCase):
         self.assertEqual(id, change_state_resp.result.id)
 
         # Decrypt after deactivated.
-        decrypt1_revoked_resp = self.vault.decrypt(id, cipher_v1, 1)
-        self.assertEqual(data_b64, decrypt1_revoked_resp.result.plain_text)
+        decrypt1_deactivated_resp = self.vault.decrypt(id, cipher_v1, 1)
+        self.assertEqual(data_b64, decrypt1_deactivated_resp.result.plain_text)
 
     def signing_cycle(self, id):
         data = "thisisamessagetosign"
@@ -177,11 +177,11 @@ class TestVault(unittest.TestCase):
         state_change_resp = self.vault.state_change(id, ItemVersionState.DEACTIVATED, version=1)
         self.assertEqual(id, state_change_resp.result.id)
 
-        # Verify after revoked.
-        verify1_revoked_resp = self.vault.verify(id, data, signature_v1, 1)
-        self.assertEqual(id, verify1_revoked_resp.result.id)
-        self.assertEqual(1, verify1_revoked_resp.result.version)
-        self.assertTrue(verify1_revoked_resp.result.valid_signature)
+        # Verify after deactivated.
+        verify1_deactivated_resp = self.vault.verify(id, data, signature_v1, 1)
+        self.assertEqual(id, verify1_deactivated_resp.result.id)
+        self.assertEqual(1, verify1_deactivated_resp.result.version)
+        self.assertTrue(verify1_deactivated_resp.result.valid_signature)
 
     def sym_generate_default(self, algorithm: SymmetricAlgorithm, purpose: KeyPurpose) -> str:
         response = self.vault.symmetric_generate(algorithm=algorithm, purpose=purpose)
@@ -379,9 +379,9 @@ class TestVault(unittest.TestCase):
         state_change_resp = self.vault.state_change(id, ItemVersionState.DEACTIVATED, version=1)
         self.assertEqual(id, state_change_resp.result.id)
 
-        # Verify after revoked.
-        verify1_revoked_resp = self.vault.jwt_verify(jws_v1)
-        self.assertTrue(verify1_revoked_resp.result.valid_signature)
+        # Verify after deactivated.
+        verify1_deactivated_resp = self.vault.jwt_verify(jws_v1)
+        self.assertTrue(verify1_deactivated_resp.result.valid_signature)
 
     # OK
     def test_generate_asym_signing_all_params(self):
@@ -491,7 +491,7 @@ class TestVault(unittest.TestCase):
         state_change_resp = self.vault.state_change(id, ItemVersionState.DEACTIVATED, version=2)
         self.assertEqual(id, state_change_resp.result.id)
 
-        # This should fail because secret was revoked
+        # This should fail because secret was deactivated
         get_resp = self.vault.get(id)
         self.assertEqual(id, get_resp.result.id)
         self.assertEqual(1, len(get_resp.result.versions))

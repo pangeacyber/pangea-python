@@ -40,8 +40,6 @@ from pangea.services.vault.models.common import (
     ListRequest,
     ListResult,
     Metadata,
-    RevokeRequest,
-    RevokeResult,
     StateChangeRequest,
     StateChangeResult,
     SymmetricAlgorithm,
@@ -116,12 +114,14 @@ class Vault(ServiceBase):
         self,
         id: str,
         version: Optional[int] = None,
+        version_state: Optional[ItemVersionState] = None,
         verbose: Optional[bool] = None,
     ) -> PangeaResponse[GetResult]:
         input = GetRequest(
             id=id,
             version=version,
             verbose=verbose,
+            version_state=version_state,
         )
         response = self.request.post("get", data=input.dict(exclude_none=True))
         if response.raw_result is not None:

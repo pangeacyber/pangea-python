@@ -168,12 +168,14 @@ class GetRequest(APIRequestModel):
     id: str
     version: Optional[int] = None
     verbose: Optional[bool] = None
+    version_state: Optional[ItemVersionState] = None
 
 
 class ItemVersionData(PangeaResponseResult):
     version: int
     state: str
     created_at: str
+    destroyed_at: Optional[str] = None
     public_key: Optional[EncodedPublicKey] = None
     secret: Optional[str] = None
 
@@ -181,6 +183,9 @@ class ItemVersionData(PangeaResponseResult):
 class GetResult(PangeaResponseResult):
     type: str
     id: str
+    current_version: int
+    has_compromised_versions: bool
+    versions: List[ItemVersionData] = []
     name: Optional[str] = None
     folder: Optional[str] = None
     metadata: Optional[Metadata] = None
@@ -190,15 +195,15 @@ class GetResult(PangeaResponseResult):
     last_rotated: Optional[str] = None
     next_rotation: Optional[str] = None
     expiration: Optional[str] = None
-    destroyed_at: Optional[str] = None
     algorithm: Optional[Union[AsymmetricAlgorithm, SymmetricAlgorithm]] = None
     purpose: Optional[KeyPurpose] = None
-    versions: List[ItemVersionData] = []
+    rotation_grace_period: Optional[str] = None
 
 
 class ListItemData(APIRequestModel):
     id: str
     type: str
+    current_version: int
     last_rotated: Optional[str] = None
     next_rotation: Optional[str] = None
     expiration: Optional[str] = None
@@ -209,8 +214,7 @@ class ListItemData(APIRequestModel):
     folder: Optional[str] = None
     metadata: Optional[Metadata] = None
     tags: Optional[Tags] = None
-    created_at: str
-    destroyed_at: Optional[str] = None
+    versions: List[ItemVersionData]
 
 
 class ListResult(PangeaResponseResult):
@@ -250,14 +254,6 @@ class KeyRotateResult(CommonRotateResult):
     private_key: Optional[EncodedPrivateKey] = None
     key: Optional[EncodedSymmetricKey] = None
     algorithm: Union[SymmetricAlgorithm, AsymmetricAlgorithm]
-
-
-class RevokeRequest(APIRequestModel):
-    id: str
-
-
-class RevokeResult(PangeaResponseResult):
-    id: str
 
 
 class DeleteRequest(APIRequestModel):
