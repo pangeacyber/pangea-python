@@ -228,8 +228,10 @@ class Vault(ServiceBase):
         return response
 
     # Rotate endpoint
-    def secret_rotate(self, id: str, secret: str) -> PangeaResponse[SecretRotateResult]:
-        input = SecretRotateRequest(id=id, secret=secret)
+    def secret_rotate(
+        self, id: str, secret: str, rotation_state: Optional[ItemVersionState] = None
+    ) -> PangeaResponse[SecretRotateResult]:
+        input = SecretRotateRequest(id=id, secret=secret, rotation_state=rotation_state)
         response = self.request.post("secret/rotate", data=input.dict(exclude_none=True))
         if response.raw_result is not None:
             response.result = SecretRotateResult(**response.raw_result)
@@ -384,8 +386,8 @@ class Vault(ServiceBase):
         return response
 
     # Encrypt/Decrypt
-    def encrypt(self, id: str, plain_text: str) -> PangeaResponse[EncryptResult]:
-        input = EncryptRequest(id=id, plain_text=plain_text)
+    def encrypt(self, id: str, plain_text: str, version: Optional[int] = None) -> PangeaResponse[EncryptResult]:
+        input = EncryptRequest(id=id, plain_text=plain_text, version=version)
         response = self.request.post("key/encrypt", data=input.dict(exclude_none=True))
         if response.raw_result is not None:
             response.result = EncryptResult(**response.raw_result)
@@ -399,8 +401,8 @@ class Vault(ServiceBase):
         return response
 
     # Sign/Verify endpoints
-    def sign(self, id: str, message: str) -> PangeaResponse[SignResult]:
-        input = SignRequest(id=id, message=message)
+    def sign(self, id: str, message: str, version: Optional[int] = None) -> PangeaResponse[SignResult]:
+        input = SignRequest(id=id, message=message, version=version)
         response = self.request.post("key/sign", data=input.dict(exclude_none=True))
         if response.raw_result is not None:
             response.result = SignResult(**response.raw_result)
