@@ -75,7 +75,7 @@ class ItemOrder(str, enum.Enum):
 class ItemOrderBy(str, enum.Enum):
     TYPE = "type"
     CREATED_AT = "created_at"
-    REVOKED_AT = "revoked_at"
+    DESTROYED_AT = "destroyed_at"
     IDENTITY = "identity"
     PURPOSE = "purpose"
     EXPIRATION = "expiration"
@@ -190,7 +190,7 @@ class GetResult(PangeaResponseResult):
     last_rotated: Optional[str] = None
     next_rotation: Optional[str] = None
     expiration: Optional[str] = None
-    revoked_at: Optional[str] = None
+    destroyed_at: Optional[str] = None
     algorithm: Optional[Union[AsymmetricAlgorithm, SymmetricAlgorithm]] = None
     purpose: Optional[KeyPurpose] = None
     versions: List[ItemVersionData] = []
@@ -210,7 +210,7 @@ class ListItemData(APIRequestModel):
     metadata: Optional[Metadata] = None
     tags: Optional[Tags] = None
     created_at: str
-    revoked_at: Optional[str] = None
+    destroyed_at: Optional[str] = None
 
 
 class ListResult(PangeaResponseResult):
