@@ -183,9 +183,8 @@ class ItemVersionData(PangeaResponseResult):
 class GetResult(PangeaResponseResult):
     type: str
     id: str
-    current_version: int
-    has_compromised_versions: bool
-    versions: List[ItemVersionData] = []
+    current_version: ItemVersionData
+    compromised_versions: List[ItemVersionData] = []
     name: Optional[str] = None
     folder: Optional[str] = None
     metadata: Optional[Metadata] = None
