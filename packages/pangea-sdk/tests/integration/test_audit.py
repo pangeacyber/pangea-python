@@ -34,10 +34,9 @@ class TestAudit(unittest.TestCase):
         self.audit = Audit(self.token, config=self.config)
         logger_set_pangea_config("pangea")
         self.auditSigner = Audit(
-            self.token,
-            config=self.config,
-            private_key_file="./tests/testdata/privkey",
+            self.token, config=self.config, private_key_file="./tests/testdata/privkey", logger_name="pangea"
         )
+        logger_set_pangea_config(logger_name=self.audit.logger.name)
 
     def test_log_no_verbose(self):
         response: PangeaResponse[LogResult] = self.audit.log(
