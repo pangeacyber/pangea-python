@@ -4,7 +4,7 @@ import pangea.exceptions as pe
 from pangea import PangeaConfig
 from pangea.response import ResponseStatus
 from pangea.services import DomainIntel, FileIntel, IpIntel, UrlIntel
-from pangea.tools_util import TestEnvironment, get_test_domain, get_test_token
+from pangea.tools_util import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
 
 TEST_ENVIRONMENT = TestEnvironment.LIVE
 
@@ -17,7 +17,8 @@ class TestDomainIntel(unittest.TestCase):
         token = get_test_token(TEST_ENVIRONMENT)
         domain = get_test_domain(TEST_ENVIRONMENT)
         config = PangeaConfig(domain=domain)
-        self.intel_domain = DomainIntel(token, config=config)
+        self.intel_domain = DomainIntel(token, config=config, logger_name="pangea")
+        logger_set_pangea_config(logger_name=self.intel_domain.logger.name)
 
     def test_domain_lookup(self):
         response = self.intel_domain.lookup(
@@ -57,7 +58,8 @@ class TestFileIntel(unittest.TestCase):
         token = get_test_token(TEST_ENVIRONMENT)
         domain = get_test_domain(TEST_ENVIRONMENT)
         config = PangeaConfig(domain=domain)
-        self.intel_file = FileIntel(token, config=config)
+        self.intel_file = FileIntel(token, config=config, logger_name="pangea")
+        logger_set_pangea_config(logger_name=self.intel_file.logger.name)
 
     def test_file_lookup(self):
         response = self.intel_file.lookup(
@@ -87,13 +89,14 @@ class TestFileIntel(unittest.TestCase):
             raw=True,
         )
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
-        self.assertEqual(response.result.data.verdict, "unknown")
+        self.assertEqual(response.result.data.verdict, "benign")
 
     def test_file_lookup_with_bad_auth_token(self):
         token = "noarealtoken"
         domain = get_test_domain(TEST_ENVIRONMENT)
         config = PangeaConfig(domain=domain)
-        badintel_domain = FileIntel(token, config=config)
+        badintel_domain = FileIntel(token, config=config, logger_name="pangea")
+        logger_set_pangea_config(logger_name=self.intel_file.logger.name)
 
         with self.assertRaises(pe.UnauthorizedException):
             badintel_domain.lookup(
@@ -142,7 +145,7 @@ class TestFileIntel(unittest.TestCase):
             raw=True,
         )
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
-        self.assertEqual(response.result.data.verdict, "unknown")
+        self.assertEqual(response.result.data.verdict, "benign")
 
     def test_file_reputation_with_bad_auth_token(self):
         token = "noarealtoken"
@@ -175,7 +178,8 @@ class TestIPIntel(unittest.TestCase):
         token = get_test_token(TEST_DEVELOP)
         domain = get_test_domain(TEST_DEVELOP)
         config = PangeaConfig(domain=domain)
-        self.intel_ip = IpIntel(token, config=config)
+        self.intel_ip = IpIntel(token, config=config, logger_name="pangea")
+        logger_set_pangea_config(logger_name=self.intel_ip.logger.name)
 
     def test_ip_lookup(self):
         response = self.intel_ip.lookup(ip="93.231.182.110", provider="crowdstrike", verbose=True, raw=True)
@@ -265,7 +269,8 @@ class TestURLIntel(unittest.TestCase):
         token = get_test_token(TEST_ENVIRONMENT)
         domain = get_test_domain(TEST_ENVIRONMENT)
         config = PangeaConfig(domain=domain)
-        self.intel_url = UrlIntel(token, config=config)
+        self.intel_url = UrlIntel(token, config=config, logger_name="pangea")
+        logger_set_pangea_config(logger_name=self.intel_url.logger.name)
 
     def test_url_lookup(self):
         response = self.intel_url.lookup(

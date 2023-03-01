@@ -57,6 +57,14 @@ class UnauthorizedException(PangeaAPIException):
         super(UnauthorizedException, self).__init__(message, response)
 
 
+class NotFound(PangeaAPIException):
+    """Resource not found"""
+
+    def __init__(self, url: str, response: PangeaResponse):
+        message = f"Resource {url} not found"
+        super(NotFound, self).__init__(message, response)
+
+
 class ServiceNotEnabledException(PangeaAPIException):
     def __init__(self, service_name: str, response: PangeaResponse):
         message = f"{service_name} is not enabled. Go to console.pangea.cloud/service/{service_name} to enable"
