@@ -299,6 +299,24 @@ class TestAudit(unittest.TestCase):
         self.assertEqual(len(response_search.result.events), limit)
         self.assertEqual(response_search.result.count, max_result)
 
+    def test_search_with_dates_as_strings(self):
+        limit = 2
+        max_result = 3
+        end = "1d"
+        start = "30d"
+        response_search = self.audit.search(
+            query="message:",
+            order=SearchOrder.DESC,
+            limit=limit,
+            max_results=max_result,
+            verbose=True,
+            start=start,
+            end=end,
+        )
+        self.assertEqual(response_search.status, ResponseStatus.SUCCESS)
+        self.assertEqual(len(response_search.result.events), limit)
+        self.assertEqual(response_search.result.count, max_result)
+
     def test_root_1(self):
         response = self.audit.root()
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
