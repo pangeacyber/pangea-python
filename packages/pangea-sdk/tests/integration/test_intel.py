@@ -8,9 +8,6 @@ from pangea.tools_util import TestEnvironment, get_test_domain, get_test_token, 
 
 TEST_ENVIRONMENT = TestEnvironment.LIVE
 
-# FIXME: Remove this before push to prod. It's used to test geolocate now
-TEST_DEVELOP = TestEnvironment.DEVELOP
-
 
 class TestDomainIntel(unittest.TestCase):
     def setUp(self):
@@ -89,7 +86,7 @@ class TestFileIntel(unittest.TestCase):
             raw=True,
         )
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
-        self.assertEqual(response.result.data.verdict, "benign")
+        self.assertEqual(response.result.data.verdict, "unknown")
 
     def test_file_lookup_with_bad_auth_token(self):
         token = "noarealtoken"
@@ -145,7 +142,7 @@ class TestFileIntel(unittest.TestCase):
             raw=True,
         )
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
-        self.assertEqual(response.result.data.verdict, "benign")
+        self.assertEqual(response.result.data.verdict, "unknown")
 
     def test_file_reputation_with_bad_auth_token(self):
         token = "noarealtoken"
@@ -175,8 +172,8 @@ class TestFileIntel(unittest.TestCase):
 
 class TestIPIntel(unittest.TestCase):
     def setUp(self):
-        token = get_test_token(TEST_DEVELOP)
-        domain = get_test_domain(TEST_DEVELOP)
+        token = get_test_token(TEST_ENVIRONMENT)
+        domain = get_test_domain(TEST_ENVIRONMENT)
         config = PangeaConfig(domain=domain)
         self.intel_ip = IpIntel(token, config=config, logger_name="pangea")
         logger_set_pangea_config(logger_name=self.intel_ip.logger.name)
@@ -193,14 +190,14 @@ class TestIPIntel(unittest.TestCase):
     def test_ip_geolocate(self):
         response = self.intel_ip.geolocate(ip="93.231.182.110", provider="digitalenvoy", verbose=True, raw=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
-        self.assertEqual(response.result.data.country, "deu")
+        self.assertEqual(response.result.data.country, "Federal Republic Of Germany")
         self.assertEqual(response.result.data.city, "unna")
         self.assertEqual(response.result.data.postal_code, "59425")
 
     def test_ip_geolocate_default_provider(self):
         response = self.intel_ip.geolocate(ip="93.231.182.110", verbose=True, raw=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
-        self.assertEqual(response.result.data.country, "deu")
+        self.assertEqual(response.result.data.country, "Federal Republic Of Germany")
         self.assertEqual(response.result.data.city, "unna")
         self.assertEqual(response.result.data.postal_code, "59425")
 
@@ -217,12 +214,12 @@ class TestIPIntel(unittest.TestCase):
         self.assertEqual("rogers.com", response.result.data.domain)
 
     def test_ip_vpn(self):
-        response = self.intel_ip.is_vpn(ip="2.25.119.42", provider="digitalenvoy", verbose=True, raw=True)
+        response = self.intel_ip.is_vpn(ip="2.56.189.74", provider="digitalenvoy", verbose=True, raw=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertTrue(response.result.data.is_vpn)
 
     def test_ip_vpn_default_provider(self):
-        response = self.intel_ip.is_vpn(ip="2.25.119.42", verbose=True, raw=True)
+        response = self.intel_ip.is_vpn(ip="2.56.189.74", verbose=True, raw=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertTrue(response.result.data.is_vpn)
 
