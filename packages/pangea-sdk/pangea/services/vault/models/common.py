@@ -194,7 +194,7 @@ class GetResult(PangeaResponseResult):
     last_rotated: Optional[str] = None
     next_rotation: Optional[str] = None
     expiration: Optional[str] = None
-    algorithm: Optional[Union[AsymmetricAlgorithm, SymmetricAlgorithm]] = None
+    algorithm: Optional[str] = None
     purpose: Optional[KeyPurpose] = None
     rotation_grace_period: Optional[str] = None
 
