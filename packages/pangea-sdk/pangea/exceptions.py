@@ -27,6 +27,15 @@ class PangeaAPIException(PangeaException):
     def errors(self) -> List[ErrorField]:
         return self.response.errors
 
+    def __str__(self) -> str:
+        ret = "\n"
+        ret += f"Summary: {self.response.summary}\n"
+        if self.response.errors:
+            ret += "Errors:\n"
+            for ef in self.response.errors:
+                ret += f"\t {ef.detail}\n"
+        return ret
+
 
 class ValidationException(PangeaAPIException):
     """Pangea Validation Errors denoting issues with an API request"""
