@@ -22,6 +22,7 @@ class AsymmetricGenerateRequest(CommonGenerateRequest):
 
 class AsymmetricGenerateResult(CommonGenerateResult):
     algorithm: str
+    purpose: str
     public_key: EncodedPublicKey
 
 
@@ -34,6 +35,7 @@ class AsymmetricStoreRequest(CommonStoreRequest):
 
 class AsymmetricStoreResult(CommonStoreResult):
     algorithm: str
+    purpose: str
     public_key: EncodedPublicKey
 
 
@@ -46,16 +48,16 @@ class SignRequest(APIRequestModel):
 class SignResult(PangeaResponseResult):
     id: str
     version: int
-    signature: str
     algorithm: str
+    signature: str
     public_key: Optional[EncodedPublicKey] = None
 
 
 class VerifyRequest(APIRequestModel):
     id: str
-    version: Optional[int] = None
     message: str
     signature: str
+    version: Optional[int] = None
 
 
 class VerifyResult(PangeaResponseResult):

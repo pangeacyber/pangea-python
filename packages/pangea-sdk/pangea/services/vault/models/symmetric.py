@@ -21,7 +21,8 @@ class SymmetricStoreRequest(CommonStoreRequest):
 
 
 class SymmetricStoreResult(CommonStoreResult):
-    algorithm: Optional[SymmetricAlgorithm] = None  # FIXME: Remove optional once backend is updated
+    algorithm: str
+    purpose: str
 
 
 class SymmetricGenerateRequest(CommonGenerateRequest):
@@ -31,6 +32,7 @@ class SymmetricGenerateRequest(CommonGenerateRequest):
 
 class SymmetricGenerateResult(CommonGenerateResult):
     algorithm: str
+    purpose: str
 
 
 class EncryptRequest(APIRequestModel):
@@ -48,8 +50,8 @@ class EncryptResult(PangeaResponseResult):
 
 class DecryptRequest(APIRequestModel):
     id: str
-    version: Optional[int] = None
     cipher_text: str
+    version: Optional[int] = None
 
 
 class DecryptResult(PangeaResponseResult):

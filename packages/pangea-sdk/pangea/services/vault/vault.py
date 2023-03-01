@@ -1,7 +1,7 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 import datetime
-from typing import Dict, Optional
+from typing import Dict, Optional, Union
 
 from pangea.response import PangeaResponse
 from pangea.services.base import ServiceBase
@@ -26,6 +26,7 @@ from pangea.services.vault.models.common import (
     GetResult,
     ItemOrder,
     ItemOrderBy,
+    ItemState,
     ItemType,
     ItemVersionState,
     JWKGetRequest,
@@ -113,7 +114,7 @@ class Vault(ServiceBase):
     def get(
         self,
         id: str,
-        version: Optional[int] = None,
+        version: Optional[Union[str, int]] = None,
         version_state: Optional[ItemVersionState] = None,
         verbose: Optional[bool] = None,
     ) -> PangeaResponse[GetResult]:
@@ -154,8 +155,9 @@ class Vault(ServiceBase):
         tags: Optional[Tags] = None,
         rotation_frequency: Optional[str] = None,
         rotation_state: Optional[ItemVersionState] = None,
+        rotation_grace_period: Optional[str] = None,
         expiration: Optional[datetime.datetime] = None,
-        state: Optional[str] = None,  # FIXME: This should be VersionState, shouldn't it?
+        item_state: Optional[ItemState] = None,
     ) -> PangeaResponse[UpdateResult]:
         input = UpdateRequest(
             id=id,
@@ -165,8 +167,9 @@ class Vault(ServiceBase):
             tags=tags,
             rotation_frequency=rotation_frequency,
             rotation_state=rotation_state,
+            rotation_grace_period=rotation_grace_period,
             expiration=expiration,
-            state=state,
+            item_state=item_state,
         )
         response = self.request.post("update", data=input.dict(exclude_none=True))
         if response.raw_result is not None:
@@ -445,8 +448,10 @@ class Vault(ServiceBase):
         return response
 
     # State change
-    def state_change(self, id: str, state: ItemVersionState, version: int) -> PangeaResponse[StateChangeResult]:
-        input = StateChangeRequest(id=id, state=state, version=version)
+    def state_change(
+        self, id: str, state: ItemVersionState, version: Optional[int] = None, destroy_period: Optional[str] = None
+    ) -> PangeaResponse[StateChangeResult]:
+        input = StateChangeRequest(id=id, state=state, version=version, destroy_period=destroy_period)
         response = self.request.post("state/change", data=input.dict(exclude_none=True))
         if response.raw_result is not None:
             response.result = StateChangeResult(**response.raw_result)

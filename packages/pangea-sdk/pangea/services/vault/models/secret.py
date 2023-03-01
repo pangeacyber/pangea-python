@@ -1,7 +1,5 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
-from typing import Optional
-
 from pangea.services.vault.models.common import (
     CommonRotateRequest,
     CommonRotateResult,

@@ -210,8 +210,8 @@ class TestVault(unittest.TestCase):
 
         response = self.vault.get(id=response.result.id, verbose=True)
         self.assertEqual(ItemType.SYMMETRIC_KEY.value, response.result.type)
-        self.assertEqual(1, len(response.result.versions))
-        self.assertEqual(1, response.result.versions[0].version)
+        self.assertEqual(0, len(response.result.versions))
+        self.assertEqual(1, response.result.current_version.version)
         self.assertEqual(name, response.result.name)
         self.assertEqual(FOLDER_VALUE, response.result.folder)
         self.assertEqual(METADATA_VALUE, response.result.metadata)
@@ -221,14 +221,12 @@ class TestVault(unittest.TestCase):
         self.assertEqual(EXPIRATION_VALUE_STR, response.result.expiration)
         return response.result.id
 
-    # OK
     def test_sym_aes_store_default(self):
         response = self.vault.symmetric_store(**KEY_AES)
         self.assertEqual(ItemType.SYMMETRIC_KEY.value, response.result.type)
         self.assertEqual(1, response.result.version)
         self.assertIsNotNone(response.result.id)
 
-    # OK
     def test_sym_aes_store_all_params(self):
         name = f"{THIS_FUNCTION_NAME()}_{TIME}"
         response = self.vault.symmetric_store(
@@ -247,8 +245,8 @@ class TestVault(unittest.TestCase):
 
         response = self.vault.get(id=response.result.id, verbose=True)
         self.assertEqual(ItemType.SYMMETRIC_KEY.value, response.result.type)
-        self.assertEqual(1, len(response.result.versions))
-        self.assertEqual(1, response.result.versions[0].version)
+        self.assertEqual(0, len(response.result.versions))
+        self.assertEqual(1, response.result.current_version.version)
         self.assertEqual(name, response.result.name)
         self.assertEqual(FOLDER_VALUE, response.result.folder)
         self.assertEqual(METADATA_VALUE, response.result.metadata)
@@ -257,14 +255,12 @@ class TestVault(unittest.TestCase):
         self.assertEqual(ROTATION_STATE_VALUE.value, response.result.rotation_state)
         self.assertEqual(EXPIRATION_VALUE_STR, response.result.expiration)
 
-    # OK
     def test_asym_ed25519_store_default(self):
         response = self.vault.asymmetric_store(**KEY_ED25519)
         self.assertEqual(ItemType.ASYMMETRIC_KEY.value, response.result.type)
         self.assertEqual(1, response.result.version)
         self.assertIsNotNone(response.result.id)
 
-    # OK
     def test_asym_ed25519_store_all_params(self):
         name = f"{THIS_FUNCTION_NAME()}_{TIME}"
         response = self.vault.asymmetric_store(
@@ -283,8 +279,8 @@ class TestVault(unittest.TestCase):
 
         response = self.vault.get(id=response.result.id, verbose=True)
         self.assertEqual(ItemType.ASYMMETRIC_KEY.value, response.result.type)
-        self.assertEqual(1, len(response.result.versions))
-        self.assertEqual(1, response.result.versions[0].version)
+        self.assertEqual(0, len(response.result.versions))
+        self.assertEqual(1, response.result.current_version.version)
         self.assertEqual(name, response.result.name)
         self.assertEqual(FOLDER_VALUE, response.result.folder)
         self.assertEqual(METADATA_VALUE, response.result.metadata)
@@ -321,8 +317,8 @@ class TestVault(unittest.TestCase):
 
         response = self.vault.get(id=response.result.id, verbose=True)
         self.assertEqual(ItemType.ASYMMETRIC_KEY.value, response.result.type)
-        self.assertEqual(1, len(response.result.versions))
-        self.assertEqual(1, response.result.versions[0].version)
+        self.assertEqual(0, len(response.result.versions))
+        self.assertEqual(1, response.result.current_version.version)
         self.assertEqual(name, response.result.name)
         self.assertEqual(FOLDER_VALUE, response.result.folder)
         self.assertEqual(METADATA_VALUE, response.result.metadata)
@@ -383,7 +379,6 @@ class TestVault(unittest.TestCase):
         verify1_deactivated_resp = self.vault.jwt_verify(jws_v1)
         self.assertTrue(verify1_deactivated_resp.result.valid_signature)
 
-    # OK
     def test_generate_asym_signing_all_params(self):
         algorithms = [
             AsymmetricAlgorithm.Ed25519,
@@ -394,7 +389,6 @@ class TestVault(unittest.TestCase):
             id = self.asym_generate_all_params(algorithm=a, purpose=purpose)
             self.vault.delete(id=id)
 
-    # OK
     def test_generate_asym_encrypting_all_params(self):
         algorithms = [
             AsymmetricAlgorithm.RSA,
@@ -404,7 +398,6 @@ class TestVault(unittest.TestCase):
             id = self.asym_generate_all_params(algorithm=a, purpose=purpose)
             self.vault.delete(id=id)
 
-    # OK
     def test_generate_sym_encrypting_all_params(self):
         algorithms = [
             SymmetricAlgorithm.AES,
@@ -414,7 +407,6 @@ class TestVault(unittest.TestCase):
             id = self.sym_generate_all_params(algorithm=a, purpose=purpose)
             self.vault.delete(id=id)
 
-    # OK
     def test_asym_encripting_life_cycle(self):
         algorithms = [
             AsymmetricAlgorithm.RSA,
@@ -431,7 +423,6 @@ class TestVault(unittest.TestCase):
                 self.vault.delete(id=id)
                 self.assertTrue(False)
 
-    # OK
     def test_asym_signing_life_cycle(self):
         algorithms = [
             AsymmetricAlgorithm.Ed25519,
@@ -449,7 +440,6 @@ class TestVault(unittest.TestCase):
                 self.vault.delete(id=id)
                 self.assertTrue(False)
 
-    # OK
     def test_sym_encripting_life_cycle(self):
         algorithms = [
             SymmetricAlgorithm.AES,
@@ -466,7 +456,6 @@ class TestVault(unittest.TestCase):
                 self.vault.delete(id=id)
                 self.assertTrue(False)
 
-    # OK
     def test_secret_life_cycle(self):
         create_resp = self.vault.secret_store(secret="hello world")
         id = create_resp.result.id
@@ -483,9 +472,9 @@ class TestVault(unittest.TestCase):
         self.assertNotEqual(secret_v1, secret_v2)
 
         get_resp = self.vault.get(id)
-        self.assertEqual(1, len(get_resp.result.versions))
-        self.assertEqual(2, get_resp.result.versions[0].version)
-        self.assertEqual(secret_v2, get_resp.result.versions[0].secret)
+        self.assertEqual(0, len(get_resp.result.versions))
+        self.assertEqual(2, get_resp.result.current_version.version)
+        self.assertEqual(secret_v2, get_resp.result.current_version.secret)
         self.assertEqual(ItemType.SECRET, get_resp.result.type)
 
         state_change_resp = self.vault.state_change(id, ItemVersionState.DEACTIVATED, version=2)
@@ -494,10 +483,9 @@ class TestVault(unittest.TestCase):
         # This should fail because secret was deactivated
         get_resp = self.vault.get(id)
         self.assertEqual(id, get_resp.result.id)
-        self.assertEqual(1, len(get_resp.result.versions))
-        self.assertEqual(ItemVersionState.DEACTIVATED.value, get_resp.result.versions[0].state)
+        self.assertEqual(0, len(get_resp.result.versions))
+        self.assertEqual(ItemVersionState.DEACTIVATED.value, get_resp.result.current_version.state)
 
-    # OK
     def test_jwt_asym_life_cycle(self):
         # Create
         algorithms = [
@@ -517,7 +505,6 @@ class TestVault(unittest.TestCase):
                 self.vault.delete(id=id)
                 self.assertTrue(False)
 
-    # OK
     def test_jwt_sym_life_cycle(self):
         # Create
         algorithms = [
