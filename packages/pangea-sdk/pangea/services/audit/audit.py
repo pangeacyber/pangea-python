@@ -34,6 +34,7 @@ from pangea.services.audit.util import (
     decode_membership_proof,
     format_datetime,
     get_arweave_published_roots,
+    get_public_key,
     verify_consistency_proof,
     verify_envelope_hash,
     verify_membership_proof,
@@ -72,6 +73,7 @@ class Audit(ServiceBase):
         token,
         config=None,
         private_key_file: str = "",
+        tenant_id: Optional[str] = None,
         logger_name="pangea",
     ):
         super().__init__(token, config, logger_name)
@@ -83,6 +85,7 @@ class Audit(ServiceBase):
         # In case of Arweave failure, ask the server for the roots
         self.allow_server_roots = True
         self.prev_unpublished_root_hash: Optional[str] = None
+        self.tenant_id = tenant_id
 
     def log(
         self,
@@ -147,6 +150,7 @@ class Audit(ServiceBase):
             status=status,
             target=target,
             timestamp=timestamp,
+            tenant_id=self.tenant_id,
         )
 
         if signing == EventSigning.LOCAL and self.signer is None:
@@ -224,8 +228,8 @@ class Audit(ServiceBase):
         query: str,
         order: Optional[SearchOrder] = None,
         order_by: Optional[SearchOrderBy] = None,
-        start: Optional[datetime.datetime] = None,
-        end: Optional[datetime.datetime] = None,
+        start: Optional[Union[datetime.datetime, str]] = None,
+        end: Optional[Union[datetime.datetime, str]] = None,
         limit: Optional[int] = None,
         max_results: Optional[int] = None,
         search_restriction: Optional[dict] = None,
@@ -282,8 +286,8 @@ class Audit(ServiceBase):
             query=query,
             order=order,
             order_by=order_by,
-            start=None if start is None else format_datetime(start),
-            end=None if end is None else format_datetime(end),
+            start=format_datetime(start) if isinstance(start, datetime.datetime) else start,
+            end=format_datetime(end) if isinstance(end, datetime.datetime) else end,
             limit=limit,
             max_results=max_results,
             search_restriction=search_restriction,
@@ -546,19 +550,20 @@ class Audit(ServiceBase):
             audit_envelope (EventEnvelope): Object to verify
 
         Returns:
-          EventVerification: PASS if success or NONE in case that there is not enough information to verify it
+          EventVerification: PASS if success, FAIL if fail or NONE in case that there is not enough information to verify it
 
-        Raise:
-          EventCorruption: If signature verification fails
         """
-        if audit_envelope and audit_envelope.signature and self.has_valid_public_key(audit_envelope.public_key):
+        public_key = get_public_key(audit_envelope.public_key)
+
+        if audit_envelope and audit_envelope.signature and public_key:
             v = Verifier()
-            if v.verifyMessage(
-                audit_envelope.signature, canonicalize_event(audit_envelope.event), audit_envelope.public_key
-            ):
-                return EventVerification.PASS
+            verification = v.verifyMessage(
+                audit_envelope.signature, canonicalize_event(audit_envelope.event), public_key
+            )
+            if verification is not None:
+                return EventVerification.PASS if verification else EventVerification.FAIL
             else:
-                return EventVerification.FAIL
+                return EventVerification.NONE
         else:
             return EventVerification.NONE
 

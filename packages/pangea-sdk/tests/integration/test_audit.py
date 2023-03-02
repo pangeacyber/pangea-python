@@ -29,9 +29,10 @@ TEST_ENVIRONMENT = TestEnvironment.LIVE
 class TestAudit(unittest.TestCase):
     def setUp(self):
         self.token = get_test_token(TEST_ENVIRONMENT)
-        domain = get_test_domain(TEST_ENVIRONMENT)
-        self.config = PangeaConfig(domain=domain)
+        self.domain = get_test_domain(TEST_ENVIRONMENT)
+        self.config = PangeaConfig(domain=self.domain)
         self.audit = Audit(self.token, config=self.config)
+        logger_set_pangea_config("pangea")
         self.auditSigner = Audit(
             self.token, config=self.config, private_key_file="./tests/testdata/privkey", logger_name="pangea"
         )
@@ -44,6 +45,16 @@ class TestAudit(unittest.TestCase):
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertIsNotNone(response.result.hash)
         self.assertIsNone(response.result.envelope)
+
+    def test_log_tenant_id(self):
+        audit = Audit(self.token, config=self.config, tenant_id="mytenantid")
+        response: PangeaResponse[LogResult] = audit.log(
+            message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verbose=True
+        )
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertIsNotNone(response.result.hash)
+        self.assertIsNotNone(response.result.envelope)
+        self.assertEqual("mytenantid", response.result.envelope.event.tenant_id)
 
     def test_log_with_timestamp(self):
         response: PangeaResponse[LogResult] = self.audit.log(
@@ -139,6 +150,37 @@ class TestAudit(unittest.TestCase):
         self.assertEqual(response.result.membership_verification, EventVerification.PASS)
         self.assertEqual(response.result.signature_verification, EventVerification.PASS)
         self.assertEqual(response.result.envelope.public_key, "lvOyDMpK2DQ16NI8G41yINl01wMHzINBahtDPoh4+mE=")
+
+    def test_log_sign_local_and_tenant_id(self):
+        audit = Audit(
+            self.token,
+            config=self.config,
+            private_key_file="./tests/testdata/privkey",
+            tenant_id="mytenantid",
+        )
+
+        response = audit.log(
+            message=MSG_SIGNED_LOCAL,
+            actor=ACTOR,
+            action="Action",
+            source="Source",
+            status=STATUS_SIGNED,
+            target="Target",
+            new="New",
+            old="Old",
+            signing=EventSigning.LOCAL,
+            verify=True,
+        )
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+
+        self.assertIsNotNone(response.result.envelope)
+        self.assertIsNone(response.result.consistency_proof)
+        self.assertIsNotNone(response.result.membership_proof)
+        self.assertEqual(response.result.consistency_verification, EventVerification.NONE)
+        self.assertEqual(response.result.membership_verification, EventVerification.PASS)
+        self.assertEqual(response.result.signature_verification, EventVerification.PASS)
+        self.assertEqual(response.result.envelope.public_key, "lvOyDMpK2DQ16NI8G41yINl01wMHzINBahtDPoh4+mE=")
+        self.assertEqual("mytenantid", response.result.envelope.event.tenant_id)
 
     def test_log_json_sign_local_and_verify(self):
         new = {"customtag3": "mycustommsg3", "ct4": "cm4"}
@@ -243,7 +285,25 @@ class TestAudit(unittest.TestCase):
         limit = 2
         max_result = 3
         end = datetime.datetime.now()
-        start = end - datetime.timedelta(days=1)
+        start = end - datetime.timedelta(days=30)
+        response_search = self.audit.search(
+            query="message:",
+            order=SearchOrder.DESC,
+            limit=limit,
+            max_results=max_result,
+            verbose=True,
+            start=start,
+            end=end,
+        )
+        self.assertEqual(response_search.status, ResponseStatus.SUCCESS)
+        self.assertEqual(len(response_search.result.events), limit)
+        self.assertEqual(response_search.result.count, max_result)
+
+    def test_search_with_dates_as_strings(self):
+        limit = 2
+        max_result = 3
+        end = "1d"
+        start = "30d"
         response_search = self.audit.search(
             query="message:",
             order=SearchOrder.DESC,

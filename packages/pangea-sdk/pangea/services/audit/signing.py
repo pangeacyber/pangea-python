@@ -84,7 +84,10 @@ class Verifier:
         except Exception:
             return False
 
-        public_key = ed25519.Ed25519PublicKey.from_public_bytes(public_key_bytes)
+        try:
+            public_key = ed25519.Ed25519PublicKey.from_public_bytes(public_key_bytes)
+        except ValueError:
+            raise Exception("Error: Not supported key instance")
 
         if isinstance(message, str):
             return self._verifyMessageStr(signature_b64, message, public_key)
