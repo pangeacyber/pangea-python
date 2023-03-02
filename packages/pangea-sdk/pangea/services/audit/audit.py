@@ -99,6 +99,7 @@ class Audit(ServiceBase):
             verify (bool, optional): True to verify logs consistency after response.
             signing (bool, optional): True to sign event.
             verbose (bool, optional): True to get a more verbose response.
+            tenant_id (string, optional): Used to record the tenant associated with this activity.
         Raises:
             AuditException: If an audit based api exception happens
             PangeaAPIException: If an API Error happens
