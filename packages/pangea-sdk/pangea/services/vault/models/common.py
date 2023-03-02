@@ -181,10 +181,10 @@ class ItemVersionData(PangeaResponseResult):
 
 
 class ItemData(PangeaResponseResult):
-    id: str
     type: str
-    item_state = str
-    current_version: ItemVersionData
+    id: Optional[str] = None
+    item_state: Optional[str] = None
+    current_version: Optional[ItemVersionData] = None
     name: Optional[str] = None
     folder: Optional[str] = None
     metadata: Optional[Metadata] = None
