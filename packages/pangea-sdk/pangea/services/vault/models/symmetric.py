@@ -17,7 +17,7 @@ from pangea.services.vault.models.common import (
 class SymmetricStoreRequest(CommonStoreRequest):
     key: EncodedSymmetricKey
     algorithm: SymmetricAlgorithm
-    purpose: Optional[KeyPurpose] = None
+    purpose: KeyPurpose
 
 
 class SymmetricStoreResult(CommonStoreResult):
@@ -26,8 +26,8 @@ class SymmetricStoreResult(CommonStoreResult):
 
 
 class SymmetricGenerateRequest(CommonGenerateRequest):
-    algorithm: Optional[SymmetricAlgorithm] = None
-    purpose: Optional[KeyPurpose] = None
+    algorithm: SymmetricAlgorithm
+    purpose: KeyPurpose
 
 
 class SymmetricGenerateResult(CommonGenerateResult):

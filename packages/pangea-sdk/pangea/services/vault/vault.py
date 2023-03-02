@@ -250,8 +250,8 @@ class Vault(ServiceBase):
 
     def symmetric_generate(
         self,
-        algorithm: Optional[SymmetricAlgorithm] = None,
-        purpose: Optional[KeyPurpose] = None,
+        algorithm: SymmetricAlgorithm,
+        purpose: KeyPurpose,
         name: Optional[str] = None,
         folder: Optional[str] = None,
         metadata: Optional[Metadata] = None,
@@ -279,8 +279,8 @@ class Vault(ServiceBase):
 
     def asymmetric_generate(
         self,
-        algorithm: Optional[SymmetricAlgorithm] = None,
-        purpose: Optional[KeyPurpose] = None,
+        algorithm: AsymmetricAlgorithm,
+        purpose: KeyPurpose,
         name: Optional[str] = None,
         folder: Optional[str] = None,
         metadata: Optional[Metadata] = None,
@@ -309,10 +309,10 @@ class Vault(ServiceBase):
     # Store endpoints
     def asymmetric_store(
         self,
-        algorithm: AsymmetricAlgorithm,
-        public_key: EncodedPublicKey,
         private_key: EncodedPrivateKey,
-        purpose: Optional[KeyPurpose] = None,
+        public_key: EncodedPublicKey,
+        algorithm: AsymmetricAlgorithm,
+        purpose: KeyPurpose,
         name: Optional[str] = None,
         folder: Optional[str] = None,
         metadata: Optional[Metadata] = None,
@@ -342,9 +342,9 @@ class Vault(ServiceBase):
 
     def symmetric_store(
         self,
-        algorithm: SymmetricAlgorithm,
         key: str,
-        purpose: Optional[KeyPurpose] = None,
+        algorithm: SymmetricAlgorithm,
+        purpose: KeyPurpose,
         name: Optional[str] = None,
         folder: Optional[str] = None,
         metadata: Optional[Metadata] = None,

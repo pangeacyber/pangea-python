@@ -194,7 +194,7 @@ class ItemData(PangeaResponseResult):
     last_rotated: Optional[str] = None
     next_rotation: Optional[str] = None
     expiration: Optional[str] = None
-    created_at: Optional[str] = None  # FIXME: Check if delete this
+    created_at: Optional[str] = None
     algorithm: Optional[str] = None
     purpose: Optional[str] = None
 

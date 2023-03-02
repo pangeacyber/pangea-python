@@ -222,7 +222,7 @@ class TestVault(unittest.TestCase):
         return response.result.id
 
     def test_sym_aes_store_default(self):
-        response = self.vault.symmetric_store(**KEY_AES)
+        response = self.vault.symmetric_store(**KEY_AES, purpose=KeyPurpose.ENCRYPTION)
         self.assertEqual(ItemType.SYMMETRIC_KEY.value, response.result.type)
         self.assertEqual(1, response.result.version)
         self.assertIsNotNone(response.result.id)
@@ -237,6 +237,7 @@ class TestVault(unittest.TestCase):
             rotation_frequency=ROTATION_FREQUENCY_VALUE,
             rotation_state=ROTATION_STATE_VALUE,
             expiration=EXPIRATION_VALUE,
+            purpose=KeyPurpose.ENCRYPTION,
             **KEY_AES,
         )
         self.assertEqual(ItemType.SYMMETRIC_KEY.value, response.result.type)
@@ -256,7 +257,7 @@ class TestVault(unittest.TestCase):
         self.assertEqual(EXPIRATION_VALUE_STR, response.result.expiration)
 
     def test_asym_ed25519_store_default(self):
-        response = self.vault.asymmetric_store(**KEY_ED25519)
+        response = self.vault.asymmetric_store(**KEY_ED25519, purpose=KeyPurpose.SIGNING)
         self.assertEqual(ItemType.ASYMMETRIC_KEY.value, response.result.type)
         self.assertEqual(1, response.result.version)
         self.assertIsNotNone(response.result.id)
@@ -271,6 +272,7 @@ class TestVault(unittest.TestCase):
             rotation_frequency=ROTATION_FREQUENCY_VALUE,
             rotation_state=ROTATION_STATE_VALUE,
             expiration=EXPIRATION_VALUE,
+            purpose=KeyPurpose.SIGNING,
             **KEY_ED25519,
         )
         self.assertEqual(ItemType.ASYMMETRIC_KEY.value, response.result.type)
