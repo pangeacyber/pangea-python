@@ -1,7 +1,7 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 import json
-from typing import Dict, Optional
+from typing import Dict, Optional, Union
 
 from pangea.response import PangeaResponse
 from pangea.services.audit.exceptions import AuditException, EventCorruption
@@ -54,8 +54,10 @@ class Audit(ServiceBase):
         config=None,
         private_key_file: str = "",
         public_key_info: dict[str, str] = {},
+        tenant_id: Optional[str] = None,
+        logger_name="pangea",
     ):
-        super().__init__(token, config)
+        super().__init__(token, config, logger_name)
 
         self.pub_roots: Dict[int, Root] = {}
         self.buffer_data: Optional[str] = None
@@ -65,6 +67,7 @@ class Audit(ServiceBase):
         # In case of Arweave failure, ask the server for the roots
         self.allow_server_roots = True
         self.prev_unpublished_root_hash: Optional[str] = None
+        self.tenant_id = tenant_id
 
     def log(
         self,
@@ -131,6 +134,7 @@ class Audit(ServiceBase):
             status=status,
             target=target,
             timestamp=timestamp,
+            tenant_id=self.tenant_id,
         )
 
         if signing == EventSigning.LOCAL and self.signer is None:
@@ -213,8 +217,8 @@ class Audit(ServiceBase):
         query: str,
         order: Optional[SearchOrder] = None,
         order_by: Optional[SearchOrderBy] = None,
-        start: Optional[datetime.datetime] = None,
-        end: Optional[datetime.datetime] = None,
+        start: Optional[Union[datetime.datetime, str]] = None,
+        end: Optional[Union[datetime.datetime, str]] = None,
         limit: Optional[int] = None,
         max_results: Optional[int] = None,
         search_restriction: Optional[dict] = None,
@@ -271,8 +275,8 @@ class Audit(ServiceBase):
             query=query,
             order=order,
             order_by=order_by,
-            start=None if start is None else format_datetime(start),
-            end=None if end is None else format_datetime(end),
+            start=format_datetime(start) if isinstance(start, datetime.datetime) else start,
+            end=format_datetime(end) if isinstance(end, datetime.datetime) else end,
             limit=limit,
             max_results=max_results,
             search_restriction=search_restriction,

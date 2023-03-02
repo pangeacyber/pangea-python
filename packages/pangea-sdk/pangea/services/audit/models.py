@@ -57,6 +57,7 @@ class Event(APIResponseModel):
     status: Optional[str] = None
     target: Optional[str] = None
     timestamp: Optional[datetime.datetime] = None
+    tenant_id: Optional[str] = None
 
     _JSON_SUPPORTED_FIELDS = ["message", "new", "old"]
 

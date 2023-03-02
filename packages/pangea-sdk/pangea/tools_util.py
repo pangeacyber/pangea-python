@@ -4,10 +4,12 @@
 import enum
 import io
 import json
+import logging
 import os
 import sys
 import typing as t
 from datetime import date, datetime, timezone
+from logging.handlers import TimedRotatingFileHandler
 
 from pangea.config import PangeaConfig
 from pangea.exceptions import PangeaException
@@ -175,3 +177,18 @@ class SequenceFollower:
         min_val = min(self.numbers)
         max_val = max(self.numbers)
         return [val for val in range(min_val, max_val) if val not in self.numbers]
+
+
+def logger_set_pangea_config(logger_name: str, level=logging.DEBUG):
+    logger = logging.getLogger(logger_name)
+    logger.setLevel(level)
+    handler = TimedRotatingFileHandler(
+        filename="pangea_sdk_logs.json", when="D", interval=1, backupCount=90, encoding="utf-8", delay=False
+    )
+    handler.setLevel(level)
+    formatter = logging.Formatter(
+        fmt='{"time": "%(asctime)s.%(msecs)03d", "name": "%(name)s", "level": "%(levelname)s",  "message": %(message)s },',
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)

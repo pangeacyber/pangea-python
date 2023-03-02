@@ -4,6 +4,7 @@
 import json
 import logging
 import time
+from typing import Optional
 
 import pangea
 import requests
@@ -11,8 +12,6 @@ from pangea import exceptions
 from pangea.config import PangeaConfig
 from pangea.response import PangeaResponse, ResponseStatus
 from requests.adapters import HTTPAdapter, Retry
-
-logger = logging.getLogger(__name__)
 
 
 class PangeaRequest(object):
@@ -24,13 +23,7 @@ class PangeaRequest(object):
     be set in PangeaConfig.
     """
 
-    def __init__(
-        self,
-        config: PangeaConfig,
-        token: str,
-        version: str,
-        service: str,
-    ):
+    def __init__(self, config: PangeaConfig, token: str, version: str, service: str, logger: logging.Logger):
         self.config = config
         self.token = token
         self.version = version
@@ -49,8 +42,10 @@ class PangeaRequest(object):
 
         # Custom headers
         self._extra_headers = {}
-
+        self._custom_user_agent = ""
         self.session: requests.Session = self._init_session()
+
+        self.logger = logger
 
     def __del__(self):
         self.session.close()
@@ -64,7 +59,12 @@ class PangeaRequest(object):
         Example:
             set_extra_headers({ "My-Header" : "foobar" })
         """
-        self._extra_headers = headers
+
+        if isinstance(headers, dict):
+            self._extra_headers = headers
+
+    def set_custom_user_agent(self, user_agent: str):
+        self._custom_user_agent = user_agent
 
     def queued_support(self, value: bool):
         """Sets or returns the queued retry support mode.
@@ -92,8 +92,11 @@ class PangeaRequest(object):
                various properties to retrieve individual fields
         """
         url = self._url(endpoint)
+        data_send = json.dumps(data)
 
-        requests_response = self.session.post(url, headers=self._headers(), data=json.dumps(data))
+        self.logger.debug(json.dumps({"service": self.service, "action": "post", "url": url, "data": data}))
+
+        requests_response = self.session.post(url, headers=self._headers(), data=data_send)
 
         if self._queued_retry_enabled and requests_response.status_code == 202:
             response_json = requests_response.json()
@@ -122,10 +125,10 @@ class PangeaRequest(object):
         """
         url = self._url(f"{endpoint}/{path}")
 
+        self.logger.debug(json.dupms({"service": self.service, "action": "get", "url": url}))
+
         requests_response = self.session.get(url, headers=self._headers())
-
         pangea_response = PangeaResponse(requests_response)
-
         self._check_response(pangea_response)
         return pangea_response
 
@@ -167,14 +170,13 @@ class PangeaRequest(object):
     def _headers(self) -> dict:
         headers = {
             "Content-Type": "application/json",
-            "User-Agent": f"pangea-python/{pangea.__version__}",
+            "User-Agent": f"pangea-python/{pangea.__version__} {self._custom_user_agent}",
             "Authorization": f"Bearer {self.token}",
         }
 
-        if self._extra_headers:
-            headers.update(self._extra_headers)
-
-        return headers
+        # We want to ignore previous headers if user tryed to set them, so we will overwrite them.
+        self._extra_headers.update(headers)
+        return self._extra_headers
 
     def _check_response(self, response: PangeaResponse):
         status = response.status
@@ -184,6 +186,12 @@ class PangeaRequest(object):
             return
         else:
             response.result = None
+
+        self.logger.error(
+            json.dumps(
+                {"service": self.service, "action": "api_error", "summary": summary, "result": response.raw_result}
+            )
+        )
 
         if status == ResponseStatus.VALIDATION_ERR.value:
             raise exceptions.ValidationException(summary, response)
@@ -209,4 +217,6 @@ class PangeaRequest(object):
             raise exceptions.IPNotFoundException(summary)
         elif status == ResponseStatus.BAD_OFFSET.value:
             raise exceptions.BadOffsetException(summary, response)
-        raise exceptions.PangeaAPIException(f"{status}: {summary}", response)
+        elif status == ResponseStatus.NOT_FOUND.value:
+            raise exceptions.NotFound(response.raw_response.url if response.raw_response is not None else "", response)
+        raise exceptions.PangeaAPIException(f"{summary} ", response)
