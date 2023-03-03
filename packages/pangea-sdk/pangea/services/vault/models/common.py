@@ -132,7 +132,7 @@ class ItemState(str, enum.Enum):
 
 class CommonStoreRequest(APIRequestModel):
     type: ItemType
-    name: Optional[str] = None
+    name: str
     folder: Optional[str] = None
     metadata: Optional[Metadata] = None
     tags: Optional[Tags] = None
@@ -149,7 +149,7 @@ class CommonStoreResult(PangeaResponseResult):
 
 class CommonGenerateRequest(APIRequestModel):
     type: ItemType
-    name: Optional[str] = None
+    name: str
     folder: Optional[str] = None
     metadata: Optional[Metadata] = None
     tags: Optional[Tags] = None

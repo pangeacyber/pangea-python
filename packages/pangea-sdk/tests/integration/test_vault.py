@@ -22,6 +22,18 @@ ROTATION_FREQUENCY_VALUE = "1d"
 ROTATION_STATE_VALUE = ItemVersionState.DEACTIVATED
 EXPIRATION_VALUE = datetime.datetime.now() + datetime.timedelta(days=1)
 EXPIRATION_VALUE_STR = format_datetime(EXPIRATION_VALUE)
+MAX_RANDOM = 1000000
+ACTOR = "PythonSDKTest"
+
+
+def get_random_id() -> str:
+    return str(random.randrange(1, MAX_RANDOM))
+
+
+def get_name() -> str:
+    caller_name = inspect.stack()[1][3]
+    return f"{TIME}_{ACTOR}_{caller_name}_{get_random_id()}"
+
 
 TEST_ENVIRONMENT = TestEnvironment.DEVELOP
 
@@ -64,7 +76,6 @@ class TestVault(unittest.TestCase):
         self.config = PangeaConfig(domain=domain)
         self.vault = Vault(self.token, config=self.config, logger_name="vault")
         logger_set_pangea_config("vault")
-        self.random_id = str(random.randint(10, 1000000000))
 
     def encrypting_cycle(self, id):
         msg = "thisisamessagetoencrypt"
@@ -184,7 +195,8 @@ class TestVault(unittest.TestCase):
         self.assertTrue(verify1_deactivated_resp.result.valid_signature)
 
     def sym_generate_default(self, algorithm: SymmetricAlgorithm, purpose: KeyPurpose) -> str:
-        response = self.vault.symmetric_generate(algorithm=algorithm, purpose=purpose)
+        name = get_name()
+        response = self.vault.symmetric_generate(algorithm=algorithm, purpose=purpose, name=name)
         self.assertEqual(ItemType.SYMMETRIC_KEY.value, response.result.type)
         self.assertEqual(1, response.result.version)
         self.assertIsNotNone(response.result.id)
@@ -192,7 +204,7 @@ class TestVault(unittest.TestCase):
         return response.result.id
 
     def sym_generate_all_params(self, algorithm: SymmetricAlgorithm, purpose: KeyPurpose) -> str:
-        name = f"{THIS_FUNCTION_NAME()}_{TIME}"
+        name = get_name()
         response = self.vault.symmetric_generate(
             algorithm=algorithm,
             purpose=purpose,
@@ -222,13 +234,14 @@ class TestVault(unittest.TestCase):
         return response.result.id
 
     def test_sym_aes_store_default(self):
-        response = self.vault.symmetric_store(**KEY_AES, purpose=KeyPurpose.ENCRYPTION)
+        name = name = get_name()
+        response = self.vault.symmetric_store(**KEY_AES, purpose=KeyPurpose.ENCRYPTION, name=name)
         self.assertEqual(ItemType.SYMMETRIC_KEY.value, response.result.type)
         self.assertEqual(1, response.result.version)
         self.assertIsNotNone(response.result.id)
 
     def test_sym_aes_store_all_params(self):
-        name = f"{THIS_FUNCTION_NAME()}_{TIME}"
+        name = name = get_name()
         response = self.vault.symmetric_store(
             name=name,
             folder=FOLDER_VALUE,
@@ -257,13 +270,14 @@ class TestVault(unittest.TestCase):
         self.assertEqual(EXPIRATION_VALUE_STR, response.result.expiration)
 
     def test_asym_ed25519_store_default(self):
-        response = self.vault.asymmetric_store(**KEY_ED25519, purpose=KeyPurpose.SIGNING)
+        name = name = get_name()
+        response = self.vault.asymmetric_store(**KEY_ED25519, purpose=KeyPurpose.SIGNING, name=name)
         self.assertEqual(ItemType.ASYMMETRIC_KEY.value, response.result.type)
         self.assertEqual(1, response.result.version)
         self.assertIsNotNone(response.result.id)
 
     def test_asym_ed25519_store_all_params(self):
-        name = f"{THIS_FUNCTION_NAME()}_{TIME}"
+        name = name = get_name()
         response = self.vault.asymmetric_store(
             name=name,
             folder=FOLDER_VALUE,
@@ -292,7 +306,8 @@ class TestVault(unittest.TestCase):
         self.assertEqual(EXPIRATION_VALUE_STR, response.result.expiration)
 
     def asym_generate_default(self, algorithm: AsymmetricAlgorithm, purpose: KeyPurpose) -> str:
-        response = self.vault.asymmetric_generate(algorithm=algorithm, purpose=purpose)
+        name = get_name()
+        response = self.vault.asymmetric_generate(algorithm=algorithm, purpose=purpose, name=name)
         self.assertEqual(ItemType.ASYMMETRIC_KEY.value, response.result.type)
         self.assertEqual(1, response.result.version)
         self.assertIsNotNone(response.result.id)
@@ -300,7 +315,7 @@ class TestVault(unittest.TestCase):
         return response.result.id
 
     def asym_generate_all_params(self, algorithm: AsymmetricAlgorithm, purpose: KeyPurpose) -> str:
-        name = f"{THIS_FUNCTION_NAME()}_{TIME}"
+        name = get_name()
         response = self.vault.asymmetric_generate(
             algorithm=algorithm,
             purpose=purpose,
@@ -459,14 +474,15 @@ class TestVault(unittest.TestCase):
                 self.assertTrue(False)
 
     def test_secret_life_cycle(self):
-        create_resp = self.vault.secret_store(secret="hello world")
+        name = name = get_name()
+        create_resp = self.vault.secret_store(secret="hello world", name=name)
         id = create_resp.result.id
         secret_v1 = create_resp.result.secret
         self.assertIsNotNone(id)
         self.assertEqual(1, create_resp.result.version)
         self.assertEqual(ItemType.SECRET, create_resp.result.type)
 
-        rotate_resp = self.vault.secret_rotate(id, "new hello world")
+        rotate_resp = self.vault.secret_rotate(id=id, secret="new hello world")
         secret_v2 = rotate_resp.result.secret
         self.assertEqual(id, rotate_resp.result.id)
         self.assertEqual(2, rotate_resp.result.version)

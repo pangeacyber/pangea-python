@@ -102,6 +102,12 @@ class PangeaRequest(object):
 
         if self._queued_retry_enabled and requests_response.status_code == 202:
             response_json = requests_response.json()
+            self.logger.debug(
+                json.dumps(
+                    {"service": self.service, "action": "post", "url": url, "response": response_json},
+                    default=default_encoder,
+                )
+            )
             request_id = response_json.get("request_id", None)
 
             if not request_id:
@@ -111,6 +117,12 @@ class PangeaRequest(object):
         else:
             pangea_response = PangeaResponse(requests_response)
 
+        self.logger.debug(
+            json.dumps(
+                {"service": self.service, "action": "post", "url": url, "result": pangea_response.raw_result},
+                default=default_encoder,
+            )
+        )
         self._check_response(pangea_response)
         return pangea_response
 
@@ -128,9 +140,16 @@ class PangeaRequest(object):
         url = self._url(f"{endpoint}/{path}")
 
         self.logger.debug(json.dupms({"service": self.service, "action": "get", "url": url}))
-
         requests_response = self.session.get(url, headers=self._headers())
+
         pangea_response = PangeaResponse(requests_response)
+
+        self.logger.debug(
+            json.dumps(
+                {"service": self.service, "action": "post", "url": url, "result": pangea_response.raw_result},
+                default=default_encoder,
+            )
+        )
         self._check_response(pangea_response)
         return pangea_response
 
@@ -191,7 +210,13 @@ class PangeaRequest(object):
 
         self.logger.error(
             json.dumps(
-                {"service": self.service, "action": "api_error", "summary": summary, "result": response.raw_result}
+                {
+                    "service": self.service,
+                    "action": "api_error",
+                    "url": response.raw_response.url,
+                    "summary": summary,
+                    "result": response.raw_result,
+                }
             )
         )
 
