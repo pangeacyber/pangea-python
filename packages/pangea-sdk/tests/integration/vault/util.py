@@ -40,7 +40,7 @@ update_params = list(
     )
 )
 
-# TODO: rotation_policy, store, retain_previous_version
+# TODO: rotation_frequency
 
 
 def copy_item(store_func, item_name, folder_name, extra_args={}):

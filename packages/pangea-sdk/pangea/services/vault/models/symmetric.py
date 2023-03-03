@@ -9,37 +9,36 @@ from pangea.services.vault.models.common import (
     CommonStoreRequest,
     CommonStoreResult,
     EncodedSymmetricKey,
-    ItemType,
     KeyPurpose,
     SymmetricAlgorithm,
 )
 
 
 class SymmetricStoreRequest(CommonStoreRequest):
-    managed: Optional[bool] = None
     key: EncodedSymmetricKey
     algorithm: SymmetricAlgorithm
-    purpose: Optional[KeyPurpose] = None
+    purpose: KeyPurpose
 
 
 class SymmetricStoreResult(CommonStoreResult):
-    algorithm: Optional[SymmetricAlgorithm] = None  # FIXME: Remove optional once backend is updated
-    key: Optional[EncodedSymmetricKey] = None
+    algorithm: str
+    purpose: str
 
 
 class SymmetricGenerateRequest(CommonGenerateRequest):
-    algorithm: Optional[SymmetricAlgorithm] = None
-    purpose: Optional[KeyPurpose] = None
+    algorithm: SymmetricAlgorithm
+    purpose: KeyPurpose
 
 
 class SymmetricGenerateResult(CommonGenerateResult):
     algorithm: str
-    key: Optional[EncodedSymmetricKey] = None
+    purpose: str
 
 
 class EncryptRequest(APIRequestModel):
     id: str
     plain_text: str
+    version: Optional[int] = None
 
 
 class EncryptResult(PangeaResponseResult):
@@ -51,8 +50,8 @@ class EncryptResult(PangeaResponseResult):
 
 class DecryptRequest(APIRequestModel):
     id: str
-    version: Optional[int] = None
     cipher_text: str
+    version: Optional[int] = None
 
 
 class DecryptResult(PangeaResponseResult):

@@ -11,54 +11,53 @@ from pangea.services.vault.models.common import (
     CommonStoreResult,
     EncodedPrivateKey,
     EncodedPublicKey,
-    ItemType,
     KeyPurpose,
 )
 
 
 class AsymmetricGenerateRequest(CommonGenerateRequest):
-    algorithm: Optional[AsymmetricAlgorithm] = None
-    purpose: Optional[KeyPurpose] = None
+    algorithm: AsymmetricAlgorithm
+    purpose: KeyPurpose
 
 
 class AsymmetricGenerateResult(CommonGenerateResult):
     algorithm: str
+    purpose: str
     public_key: EncodedPublicKey
-    private_key: Optional[EncodedPrivateKey] = None
 
 
 class AsymmetricStoreRequest(CommonStoreRequest):
-    managed: Optional[bool] = None
     algorithm: AsymmetricAlgorithm
     public_key: EncodedPublicKey
     private_key: EncodedPrivateKey
-    purpose: Optional[KeyPurpose] = None
+    purpose: KeyPurpose
 
 
 class AsymmetricStoreResult(CommonStoreResult):
     algorithm: str
+    purpose: str
     public_key: EncodedPublicKey
-    private_key: Optional[EncodedPrivateKey] = None
 
 
 class SignRequest(APIRequestModel):
     id: str
     message: str
+    version: Optional[int] = None
 
 
 class SignResult(PangeaResponseResult):
     id: str
     version: int
-    signature: str
     algorithm: str
+    signature: str
     public_key: Optional[EncodedPublicKey] = None
 
 
 class VerifyRequest(APIRequestModel):
     id: str
-    version: Optional[int] = None
     message: str
     signature: str
+    version: Optional[int] = None
 
 
 class VerifyResult(PangeaResponseResult):

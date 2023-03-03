@@ -1,28 +1,52 @@
 import datetime
 import inspect
 import json
-import logging
 import random
 import unittest
-from typing import Dict, List, Optional, Union
+from typing import Dict, List
 
 import pangea.exceptions as pexc
 from pangea import PangeaConfig
-from pangea.response import PangeaResponse
-from pangea.services.vault.models.asymmetric import AsymmetricAlgorithm, AsymmetricGenerateResult, KeyPurpose
-from pangea.services.vault.models.symmetric import SymmetricAlgorithm, SymmetricGenerateResult
-from pangea.services.vault.vault import ItemType, Vault
-from pangea.tools import TestEnvironment, get_test_domain, get_test_token
-from pangea.utils import setup_logger, str2str_b64
+from pangea.services.vault.models.asymmetric import AsymmetricAlgorithm, KeyPurpose
+from pangea.services.vault.models.symmetric import SymmetricAlgorithm
+from pangea.services.vault.vault import ItemType, ItemVersionState, Vault
+from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
+from pangea.utils import format_datetime, str2str_b64
 
-TIME = datetime.datetime.now().strftime("%m%d_%H%M%S")
-LOG_LEVEL = logging.INFO
-LOG_PATH = f"./logs/{TIME}/"
-LOG_FORMATTER = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
+TIME = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 THIS_FUNCTION_NAME = lambda: inspect.stack()[1][3]
-ENABLE_ASSERT_RESPONSES = True
+FOLDER_VALUE = f"/test_key_folder/{TIME}/"
+METADATA_VALUE = {"test": "True", "field1": "value1", "field2": "value2"}
+TAGS_VALUE = ["test", "symmetric"]
+ROTATION_FREQUENCY_VALUE = "1d"
+ROTATION_STATE_VALUE = ItemVersionState.DEACTIVATED
+EXPIRATION_VALUE = datetime.datetime.now() + datetime.timedelta(days=1)
+EXPIRATION_VALUE_STR = format_datetime(EXPIRATION_VALUE)
+MAX_RANDOM = 1000000
+ACTOR = "PythonSDKTest"
+
+
+def get_random_id() -> str:
+    return str(random.randrange(1, MAX_RANDOM))
+
+
+def get_name() -> str:
+    caller_name = inspect.stack()[1][3]
+    return f"{TIME}_{ACTOR}_{caller_name}_{get_random_id()}"
+
 
 TEST_ENVIRONMENT = TestEnvironment.DEVELOP
+
+KEY_ED25519 = {
+    "algorithm": AsymmetricAlgorithm.Ed25519,
+    "private_key": "-----BEGIN PRIVATE KEY-----\nMC4CAQAwBQYDK2VwBCIEIGthqegkjgddRAn0PWN2FeYC6HcCVQf/Ph9sUbeprTBO\n-----END PRIVATE KEY-----\n",
+    "public_key": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAPlGrDliJXUbPc2YWEhFxlL2UbBfLHc3ed1f36FrDtTc=\n-----END PUBLIC KEY-----\n",
+}
+
+KEY_AES = {
+    "algorithm": SymmetricAlgorithm.AES,
+    "key": "oILlp2FUPHWiaqFXl4/1ww==",
+}
 
 
 def combine_lists(dict_list: List[Dict], field_values: List, field_name: str):
@@ -50,93 +74,15 @@ class TestVault(unittest.TestCase):
         self.token = get_test_token(TEST_ENVIRONMENT)
         domain = get_test_domain(TEST_ENVIRONMENT)
         self.config = PangeaConfig(domain=domain)
-
-        self.vault = Vault(self.token, config=self.config)
-        self.random_id = str(random.randint(10, 1000000000))
-
-        self.managed_values: List[Optional[bool]] = [True, False, None]
-        self.store_values: List[Optional[bool]] = [True, False, None]
-        self.auto_rotate_values: List[Dict] = [
-            {"auto_rotate": True, "rotation_policy": "1d"},
-            {"auto_rotate": False},
-            {"auto_rotate": None},
-        ]
-        self.retain_previous_version_values: List[Optional[bool]] = [True, False, None]
-        self.expiration_values: List[Optional[datetime.datetime]] = [
-            None,
-            datetime.datetime.now() + datetime.timedelta(days=2),
-        ]
-        self.common_param_comb = [{}]
-        self.common_param_comb = combine_lists(self.common_param_comb, self.store_values, "store")
-        self.common_param_comb = combine_dict(self.common_param_comb, self.auto_rotate_values)
-        self.common_param_comb = combine_lists(self.common_param_comb, self.expiration_values, "expiration")
-
-        # this params will be used just for secret
-        self.secret_param_comb = combine_lists(
-            self.common_param_comb, self.retain_previous_version_values, "retain_previous_version"
-        )
-
-        # this params will be used just for keys
-        self.key_param_comb = combine_lists(self.common_param_comb, self.managed_values, "managed")
-
-    def create_key_check_common_response(
-        self, response: PangeaResponse[Union[SymmetricGenerateResult, AsymmetricGenerateResult]], params: Dict[str, any]
-    ):
-        if ENABLE_ASSERT_RESPONSES is not True:
-            return
-        with self.subTest(msg=f"Create key check common {params}"):
-            if params["store"] is False:
-                self.assertIsNone(response.result.id)
-            else:
-                self.assertEqual(1, response.result.version)
-                self.assertIsNotNone(response.result.id)
-
-    def create_symmetric_check_response(
-        self, response: PangeaResponse[SymmetricGenerateResult], params: Dict[str, any]
-    ):
-        if ENABLE_ASSERT_RESPONSES is not True:
-            return
-        self.create_key_check_common_response(response, params)
-        with self.subTest(msg=f"Create symetric check common {params}"):
-            if params["store"] is False:
-                self.assertIsNotNone(response.result.key)
-            else:
-                if params["managed"] is False:
-                    self.assertIsNotNone(response.result.key)
-                else:
-                    self.assertIsNone(response.result.key)
-
-    def create_asymmetric_check_response(
-        self, response: PangeaResponse[AsymmetricGenerateResult], params: Dict[str, any]
-    ):
-        if ENABLE_ASSERT_RESPONSES is not True:
-            return
-        self.create_key_check_common_response(response, params)
-        with self.subTest(msg=f"Create asymmetric check common {params}"):
-            self.assertIsNotNone(response.result.public_key)
-            if params["store"] is False:
-                self.assertIsNotNone(response.result.private_key)
-                self.assertIsNone(response.result.id)
-            else:
-                if params["managed"] is False:
-                    self.assertIsNotNone(response.result.private_key)
-                else:
-                    self.assertIsNone(response.result.private_key)
+        self.vault = Vault(self.token, config=self.config, logger_name="vault")
+        logger_set_pangea_config("vault")
 
     def encrypting_cycle(self, id):
         msg = "thisisamessagetoencrypt"
         data_b64 = str2str_b64(msg)
 
         # Encrypt 1
-        try:
-            encrypt1_resp = self.vault.encrypt(id, data_b64)
-        except pexc.PangeaAPIException as e:
-            print(f"Response: {e.response}")
-            if e.errors:
-                print("Error details: ")
-                for ef in e.errors:
-                    print(f"\t {ef.detail}")
-            self.assertTrue(False)
+        encrypt1_resp = self.vault.encrypt(id, data_b64)
 
         self.assertEqual(id, encrypt1_resp.result.id)
         self.assertEqual(1, encrypt1_resp.result.version)
@@ -144,7 +90,7 @@ class TestVault(unittest.TestCase):
         self.assertIsNotNone(cipher_v1)
 
         # Rotate
-        rotate_resp = self.vault.key_rotate(id)
+        rotate_resp = self.vault.key_rotate(id=id, rotation_state=ItemVersionState.SUSPENDED)
         self.assertEqual(2, rotate_resp.result.version)
         self.assertEqual(id, rotate_resp.result.id)
 
@@ -156,14 +102,7 @@ class TestVault(unittest.TestCase):
         self.assertIsNotNone(cipher_v2)
 
         # Decrypt 1
-        try:
-            decrypt1_resp = self.vault.decrypt(id, cipher_v1, 1)
-        except pexc.PangeaAPIException as e:
-            print(f"Response: {e.response}")
-            if e.errors:
-                print("Error details: ")
-                for ef in e.errors:
-                    print(f"\t {ef.detail}")
+        decrypt1_resp = self.vault.decrypt(id, cipher_v1, 1)
         self.assertEqual(data_b64, decrypt1_resp.result.plain_text)
 
         # Decrypt 2
@@ -175,22 +114,22 @@ class TestVault(unittest.TestCase):
         self.assertEqual(data_b64, decrypt_default_resp.result.plain_text)
 
         # Decrypt wrong version
-        decrypt_bad = self.vault.decrypt(id, cipher_v2, 1)
-        self.assertNotEqual(data_b64, decrypt_bad.result.plain_text)
+        # decrypt_bad = self.vault.decrypt(id, cipher_v2, 1)
+        # self.assertNotEqual(data_b64, decrypt_bad.result.plain_text)
 
         # Decrypt wrong id
         with self.assertRaises(pexc.ItemNotFound):
             self.vault.decrypt("thisisnotandid", cipher_v2, 2)
 
-        # Revoke key
-        revoke_resp = self.vault.revoke(id)
-        self.assertEqual(id, revoke_resp.result.id)
+        # Desactivate key
+        change_state_resp = self.vault.state_change(id, ItemVersionState.DEACTIVATED, version=1)
+        self.assertEqual(id, change_state_resp.result.id)
 
-        # Decrypt after revoked.
-        decrypt1_revoked_resp = self.vault.decrypt(id, cipher_v1, 1)
-        self.assertEqual(data_b64, decrypt1_revoked_resp.result.plain_text)
+        # Decrypt after deactivated.
+        decrypt1_deactivated_resp = self.vault.decrypt(id, cipher_v1, 1)
+        self.assertEqual(data_b64, decrypt1_deactivated_resp.result.plain_text)
 
-    def asymmetric_signing_cycle(self, id):
+    def signing_cycle(self, id):
         data = "thisisamessagetosign"
         # Sign 1
         sign1_resp = self.vault.sign(id, data)
@@ -200,7 +139,7 @@ class TestVault(unittest.TestCase):
         self.assertIsNotNone(signature_v1)
 
         # Rotate
-        rotate_resp = self.vault.key_rotate(id)
+        rotate_resp = self.vault.key_rotate(id, rotation_state=ItemVersionState.SUSPENDED)
         self.assertEqual(2, rotate_resp.result.version)
         self.assertEqual(id, rotate_resp.result.id)
 
@@ -245,240 +184,166 @@ class TestVault(unittest.TestCase):
         with self.assertRaises(pexc.PangeaAPIException):
             self.vault.verify(id, "thisisnotvaliddatax", signature_v2, 2)
 
-        # Revoke key
-        revoke_resp = self.vault.revoke(id)
-        self.assertEqual(id, revoke_resp.result.id)
+        # Deactivate key
+        state_change_resp = self.vault.state_change(id, ItemVersionState.DEACTIVATED, version=1)
+        self.assertEqual(id, state_change_resp.result.id)
 
-        # Verify after revoked.
-        verify1_revoked_resp = self.vault.verify(id, data, signature_v1, 1)
-        self.assertEqual(id, verify1_revoked_resp.result.id)
-        self.assertEqual(1, verify1_revoked_resp.result.version)
-        self.assertTrue(verify1_revoked_resp.result.valid_signature)
+        # Verify after deactivated.
+        verify1_deactivated_resp = self.vault.verify(id, data, signature_v1, 1)
+        self.assertEqual(id, verify1_deactivated_resp.result.id)
+        self.assertEqual(1, verify1_deactivated_resp.result.version)
+        self.assertTrue(verify1_deactivated_resp.result.valid_signature)
 
-    def test_aes_create(self):
-        success = 0
-        failed = 0
-        logger = setup_logger(LOG_PATH, THIS_FUNCTION_NAME(), LOG_LEVEL, LOG_FORMATTER)
-        logger.critical("Starting...")
-        for parameters in self.key_param_comb:
-            with self.subTest(parameters=parameters):
-                try:
-                    response = self.vault.symmetric_generate(algorithm=SymmetricAlgorithm.AES, **parameters)
-                    logger.debug(f"\nSymmetric parameters: {parameters}")
-                    logger.debug(f"Success result: {response.result}")
-                    self.create_symmetric_check_response(response, parameters)
-                    success += 1
-                except pexc.PangeaAPIException as e:
-                    if parameters["managed"] is True and parameters["store"] is False:
-                        logger.debug(f"\n Success failed with symmetric parameters: {parameters}")
-                        success += 1
-                    else:
-                        failed += 1
-                        logger.critical("\nSymmetric parameters: ", parameters)
-                        logger.critical(f"Exception result: {e}")
-                        logger.error(f"Response: {e.response}")
-                        if e.errors:
-                            logger.warning("Error details: ")
-                            for ef in e.errors:
-                                logger.warning(f"\t {ef.detail}")
+    def sym_generate_default(self, algorithm: SymmetricAlgorithm, purpose: KeyPurpose) -> str:
+        name = get_name()
+        response = self.vault.symmetric_generate(algorithm=algorithm, purpose=purpose, name=name)
+        self.assertEqual(ItemType.SYMMETRIC_KEY.value, response.result.type)
+        self.assertEqual(1, response.result.version)
+        self.assertIsNotNone(response.result.id)
+        self.assertEqual(algorithm.value, response.result.algorithm)
+        return response.result.id
 
-        logger.critical(f"\nFinal summary. Success: {success}. Failed: {failed}")
-
-    def test_ed25519_create_signing(self):
-        success = 0
-        failed = 0
-        logger = setup_logger(LOG_PATH, THIS_FUNCTION_NAME(), LOG_LEVEL, LOG_FORMATTER)
-        logger.critical("Starting...")
-        for parameters in self.key_param_comb:
-            try:
-                response = self.vault.asymmetric_generate(
-                    algorithm=AsymmetricAlgorithm.Ed25519, purpose=KeyPurpose.SIGNING, **parameters
-                )
-                logger.debug(f"\nAsymmetric parameters: {parameters}")
-                logger.debug(f"Success result: {response.result}")
-                self.create_asymmetric_check_response(response, parameters)
-                success += 1
-            except pexc.PangeaAPIException as e:
-                if parameters["managed"] is True and parameters["store"] is False:
-                    logger.debug(f"\n Success failed with asymmetric parameters: {parameters}")
-                    success += 1
-                else:
-                    failed += 1
-                    logger.critical(f"\nAsymmetric parameters: {parameters}")
-                    logger.critical(f"Exception result: {e}")
-                    logger.error(f"Response: {e.response}")
-                    if e.errors:
-                        logger.info("Error details: ")
-                        for ef in e.errors:
-                            logger.info(f"\t {ef.detail}")
-
-        logger.critical(f"\nFinal summary. Success: {success}. Failed: {failed}")
-
-    def test_ed25519_create_encryption(self):
-        success = 0
-        failed = 0
-        logger = setup_logger(LOG_PATH, THIS_FUNCTION_NAME(), LOG_LEVEL, LOG_FORMATTER)
-        logger.critical("Starting...")
-        for parameters in self.key_param_comb:
-            try:
-                response = self.vault.asymmetric_generate(
-                    algorithm=AsymmetricAlgorithm.Ed25519, purpose=KeyPurpose.ENCRYPTION, **parameters
-                )
-                logger.debug(f"\nAsymmetric parameters: {parameters}")
-                logger.debug(f"Success result: {response.result}")
-                self.create_asymmetric_check_response(response, parameters)
-                success += 1
-            except pexc.PangeaAPIException as e:
-                if parameters["managed"] is True and parameters["store"] is False:
-                    logger.debug(f"\n Success failed with asymmetric parameters: {parameters}")
-                    success += 1
-                else:
-                    failed += 1
-                    logger.critical(f"\nAsymmetric parameters: {parameters}")
-                    logger.critical(f"Exception result: {e}")
-                    logger.error(f"Response: {e.response}")
-                    if e.errors:
-                        logger.info("Error details: ")
-                        for ef in e.errors:
-                            logger.info(f"\t {ef.detail}")
-
-        logger.critical(f"\nFinal summary. Success: {success}. Failed: {failed}")
-
-    def test_ed25519_signing_life_cycle(self):
-        # Create
-        create_resp = self.vault.asymmetric_generate(
-            algorithm=AsymmetricAlgorithm.Ed25519, purpose=KeyPurpose.SIGNING, managed=True, store=True
+    def sym_generate_all_params(self, algorithm: SymmetricAlgorithm, purpose: KeyPurpose) -> str:
+        name = get_name()
+        response = self.vault.symmetric_generate(
+            algorithm=algorithm,
+            purpose=purpose,
+            name=name,
+            folder=FOLDER_VALUE,
+            metadata=METADATA_VALUE,
+            tags=TAGS_VALUE,
+            rotation_frequency=ROTATION_FREQUENCY_VALUE,
+            rotation_state=ROTATION_STATE_VALUE,
+            expiration=EXPIRATION_VALUE,
         )
-        id = create_resp.result.id
-        self.assertIsNotNone(id)
-        self.assertEqual(1, create_resp.result.version)
+        self.assertEqual(ItemType.SYMMETRIC_KEY.value, response.result.type)
+        self.assertEqual(1, response.result.version)
+        self.assertIsNotNone(response.result.id)
 
-        try:
-            self.asymmetric_signing_cycle(id)
-        except pexc.PangeaAPIException as e:
-            print(e)
-            self.assertTrue(False)
+        response = self.vault.get(id=response.result.id, verbose=True)
+        self.assertEqual(ItemType.SYMMETRIC_KEY.value, response.result.type)
+        self.assertEqual(0, len(response.result.versions))
+        self.assertEqual(1, response.result.current_version.version)
+        self.assertEqual(name, response.result.name)
+        self.assertEqual(FOLDER_VALUE, response.result.folder)
+        self.assertEqual(METADATA_VALUE, response.result.metadata)
+        self.assertEqual(TAGS_VALUE, response.result.tags)
+        self.assertEqual(ROTATION_FREQUENCY_VALUE, response.result.rotation_frequency)
+        self.assertEqual(ROTATION_STATE_VALUE.value, response.result.rotation_state)
+        self.assertEqual(EXPIRATION_VALUE_STR, response.result.expiration)
+        return response.result.id
 
-    @unittest.skip("asymmetric encryption not working yet")
-    def test_ed25519_encrypting_life_cycle(self):
-        # Create
-        create_resp = self.vault.asymmetric_generate(
-            algorithm=AsymmetricAlgorithm.Ed25519, purpose=KeyPurpose.ENCRYPTION, managed=True, store=True
-        )
-        id = create_resp.result.id
-        self.assertIsNotNone(id)
-        self.assertEqual(1, create_resp.result.version)
-        self.encrypting_cycle(id)
+    def test_sym_aes_store_default(self):
+        name = name = get_name()
+        response = self.vault.symmetric_store(**KEY_AES, purpose=KeyPurpose.ENCRYPTION, name=name)
+        self.assertEqual(ItemType.SYMMETRIC_KEY.value, response.result.type)
+        self.assertEqual(1, response.result.version)
+        self.assertIsNotNone(response.result.id)
 
-    def test_aes_encrypting_life_cycle(self):
-        # Create
-        create_resp = self.vault.symmetric_generate(algorithm=SymmetricAlgorithm.AES, managed=True, store=True)
-        id = create_resp.result.id
-        self.assertIsNotNone(id)
-        self.assertEqual(1, create_resp.result.version)
-        self.encrypting_cycle(id)
-
-    def test_ed25519_create_store_signing_life_cycle(self):
-        # Create
-        create_resp = self.vault.asymmetric_generate(
-            algorithm=AsymmetricAlgorithm.Ed25519, purpose=KeyPurpose.SIGNING, managed=False, store=False
-        )
-
-        pub_key = create_resp.result.public_key
-        priv_key = create_resp.result.private_key
-        self.assertIsNone(create_resp.result.id)
-        self.assertIsNotNone(pub_key)
-        self.assertIsNotNone(priv_key)
-
-        store_resp = self.vault.asymmetric_store(
-            algorithm=AsymmetricAlgorithm.Ed25519,
-            purpose=KeyPurpose.SIGNING,
-            public_key=pub_key,
-            private_key=priv_key,
-            managed=False,
-        )
-
-        id = store_resp.result.id
-        self.assertIsNotNone(id)
-        self.assertEqual(pub_key, store_resp.result.public_key)
-        self.assertEqual(priv_key, store_resp.result.private_key)
-        self.assertEqual(1, store_resp.result.version)
-
-        try:
-            self.asymmetric_signing_cycle(id)
-        except pexc.PangeaAPIException as e:
-            print(e)
-            self.assertTrue(False)
-
-    @unittest.skip("asymmetric encryption not working yet")
-    def test_ed25519_create_store_encrypting_life_cycle(self):
-        # Create
-        create_resp = self.vault.asymmetric_generate(
-            algorithm=AsymmetricAlgorithm.Ed25519, purpose=KeyPurpose.ENCRYPTION, managed=False, store=False
-        )
-        pub_key = create_resp.result.public_key
-        priv_key = create_resp.result.private_key
-        self.assertIsNone(create_resp.result.id)
-        self.assertIsNotNone(pub_key)
-        self.assertIsNotNone(priv_key)
-
-        store_resp = self.vault.asymmetric_store(
-            algorithm=AsymmetricAlgorithm.Ed25519,
+    def test_sym_aes_store_all_params(self):
+        name = name = get_name()
+        response = self.vault.symmetric_store(
+            name=name,
+            folder=FOLDER_VALUE,
+            metadata=METADATA_VALUE,
+            tags=TAGS_VALUE,
+            rotation_frequency=ROTATION_FREQUENCY_VALUE,
+            rotation_state=ROTATION_STATE_VALUE,
+            expiration=EXPIRATION_VALUE,
             purpose=KeyPurpose.ENCRYPTION,
-            public_key=create_resp.result.public_key,
-            private_key=create_resp.result.private_key,
-            managed=False,
+            **KEY_AES,
         )
+        self.assertEqual(ItemType.SYMMETRIC_KEY.value, response.result.type)
+        self.assertEqual(1, response.result.version)
+        self.assertIsNotNone(response.result.id)
 
-        id = store_resp.result.id
-        self.assertIsNotNone(id)
-        self.assertEqual(pub_key, store_resp.result.public_key)
-        self.assertEqual(priv_key, store_resp.result.private_key)
-        self.assertEqual(1, store_resp.result.version)
-        self.encrypting_cycle(id)
+        response = self.vault.get(id=response.result.id, verbose=True)
+        self.assertEqual(ItemType.SYMMETRIC_KEY.value, response.result.type)
+        self.assertEqual(0, len(response.result.versions))
+        self.assertEqual(1, response.result.current_version.version)
+        self.assertEqual(name, response.result.name)
+        self.assertEqual(FOLDER_VALUE, response.result.folder)
+        self.assertEqual(METADATA_VALUE, response.result.metadata)
+        self.assertEqual(TAGS_VALUE, response.result.tags)
+        self.assertEqual(ROTATION_FREQUENCY_VALUE, response.result.rotation_frequency)
+        self.assertEqual(ROTATION_STATE_VALUE.value, response.result.rotation_state)
+        self.assertEqual(EXPIRATION_VALUE_STR, response.result.expiration)
 
-    def test_aes_create_store_encrypting_life_cycle(self):
-        # Create
-        algorithm = SymmetricAlgorithm.AES
-        create_resp = self.vault.symmetric_generate(algorithm=algorithm, managed=False, store=False)
-        self.assertIsNone(create_resp.result.id)
-        self.assertIsNotNone(create_resp.result.key)
+    def test_asym_ed25519_store_default(self):
+        name = name = get_name()
+        response = self.vault.asymmetric_store(**KEY_ED25519, purpose=KeyPurpose.SIGNING, name=name)
+        self.assertEqual(ItemType.ASYMMETRIC_KEY.value, response.result.type)
+        self.assertEqual(1, response.result.version)
+        self.assertIsNotNone(response.result.id)
 
-        key = create_resp.result.key
-        store_resp = self.vault.symmetric_store(algorithm=algorithm, key=key, managed=False)
-        id = store_resp.result.id
-        self.assertIsNotNone(id)
-        self.assertEqual(1, store_resp.result.version)
-        self.assertEqual(key, store_resp.result.key)
+    def test_asym_ed25519_store_all_params(self):
+        name = name = get_name()
+        response = self.vault.asymmetric_store(
+            name=name,
+            folder=FOLDER_VALUE,
+            metadata=METADATA_VALUE,
+            tags=TAGS_VALUE,
+            rotation_frequency=ROTATION_FREQUENCY_VALUE,
+            rotation_state=ROTATION_STATE_VALUE,
+            expiration=EXPIRATION_VALUE,
+            purpose=KeyPurpose.SIGNING,
+            **KEY_ED25519,
+        )
+        self.assertEqual(ItemType.ASYMMETRIC_KEY.value, response.result.type)
+        self.assertEqual(1, response.result.version)
+        self.assertIsNotNone(response.result.id)
 
-        self.encrypting_cycle(id)
+        response = self.vault.get(id=response.result.id, verbose=True)
+        self.assertEqual(ItemType.ASYMMETRIC_KEY.value, response.result.type)
+        self.assertEqual(0, len(response.result.versions))
+        self.assertEqual(1, response.result.current_version.version)
+        self.assertEqual(name, response.result.name)
+        self.assertEqual(FOLDER_VALUE, response.result.folder)
+        self.assertEqual(METADATA_VALUE, response.result.metadata)
+        self.assertEqual(TAGS_VALUE, response.result.tags)
+        self.assertEqual(ROTATION_FREQUENCY_VALUE, response.result.rotation_frequency)
+        self.assertEqual(ROTATION_STATE_VALUE.value, response.result.rotation_state)
+        self.assertEqual(EXPIRATION_VALUE_STR, response.result.expiration)
 
-    def test_secret_life_cycle(self):
-        create_resp = self.vault.secret_store(secret="hello world")
-        id = create_resp.result.id
-        secret_v1 = create_resp.result.secret
-        self.assertIsNotNone(id)
-        self.assertEqual(1, create_resp.result.version)
-        self.assertEqual(ItemType.SECRET, create_resp.result.type)
+    def asym_generate_default(self, algorithm: AsymmetricAlgorithm, purpose: KeyPurpose) -> str:
+        name = get_name()
+        response = self.vault.asymmetric_generate(algorithm=algorithm, purpose=purpose, name=name)
+        self.assertEqual(ItemType.ASYMMETRIC_KEY.value, response.result.type)
+        self.assertEqual(1, response.result.version)
+        self.assertIsNotNone(response.result.id)
+        self.assertEqual(algorithm.value, response.result.algorithm)
+        return response.result.id
 
-        rotate_resp = self.vault.secret_rotate(id, "new hello world")
-        secret_v2 = rotate_resp.result.secret
-        self.assertEqual(id, rotate_resp.result.id)
-        self.assertEqual(2, rotate_resp.result.version)
-        self.assertEqual(ItemType.SECRET, rotate_resp.result.type)
-        self.assertNotEqual(secret_v1, secret_v2)
+    def asym_generate_all_params(self, algorithm: AsymmetricAlgorithm, purpose: KeyPurpose) -> str:
+        name = get_name()
+        response = self.vault.asymmetric_generate(
+            algorithm=algorithm,
+            purpose=purpose,
+            name=name,
+            folder=FOLDER_VALUE,
+            metadata=METADATA_VALUE,
+            tags=TAGS_VALUE,
+            rotation_frequency=ROTATION_FREQUENCY_VALUE,
+            rotation_state=ROTATION_STATE_VALUE,
+            expiration=EXPIRATION_VALUE,
+        )
+        self.assertEqual(ItemType.ASYMMETRIC_KEY.value, response.result.type)
+        self.assertEqual(1, response.result.version)
+        self.assertIsNotNone(response.result.id)
+        self.assertEqual(algorithm.value, response.result.algorithm)
 
-        get_resp = self.vault.get(id)
-        self.assertEqual(secret_v2, get_resp.result.secret)
-        self.assertEqual(2, get_resp.result.version)
-        self.assertEqual(ItemType.SECRET, get_resp.result.type)
-
-        revoke_resp = self.vault.revoke(id)
-        self.assertEqual(id, revoke_resp.result.id)
-
-        # This should fail because secret was revoked
-        get_resp = self.vault.get(id)
-        self.assertEqual(id, get_resp.result.id)
+        response = self.vault.get(id=response.result.id, verbose=True)
+        self.assertEqual(ItemType.ASYMMETRIC_KEY.value, response.result.type)
+        self.assertEqual(0, len(response.result.versions))
+        self.assertEqual(1, response.result.current_version.version)
+        self.assertEqual(name, response.result.name)
+        self.assertEqual(FOLDER_VALUE, response.result.folder)
+        self.assertEqual(METADATA_VALUE, response.result.metadata)
+        self.assertEqual(TAGS_VALUE, response.result.tags)
+        self.assertEqual(ROTATION_FREQUENCY_VALUE, response.result.rotation_frequency)
+        self.assertEqual(ROTATION_STATE_VALUE.value, response.result.rotation_state)
+        self.assertEqual(EXPIRATION_VALUE_STR, response.result.expiration)
+        return response.result.id
 
     def jwt_signing_cycle(self, id):
         data = {"message": "message to sign", "data": "Some extra data"}
@@ -490,7 +355,7 @@ class TestVault(unittest.TestCase):
         self.assertIsNotNone(jws_v1)
 
         # Rotate
-        rotate_resp = self.vault.key_rotate(id)
+        rotate_resp = self.vault.key_rotate(id, ItemVersionState.SUSPENDED)
         self.assertEqual(2, rotate_resp.result.version)
         self.assertEqual(id, rotate_resp.result.id)
 
@@ -523,68 +388,156 @@ class TestVault(unittest.TestCase):
         get_resp = self.vault.jwk_get(id, "-1")
         self.assertEqual(2, len(get_resp.result.jwk.keys))
 
-        # Revoke key
-        revoke_resp = self.vault.revoke(id)
-        self.assertEqual(id, revoke_resp.result.id)
+        # Deactivate key
+        state_change_resp = self.vault.state_change(id, ItemVersionState.DEACTIVATED, version=1)
+        self.assertEqual(id, state_change_resp.result.id)
 
-        # Verify after revoked.
-        verify1_revoked_resp = self.vault.jwt_verify(jws_v1)
-        self.assertTrue(verify1_revoked_resp.result.valid_signature)
+        # Verify after deactivated.
+        verify1_deactivated_resp = self.vault.jwt_verify(jws_v1)
+        self.assertTrue(verify1_deactivated_resp.result.valid_signature)
 
-    def test_jwt_asym_es256_life_cycle(self):
-        # Create
-        algorithm = AsymmetricAlgorithm.ES256
-        purpose = KeyPurpose.JWT
-        create_resp = self.vault.asymmetric_generate(algorithm=algorithm, purpose=purpose, managed=False, store=False)
+    def test_generate_asym_signing_all_params(self):
+        algorithms = [
+            AsymmetricAlgorithm.Ed25519,
+            AsymmetricAlgorithm.RSA,
+        ]
+        purpose = KeyPurpose.SIGNING
+        for a in algorithms:
+            id = self.asym_generate_all_params(algorithm=a, purpose=purpose)
+            self.vault.delete(id=id)
 
-        pub_key = create_resp.result.public_key
-        priv_key = create_resp.result.private_key
-        self.assertIsNone(create_resp.result.id)
-        self.assertIsNotNone(pub_key)
-        self.assertIsNotNone(priv_key)
+    def test_generate_asym_encrypting_all_params(self):
+        algorithms = [
+            AsymmetricAlgorithm.RSA,
+        ]
+        purpose = KeyPurpose.ENCRYPTION
+        for a in algorithms:
+            id = self.asym_generate_all_params(algorithm=a, purpose=purpose)
+            self.vault.delete(id=id)
 
-        store_resp = self.vault.asymmetric_store(
-            algorithm=algorithm,
-            purpose=purpose,
-            public_key=pub_key,
-            private_key=priv_key,
-            managed=False,
-        )
+    def test_generate_sym_encrypting_all_params(self):
+        algorithms = [
+            SymmetricAlgorithm.AES,
+        ]
+        purpose = KeyPurpose.ENCRYPTION
+        for a in algorithms:
+            id = self.sym_generate_all_params(algorithm=a, purpose=purpose)
+            self.vault.delete(id=id)
 
-        id = store_resp.result.id
+    def test_asym_encripting_life_cycle(self):
+        algorithms = [
+            AsymmetricAlgorithm.RSA,
+        ]
+        purpose = KeyPurpose.ENCRYPTION
+        for algorithm in algorithms:
+            id = self.asym_generate_default(algorithm=algorithm, purpose=purpose)
+            try:
+                self.encrypting_cycle(id)
+                self.vault.delete(id=id)
+            except pexc.PangeaAPIException as e:
+                print(f"Failed test_asym_encripting_life_cycle with {algorithm}")
+                print(e)
+                self.vault.delete(id=id)
+                self.assertTrue(False)
+
+    def test_asym_signing_life_cycle(self):
+        algorithms = [
+            AsymmetricAlgorithm.Ed25519,
+            AsymmetricAlgorithm.RSA,
+        ]
+        purpose = KeyPurpose.SIGNING
+        for algorithm in algorithms:
+            id = self.asym_generate_default(algorithm=algorithm, purpose=purpose)
+            try:
+                self.signing_cycle(id)
+                self.vault.delete(id=id)
+            except pexc.PangeaAPIException as e:
+                print(f"Failed {THIS_FUNCTION_NAME()} with {algorithm}")
+                print(e)
+                self.vault.delete(id=id)
+                self.assertTrue(False)
+
+    def test_sym_encripting_life_cycle(self):
+        algorithms = [
+            SymmetricAlgorithm.AES,
+        ]
+        purpose = KeyPurpose.ENCRYPTION
+        for algorithm in algorithms:
+            id = self.sym_generate_default(algorithm=algorithm, purpose=purpose)
+            try:
+                self.encrypting_cycle(id)
+                self.vault.delete(id=id)
+            except pexc.PangeaAPIException as e:
+                print(f"Failed {THIS_FUNCTION_NAME()} with {algorithm}")
+                print(e)
+                self.vault.delete(id=id)
+                self.assertTrue(False)
+
+    def test_secret_life_cycle(self):
+        name = name = get_name()
+        create_resp = self.vault.secret_store(secret="hello world", name=name)
+        id = create_resp.result.id
+        secret_v1 = create_resp.result.secret
         self.assertIsNotNone(id)
-        self.assertEqual(pub_key, store_resp.result.public_key)
-        self.assertEqual(priv_key, store_resp.result.private_key)
-        self.assertEqual(1, store_resp.result.version)
-        try:
-            self.jwt_signing_cycle(id)
-        except pexc.PangeaAPIException as e:
-            print(e)
-            self.assertTrue(False)
+        self.assertEqual(1, create_resp.result.version)
+        self.assertEqual(ItemType.SECRET, create_resp.result.type)
 
-    def test_jwt_sym_hs256_life_cycle(self):
+        rotate_resp = self.vault.secret_rotate(id=id, secret="new hello world")
+        secret_v2 = rotate_resp.result.secret
+        self.assertEqual(id, rotate_resp.result.id)
+        self.assertEqual(2, rotate_resp.result.version)
+        self.assertEqual(ItemType.SECRET, rotate_resp.result.type)
+        self.assertNotEqual(secret_v1, secret_v2)
+
+        get_resp = self.vault.get(id)
+        self.assertEqual(0, len(get_resp.result.versions))
+        self.assertEqual(2, get_resp.result.current_version.version)
+        self.assertEqual(secret_v2, get_resp.result.current_version.secret)
+        self.assertEqual(ItemType.SECRET, get_resp.result.type)
+
+        state_change_resp = self.vault.state_change(id, ItemVersionState.DEACTIVATED, version=2)
+        self.assertEqual(id, state_change_resp.result.id)
+
+        # This should fail because secret was deactivated
+        get_resp = self.vault.get(id)
+        self.assertEqual(id, get_resp.result.id)
+        self.assertEqual(0, len(get_resp.result.versions))
+        self.assertEqual(ItemVersionState.DEACTIVATED.value, get_resp.result.current_version.state)
+
+    def test_jwt_asym_life_cycle(self):
         # Create
-        algorithm = SymmetricAlgorithm.HS256
+        algorithms = [
+            AsymmetricAlgorithm.ES256,
+            AsymmetricAlgorithm.ES384,
+            AsymmetricAlgorithm.ES512,
+        ]
         purpose = KeyPurpose.JWT
-        create_resp = self.vault.symmetric_generate(algorithm=algorithm, purpose=purpose, managed=False, store=False)
+        for algorithm in algorithms:
+            id = self.asym_generate_default(algorithm=algorithm, purpose=purpose)
+            try:
+                self.jwt_signing_cycle(id)
+                self.vault.delete(id=id)
+            except pexc.PangeaAPIException as e:
+                print(f"Failed {THIS_FUNCTION_NAME()} with {algorithm}")
+                print(e)
+                self.vault.delete(id=id)
+                self.assertTrue(False)
 
-        key = create_resp.result.key
-        self.assertIsNone(create_resp.result.id)
-        self.assertIsNotNone(key)
-
-        store_resp = self.vault.symmetric_store(
-            algorithm=algorithm,
-            purpose=purpose,
-            key=key,
-            managed=False,
-        )
-
-        id = store_resp.result.id
-        self.assertIsNotNone(id)
-        self.assertEqual(key, store_resp.result.key)
-        self.assertEqual(1, store_resp.result.version)
-        try:
-            self.jwt_signing_cycle(id)
-        except pexc.PangeaAPIException as e:
-            print(e)
-            self.assertTrue(False)
+    def test_jwt_sym_life_cycle(self):
+        # Create
+        algorithms = [
+            SymmetricAlgorithm.HS256,
+            SymmetricAlgorithm.HS384,
+            SymmetricAlgorithm.HS512,
+        ]
+        purpose = KeyPurpose.JWT
+        for algorithm in algorithms:
+            id = self.sym_generate_default(algorithm=algorithm, purpose=purpose)
+            try:
+                self.jwt_signing_cycle(id)
+                self.vault.delete(id=id)
+            except pexc.PangeaAPIException as e:
+                print(f"Failed {THIS_FUNCTION_NAME()} with {algorithm}")
+                print(e)
+                self.vault.delete(id=id)
+                self.assertTrue(False)

@@ -1,7 +1,5 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
-from typing import Optional
-
 from pangea.services.vault.models.common import (
     CommonRotateRequest,
     CommonRotateResult,
@@ -11,7 +9,6 @@ from pangea.services.vault.models.common import (
 
 
 class SecretStoreRequest(CommonStoreRequest):
-    retain_previous_version: Optional[bool] = None
     secret: str
 
 

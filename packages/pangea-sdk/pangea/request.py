@@ -11,6 +11,7 @@ import requests
 from pangea import exceptions
 from pangea.config import PangeaConfig
 from pangea.response import PangeaResponse, ResponseStatus
+from pangea.utils import default_encoder
 from requests.adapters import HTTPAdapter, Retry
 
 
@@ -92,14 +93,21 @@ class PangeaRequest(object):
                various properties to retrieve individual fields
         """
         url = self._url(endpoint)
-        data_send = json.dumps(data)
-
-        self.logger.debug(json.dumps({"service": self.service, "action": "post", "url": url, "data": data}))
+        data_send = json.dumps(data, default=default_encoder) if isinstance(data, dict) else data
+        self.logger.debug(
+            json.dumps({"service": self.service, "action": "post", "url": url, "data": data}, default=default_encoder)
+        )
 
         requests_response = self.session.post(url, headers=self._headers(), data=data_send)
 
         if self._queued_retry_enabled and requests_response.status_code == 202:
             response_json = requests_response.json()
+            self.logger.debug(
+                json.dumps(
+                    {"service": self.service, "action": "post", "url": url, "response": response_json},
+                    default=default_encoder,
+                )
+            )
             request_id = response_json.get("request_id", None)
 
             if not request_id:
@@ -109,6 +117,12 @@ class PangeaRequest(object):
         else:
             pangea_response = PangeaResponse(requests_response)
 
+        self.logger.debug(
+            json.dumps(
+                {"service": self.service, "action": "post", "url": url, "result": pangea_response.raw_result},
+                default=default_encoder,
+            )
+        )
         self._check_response(pangea_response)
         return pangea_response
 
@@ -126,9 +140,16 @@ class PangeaRequest(object):
         url = self._url(f"{endpoint}/{path}")
 
         self.logger.debug(json.dupms({"service": self.service, "action": "get", "url": url}))
-
         requests_response = self.session.get(url, headers=self._headers())
+
         pangea_response = PangeaResponse(requests_response)
+
+        self.logger.debug(
+            json.dumps(
+                {"service": self.service, "action": "post", "url": url, "result": pangea_response.raw_result},
+                default=default_encoder,
+            )
+        )
         self._check_response(pangea_response)
         return pangea_response
 
@@ -189,7 +210,13 @@ class PangeaRequest(object):
 
         self.logger.error(
             json.dumps(
-                {"service": self.service, "action": "api_error", "summary": summary, "result": response.raw_result}
+                {
+                    "service": self.service,
+                    "action": "api_error",
+                    "url": response.raw_response.url,
+                    "summary": summary,
+                    "result": response.raw_result,
+                }
             )
         )
 

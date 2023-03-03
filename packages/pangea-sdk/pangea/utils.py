@@ -13,6 +13,13 @@ def format_datetime(dt: datetime.datetime) -> str:
     return dt.isoformat(timespec="milliseconds").replace("+00:00", "Z")
 
 
+def default_encoder(obj) -> str:
+    if isinstance(obj, datetime.datetime):
+        return format_datetime(obj)
+    else:
+        return str(obj)
+
+
 def setup_logger(path, name, log_level, formatter) -> logging.Logger:
     try:
         os.makedirs(path)

@@ -59,9 +59,7 @@ def test_secret_store(vault: Vault, param_name, param_value, param_response):
         "folder": "/tmp",
         "metadata": {},
         "tags": [],
-        "auto_rotate": False,
-        "rotation_policy": None,
-        # "retain_previous_version": True,
+        "rotation_frequency": None,
         "expiration": None,
         "secret": "xxx",
     }
