@@ -285,7 +285,7 @@ class TestAudit(unittest.TestCase):
             actor=ACTOR,
             action="Action",
             source="Source",
-            status=STATUS_NO_SIGNED,
+            status=STATUS_SIGNED,
             target="Target",
             new=new,
             old=old,
