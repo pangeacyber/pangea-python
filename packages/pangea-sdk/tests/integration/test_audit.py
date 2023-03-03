@@ -31,7 +31,7 @@ MSG_SIGNED_VAULT = "sign-test-vault"
 STATUS_NO_SIGNED = "no-signed"
 STATUS_SIGNED = "signed"
 
-TEST_ENVIRONMENT = TestEnvironment.DEVELOP
+TEST_ENVIRONMENT = TestEnvironment.LIVE
 
 
 class TestAudit(unittest.TestCase):
