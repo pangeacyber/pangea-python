@@ -49,26 +49,6 @@ KEY_AES = {
 }
 
 
-def combine_lists(dict_list: List[Dict], field_values: List, field_name: str):
-    dest: List[Dict] = []
-    for d in dict_list:
-        for v in field_values:
-            d_copy = d.copy()
-            d_copy[field_name] = v
-            dest.append(d_copy)
-    return dest
-
-
-def combine_dict(dict_list: List[Dict], field_values: List[Dict]):
-    dest: List[Dict] = []
-    for v in field_values:
-        for d in dict_list:
-            d_copy = d.copy()
-            d_copy.update(v)
-            dest.append(d_copy)
-    return dest
-
-
 class TestVault(unittest.TestCase):
     def setUp(self):
         self.token = get_test_token(TEST_ENVIRONMENT)

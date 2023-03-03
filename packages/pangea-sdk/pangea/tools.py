@@ -111,15 +111,6 @@ def make_aware_datetime(d: datetime) -> datetime:
         return d
 
 
-def json_defaults(obj):
-    if obj is None:
-        return obj
-    elif isinstance(obj, (datetime, date)):
-        return obj.isoformat().replace("+00:00", "Z")
-    else:
-        return str(obj)
-
-
 def filter_deep_none(data: t.Dict) -> t.Dict:
     return {k: v if not isinstance(v, t.Dict) else filter_deep_none(v) for k, v in data.items() if v is not None}
 

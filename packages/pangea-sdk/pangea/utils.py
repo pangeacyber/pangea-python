@@ -1,7 +1,5 @@
 import base64
 import datetime
-import logging
-import os
 
 
 def format_datetime(dt: datetime.datetime) -> str:
@@ -18,20 +16,6 @@ def default_encoder(obj) -> str:
         return format_datetime(obj)
     else:
         return str(obj)
-
-
-def setup_logger(path, name, log_level, formatter) -> logging.Logger:
-    try:
-        os.makedirs(path)
-    except FileExistsError:
-        pass
-
-    handler = logging.FileHandler(f"{path}{name}.log")
-    handler.setFormatter(formatter)
-    logger = logging.getLogger(name)
-    logger.setLevel(log_level)
-    logger.addHandler(handler)
-    return logger
 
 
 def str2str_b64(data: str):
