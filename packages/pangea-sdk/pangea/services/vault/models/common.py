@@ -205,7 +205,7 @@ class GetResult(ItemData):
 
 
 class ListItemData(ItemData):
-    compromised_versions: List[ItemVersionData]
+    compromised_versions: Optional[List[ItemVersionData]] = None
 
 
 class ListResult(PangeaResponseResult):
