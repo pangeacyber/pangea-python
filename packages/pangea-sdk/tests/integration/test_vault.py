@@ -35,7 +35,7 @@ def get_name() -> str:
     return f"{TIME}_{ACTOR}_{caller_name}_{get_random_id()}"
 
 
-TEST_ENVIRONMENT = TestEnvironment.DEVELOP
+TEST_ENVIRONMENT = TestEnvironment.LIVE
 
 KEY_ED25519 = {
     "algorithm": AsymmetricAlgorithm.Ed25519,
