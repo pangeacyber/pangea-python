@@ -224,12 +224,12 @@ class TestIPIntel(unittest.TestCase):
         self.assertTrue(response.result.data.is_vpn)
 
     def test_ip_proxy(self):
-        response = self.intel_ip.is_proxy(ip="34.201.32.172", provider="digitalenvoy", verbose=True, raw=True)
+        response = self.intel_ip.is_proxy(ip="1.0.136.28", provider="digitalenvoy", verbose=True, raw=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertTrue(response.result.data.is_proxy)
 
     def test_ip_proxy_default_provider(self):
-        response = self.intel_ip.is_proxy(ip="34.201.32.172", verbose=True, raw=True)
+        response = self.intel_ip.is_proxy(ip="1.0.136.28", verbose=True, raw=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertTrue(response.result.data.is_proxy)
 
