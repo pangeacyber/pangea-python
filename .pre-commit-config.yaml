@@ -8,7 +8,6 @@ repos:
       - id: check-merge-conflict
       - id: debug-statements
       - id: detect-aws-credentials
-      - id: detect-private-key
       - id: check-executables-have-shebangs
       - id: check-shebang-scripts-are-executable
       - id: no-commit-to-branch

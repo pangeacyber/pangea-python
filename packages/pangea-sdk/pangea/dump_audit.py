@@ -11,21 +11,15 @@ from datetime import datetime
 import dateutil.parser
 from pangea.response import PangeaResponse
 from pangea.services import Audit
-from pangea.tools_util import (
-    filter_deep_none,
-    get_script_name,
-    init_audit,
-    json_defaults,
-    make_aware_datetime,
-    print_progress_bar,
-)
+from pangea.tools import filter_deep_none, get_script_name, init_audit, make_aware_datetime, print_progress_bar
+from pangea.utils import default_encoder
 
 
 def dump_event(output: io.TextIOWrapper, row: dict, resp: PangeaResponse):
     row_data = filter_deep_none(row.dict())
     if resp.result.root:
         row_data["tree_size"] = resp.result.root.size
-    output.write(json.dumps(row_data, default=json_defaults) + "\n")
+    output.write(json.dumps(row_data, default=default_encoder) + "\n")
 
 
 def dump_audit(audit: Audit, output: io.TextIOWrapper, start: datetime, end: datetime) -> int:

@@ -27,11 +27,18 @@ class PangeaAPIException(PangeaException):
     def errors(self) -> List[ErrorField]:
         return self.response.errors
 
-    def __str__(self) -> str:
-        ret = "\n"
-        ret += f"Summary: {self.response.summary}\n"
+    def __repr__(self) -> str:
+        ret = f"Summary: {self.response.summary}\n"
         if self.response.errors:
-            ret += "Errors:\n"
+            ret += "Errors: \n"
+            for ef in self.response.errors:
+                ret += f"\t {ef.detail}\n"
+        return ret
+
+    def __str__(self) -> str:
+        ret = f"Summary: {self.response.summary}\n"
+        if self.response.errors:
+            ret += "Errors: \n"
             for ef in self.response.errors:
                 ret += f"\t {ef.detail}\n"
         return ret
@@ -112,3 +119,21 @@ class TreeNotFoundException(AuditAPIException):
 
 class BadOffsetException(AuditAPIException):
     """Bad offset in results search"""
+
+
+# Vault SDK specific exceptions
+class VaultException(PangeaException):
+    """Vault SDK specific exceptions"""
+
+
+# Vault API specific exceptions
+class VaultAPIException(PangeaAPIException):
+    """Vault service specific exceptions"""
+
+
+class ForbiddenVaultOperation(VaultAPIException):
+    """Forbiden Vault operation"""
+
+
+class ItemNotFound(VaultAPIException):
+    """Vault item not found"""

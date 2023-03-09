@@ -12,7 +12,7 @@ from itertools import groupby
 import pangea.services.audit.util as audit_util
 from pangea.services import Audit
 from pangea.services.audit.models import EventEnvelope
-from pangea.tools_util import Event, SequenceFollower, exit_with_error, file_events, init_audit, print_progress_bar
+from pangea.tools import Event, SequenceFollower, exit_with_error, file_events, init_audit, print_progress_bar
 
 
 class Errors(t.TypedDict):
@@ -161,7 +161,7 @@ def deep_verify(audit: Audit, file: io.TextIOWrapper) -> Errors:
     }
 
     events = file_events(root_hashes, file)
-    events_by_idx: list[Event] | t.Iterator[Event]
+    events_by_idx: t.Union[list[Event], t.Iterator[Event]]
     cold_indexes = SequenceFollower()
     for leaf_index, events_by_idx in groupby(events, lambda event: event.get("leaf_index")):
         events_by_idx = list(events_by_idx)
