@@ -297,7 +297,7 @@ class FileIntel(ServiceBase):
         raw: Optional[bool] = None,
     ) -> PangeaResponse[FileReputationResult]:
         """
-        File reputation
+        Reputation check
 
         Retrieve hash-based file reputation from a provider, including an optional detailed report.
 
@@ -332,7 +332,7 @@ class FileIntel(ServiceBase):
         raw: Optional[bool] = None,
     ) -> PangeaResponse[FileReputationResult]:
         """
-        File reputation
+        Reputation check
 
         Retrieve hash-based file reputation from a provider, including an optional detailed report.
 
@@ -368,7 +368,7 @@ class FileIntel(ServiceBase):
         raw: Optional[bool] = None,
     ) -> PangeaResponse[FileReputationResult]:
         """
-        File reputation, from filepath
+        Reputation, from filepath
 
         Retrieve hash-based file reputation from a provider, including an optional detailed report.
 
@@ -405,7 +405,7 @@ class FileIntel(ServiceBase):
         raw: Optional[bool] = None,
     ) -> PangeaResponse[FileReputationResult]:
         """
-        File reputation, from filepath
+        Reputation, from filepath
 
         Retrieve hash-based file reputation from a provider, including an optional detailed report.
         This function take care of calculate filepath hash and make the request to service
@@ -468,7 +468,7 @@ class DomainIntel(ServiceBase):
         self, domain: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
     ) -> PangeaResponse[DomainReputationResult]:
         """
-        Domain reputation
+        Reputation check
 
         Retrieve reputation for a domain from a provider, including an optional detailed report.
 
@@ -497,7 +497,7 @@ class DomainIntel(ServiceBase):
         self, domain: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
     ) -> PangeaResponse[DomainReputationResult]:
         """
-        Domain reputation
+        Reputation check
 
         Retrieve reputation for a domain from a provider, including an optional detailed report.
 
@@ -555,7 +555,7 @@ class IpIntel(ServiceBase):
         self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
     ) -> PangeaResponse[IPReputationResult]:
         """
-        IP reputation
+        Reputation
 
         Retrieve a reputation score for an IP address from a provider, including an optional detailed report.
 
@@ -585,7 +585,7 @@ class IpIntel(ServiceBase):
         self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
     ) -> PangeaResponse[IPReputationResult]:
         """
-        IP reputation
+        Reputation
 
         Retrieve a reputation score for an IP address from a provider, including an optional detailed report.
 
@@ -614,7 +614,7 @@ class IpIntel(ServiceBase):
         self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
     ) -> PangeaResponse[IPGeolocateResult]:
         """
-        Geolocate an IP
+        Geolocate
 
         Retrieve information about the location of an IP address.
 
@@ -643,7 +643,7 @@ class IpIntel(ServiceBase):
         self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
     ) -> PangeaResponse[IPDomainResult]:
         """
-        Look up domain for an IP
+        Domain
 
         Retrieve the domain name associated with an IP address.
 
@@ -672,7 +672,7 @@ class IpIntel(ServiceBase):
         self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
     ) -> PangeaResponse[IPVPNResult]:
         """
-        Check if an IP is a VPN
+        VPN
 
         Determine if an IP address is provided by a VPN service.
 
@@ -701,7 +701,7 @@ class IpIntel(ServiceBase):
         self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
     ) -> PangeaResponse[IPProxyResult]:
         """
-        Check for proxied IPs
+        Proxy
 
         Determine if an IP address is provided by a proxy service.
 
@@ -759,7 +759,7 @@ class UrlIntel(ServiceBase):
         self, url: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
     ) -> PangeaResponse[URLReputationResult]:
         """
-        URL reputation
+        Reputation check
 
         Retrieve URL address reputation from a provider.
 
@@ -789,7 +789,7 @@ class UrlIntel(ServiceBase):
         self, url: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
     ) -> PangeaResponse[URLReputationResult]:
         """
-        URL reputation
+        Reputation check
 
         Retrieve URL address reputation from a provider.
 
