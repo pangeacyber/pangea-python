@@ -2,19 +2,19 @@ import os
 
 import pangea.exceptions as pe
 from pangea.config import PangeaConfig
-from pangea.services import IpIntel
+from pangea.services import DomainIntel
 
-token = os.getenv("PANGEA_IP_INTEL_TOKEN")
+token = os.getenv("PANGEA_INTEL_TOKEN")
 domain = os.getenv("PANGEA_DOMAIN")
 config = PangeaConfig(domain=domain)
-intel = IpIntel(token, config=config)
+intel = DomainIntel(token, config=config)
 
 
 def main():
-    print(f"Geolocate IP...")
+    print(f"Checking domain...")
 
     try:
-        response = intel.geolocate(ip="93.231.182.110", provider="digitalenvoy", verbose=True, raw=True)
+        response = intel.reputation(domain="737updatesboeing.com", provider="domaintools", verbose=True, raw=True)
         print(f"Response: {response.result}")
     except pe.PangeaAPIException as e:
         print(f"Request Error: {e.response.summary}")

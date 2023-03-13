@@ -3,11 +3,13 @@ import os
 import pangea.exceptions as pe
 from pangea.config import PangeaConfig
 from pangea.services import Embargo
+from pangea.tools import logger_set_pangea_config
 
 token = os.getenv("PANGEA_EMBARGO_TOKEN")
 domain = os.getenv("PANGEA_DOMAIN")
 config = PangeaConfig(domain=domain)
-embargo = Embargo(token, config=config)
+embargo = Embargo(token, config=config, logger_name="embargo")
+logger_set_pangea_config(logger_name=embargo.logger.name)
 
 
 def main():

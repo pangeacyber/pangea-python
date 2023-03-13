@@ -5,13 +5,15 @@ from pangea.config import PangeaConfig
 from pangea.response import PangeaResponse
 from pangea.services import Audit
 from pangea.services.audit.audit import SearchOutput, SearchResultOutput
+from pangea.tools import logger_set_pangea_config
 
 # This example shows how to perform an audit log, and then search for thats results
 
 token = os.getenv("PANGEA_AUDIT_TOKEN")
 domain = os.getenv("PANGEA_DOMAIN")
 config = PangeaConfig(domain=domain)
-audit = Audit(token, config=config, private_key_file="./tests/testdata/privkey")
+audit = Audit(token, config=config, private_key_file="./tests/testdata/privkey", logger_name="audit")
+logger_set_pangea_config(logger_name=audit.logger.name)
 
 
 def main():

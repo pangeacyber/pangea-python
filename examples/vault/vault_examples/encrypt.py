@@ -2,8 +2,8 @@ import os
 
 import pangea.exceptions as pe
 from pangea.config import PangeaConfig
-from pangea.services.vault.models.asymmetric import AsymmetricAlgorithm
 from pangea.services.vault.models.common import KeyPurpose
+from pangea.services.vault.models.symmetric import SymmetricAlgorithm
 from pangea.services.vault.vault import Vault
 from pangea.utils import str2str_b64
 
@@ -17,7 +17,7 @@ def main():
     try:
         # create a symmetric key with Pangea-provided material and default parameters
         create_response = vault.symmetric_generate(
-            purpose=KeyPurpose.ENCRYPTION, algorithm=AsymmetricAlgorithm.RSA, name="test key"
+            purpose=KeyPurpose.ENCRYPTION, algorithm=SymmetricAlgorithm.AES, name="test key"
         )
         key_id = create_response.result.id
 
