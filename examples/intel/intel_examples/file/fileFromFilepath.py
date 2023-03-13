@@ -3,7 +3,7 @@ import os
 import pangea.exceptions as pe
 from pangea.config import PangeaConfig
 from pangea.services import FileIntel
-from pangea.tools_util import logger_set_pangea_config
+from pangea.tools import logger_set_pangea_config
 
 token = os.getenv("PANGEA_INTEL_TOKEN")
 domain = os.getenv("PANGEA_DOMAIN")
