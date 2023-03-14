@@ -325,7 +325,42 @@ class TestVault(unittest.TestCase):
         self.assertEqual(EXPIRATION_VALUE_STR, response.result.expiration)
         return response.result.id
 
-    def jwt_signing_cycle(self, id):
+    def jwt_sym_signing_cycle(self, id):
+        data = {"message": "message to sign", "data": "Some extra data"}
+        payload = json.dumps(data)
+
+        # Sign 1
+        sign1_resp = self.vault.jwt_sign(id, payload)
+        jws_v1 = sign1_resp.result.jws
+        self.assertIsNotNone(jws_v1)
+
+        # Rotate
+        rotate_resp = self.vault.key_rotate(id, ItemVersionState.SUSPENDED)
+        self.assertEqual(2, rotate_resp.result.version)
+        self.assertEqual(id, rotate_resp.result.id)
+
+        # Sign 2
+        sign2_resp = self.vault.jwt_sign(id, payload)
+        jws_v2 = sign2_resp.result.jws
+        self.assertIsNotNone(jws_v2)
+
+        # Verify 1
+        verify1_resp = self.vault.jwt_verify(jws_v1)
+        self.assertTrue(verify1_resp.result.valid_signature)
+
+        # Verify 2
+        verify2_resp = self.vault.jwt_verify(jws_v2)
+        self.assertTrue(verify2_resp.result.valid_signature)
+
+        # Deactivate key
+        state_change_resp = self.vault.state_change(id, ItemVersionState.DEACTIVATED, version=1)
+        self.assertEqual(id, state_change_resp.result.id)
+
+        # Verify after deactivated.
+        verify1_deactivated_resp = self.vault.jwt_verify(jws_v1)
+        self.assertTrue(verify1_deactivated_resp.result.valid_signature)
+
+    def jwt_asym_signing_cycle(self, id):
         data = {"message": "message to sign", "data": "Some extra data"}
         payload = json.dumps(data)
 
@@ -495,7 +530,7 @@ class TestVault(unittest.TestCase):
         for algorithm in algorithms:
             id = self.asym_generate_default(algorithm=algorithm, purpose=purpose)
             try:
-                self.jwt_signing_cycle(id)
+                self.jwt_asym_signing_cycle(id)
                 self.vault.delete(id=id)
             except pexc.PangeaAPIException as e:
                 print(f"Failed {THIS_FUNCTION_NAME()} with {algorithm}")
@@ -514,7 +549,7 @@ class TestVault(unittest.TestCase):
         for algorithm in algorithms:
             id = self.sym_generate_default(algorithm=algorithm, purpose=purpose)
             try:
-                self.jwt_signing_cycle(id)
+                self.jwt_sym_signing_cycle(id)
                 self.vault.delete(id=id)
             except pexc.PangeaAPIException as e:
                 print(f"Failed {THIS_FUNCTION_NAME()} with {algorithm}")
