@@ -354,19 +354,19 @@ class TestVault(unittest.TestCase):
 
         # Get default
         get_resp = self.vault.jwk_get(id)
-        self.assertEqual(1, len(get_resp.result.jwk.keys))
+        self.assertEqual(1, len(get_resp.result.keys))
 
         # Get version 1
         get_resp = self.vault.jwk_get(id, 1)
-        self.assertEqual(1, len(get_resp.result.jwk.keys))
+        self.assertEqual(1, len(get_resp.result.keys))
 
         # Get all
         get_resp = self.vault.jwk_get(id, "all")
-        self.assertEqual(2, len(get_resp.result.jwk.keys))
+        self.assertEqual(2, len(get_resp.result.keys))
 
         # Get version -1
         get_resp = self.vault.jwk_get(id, "-1")
-        self.assertEqual(2, len(get_resp.result.jwk.keys))
+        self.assertEqual(2, len(get_resp.result.keys))
 
         # Deactivate key
         state_change_resp = self.vault.state_change(id, ItemVersionState.DEACTIVATED, version=1)
