@@ -302,12 +302,8 @@ class JWKrsa(JWKHeader):
     d: Optional[str] = None
 
 
-class JWKSet(PangeaResponseResult):
-    keys: List[Union[JWKec, JWKrsa, JWK]]
-
-
 class JWKGetResult(PangeaResponseResult):
-    jwk: JWKSet
+    keys: List[Union[JWKec, JWKrsa, JWK]]
 
 
 class JWTVerifyRequest(APIRequestModel):

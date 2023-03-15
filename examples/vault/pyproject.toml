@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "vault-examples"
+version = "1.0.0"
+description = "This is a set of examples about how to use python SDK to communicate with Vault service"
+authors = ["H. Andres Tournour <andres.tournour@pangea.cloud>"]
+readme = "README.md"
+packages = [{include = "vault_examples"}]
+
+[tool.poetry.dependencies]
+python = "^3.7.2"
+pangea-sdk = "^1.5.0"   # FIXME: change this version to latest once vault is released
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
