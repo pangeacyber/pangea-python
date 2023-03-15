@@ -248,4 +248,6 @@ class PangeaRequest(object):
             raise exceptions.ItemNotFound(summary, response)
         elif status == ResponseStatus.NOT_FOUND.value:
             raise exceptions.NotFound(response.raw_response.url if response.raw_response is not None else "", response)
+        elif status == ResponseStatus.INTERNAL_ERROR.value:
+            raise exceptions.InternalServerError(response)
         raise exceptions.PangeaAPIException(f"{summary} ", response)
