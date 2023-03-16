@@ -3,7 +3,7 @@ import unittest
 import pangea.exceptions as pe
 from pangea import PangeaConfig
 from pangea.services import Embargo
-from pangea.tools_util import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
+from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
 
 TEST_ENVIRONMENT = TestEnvironment.LIVE
 
