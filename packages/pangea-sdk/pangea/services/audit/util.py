@@ -141,7 +141,11 @@ def format_datetime(dt: datetime):
     """
     Format a datetime in ISO format, using Z instead of +00:00
     """
-    return dt.isoformat().replace("+00:00", "Z")
+    ret = dt.isoformat()
+    if dt.tzinfo is not None:
+        return ret.replace("+00:00", "Z")
+    else:
+        return ret + "Z"
 
 
 def normalize_log(audit: dict) -> dict:
