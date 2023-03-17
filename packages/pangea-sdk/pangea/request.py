@@ -245,9 +245,9 @@ class PangeaRequest(object):
         elif status == ResponseStatus.FORBIDDEN_VAULT_OPERATION.value:
             raise exceptions.ForbiddenVaultOperation(summary, response)
         elif status == ResponseStatus.VAULT_ITEM_NOT_FOUND.value:
-            raise exceptions.ItemNotFound(summary, response)
+            raise exceptions.VaultItemNotFound(summary, response)
         elif status == ResponseStatus.NOT_FOUND.value:
             raise exceptions.NotFound(response.raw_response.url if response.raw_response is not None else "", response)
-        elif status == ResponseStatus.INTERNAL_ERROR.value:
+        elif status == ResponseStatus.INTERNAL_SERVER_ERROR.value:
             raise exceptions.InternalServerError(response)
         raise exceptions.PangeaAPIException(f"{summary} ", response)

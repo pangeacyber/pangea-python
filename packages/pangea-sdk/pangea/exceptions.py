@@ -139,5 +139,5 @@ class ForbiddenVaultOperation(VaultAPIException):
     """Forbiden Vault operation"""
 
 
-class ItemNotFound(VaultAPIException):
+class VaultItemNotFound(VaultAPIException):
     """Vault item not found"""
