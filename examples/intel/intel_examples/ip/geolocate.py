@@ -14,7 +14,7 @@ def main():
     print(f"Geolocate IP...")
 
     try:
-        response = intel.geolocate(ip="93.231.182.110", provider="digitalenvoy", verbose=True, raw=True)
+        response = intel.geolocate(ip="93.231.182.110", provider="digitalelement", verbose=True, raw=True)
         print(f"Response: {response.result}")
     except pe.PangeaAPIException as e:
         print(f"Request Error: {e.response.summary}")

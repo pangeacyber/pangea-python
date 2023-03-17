@@ -188,7 +188,7 @@ class TestIPIntel(unittest.TestCase):
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
 
     def test_ip_geolocate(self):
-        response = self.intel_ip.geolocate(ip="93.231.182.110", provider="digitalenvoy", verbose=True, raw=True)
+        response = self.intel_ip.geolocate(ip="93.231.182.110", provider="digitalelement", verbose=True, raw=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertEqual(response.result.data.country, "Federal Republic Of Germany")
         self.assertEqual(response.result.data.city, "unna")
@@ -202,7 +202,7 @@ class TestIPIntel(unittest.TestCase):
         self.assertEqual(response.result.data.postal_code, "59425")
 
     def test_ip_domain(self):
-        response = self.intel_ip.get_domain(ip="24.235.114.61", provider="digitalenvoy", verbose=True, raw=True)
+        response = self.intel_ip.get_domain(ip="24.235.114.61", provider="digitalelement", verbose=True, raw=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertTrue(response.result.data.domain_found)
         self.assertEqual("rogers.com", response.result.data.domain)
@@ -214,7 +214,7 @@ class TestIPIntel(unittest.TestCase):
         self.assertEqual("rogers.com", response.result.data.domain)
 
     def test_ip_vpn(self):
-        response = self.intel_ip.is_vpn(ip="2.56.189.74", provider="digitalenvoy", verbose=True, raw=True)
+        response = self.intel_ip.is_vpn(ip="2.56.189.74", provider="digitalelement", verbose=True, raw=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertTrue(response.result.data.is_vpn)
 
@@ -224,7 +224,7 @@ class TestIPIntel(unittest.TestCase):
         self.assertTrue(response.result.data.is_vpn)
 
     def test_ip_proxy(self):
-        response = self.intel_ip.is_proxy(ip="34.201.32.172", provider="digitalenvoy", verbose=True, raw=True)
+        response = self.intel_ip.is_proxy(ip="34.201.32.172", provider="digitalelement", verbose=True, raw=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertTrue(response.result.data.is_proxy)
 
