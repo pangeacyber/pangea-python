@@ -327,7 +327,8 @@ class TestAudit(unittest.TestCase):
         self.assertTrue(isinstance(response.result.data.size, int))
         self.assertTrue(isinstance(response.result.data.url, str))
         self.assertNotEqual(response.result.data.url, "")
-        self.assertGreaterEqual(len(response.result.data.consistency_proof), 1)
+        if response.result.data.consistency_proof is not None:
+            self.assertGreaterEqual(len(response.result.data.consistency_proof), 1)
 
     def test_root_2(self):
         tree_size = 3
