@@ -98,7 +98,7 @@ class TestVault(unittest.TestCase):
         # self.assertNotEqual(data_b64, decrypt_bad.result.plain_text)
 
         # Decrypt wrong id
-        with self.assertRaises(pexc.ItemNotFound):
+        with self.assertRaises(pexc.VaultItemNotFound):
             self.vault.decrypt("thisisnotandid", cipher_v2, 2)
 
         # Desactivate key
@@ -149,11 +149,11 @@ class TestVault(unittest.TestCase):
         self.assertTrue(verify_default_resp.result.valid_signature)
 
         # Verify not existing version
-        with self.assertRaises(pexc.ItemNotFound):
+        with self.assertRaises(pexc.VaultItemNotFound):
             self.vault.verify(id, data, signature_v2, 10)
 
         # Verify wrong id
-        with self.assertRaises(pexc.ItemNotFound):
+        with self.assertRaises(pexc.VaultItemNotFound):
             self.vault.verify("thisisnotandid", data, signature_v2, 2)
 
         # Verify wrong signature
