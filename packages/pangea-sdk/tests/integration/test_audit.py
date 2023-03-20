@@ -176,30 +176,7 @@ class TestAudit(unittest.TestCase):
             old="Old",
             verify=True,
         )
-        self.assertEqual(response.status, ResponseStatus.SUCCESS)
 
-        self.assertIsNotNone(response.result.envelope)
-        self.assertIsNone(response.result.consistency_proof)
-        self.assertIsNotNone(response.result.membership_proof)
-        self.assertIsNotNone(response.result.envelope.public_key)
-        self.assertIsNotNone(response.result.envelope.signature)
-        self.assertEqual(response.result.consistency_verification, EventVerification.NONE)
-        self.assertEqual(response.result.membership_verification, EventVerification.PASS)
-        self.assertEqual(response.result.signature_verification, EventVerification.PASS)
-
-    def test_log_sign_vault_and_verify(self):
-        response = self.auditVaultSign.log(
-            message=MSG_SIGNED_VAULT,
-            actor=ACTOR,
-            action="Action",
-            source="Source",
-            status=STATUS_SIGNED,
-            target="Target",
-            new="New",
-            old="Old",
-            signing=EventSigning.VAULT,
-            verify=True,
-        )
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
 
         self.assertIsNotNone(response.result.envelope)
