@@ -56,6 +56,7 @@ class Event(APIResponseModel):
     status: Optional[str] = None
     target: Optional[str] = None
     timestamp: Optional[datetime.datetime] = None
+    tenant_id: Optional[str] = None
 
     _JSON_SUPPORTED_FIELDS = ["message", "new", "old"]
 
@@ -81,6 +82,10 @@ class Event(APIResponseModel):
             v = getattr(aux, f, None)
             if v is not None and type(v) is dict:
                 setattr(aux, f, self._dict_to_canonicalized_str(v))
+
+        if isinstance(aux.timestamp, (datetime.datetime, datetime.date)):
+            aux.timestamp = aux.timestamp.isoformat().replace("+00:00", "Z")
+
         return aux
 
     def _dict_to_canonicalized_str(self, message: dict) -> str:
@@ -168,6 +173,12 @@ class SearchOrder(str, enum.Enum):
     ASC = "desc"
     DESC = "asc"
 
+    def __str__(self):
+        return str(self.value)
+
+    def __repr__(self):
+        return str(self.value)
+
 
 class SearchOrderBy(str, enum.Enum):
     ACTOR = "actor"
@@ -178,6 +189,12 @@ class SearchOrderBy(str, enum.Enum):
     STATUS = "status"
     TARGET = "target"
     TIMESTAMP = "timestamp"
+
+    def __str__(self):
+        return str(self.value)
+
+    def __repr__(self):
+        return str(self.value)
 
 
 class SearchRequest(APIRequestModel):

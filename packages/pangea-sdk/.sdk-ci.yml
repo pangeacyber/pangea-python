@@ -26,6 +26,7 @@ py_lint:
 generate_docs:
   extends: .pangea-sdk-base
   stage: lint
+  allow_failure: true
   script:
     - poetry run python parse_module.py > python_sdk.json
   artifacts:

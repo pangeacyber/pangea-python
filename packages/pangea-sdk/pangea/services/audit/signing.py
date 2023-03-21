@@ -5,7 +5,6 @@ from typing import Dict, Union
 
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ed25519
-
 from pangea.services.audit.util import b64decode_ascii, canonicalize_json
 
 
@@ -80,8 +79,15 @@ class Signer:
 class Verifier:
     # verify message with signature and public key bytes
     def verifyMessage(self, signature_b64: str, message: Union[str, dict, bytes], public_key_b64: str = None) -> bool:
-        public_key_bytes = b64decode_ascii(public_key_b64)
-        public_key = ed25519.Ed25519PublicKey.from_public_bytes(public_key_bytes)
+        try:
+            public_key_bytes = b64decode_ascii(public_key_b64)
+        except Exception:
+            return False
+
+        try:
+            public_key = ed25519.Ed25519PublicKey.from_public_bytes(public_key_bytes)
+        except ValueError:
+            raise Exception("Error: Not supported key instance")
 
         if isinstance(message, str):
             return self._verifyMessageStr(signature_b64, message, public_key)

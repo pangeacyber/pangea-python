@@ -5,7 +5,7 @@ import pydantic
 from pangea import PangeaConfig
 from pangea.response import ResponseStatus
 from pangea.services import Redact
-from pangea.tools_util import TestEnvironment, get_test_domain, get_test_token
+from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
 
 TEST_ENVIRONMENT = TestEnvironment.LIVE
 
@@ -15,7 +15,8 @@ class TestRedact(unittest.TestCase):
         token = get_test_token(TEST_ENVIRONMENT)
         domain = get_test_domain(TEST_ENVIRONMENT)
         config = PangeaConfig(domain=domain)
-        self.redact = Redact(token, config=config)
+        self.redact = Redact(token, config=config, logger_name="pangea")
+        logger_set_pangea_config(logger_name=self.redact.logger.name)
 
     def test_redact(self):
         text = "Jenny Jenny... 415-867-5309"

@@ -9,26 +9,39 @@ from pangea.response import APIRequestModel, APIResponseModel, PangeaResponse, P
 from .base import ServiceBase
 
 
+class IntelCommonRequest(APIRequestModel):
+    """
+    Intel common request data
+
+    provider (str, optional): Provider of the information. Default provider defined by the configuration.
+    verbose (bool, optional): Echo back the parameters of the API in the response
+    raw (bool, optional): Return additional details from the provider.
+    """
+
+    verbose: Optional[bool] = None
+    raw: Optional[bool] = None
+    provider: Optional[str] = None
+
+
+class IntelCommonResult(PangeaResponseResult):
+    """
+    Intel common result data
+    """
+
+    parameters: Optional[Dict] = None
+    raw_data: Optional[Dict] = None
+
+
 class FileReputationRequest(APIRequestModel):
     """
     File reputation request data
 
     file_hash (str): Hash of the file to be looked up
     hash_type (str): Type of hash, can be "sha256", "sha" or "md5"
-    provider (str, optional): Provider of the reputation information.  ("reversinglabs"). Default provider defined by the configuration.
-    verbose (bool, optional): Echo back the parameters of the API in the response
-    raw (bool, optional): Return additional details from the provider.
     """
 
     hash: str
     hash_type: str
-    verbose: Optional[bool] = None
-    raw: Optional[bool] = None
-    provider: Optional[str] = None
-
-
-class FileLookupRequest(FileReputationRequest):
-    pass
 
 
 class FileReputationData(APIResponseModel):
@@ -47,31 +60,23 @@ class FileReputationResult(PangeaResponseResult):
     """
 
     data: FileReputationData
-    parameters: Optional[Dict] = None
-    raw_data: Optional[Dict] = None
 
 
-class FileLookupResult(FileReputationResult):
-    pass
-
-
-class IPRepurationRequest(APIRequestModel):
+class IPCommonRequest(IntelCommonRequest):
     """
-    IP reputation request data
-
+    IP common request data
     ip (str): IP address to search for reputation information
-    provider (str, optional): Provider of the reputation information. ("reversinglabs"). Default provider defined by the configuration.
-    verbose (bool, optional): Echo back the parameters of the API in the response
-    raw (bool, optional): Return additional details from the provider.
     """
 
     ip: str
-    verbose: Optional[bool] = None
-    raw: Optional[bool] = None
-    provider: Optional[str] = None
 
 
-class IPLookupRequest(IPRepurationRequest):
+class IPRepurationRequest(IPCommonRequest):
+    """
+    IP reputation request data
+
+    """
+
     pass
 
 
@@ -87,35 +92,117 @@ class IPReputationData(APIResponseModel):
 
 class IPReputationResult(PangeaResponseResult):
     """
-    IP lookup result
+    IP reputation result
     """
 
     data: IPReputationData
-    parameters: Optional[Dict] = None
-    raw_data: Optional[Dict] = None
 
 
-class IPLookupResult(IPReputationResult):
+class IPGeolocateRequest(IPCommonRequest):
+    """
+    IP geolocate request data
+    """
+
     pass
 
 
-class DomainReputationRequest(APIRequestModel):
+class IPGeolocateData(PangeaResponseResult):
     """
-    Domain reputation request data
+    IP geolocate data
+    """
 
-    domain (str): Domain address to search for reputation information
-    provider (str, optional): Provider of the reputation information. ("domaintools"). Default provider defined by the configuration.
-    verbose (bool, optional): Echo back the parameters of the API in the response
-    raw (bool, optional): Return additional details from the provider.
+    country: str
+    city: str
+    latitude: float
+    longitude: float
+    postal_code: str
+    country_code: str
+
+
+class IPGeolocateResult(IntelCommonResult):
+    """
+    IP geolocate result
+    """
+
+    data: IPGeolocateData
+
+
+class IPDomainRequest(IPCommonRequest):
+    """
+    IP domain request data
+    """
+
+    pass
+
+
+class IPDomainData(PangeaResponseResult):
+    domain_found: bool
+    domain: Optional[str] = None
+
+
+class IPDomainResult(IntelCommonResult):
+    """
+    IP geolocate result
+    """
+
+    data: IPDomainData
+
+
+class IPVPNRequest(IPCommonRequest):
+    """
+    IP VPN request data
+    """
+
+    pass
+
+
+class IPVPNData(PangeaResponseResult):
+    is_vpn: bool
+
+
+class IPVPNResult(IntelCommonResult):
+    """
+    IP geolocate result
+    """
+
+    data: IPVPNData
+
+
+class IPProxyRequest(IPCommonRequest):
+    """
+    IP VPN request data
+    """
+
+    pass
+
+
+class IPProxyData(PangeaResponseResult):
+    is_proxy: bool
+
+
+class IPProxyResult(IntelCommonResult):
+    """
+    IP geolocate result
+    """
+
+    data: IPProxyData
+
+
+class DomainCommonRequest(IntelCommonRequest):
+    """
+    Domain lookup request data
+
+    domain (str): Domain address to be analyzed
     """
 
     domain: str
-    verbose: Optional[bool] = None
-    raw: Optional[bool] = None
-    provider: Optional[str] = None
 
 
-class DomainLookupRequest(DomainReputationRequest):
+class DomainReputationRequest(DomainCommonRequest):
+    """
+    Domain reputation request data
+    """
+
     pass
 
 
@@ -135,31 +222,23 @@ class DomainReputationResult(PangeaResponseResult):
     """
 
     data: DomainReputationData
-    parameters: Optional[Dict] = None
-    raw_data: Optional[Dict] = None
 
 
-class DomainLookupResult(DomainReputationResult):
-    pass
-
-
-class URLReputationRequest(APIRequestModel):
+class URLCommonRequest(IntelCommonRequest):
     """
-    URL reputation request data
+    URL common request data
 
-    url (str): URL address to search for reputation information
-    provider (str, optional): Provider of the reputation information. ("crowdstrike"). Default provider defined by the configuration.
-    verbose (bool, optional): Echo back the parameters of the API in the response
-    raw (bool, optional): Return additional details from the provider.
+    url (str): URL address to be analyzed
     """
 
     url: str
-    verbose: Optional[bool] = None
-    raw: Optional[bool] = None
-    provider: Optional[str] = None
 
 
-class URLLookupRequest(URLReputationRequest):
+class URLReputationRequest(URLCommonRequest):
+    """
+    URL reputation request data
+    """
+
     pass
 
 
@@ -173,18 +252,12 @@ class URLReputationData(APIResponseModel):
     verdict: str
 
 
-class URLReputationResult(PangeaResponseResult):
+class URLReputationResult(IntelCommonResult):
     """
-    URL lookup result
+    URL Reputation result
     """
 
     data: URLReputationData
-    parameters: Optional[Dict] = None
-    raw_data: Optional[Dict] = None
-
-
-class URLLookupResult(URLReputationResult):
-    pass
 
 
 class FileIntel(ServiceBase):
@@ -222,9 +295,9 @@ class FileIntel(ServiceBase):
         provider: Optional[str] = None,
         verbose: Optional[bool] = None,
         raw: Optional[bool] = None,
-    ) -> PangeaResponse[FileLookupResult]:
+    ) -> PangeaResponse[FileReputationResult]:
         """
-        Look up a file
+        Reputation check
 
         Retrieve hash-based file reputation from a provider, including an optional detailed report.
 
@@ -244,11 +317,10 @@ class FileIntel(ServiceBase):
 
         Examples:
             response = file_intel.lookup(hash="142b638c6a60b60c7f9928da4fb85a5a8e1422a9ffdc9ee49e17e56ccca9cf6e", hash_type="sha256", provider="reversinglabs")
-
         """
         input = FileReputationRequest(hash=hash, hash_type=hash_type, verbose=verbose, raw=raw, provider=provider)
         response = self.request.post("reputation", data=input.dict(exclude_none=True))
-        response.result = FileLookupResult(**response.raw_result)
+        response.result = FileReputationResult(**response.raw_result)
         return response
 
     def hashReputation(
@@ -260,7 +332,7 @@ class FileIntel(ServiceBase):
         raw: Optional[bool] = None,
     ) -> PangeaResponse[FileReputationResult]:
         """
-        Look up a file hash reputation
+        Reputation check
 
         Retrieve hash-based file reputation from a provider, including an optional detailed report.
 
@@ -294,9 +366,9 @@ class FileIntel(ServiceBase):
         provider: Optional[str] = None,
         verbose: Optional[bool] = None,
         raw: Optional[bool] = None,
-    ) -> PangeaResponse[FileLookupResult]:
+    ) -> PangeaResponse[FileReputationResult]:
         """
-        Look up a filepath
+        Reputation, from filepath
 
         Retrieve hash-based file reputation from a provider, including an optional detailed report.
 
@@ -322,7 +394,7 @@ class FileIntel(ServiceBase):
 
         input = FileReputationRequest(hash=hash, hash_type="sha256", verbose=verbose, raw=raw, provider=provider)
         response = self.request.post("reputation", data=input.dict(exclude_none=True))
-        response.result = FileLookupResult(**response.raw_result)
+        response.result = FileReputationResult(**response.raw_result)
         return response
 
     def filepathReputation(
@@ -333,7 +405,7 @@ class FileIntel(ServiceBase):
         raw: Optional[bool] = None,
     ) -> PangeaResponse[FileReputationResult]:
         """
-        Look up a filepath reputation
+        Reputation, from filepath
 
         Retrieve hash-based file reputation from a provider, including an optional detailed report.
         This function take care of calculate filepath hash and make the request to service
@@ -394,9 +466,9 @@ class DomainIntel(ServiceBase):
     @pangea_deprecated(version="1.2.0", reason="Should use DomainIntel.reputation()")
     def lookup(
         self, domain: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
-    ) -> PangeaResponse[DomainLookupResult]:
+    ) -> PangeaResponse[DomainReputationResult]:
         """
-        Look up a domain
+        Reputation check
 
         Retrieve reputation for a domain from a provider, including an optional detailed report.
 
@@ -418,14 +490,14 @@ class DomainIntel(ServiceBase):
         """
         input = DomainReputationRequest(domain=domain, verbose=verbose, provider=provider, raw=raw)
         response = self.request.post("reputation", data=input.dict(exclude_none=True))
-        response.result = DomainLookupResult(**response.raw_result)
+        response.result = DomainReputationResult(**response.raw_result)
         return response
 
     def reputation(
         self, domain: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
     ) -> PangeaResponse[DomainReputationResult]:
         """
-        Look up a domain reputation
+        Reputation check
 
         Retrieve reputation for a domain from a provider, including an optional detailed report.
 
@@ -483,7 +555,7 @@ class IpIntel(ServiceBase):
         self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
     ) -> PangeaResponse[IPReputationResult]:
         """
-        Look up an IP
+        Reputation
 
         Retrieve a reputation score for an IP address from a provider, including an optional detailed report.
 
@@ -513,7 +585,7 @@ class IpIntel(ServiceBase):
         self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
     ) -> PangeaResponse[IPReputationResult]:
         """
-        Look up an IP reputation
+        Reputation
 
         Retrieve a reputation score for an IP address from a provider, including an optional detailed report.
 
@@ -536,6 +608,122 @@ class IpIntel(ServiceBase):
         input = IPRepurationRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
         response = self.request.post("reputation", data=input.dict(exclude_none=True))
         response.result = IPReputationResult(**response.raw_result)
+        return response
+
+    def geolocate(
+        self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
+    ) -> PangeaResponse[IPGeolocateResult]:
+        """
+        Geolocate
+
+        Retrieve information about the location of an IP address.
+
+        Args:
+            ip (str): IP address to be geolocated
+            provider (str, optional): Use geolocation data from this provider ("digitalelement"). Default provider defined by the configuration.
+            verbose (bool, optional): Echo the API parameters in the response
+            raw (bool, optional): Include raw data from this provider
+
+        Raises:
+            PangeaAPIException: If an API Error happens
+
+        Returns:
+            A PangeaResponse where the IP information is in the
+                response.result field.  Available response fields can be found in our [API documentation](/docs/api/ip-intel)
+
+        Examples:
+            response = ip_intel.geolocate(ip="93.231.182.110", provider="digitalelement")
+        """
+        input = IPGeolocateRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
+        response = self.request.post("geolocate", data=input.dict(exclude_none=True))
+        response.result = IPGeolocateResult(**response.raw_result)
+        return response
+
+    def get_domain(
+        self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
+    ) -> PangeaResponse[IPDomainResult]:
+        """
+        Domain
+
+        Retrieve the domain name associated with an IP address.
+
+        Args:
+            ip (str): IP address to be geolocated
+            provider (str, optional): Use geolocation data from this provider ("digitalelement"). Default provider defined by the configuration.
+            verbose (bool, optional): Echo the API parameters in the response
+            raw (bool, optional): Include raw data from this provider
+
+        Raises:
+            PangeaAPIException: If an API Error happens
+
+        Returns:
+            A PangeaResponse where the IP information is in the
+                response.result field.  Available response fields can be found in our [API documentation](/docs/api/ip-intel)
+
+        Examples:
+            response = ip_intel.get_domain(ip="93.231.182.110", provider="digitalelement")
+        """
+        input = IPDomainRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
+        response = self.request.post("domain", data=input.dict(exclude_none=True))
+        response.result = IPDomainResult(**response.raw_result)
+        return response
+
+    def is_vpn(
+        self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
+    ) -> PangeaResponse[IPVPNResult]:
+        """
+        VPN
+
+        Determine if an IP address is provided by a VPN service.
+
+        Args:
+            ip (str): IP address to be geolocated
+            provider (str, optional): Use geolocation data from this provider ("digitalelement"). Default provider defined by the configuration.
+            verbose (bool, optional): Echo the API parameters in the response
+            raw (bool, optional): Include raw data from this provider
+
+        Raises:
+            PangeaAPIException: If an API Error happens
+
+        Returns:
+            A PangeaResponse where the IP information is in the
+                response.result field.  Available response fields can be found in our [API documentation](/docs/api/ip-intel)
+
+        Examples:
+            response = ip_intel.is_vpn(ip="93.231.182.110", provider="digitalelement")
+        """
+        input = IPVPNRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
+        response = self.request.post("vpn", data=input.dict(exclude_none=True))
+        response.result = IPVPNResult(**response.raw_result)
+        return response
+
+    def is_proxy(
+        self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
+    ) -> PangeaResponse[IPProxyResult]:
+        """
+        Proxy
+
+        Determine if an IP address is provided by a proxy service.
+
+        Args:
+            ip (str): IP address to be geolocated
+            provider (str, optional): Use geolocation data from this provider ("digitalelement"). Default provider defined by the configuration.
+            verbose (bool, optional): Echo the API parameters in the response
+            raw (bool, optional): Include raw data from this provider
+
+        Raises:
+            PangeaAPIException: If an API Error happens
+
+        Returns:
+            A PangeaResponse where the IP information is in the
+                response.result field.  Available response fields can be found in our [API documentation](/docs/api/ip-intel)
+
+        Examples:
+            response = ip_intel.is_proxy(ip="93.231.182.110", provider="digitalelement")
+        """
+        input = IPProxyRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
+        response = self.request.post("proxy", data=input.dict(exclude_none=True))
+        response.result = IPProxyResult(**response.raw_result)
         return response
 
 
@@ -569,9 +757,9 @@ class UrlIntel(ServiceBase):
     @pangea_deprecated(version="1.2.0", reason="Should use UrlIntel.reputation()")
     def lookup(
         self, url: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
-    ) -> PangeaResponse[URLLookupResult]:
+    ) -> PangeaResponse[URLReputationResult]:
         """
-        Look up a URL
+        Reputation check
 
         Retrieve URL address reputation from a provider.
 
@@ -594,14 +782,14 @@ class UrlIntel(ServiceBase):
 
         input = URLReputationRequest(url=url, provider=provider, verbose=verbose, raw=raw)
         response = self.request.post("reputation", data=input.dict(exclude_none=True))
-        response.result = URLLookupResult(**response.raw_result)
+        response.result = URLReputationResult(**response.raw_result)
         return response
 
     def reputation(
         self, url: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
     ) -> PangeaResponse[URLReputationResult]:
         """
-        Look up a URL reputation
+        Reputation check
 
         Retrieve URL address reputation from a provider.
 
