@@ -27,9 +27,9 @@ USER_IDENTITY = None  # Will be set once user is created
 
 
 def print_api_error(e: pexc.PangeaAPIException):
-    print(e)
+    print(f"Summary: {e.response.summary}")
     for error_field in e.errors:
-        print(error_field)
+        print(f"\t{error_field}")
 
 
 class TestAuthN(unittest.TestCase):
@@ -41,13 +41,15 @@ class TestAuthN(unittest.TestCase):
 
     def test_authn_a1_user_create_with_password(self):
         global USER_IDENTITY
-        response = self.authn.user.create(email=EMAIL_TEST, authenticator=PASSWORD_OLD, id_provider=IDProvider.PASSWORD)
-        self.assertEqual(response.status, "Success")
-        self.assertIsNotNone(response.result.identity)
-        self.assertEqual({}, response.result.profile)
-        USER_IDENTITY = response.result.identity
-
         try:
+            response = self.authn.user.create(
+                email=EMAIL_TEST, authenticator=PASSWORD_OLD, id_provider=IDProvider.PASSWORD
+            )
+            self.assertEqual(response.status, "Success")
+            self.assertIsNotNone(response.result.identity)
+            self.assertEqual({}, response.result.profile)
+            USER_IDENTITY = response.result.identity
+
             response = self.authn.user.create(
                 email=EMAIL_DELETE, authenticator=PASSWORD_OLD, id_provider=IDProvider.PASSWORD, profile=PROFILE_NEW
             )
@@ -71,10 +73,11 @@ class TestAuthN(unittest.TestCase):
     def test_authn_a4_user_login(self):
         # This could (should) fail if test_authn_a1_user_create_with_password failed
         try:
-            response = self.authn.user.login(email=EMAIL_TEST, secret=PASSWORD_NEW)
+            response = self.authn.user.login.password(email=EMAIL_TEST, password=PASSWORD_NEW)
             self.assertEqual(response.status, "Success")
             self.assertIsNotNone(response.result)
-            self.assertEqual(USER_IDENTITY, response.result.identity)
+            self.assertIsNotNone(response.result.active_token)
+            self.assertIsNotNone(response.result.refresh_token)
         except pexc.PangeaAPIException as e:
             print_api_error(e)
             self.assertTrue(False)
