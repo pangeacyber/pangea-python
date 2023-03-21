@@ -107,6 +107,7 @@ class AuthN(ServiceBase):
             self.session = AuthN.Client.Session(token, config)
             self.token = AuthN.Client.Token(token, config)
 
+        # https://dev.pangea.cloud/docs/api/authn#complete-a-login
         def userinfo(self, code: str) -> PangeaResponse[m.ClientUserinfoResult]:
             input = m.ClientUserinfoRequest(code=code)
 
@@ -173,20 +174,6 @@ class AuthN(ServiceBase):
                 if response.raw_result is not None:
                     response.result = m.ClientSessionRefreshResult(**response.raw_result)
                 return response
-
-        class Token(ServiceBase):
-            service_name: str = SERVICE_NAME
-            version: str = VERSION
-
-            def __init__(
-                self,
-                token,
-                config=None,
-            ):
-                super().__init__(token, config)
-
-            # TODO:
-            # - path: authn::/v1/client/token/check
 
     class Password(ServiceBase):
         service_name: str = SERVICE_NAME
@@ -267,6 +254,7 @@ class AuthN(ServiceBase):
             authenticator: Optional[str] = None,
             disabled: Optional[bool] = None,
             require_mfa: Optional[bool] = None,
+            verified: Optional[bool] = None,
         ) -> PangeaResponse[m.UserUpdateResult]:
             input = m.UserUpdateRequest(
                 identity=identity,
@@ -274,6 +262,7 @@ class AuthN(ServiceBase):
                 authenticator=authenticator,
                 disabled=disabled,
                 require_mfa=require_mfa,
+                verified=verified,
             )
 
             response = self.request.post("user/update", data=input.dict(exclude_none=True))
@@ -392,12 +381,16 @@ class AuthN(ServiceBase):
             #   - path: authn::/v1/user/mfa/start
             # https://dev.pangea.cloud/docs/api/authn#start-mfa-verification-for-a-user
             def start(
-                self, user_id: str, mfa_provider: m.MFAProvider, enroll: Optional[bool] = None
+                self,
+                user_id: str,
+                mfa_provider: m.MFAProvider,
+                enroll: Optional[bool] = None,
+                phone: Optional[str] = None,
             ) -> PangeaResponse[m.UserMFAStartResult]:
-                input = m.UserMFAStartRequest(user_id=user_id, mfa_provider=mfa_provider, enroll=enroll)
+                input = m.UserMFAStartRequest(user_id=user_id, mfa_provider=mfa_provider, enroll=enroll, phone=phone)
                 response = self.request.post("user/mfa/start", data=input.dict(exclude_none=True))
                 if response.raw_result is not None:
-                    response.result = m.UserMFAEnrollResult(**response.raw_result)
+                    response.result = m.UserMFAStartResult(**response.raw_result)
                 return response
 
             #   - path: authn::/v1/user/mfa/verify
@@ -440,17 +433,11 @@ class AuthN(ServiceBase):
                 profile: m.Profile,
                 identity: Optional[str] = None,
                 email: Optional[str] = None,
-                require_mfa: Optional[bool] = None,
-                mfa_value: Optional[str] = None,
-                mfa_provider: Optional[m.MFAProvider] = None,
             ) -> PangeaResponse[m.UserProfileUpdateResult]:
                 input = m.UserProfileUpdateRequest(
                     identity=identity,
                     email=email,
                     profile=profile,
-                    require_mfa=require_mfa,
-                    mfa_value=mfa_value,
-                    mfa_provider=mfa_provider,
                 )
                 response = self.request.post("user/profile/update", data=input.dict(exclude_none=True))
                 if response.raw_result is not None:
@@ -498,6 +485,7 @@ class AuthN(ServiceBase):
             self.enroll = AuthN.Flow.Enroll(token, config)
             self.signup = AuthN.Flow.Signup(token, config)
             self.verify = AuthN.Flow.Verify(token, config)
+            self.reset = AuthN.Flow.Reset(token, config)
 
         #   - path: authn::/v1/flow/complete
         # https://dev.pangea.cloud/docs/api/authn#complete-a-login-or-signup-flow
@@ -511,13 +499,41 @@ class AuthN(ServiceBase):
         #   - path: authn::/v1/flow/start
         # https://dev.pangea.cloud/docs/api/authn#start-a-new-signup-or-signin-flow
         def start(
-            self, cb_uri: str, email: Optional[str] = None, flow_types: Optional[List[m.FlowType]] = None
+            self,
+            cb_uri: str,
+            email: Optional[str] = None,
+            flow_types: Optional[List[m.FlowType]] = None,
+            provider: Optional[m.MFAProvider] = None,
         ) -> PangeaResponse[m.FlowStartResult]:
-            input = m.FlowStartRequest(cb_uri=cb_uri, email=email, flow_types=flow_types)
+            input = m.FlowStartRequest(cb_uri=cb_uri, email=email, flow_types=flow_types, provider=provider)
             response = self.request.post("flow/start", data=input.dict(exclude_none=True))
             if response.raw_result is not None:
                 response.result = m.FlowStartResult(**response.raw_result)
             return response
+
+        class Reset(ServiceBase):
+            service_name: str = SERVICE_NAME
+            version: str = VERSION
+
+            def __init__(
+                self,
+                token,
+                config=None,
+            ):
+                super().__init__(token, config)
+
+            #   - path: authn::/v1/flow/reset/password
+            # https://dev.pangea.cloud/docs/api/authn#reset-password-during-signin
+            def password(
+                self, flow_id: str, password: str, cb_state: Optional[str] = None, cb_code: Optional[str] = None
+            ) -> PangeaResponse[m.FlowResetPasswordResult]:
+                input = m.FlowResetPasswordRequest(
+                    flow_id=flow_id, password=password, cb_state=cb_state, cb_code=cb_code
+                )
+                response = self.request.post("flow/reset/password", data=input.dict(exclude_none=True))
+                if response.raw_result is not None:
+                    response.result = m.FlowResetPasswordResult(**response.raw_result)
+                return response
 
         class Enroll(ServiceBase):
             service_name: str = SERVICE_NAME
@@ -545,10 +561,10 @@ class AuthN(ServiceBase):
                 #   - path: authn::/v1/flow/enroll/mfa/complete
                 # https://dev.pangea.cloud/docs/api/authn#complete-mfa-enrollment-by-verifying-a-trial-mfa-code
                 def complete(
-                    self, flow_id: str, code: str, cancel: Optional[bool] = None
+                    self, flow_id: str, code: Optional[str] = None, cancel: Optional[bool] = None
                 ) -> PangeaResponse[m.FlowEnrollMFAcompleteResult]:
                     input = m.FlowEnrollMFACompleteRequest(flow_id=flow_id, code=code, cancel=cancel)
-                    response = self.request.post("flow/enroll/mfa/comple", data=input.dict(exclude_none=True))
+                    response = self.request.post("flow/enroll/mfa/complete", data=input.dict(exclude_none=True))
                     if response.raw_result is not None:
                         response.result = m.FlowEnrollMFAcompleteResult(**response.raw_result)
                     return response
@@ -556,9 +572,9 @@ class AuthN(ServiceBase):
                 #   - path: authn::/v1/flow/enroll/mfa/start
                 # https://dev.pangea.cloud/docs/api/authn#start-the-process-of-enrolling-an-mfa
                 def start(
-                    self, flow_id: str, mfa_provider: m.MFAProvider
+                    self, flow_id: str, mfa_provider: m.MFAProvider, phone: Optional[str] = None
                 ) -> PangeaResponse[m.FlowEnrollMFAStartResult]:
-                    input = m.FlowEnrollMFAStartRequest(flow_id=flow_id, mfa_provider=mfa_provider)
+                    input = m.FlowEnrollMFAStartRequest(flow_id=flow_id, mfa_provider=mfa_provider, phone=phone)
                     response = self.request.post("flow/enroll/mfa/start", data=input.dict(exclude_none=True))
                     if response.raw_result is not None:
                         response.result = m.FlowEnrollMFAStartResult(**response.raw_result)
@@ -629,8 +645,10 @@ class AuthN(ServiceBase):
 
             #   - path: authn::/v1/flow/verify/password
             # https://dev.pangea.cloud/docs/api/authn#sign-in-with-a-password
-            def password(self, flow_id: str, password: str) -> PangeaResponse[m.FlowVerifyPasswordResult]:
-                input = m.FlowVerifyPasswordRequest(flow_id=flow_id, password=password)
+            def password(
+                self, flow_id: str, password: Optional[str] = None, cancel: Optional[bool] = None
+            ) -> PangeaResponse[m.FlowVerifyPasswordResult]:
+                input = m.FlowVerifyPasswordRequest(flow_id=flow_id, password=password, cancel=cancel)
                 response = self.request.post("flow/verify/password", data=input.dict(exclude_none=True))
                 if response.raw_result is not None:
                     response.result = m.FlowVerifyPasswordResult(**response.raw_result)
@@ -658,8 +676,10 @@ class AuthN(ServiceBase):
 
                 #   - path: authn::/v1/flow/verify/mfa/complete
                 # https://dev.pangea.cloud/docs/api/authn#complete-mfa-verification
-                def complete(self, flow_id: str, code: str) -> PangeaResponse[m.FlowVerifyMFACompleteResult]:
-                    input = m.FlowVerifyMFACompleteRequest(flow_id=flow_id, code=code)
+                def complete(
+                    self, flow_id: str, code: Optional[str] = None, cancel: Optional[bool] = None
+                ) -> PangeaResponse[m.FlowVerifyMFACompleteResult]:
+                    input = m.FlowVerifyMFACompleteRequest(flow_id=flow_id, code=code, cancel=cancel)
                     response = self.request.post("flow/verify/mfa/complete", data=input.dict(exclude_none=True))
                     if response.raw_result is not None:
                         response.result = m.FlowVerifyMFACompleteResult(**response.raw_result)

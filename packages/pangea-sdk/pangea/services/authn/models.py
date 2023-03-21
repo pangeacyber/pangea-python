@@ -184,6 +184,7 @@ class LoginToken(APIResponseModel):
     expire: str
     identity: str
     email: str
+    scopes: Scopes
     profile: Profile
     created_at: str
 
@@ -224,17 +225,14 @@ class UserProfileGetResult(PangeaResponseResult):
     mfa_providers: List[str]
     require_mfa: bool
     verified: bool
-    last_login_at: Optional[str] = None
     disabled: Optional[bool] = None
+    last_login_at: Optional[str] = None
 
 
 class UserProfileUpdateRequest(APIRequestModel):
     profile: Profile
     identity: Optional[str] = None
     email: Optional[str] = None
-    require_mfa: Optional[bool] = None
-    mfa_value: Optional[str] = None
-    mfa_providers: Optional[MFAProvider] = None
 
 
 class UserProfileUpdateResult(PangeaResponseResult):
@@ -255,6 +253,7 @@ class UserUpdateRequest(APIRequestModel):
     authenticator: Optional[str] = None
     disabled: Optional[bool] = None
     require_mfa: Optional[bool] = None
+    verified: Optional[bool] = None
 
 
 class UserUpdateResult(PangeaResponseResult):
@@ -294,16 +293,8 @@ class FlowCompleteRequest(APIRequestModel):
 
 
 class FlowCompleteResult(PangeaResponseResult):
-    token: str
-    id: str
-    type: str
-    life: int
-    expire: str
-    identity: str
-    email: str
-    scopes: Scopes
-    profile: Profile
-    created_at: str
+    refresh_token: LoginToken
+    login_token: LoginToken
 
 
 #   - path: authn::/v1/flow/enroll/mfa/complete
@@ -380,6 +371,17 @@ class CommonFlowResult(PangeaResponseResult):
     verify_social: Optional[VerifySocial] = None
 
 
+class FlowResetPasswordRequest(APIRequestModel):
+    flow_id: str
+    password: str
+    cb_state: Optional[str] = None
+    cb_code: Optional[str] = None
+
+
+class FlowResetPasswordResult(CommonFlowResult):
+    pass
+
+
 class FlowEnrollMFAcompleteResult(CommonFlowResult):
     pass
 
@@ -389,6 +391,7 @@ class FlowEnrollMFAcompleteResult(CommonFlowResult):
 class FlowEnrollMFAStartRequest(APIRequestModel):
     flow_id: str
     mfa_provider: MFAProvider
+    phone: str
 
 
 class FlowEnrollMFAStartResult(CommonFlowResult):
@@ -426,6 +429,7 @@ class FlowStartRequest(APIRequestModel):
     cb_uri: str
     email: Optional[str] = None
     flow_types: Optional[List[FlowType]] = None
+    provider: Optional[IDProvider] = None
 
 
 class FlowStartResult(CommonFlowResult):
@@ -459,7 +463,8 @@ class FlowVerifyEmailResult(CommonFlowResult):
 # https://dev.pangea.cloud/docs/api/authn#complete-mfa-verification
 class FlowVerifyMFACompleteRequest(APIRequestModel):
     flow_id: str
-    code: str
+    code: Optional[str] = None
+    cancel: Optional[bool] = None
 
 
 class FlowVerifyMFACompleteResult(CommonFlowResult):
@@ -481,7 +486,8 @@ class FlowVerifyMFAStartResult(CommonFlowResult):
 # https://dev.pangea.cloud/docs/api/authn#sign-in-with-a-password
 class FlowVerifyPasswordRequest(APIRequestModel):
     flow_id: str
-    password: str
+    password: Optional[str] = None
+    cancel: Optional[bool] = None
 
 
 class FlowVerifyPasswordResult(CommonFlowResult):
@@ -529,10 +535,12 @@ class UserMFAStartRequest(APIRequestModel):
     user_id: str
     mfa_provider: MFAProvider
     enroll: Optional[bool] = None
+    phone: Optional[str] = None
 
 
 class UserMFAStartResult(PangeaResponseResult):
-    pass
+    qr_image: str
+    secret: str
 
 
 #   - path: authn::/v1/user/mfa/verify
@@ -561,10 +569,11 @@ class UserVerifyResult(PangeaResponseResult):
     profile: Profile
     scopes: Scopes
     id_provider: IDProvider
+    mfa_providers: List[str]
     require_mfa: bool
     verified: bool
     disabled: bool
-    last_login_at: str
+    last_login_at: Optional[str] = None
 
 
 class ClientSessionInvalidateRequest(APIRequestModel):
