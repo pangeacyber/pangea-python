@@ -1155,6 +1155,7 @@ class Vault(ServiceBase):
         Examples:
             vault.state_change(
                 id="pvi_p6g5i3gtbvqvc3u6zugab6qs6r63tqf5",
+                state="deactivated",
             )
         """
         input = StateChangeRequest(id=id, state=state, version=version, destroy_period=destroy_period)
