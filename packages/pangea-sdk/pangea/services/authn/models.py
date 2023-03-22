@@ -100,7 +100,7 @@ class UserCreateResult(PangeaResponseResult):
     identity: str
     email: str
     profile: Profile
-    id_provider: str
+    id_provider: Optional[str] = None
     require_mfa: bool
     verified: bool
     last_login_at: Optional[str]
@@ -184,7 +184,7 @@ class LoginToken(APIResponseModel):
     expire: str
     identity: str
     email: str
-    scopes: Scopes
+    scopes: Optional[Scopes] = None
     profile: Profile
     created_at: str
 
@@ -201,8 +201,8 @@ class LoginToken(APIResponseModel):
 
 
 class UserLoginResult(PangeaResponseResult):
-    refresh_token: LoginToken
-    active_token: LoginToken
+    refresh_token: Optional[LoginToken] = None
+    active_token: Optional[LoginToken] = None
 
 
 class UserLoginSocialRequest(APIRequestModel):
@@ -221,7 +221,7 @@ class UserProfileGetResult(PangeaResponseResult):
     identity: str
     email: str
     profile: Profile
-    id_provider: str
+    id_provider: Optional[str] = None
     mfa_providers: List[str]
     require_mfa: bool
     verified: bool
@@ -239,7 +239,7 @@ class UserProfileUpdateResult(PangeaResponseResult):
     identity: str
     email: str
     profile: Profile
-    id_provider: str
+    id_provider: Optional[str] = None
     mfa_providers: List[str]
     require_mfa: bool
     verified: bool
@@ -261,7 +261,7 @@ class UserUpdateResult(PangeaResponseResult):
     email: str
     profile: Profile
     scopes: Optional[Scopes] = None
-    id_provider: IDProvider
+    id_provider: Optional[str] = None
     mfa_providers: Optional[List[str]] = None
     require_mfa: bool
     verified: bool
@@ -538,9 +538,13 @@ class UserMFAStartRequest(APIRequestModel):
     phone: Optional[str] = None
 
 
-class UserMFAStartResult(PangeaResponseResult):
+class UserMFAStartTOTPSecret:
     qr_image: str
     secret: str
+
+
+class UserMFAStartResult(PangeaResponseResult):
+    totp_secret: UserMFAStartTOTPSecret
 
 
 #   - path: authn::/v1/user/mfa/verify
@@ -568,7 +572,7 @@ class UserVerifyResult(PangeaResponseResult):
     email: str
     profile: Profile
     scopes: Scopes
-    id_provider: IDProvider
+    id_provider: Optional[str] = None
     mfa_providers: List[str]
     require_mfa: bool
     verified: bool

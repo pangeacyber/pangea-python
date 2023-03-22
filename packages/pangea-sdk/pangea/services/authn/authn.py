@@ -105,7 +105,6 @@ class AuthN(ServiceBase):
         ):
             super().__init__(token, config)
             self.session = AuthN.Client.Session(token, config)
-            self.token = AuthN.Client.Token(token, config)
 
         # https://dev.pangea.cloud/docs/api/authn#complete-a-login
         def userinfo(self, code: str) -> PangeaResponse[m.ClientUserinfoResult]:
