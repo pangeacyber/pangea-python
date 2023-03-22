@@ -147,7 +147,7 @@ class Vault(ServiceBase):
                 - `all` for all versions
                 - `num` for a specific version
                 - `-num` for the `num` latest versions
-            version_state (str, optional): The new state of the item version
+            version_state (ItemVersionState, optional): The state of the item version
             verbose (bool, optional): Return metadata and extra fields. Default is `False`.
         Raises:
             PangeaAPIException: If an API Error happens
@@ -161,7 +161,7 @@ class Vault(ServiceBase):
             vault.get(
                 id="pvi_p6g5i3gtbvqvc3u6zugab6qs6r63tqf5",
                 version=1,
-                version_state="active",
+                version_state=ItemVersionState.ACTIVE,
                 verbose=True,
             )
         """
@@ -188,7 +188,7 @@ class Vault(ServiceBase):
         """
         List
 
-        Look up a list of secrets, keys and folders, and their associated information.
+        Look up a list of secrets, keys and folders, and their associated information
         
         Args:
             filter (dict, optional): A set of filters to help you customize your search. Examples:
@@ -199,8 +199,8 @@ class Vault(ServiceBase):
 
                 For metadata, use: "metadata_": "\<value\>"
             last (str, optional): Internal ID returned in the previous look up response. Used for pagination.
-            order (str, optional): Ordering direction: `asc` or `desc`
-            order_by (str, optional): Property used to order the results. Supported properties: `id`,
+            order (ItemOrder, optional): Ordering direction: `asc` or `desc`
+            order_by (ItemOrderBy, optional): Property used to order the results. Supported properties: `id`,
                 `type`, `created_at`, `algorithm`, `purpose`, `expiration`, `last_rotated`, `next_rotation`,
                 `name`, `folder`, `item_state`.
             size (int, optional): Maximum number of items in the response. Default is `50`.
@@ -222,8 +222,8 @@ class Vault(ServiceBase):
                     "created_at__lt": "2023-12-12T00:00:00Z"
                 },
                 last="WyIvdGVzdF8yMDdfc3ltbWV0cmljLyJd",
-                order="asc",
-                order_by="name",
+                order=ItemOrder.ASC,
+                order_by=ItemOrderBy.NAME,
                 size=20,
             )
         """
@@ -260,7 +260,7 @@ class Vault(ServiceBase):
             metadata (dict, optional): User-provided metadata
             tags (list[str], optional): A list of user-defined tags
             rotation_frequency (str, optional): Period of time between item rotations
-            rotation_state (str, optional): State to which the previous version should transition upon rotation.
+            rotation_state (ItemVersionState, optional): State to which the previous version should transition upon rotation.
                 Supported options:
                 - `deactivated`
                 - `destroyed`
@@ -268,7 +268,7 @@ class Vault(ServiceBase):
                 Default is `deactivated`.
             rotation_grace_period (str, optional): Grace period for the previous version of the Pangea Token
             expiration (str, optional): Expiration timestamp
-            item_state (str, optional): The new state of the item. Supported options:
+            item_state (ItemState, optional): The new state of the item. Supported options:
                 - `enabled`
                 - `disabled`
         Raises:
@@ -293,10 +293,10 @@ class Vault(ServiceBase):
                     "personal"
                 ],
                 rotation_frequency="10d",
-                rotation_state="deactivated",
+                rotation_state=ItemVersionState.DEACTIVATED,
                 rotation_grace_period="1d",
                 expiration="2025-01-01T10:00:00Z",
-                item_state="disabled",
+                item_state=ItemState.DISABLED,
             )
         """
         input = UpdateRequest(
@@ -339,7 +339,7 @@ class Vault(ServiceBase):
             metadata (dict, optional): User-provided metadata
             tags (list[str], optional): A list of user-defined tags
             rotation_frequency (str, optional): Period of time between item rotations
-            rotation_state (str, optional): State to which the previous version should transition upon rotation.
+            rotation_state (ItemVersionState, optional): State to which the previous version should transition upon rotation.
                 Supported options:
                 - `deactivated`
                 - `destroyed`
@@ -367,7 +367,7 @@ class Vault(ServiceBase):
                     "personal"
                 ],
                 rotation_frequency="10d",
-                rotation_state="deactivated",
+                rotation_state=ItemVersionState.DEACTIVATED,
                 expiration="2025-01-01T10:00:00Z",
             )
         """
@@ -410,8 +410,8 @@ class Vault(ServiceBase):
             metadata (dict, optional): User-provided metadata
             tags (list[str], optional): A list of user-defined tags
             rotation_frequency (str, optional): Period of time between item rotations
-            rotation_state (str, optional): State to which the previous version should transition upon rotation.
-                Supported options:
+            rotation_state (ItemVersionState, optional): State to which the previous version should 
+                transition upon rotation. Supported options:
                 - `deactivated`
                 - `destroyed`
             expiration (str, optional): Expiration timestamp
@@ -438,7 +438,7 @@ class Vault(ServiceBase):
                     "personal"
                 ],
                 rotation_frequency="10d",
-                rotation_state="deactivated",
+                rotation_state=ItemVersionState.DEACTIVATED,
                 expiration="2025-01-01T10:00:00Z",
             )
         """
@@ -470,7 +470,7 @@ class Vault(ServiceBase):
         Args:
             id (str): The item ID
             secret (str): The secret value
-            rotation_state (str, optional): State to which the previous version should transition upon rotation.
+            rotation_state (ItemVersionState, optional): State to which the previous version should transition upon rotation.
                 Supported options:
                 - `deactivated`
                 - `suspended`
@@ -490,7 +490,7 @@ class Vault(ServiceBase):
             vault.secret_rotate(
                 id="pvi_p6g5i3gtbvqvc3u6zugab6qs6r63tqf5",
                 secret="12sdfgs4543qv@#%$casd",
-                rotation_state="deactivated",
+                rotation_state=ItemVersionState.DEACTIVATED,
             )
         """
         input = SecretRotateRequest(id=id, secret=secret, rotation_state=rotation_state)
@@ -508,7 +508,6 @@ class Vault(ServiceBase):
         
         Args:
             id (str): The item ID
-            rotation_grace_period (str, optional): Grace period for the previous version of the Pangea Token
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -521,7 +520,6 @@ class Vault(ServiceBase):
         Examples:
             vault.pangea_token_rotate(
                 id="pvi_p6g5i3gtbvqvc3u6zugab6qs6r63tqf5",
-                rotation_grace_period="1d",
             )
         """
         input = SecretRotateRequest(id=id)
@@ -548,14 +546,14 @@ class Vault(ServiceBase):
         Generate a symmetric key
         
         Args:
-            algorithm (str): The algorithm of the key
-            purpose (str): The purpose of this key
+            algorithm (SymmetricAlgorithm): The algorithm of the key
+            purpose (KeyPurpose): The purpose of this key
             name (str): The name of this item
             folder (str, optional): The folder where this item is stored
             metadata (dict, optional): User-provided metadata
             tags (list[str], optional): A list of user-defined tags
             rotation_frequency (str, optional): Period of time between item rotations, or `never` to disallow rotation
-            rotation_state (str, optional): State to which the previous version should transition upon rotation.
+            rotation_state (ItemVersionState, optional): State to which the previous version should transition upon rotation.
                 Supported options:
                 - `deactivated`
                 - `destroyed`
@@ -571,8 +569,8 @@ class Vault(ServiceBase):
 
         Examples:
             vault.symmetric_generate(
-                algorithm="AES",
-                purpose="encryption",
+                algorithm=SymmetricAlgorithm.AES,
+                purpose=KeyPurpose.ENCRYPTION,
                 name="my-very-secret-secret",
                 folder="/personal",
                 metadata={
@@ -584,7 +582,7 @@ class Vault(ServiceBase):
                     "personal"
                 ],
                 rotation_frequency="10d",
-                rotation_state="deactivated",
+                rotation_state=ItemVersionState.DEACTIVATED,
                 expiration="2025-01-01T10:00:00Z",
             )
         """
@@ -623,14 +621,14 @@ class Vault(ServiceBase):
         Generate an asymmetric key
         
         Args:
-            algorithm (str): The algorithm of the key
-            purpose (str): The purpose of this key
+            algorithm (AsymmetricAlgorithm): The algorithm of the key
+            purpose (KeyPurpose): The purpose of this key
             name (str): The name of this item
             folder (str, optional): The folder where this item is stored
             metadata (dict, optional): User-provided metadata
             tags (list[str], optional): A list of user-defined tags
             rotation_frequency (str, optional): Period of time between item rotations, or `never` to disallow rotation
-            rotation_state (str, optional): State to which the previous version should transition upon rotation.
+            rotation_state (ItemVersionState, optional): State to which the previous version should transition upon rotation.
                 Supported options:
                 - `deactivated`
                 - `destroyed`
@@ -646,8 +644,8 @@ class Vault(ServiceBase):
 
         Examples:
             vault.asymmetric_generate(
-                algorithm="RSA",
-                purpose="signing",
+                algorithm=AsymmetricAlgorithm.RSA,
+                purpose=KeyPurpose.SIGNING,
                 name="my-very-secret-secret",
                 folder="/personal",
                 metadata={
@@ -659,7 +657,7 @@ class Vault(ServiceBase):
                     "personal"
                 ],
                 rotation_frequency="10d",
-                rotation_state="deactivated",
+                rotation_state=ItemVersionState.DEACTIVATED,
                 expiration="2025-01-01T10:00:00Z",
             )
         """
@@ -701,16 +699,16 @@ class Vault(ServiceBase):
         Import an asymmetric key
         
         Args:
-            private_key (str): The private key in PEM format
-            public_key (str): The public key in PEM format
-            algorithm (str): The algorithm of the key
-            purpose (str): The purpose of this key. `signing`, `encryption`, or `jwt`.
+            private_key (EncodedPrivateKey): The private key in PEM format
+            public_key (EncodedPublicKey): The public key in PEM format
+            algorithm (AsymmetricAlgorithm): The algorithm of the key
+            purpose (KeyPurpose): The purpose of this key. `signing`, `encryption`, or `jwt`.
             name (str): The name of this item
             folder (str, optional): The folder where this item is stored
             metadata (dict, optional): User-provided metadata
             tags (list[str], optional): A list of user-defined tags
             rotation_frequency (str, optional): Period of time between item rotations, or `never` to disallow rotation
-            rotation_state (str, optional): State to which the previous version should transition upon rotation.
+            rotation_state (ItemVersionState, optional): State to which the previous version should transition upon rotation.
                 Supported options:
                 - `deactivated`
                 - `destroyed`
@@ -728,8 +726,8 @@ class Vault(ServiceBase):
             vault.asymmetric_store(
                 private_key="private key example",
                 public_key="-----BEGIN PUBLIC KEY-----\\nMCowBQYDK2VwAyEA8s5JopbEPGBylPBcMK+L5PqHMqPJW/5KYPgBHzZGncc=\\n-----END PUBLIC KEY-----",
-                algorithm="RSA",
-                purpose="signing",
+                algorithm="AsymmetricAlgorithm.RSA,
+                purpose=KeyPurpose.SIGNING,
                 name="my-very-secret-secret",
                 folder="/personal",
                 metadata={
@@ -741,7 +739,7 @@ class Vault(ServiceBase):
                     "personal"
                 ],
                 rotation_frequency="10d",
-                rotation_state="deactivated",
+                rotation_state=ItemVersionState.DEACTIVATED,
                 expiration="2025-01-01T10:00:00Z",
             )
         """
@@ -784,14 +782,14 @@ class Vault(ServiceBase):
         
         Args:
             key (str): The key material (in base64)
-            algorithm (str): The algorithm of the key
-            purpose (str): The purpose of this key. `encryption` or `jwt`
+            algorithm (SymmetricAlgorithm): The algorithm of the key
+            purpose (KeyPurpose): The purpose of this key. `encryption` or `jwt`
             name (str): The name of this item
             folder (str, optional): The folder where this item is stored
             metadata (dict, optional): User-provided metadata
             tags (list[str], optional): A list of user-defined tags
             rotation_frequency (str, optional): Period of time between item rotations, or `never` to disallow rotation
-            rotation_state (str, optional): State to which the previous version should transition upon rotation.
+            rotation_state (ItemVersionState, optional): State to which the previous version should transition upon rotation.
                 Supported options:
                 - `deactivated`
                 - `destroyed`
@@ -808,8 +806,8 @@ class Vault(ServiceBase):
         Examples:
             vault.symmetric_store(
                 key="lJkk0gCLux+Q+rPNqLPEYw==",
-                algorithm="AES",
-                purpose="encryption",
+                algorithm=SymmetricAlgorithm.AES,
+                purpose=KeyPurpose.ENCRYPTION,
                 name="my-very-secret-secret",
                 folder="/personal",
                 metadata={
@@ -821,7 +819,7 @@ class Vault(ServiceBase):
                     "personal"
                 ],
                 rotation_frequency="10d",
-                rotation_state="deactivated",
+                rotation_state=ItemVersionState.DEACTIVATED,
                 expiration="2025-01-01T10:00:00Z",
             )
         """
@@ -859,16 +857,16 @@ class Vault(ServiceBase):
         
         Args:
             id (str): The ID of the item
-            rotation_state (str, optional): State to which the previous version should transition upon rotation.
+            rotation_state (ItemVersionState, optional): State to which the previous version should transition upon rotation.
                 Supported options:
                 - `deactivated`
                 - `suspended`
                 - `destroyed`
 
                 Default is `deactivated`.
-            public_key (str, optional): The public key (in PEM format)
-            private_key: (str, optional): The private key (in PEM format)
-            key: (str, optional): The key material (in base64)
+            public_key (EncodedPublicKey, optional): The public key (in PEM format)
+            private_key: (EncodedPrivateKey, optional): The private key (in PEM format)
+            key: (EncodedSymmetricKey, optional): The key material (in base64)
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -881,7 +879,7 @@ class Vault(ServiceBase):
         Examples:
             vault.key_rotate(
                 id="pvi_p6g5i3gtbvqvc3u6zugab6qs6r63tqf5",
-                rotation_state="deactivated",
+                rotation_state=ItemVersionState.DEACTIVATED,
                 key="lJkk0gCLux+Q+rPNqLPEYw==",
             )
         """
@@ -1135,7 +1133,7 @@ class Vault(ServiceBase):
         
         Args:
             id (str): The item ID
-            state (str): The new state of the item version. Supported options:
+            state (ItemVersionState): The new state of the item version. Supported options:
                 - `active`
                 - `deactivated`
                 - `suspended`
@@ -1155,7 +1153,7 @@ class Vault(ServiceBase):
         Examples:
             vault.state_change(
                 id="pvi_p6g5i3gtbvqvc3u6zugab6qs6r63tqf5",
-                state="deactivated",
+                state=ItemVersionState.DEACTIVATED,
             )
         """
         input = StateChangeRequest(id=id, state=state, version=version, destroy_period=destroy_period)
