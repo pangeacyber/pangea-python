@@ -3,7 +3,6 @@ import inspect
 import json
 import random
 import unittest
-from typing import Dict, List
 
 import pangea.exceptions as pexc
 from pangea import PangeaConfig
@@ -110,7 +109,8 @@ class TestVault(unittest.TestCase):
         self.assertEqual(data_b64, decrypt1_deactivated_resp.result.plain_text)
 
     def signing_cycle(self, id):
-        data = "thisisamessagetosign"
+        msg = "thisisamessagetosign"
+        data = str2str_b64(msg)
         # Sign 1
         sign1_resp = self.vault.sign(id, data)
         self.assertEqual(id, sign1_resp.result.id)
