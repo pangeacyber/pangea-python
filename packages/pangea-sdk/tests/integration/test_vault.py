@@ -414,7 +414,7 @@ class TestVault(unittest.TestCase):
     def test_generate_asym_signing_all_params(self):
         algorithms = [
             AsymmetricAlgorithm.Ed25519,
-            AsymmetricAlgorithm.RSA,
+            AsymmetricAlgorithm.RSA2048_PKCS1V15_SHA256,
         ]
         purpose = KeyPurpose.SIGNING
         for a in algorithms:
@@ -423,7 +423,7 @@ class TestVault(unittest.TestCase):
 
     def test_generate_asym_encrypting_all_params(self):
         algorithms = [
-            AsymmetricAlgorithm.RSA,
+            AsymmetricAlgorithm.RSA2048_OAEP_SHA256,
         ]
         purpose = KeyPurpose.ENCRYPTION
         for a in algorithms:
@@ -441,7 +441,7 @@ class TestVault(unittest.TestCase):
 
     def test_asym_encripting_life_cycle(self):
         algorithms = [
-            AsymmetricAlgorithm.RSA,
+            AsymmetricAlgorithm.RSA2048_OAEP_SHA256,
         ]
         purpose = KeyPurpose.ENCRYPTION
         for algorithm in algorithms:
@@ -458,7 +458,7 @@ class TestVault(unittest.TestCase):
     def test_asym_signing_life_cycle(self):
         algorithms = [
             AsymmetricAlgorithm.Ed25519,
-            AsymmetricAlgorithm.RSA,
+            AsymmetricAlgorithm.RSA2048_PKCS1V15_SHA256,
         ]
         purpose = KeyPurpose.SIGNING
         for algorithm in algorithms:
