@@ -391,7 +391,7 @@ class FlowEnrollMFAcompleteResult(CommonFlowResult):
 class FlowEnrollMFAStartRequest(APIRequestModel):
     flow_id: str
     mfa_provider: MFAProvider
-    phone: str
+    phone: Optional[str] = None
 
 
 class FlowEnrollMFAStartResult(CommonFlowResult):
