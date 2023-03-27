@@ -31,11 +31,13 @@ class KeyPurpose(str, enum.Enum):
 
 
 class AsymmetricAlgorithm(str, enum.Enum):
-    Ed25519 = "ed25519"
-    RSA = "rsa"
-    ES256 = "es256"
-    ES384 = "es384"
-    ES512 = "es512"
+    Ed25519 = "ED25519"
+    RSA2048_PKCS1V15_SHA256 = "RSA-PKCS1V15-2048-SHA256"
+    RSA2048_OAEP_SHA256 = "RSA-OAEP-2048-SHA256"
+    ES256 = "ES256"
+    ES384 = "ES384"
+    ES512 = "ES512"
+    RSA = "RSA-PKCS1V15-2048-SHA256"  # deprecated, use RSA2048_PKCS1V15_SHA256 instead
 
     def __str__(self):
         return str(self.value)
@@ -45,10 +47,12 @@ class AsymmetricAlgorithm(str, enum.Enum):
 
 
 class SymmetricAlgorithm(str, enum.Enum):
-    AES = "aes"
-    HS256 = "hs256"
-    HS384 = "hs384"
-    HS512 = "hs512"
+    HS256 = "HS256"
+    HS384 = "HS384"
+    HS512 = "HS512"
+    AES128_CFB = "AES-CFB-128"
+    AES256_CFB = "AES-CFB-256"
+    AES = "AES-CFB-128"  # deprecated, use AES128_CFB instead
 
     def __str__(self):
         return str(self.value)
