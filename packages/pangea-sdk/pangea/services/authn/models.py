@@ -591,7 +591,7 @@ class ClientSessionInvalidateResult(PangeaResponseResult):
 
 class ClientSessionListRequest(APIRequestModel):
     token: str
-    filter: Optional[dict[str, str]] = None
+    filter: Optional[Dict[str, str]] = None
     last: Optional[str] = None
     order: Optional[ItemOrder] = None
     order_by: Optional[SessionListOrderBy] = None
@@ -603,6 +603,7 @@ class SessionToken(APIResponseModel):
     type: str
     life: int
     expire: str
+    identity: str
     email: str
     scopes: Scopes
     profile: Profile
@@ -610,7 +611,6 @@ class SessionToken(APIResponseModel):
 
 
 class SessionItem(APIResponseModel):
-    # FIXME: Review this and SessionToken
     id: str
     type: str
     life: int
