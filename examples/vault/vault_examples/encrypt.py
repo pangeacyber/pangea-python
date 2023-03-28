@@ -17,7 +17,7 @@ def main():
     try:
         # create a symmetric key with Pangea-provided material and default parameters
         create_response = vault.symmetric_generate(
-            purpose=KeyPurpose.ENCRYPTION, algorithm=SymmetricAlgorithm.AES, name="test key"
+            purpose=KeyPurpose.ENCRYPTION, algorithm=SymmetricAlgorithm.AES128_CFB, name="test key"
         )
         key_id = create_response.result.id
 
