@@ -119,7 +119,7 @@ class PangeaRequest(object):
 
         self.logger.debug(
             json.dumps(
-                {"service": self.service, "action": "post", "url": url, "result": pangea_response.raw_result},
+                {"service": self.service, "action": "post", "url": url, "raw_result": pangea_response.raw_result},
                 default=default_encoder,
             )
         )
