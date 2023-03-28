@@ -8,7 +8,7 @@ def format_datetime(dt: datetime.datetime) -> str:
     """
     if dt.tzinfo is None:
         dt = dt.astimezone(datetime.timezone.utc)
-    return dt.isoformat(timespec="milliseconds").replace("+00:00", "Z")
+    return dt.isoformat(timespec="microseconds").replace("+00:00", "Z")
 
 
 def default_encoder(obj) -> str:
