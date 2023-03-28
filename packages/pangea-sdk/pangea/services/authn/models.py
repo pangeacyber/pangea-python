@@ -659,7 +659,7 @@ class SessionInvalidateResult(PangeaResponseResult):
 
 
 class SessionListRequest(APIRequestModel):
-    filter: Optional[dict[str, str]] = None
+    filter: Optional[Dict[str, str]] = None
     last: Optional[str] = None
     order: Optional[ItemOrder] = None
     order_by: Optional[SessionListOrderBy] = None
