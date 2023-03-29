@@ -8,7 +8,7 @@ import pangea.exceptions as pexc
 from pangea import PangeaConfig
 from pangea.services.authn.authn import AuthN
 from pangea.services.authn.models import IDProvider
-from pangea.tools_util import TestEnvironment, get_test_domain, get_test_token
+from pangea.tools import TestEnvironment, get_test_domain, get_test_token
 
 TEST_ENVIRONMENT = TestEnvironment.DEVELOP
 
@@ -24,12 +24,6 @@ PROFILE_NEW = {"age": "18"}
 USER_IDENTITY = None  # Will be set once user is created
 
 # tests that should be run in order are named with <letter><number>. Letter to make tests groups and number to order them inside that group
-
-
-def print_api_error(e: pexc.PangeaAPIException):
-    print(f"Summary: {e.response.summary}")
-    for error_field in e.errors:
-        print(f"\t{error_field}")
 
 
 class TestAuthN(unittest.TestCase):
@@ -56,7 +50,7 @@ class TestAuthN(unittest.TestCase):
             self.assertEqual(response.status, "Success")
             self.assertEqual(response.result.profile, PROFILE_NEW)
         except pexc.PangeaAPIException as e:
-            print_api_error(e)
+            print(e)
             self.assertTrue(False)
 
     def test_authn_a2_user_delete(self):
@@ -79,7 +73,7 @@ class TestAuthN(unittest.TestCase):
             self.assertIsNotNone(response.result.active_token)
             self.assertIsNotNone(response.result.refresh_token)
         except pexc.PangeaAPIException as e:
-            print_api_error(e)
+            print(e)
             self.assertTrue(False)
 
     def test_authn_a4_user_profile(self):
@@ -120,7 +114,7 @@ class TestAuthN(unittest.TestCase):
             final_profile.update(PROFILE_NEW)
             self.assertEqual(final_profile, response.result.profile)
         except pexc.PangeaAPIException as e:
-            print_api_error(e)
+            print(e)
             self.assertTrue(False)
 
     def test_authn_a5_user_update(self):
