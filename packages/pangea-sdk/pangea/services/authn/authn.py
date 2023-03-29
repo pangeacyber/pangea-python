@@ -1,7 +1,7 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 import pangea.services.authn.models as m
 from pangea.response import PangeaResponse
@@ -73,7 +73,7 @@ class AuthN(ServiceBase):
         # - path: authn::/v1/session/list
         def list(
             self,
-            filter: Optional[dict[str, str]] = None,
+            filter: Optional[Dict[str, str]] = None,
             last: Optional[str] = None,
             order: Optional[m.ItemOrder] = None,
             order_by: Optional[m.SessionListOrderBy] = None,
@@ -140,7 +140,7 @@ class AuthN(ServiceBase):
             def list(
                 self,
                 token: str,
-                filter: Optional[dict[str, str]] = None,
+                filter: Optional[Dict[str, str]] = None,
                 last: Optional[str] = None,
                 order: Optional[m.ItemOrder] = None,
                 order_by: Optional[m.SessionListOrderBy] = None,
