@@ -21,6 +21,7 @@ class RedactRequest(APIRequestModel):
     text: str
     debug: Optional[bool] = None
     rules: Optional[List[str]] = None
+    return_result: Optional[bool] = None
 
 
 class RecognizerResult(APIResponseModel):
@@ -65,7 +66,7 @@ class RedactResult(PangeaResponseResult):
     report: Describes the decision process for redactions
     """
 
-    redacted_text: str
+    redacted_text: Optional[str] = None
     count: int
     report: Optional[DebugReport] = None
 
@@ -86,6 +87,7 @@ class StructuredRequest(APIRequestModel):
     format: Optional[RedactFormat] = None
     debug: Optional[bool] = None
     rules: Optional[List[str]] = None
+    return_result: Optional[bool] = None
 
 
 class StructuredResult(PangeaResponseResult):
@@ -94,7 +96,7 @@ class StructuredResult(PangeaResponseResult):
 
     """
 
-    redacted_data: Union[Dict, str]
+    redacted_data: Optional[Union[Dict, str]] = None
     count: int
     report: Optional[DebugReport] = None
 
@@ -140,7 +142,11 @@ class Redact(ServiceBase):
         super().__init__(token, config, logger_name)
 
     def redact(
-        self, text: str, debug: Optional[bool] = None, rules: Optional[List[str]] = None
+        self,
+        text: str,
+        debug: Optional[bool] = None,
+        rules: Optional[List[str]] = None,
+        return_result: Optional[bool] = None,
     ) -> PangeaResponse[RedactResult]:
         """
         Redact
@@ -152,6 +158,7 @@ class Redact(ServiceBase):
             debug (bool, optional): Setting this value to true will provide a detailed analysis of
                 the redacted data and the rules that caused redaction
             rules (list[str], optional): An array of redact rule short names
+            return_result(bool, optional): Setting this value to false will omit the redacted result only returning count
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -165,7 +172,7 @@ class Redact(ServiceBase):
             response = redact.redact(text="Jenny Jenny... 415-867-5309")
         """
 
-        input = RedactRequest(text=text, debug=debug, rules=rules)
+        input = RedactRequest(text=text, debug=debug, rules=rules, return_result=return_result)
         response = self.request.post("redact", data=input.dict(exclude_none=True))
         response.result = RedactResult(**response.raw_result)
         return response
@@ -177,6 +184,7 @@ class Redact(ServiceBase):
         format: Optional[RedactFormat] = None,
         debug: Optional[bool] = None,
         rules: Optional[List[str]] = None,
+        return_result: Optional[bool] = None,
     ) -> PangeaResponse[StructuredResult]:
         """
         Redact structured
@@ -192,6 +200,7 @@ class Redact(ServiceBase):
             debug (bool, optional): Setting this value to true will provide a detailed analysis of
                 the redacted data and the rules that caused redaction
             rules (list[str], optional): An array of redact rule short names
+            return_result(bool, optional): Setting this value to false will omit the redacted result only returning count
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -205,7 +214,9 @@ class Redact(ServiceBase):
             response = redact.redact_structured(data={"number": "415-867-5309", "ip": "1.1.1.1"}, redact_format="json")
         """
 
-        input = StructuredRequest(data=data, jsonp=jsonp, format=format, debug=debug, rules=rules)
+        input = StructuredRequest(
+            data=data, jsonp=jsonp, format=format, debug=debug, rules=rules, return_result=return_result
+        )
         response = self.request.post("redact_structured", data=input.dict(exclude_none=True))
         response.result = StructuredResult(**response.raw_result)
         return response
