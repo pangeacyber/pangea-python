@@ -36,7 +36,8 @@ class PangeaRequest(object):
 
         # Custom headers
         self._extra_headers = {}
-        self._custom_user_agent = config.custom_user_agent if config.custom_user_agent else ""
+        self._user_agent = ""
+        self.set_custom_user_agent(config.custom_user_agent)
         self.session: requests.Session = self._init_session()
 
         self.logger = logger
@@ -58,7 +59,10 @@ class PangeaRequest(object):
             self._extra_headers = headers
 
     def set_custom_user_agent(self, user_agent: str):
-        self._custom_user_agent = user_agent
+        self.config.custom_user_agent = user_agent
+        self._user_agent = f"pangea-python/{pangea.__version__}"
+        if self.config.custom_user_agent:
+            self._user_agent += f" {self.config.custom_user_agent}"
 
     def queued_support(self, value: bool):
         """Sets or returns the queued retry support mode.
@@ -184,7 +188,7 @@ class PangeaRequest(object):
     def _headers(self) -> dict:
         headers = {
             "Content-Type": "application/json",
-            "User-Agent": f"pangea-python/{pangea.__version__} {self._custom_user_agent}",
+            "User-Agent": self._user_agent,
             "Authorization": f"Bearer {self.token}",
         }
 
