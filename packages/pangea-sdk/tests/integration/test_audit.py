@@ -30,7 +30,7 @@ class TestAudit(unittest.TestCase):
     def setUp(self):
         self.token = get_test_token(TEST_ENVIRONMENT)
         self.domain = get_test_domain(TEST_ENVIRONMENT)
-        self.config = PangeaConfig(domain=self.domain)
+        self.config = PangeaConfig(domain=self.domain, custom_user_agent="sdk-test")
         self.audit = Audit(self.token, config=self.config)
         logger_set_pangea_config("pangea")
         self.auditSigner = Audit(

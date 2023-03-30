@@ -14,7 +14,7 @@ class TestRedact(unittest.TestCase):
     def setUp(self):
         token = get_test_token(TEST_ENVIRONMENT)
         domain = get_test_domain(TEST_ENVIRONMENT)
-        config = PangeaConfig(domain=domain)
+        config = PangeaConfig(domain=domain, custom_user_agent="sdk-test")
         self.redact = Redact(token, config=config, logger_name="pangea")
         logger_set_pangea_config(logger_name=self.redact.logger.name)
 
@@ -62,7 +62,7 @@ class TestRedact(unittest.TestCase):
     def test_redact_with_bad_auth_token(self):
         token = "notarealtoken"
         domain = get_test_domain(TEST_ENVIRONMENT)
-        config = PangeaConfig(domain=domain)
+        config = PangeaConfig(domain=domain, custom_user_agent="sdk-test")
         badredact = Redact(token, config=config)
         text = "Jenny Jenny... 415-867-5309"
 

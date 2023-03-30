@@ -1,6 +1,7 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 
+import copy
 import json
 import logging
 import time
@@ -25,25 +26,17 @@ class PangeaRequest(object):
     """
 
     def __init__(self, config: PangeaConfig, token: str, version: str, service: str, logger: logging.Logger):
-        self.config = config
+        self.config = copy.deepcopy(config)
         self.token = token
         self.version = version
         self.service = service
-
-        # TODO: allow overriding these
-        self.retries = config.request_retries
-        self.backoff = config.request_backoff
-        self.timeout = config.request_timeout
-
-        # number of queued retry fetch attempts, with exponential backoff (4 -> 1 + 4 + 9 + 16  = 30 seconds of sleep)
-        self.queued_retries = config.queued_retries
 
         # Queued request retry support flag
         self._queued_retry_enabled = config.queued_retry_enabled
 
         # Custom headers
         self._extra_headers = {}
-        self._custom_user_agent = ""
+        self._custom_user_agent = config.custom_user_agent if config.custom_user_agent else ""
         self.session: requests.Session = self._init_session()
 
         self.logger = logger
@@ -160,15 +153,15 @@ class PangeaRequest(object):
             time.sleep(retry_count * retry_count)
             pangea_response = self.get("request", request_id)
 
-            if pangea_response.code == 202 and retry_count <= self.queued_retries:
+            if pangea_response.code == 202 and retry_count <= self.config.queued_retries:
                 retry_count += 1
             else:
                 return pangea_response
 
     def _init_session(self) -> requests.Session:
         retry_config = Retry(
-            total=self.retries,
-            backoff_factor=self.backoff,
+            total=self.config.request_retries,
+            backoff_factor=self.config.request_backoff,
         )
 
         adapter = HTTPAdapter(max_retries=retry_config)
