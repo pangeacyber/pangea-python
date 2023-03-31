@@ -52,7 +52,7 @@ class TestVault(unittest.TestCase):
     def setUp(self):
         self.token = get_test_token(TEST_ENVIRONMENT)
         domain = get_test_domain(TEST_ENVIRONMENT)
-        self.config = PangeaConfig(domain=domain)
+        self.config = PangeaConfig(domain=domain, custom_user_agent="sdk-test")
         self.vault = Vault(self.token, config=self.config, logger_name="vault")
         logger_set_pangea_config("vault")
 

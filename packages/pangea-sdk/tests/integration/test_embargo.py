@@ -12,7 +12,7 @@ class TestEmbargo(unittest.TestCase):
     def setUp(self):
         token = get_test_token(TEST_ENVIRONMENT)
         domain = get_test_domain(TEST_ENVIRONMENT)
-        config = PangeaConfig(domain=domain)
+        config = PangeaConfig(domain=domain, custom_user_agent="sdk-test")
         self.embargo = Embargo(token, config=config)
         logger_set_pangea_config(logger_name=self.embargo.logger.name)
 
