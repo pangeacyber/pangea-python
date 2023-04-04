@@ -251,7 +251,7 @@ class TestAudit(unittest.TestCase):
     def test_search_results_no_verbose(self):
         limit = 10
         max_result = 10
-        response_search = self.audit.search(query="message:", limit=limit, max_results=max_result, verbose=False)
+        response_search = self.audit.search(query='message:""', limit=limit, max_results=max_result, verbose=False)
         self.assertEqual(response_search.status, ResponseStatus.SUCCESS)
         self.assertEqual(len(response_search.result.events), limit)
         self.assertEqual(response_search.result.count, max_result)
@@ -287,7 +287,7 @@ class TestAudit(unittest.TestCase):
         end = datetime.datetime.now()
         start = end - datetime.timedelta(days=30)
         response_search = self.audit.search(
-            query="message:",
+            query='message:""',
             order=SearchOrder.DESC,
             limit=limit,
             max_results=max_result,
@@ -305,7 +305,7 @@ class TestAudit(unittest.TestCase):
         end = "0d"
         start = "30d"
         response_search = self.audit.search(
-            query="message:",
+            query='message:""',
             order=SearchOrder.DESC,
             limit=limit,
             max_results=max_result,

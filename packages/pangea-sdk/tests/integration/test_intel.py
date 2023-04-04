@@ -3,7 +3,8 @@ import unittest
 import pangea.exceptions as pe
 from pangea import PangeaConfig
 from pangea.response import ResponseStatus
-from pangea.services import DomainIntel, FileIntel, IpIntel, UrlIntel
+from pangea.services import DomainIntel, FileIntel, IpIntel, UrlIntel, UserIntel
+from pangea.services.intel import HashType
 from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
 
 TEST_ENVIRONMENT = TestEnvironment.LIVE
@@ -308,3 +309,54 @@ class TestURLIntel(unittest.TestCase):
 
         with self.assertRaises(pe.UnauthorizedException):
             badintel_url.reputation(url="http://113.235.101.11:54384", provider="crowdstrike")
+
+
+class TestUserIntel(unittest.TestCase):
+    def setUp(self):
+        token = get_test_token(TEST_ENVIRONMENT)
+        domain = get_test_domain(TEST_ENVIRONMENT)
+        config = PangeaConfig(domain=domain, custom_user_agent="sdk-test")
+        self.intel_user = UserIntel(token, config=config, logger_name="pangea")
+        logger_set_pangea_config(logger_name=self.intel_user.logger.name)
+
+    def test_user_breached_phone(self):
+        response = self.intel_user.user_breached(phone_number="8005550123", provider="spycloud", verbose=True, raw=True)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertTrue(response.result.data.found_in_breach)
+        self.assertGreater(response.result.data.breach_count, 0)
+
+    def test_user_breached_email(self):
+        response = self.intel_user.user_breached(email="test@example.com", provider="spycloud", verbose=True, raw=True)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertTrue(response.result.data.found_in_breach)
+        self.assertGreater(response.result.data.breach_count, 0)
+
+    def test_user_breached_username(self):
+        response = self.intel_user.user_breached(username="shortpatrick", provider="spycloud", verbose=True, raw=True)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertTrue(response.result.data.found_in_breach)
+        self.assertGreater(response.result.data.breach_count, 0)
+
+    def test_user_breached_ip(self):
+        response = self.intel_user.user_breached(ip="192.168.140.37", provider="spycloud", verbose=True, raw=True)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertTrue(response.result.data.found_in_breach)
+        self.assertGreater(response.result.data.breach_count, 0)
+
+    def test_user_breached_default_provider(self):
+        response = self.intel_user.user_breached(phone_number="8005550123", verbose=True, raw=True)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+
+    def test_password_breached(self):
+        response = self.intel_user.password_breached(
+            hash_prefix="5baa6", hash_type=HashType.SHA256, provider="spycloud"
+        )
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertTrue(response.result.data.found_in_breach)
+        self.assertGreater(response.result.data.breach_count, 0)
+
+    def test_password_breached_default_provider(self):
+        response = self.intel_user.password_breached(hash_prefix="5baa6", hash_type=HashType.SHA256)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertTrue(response.result.data.found_in_breach)
+        self.assertGreater(response.result.data.breach_count, 0)

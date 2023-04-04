@@ -116,7 +116,7 @@ class PangeaRequest(object):
 
         self.logger.debug(
             json.dumps(
-                {"service": self.service, "action": "post", "url": url, "raw_result": pangea_response.raw_result},
+                {"service": self.service, "action": "post", "url": url, "response": pangea_response.json},
                 default=default_encoder,
             )
         )
@@ -143,7 +143,7 @@ class PangeaRequest(object):
 
         self.logger.debug(
             json.dumps(
-                {"service": self.service, "action": "post", "url": url, "result": pangea_response.raw_result},
+                {"service": self.service, "action": "post", "url": url, "response": pangea_response.json},
                 default=default_encoder,
             )
         )
@@ -212,6 +212,7 @@ class PangeaRequest(object):
                     "action": "api_error",
                     "url": response.raw_response.url,
                     "summary": summary,
+                    "request_id": response.request_id,
                     "result": response.raw_result,
                 }
             )
