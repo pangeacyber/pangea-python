@@ -5,9 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.0] - 2023-04-10
+
+### Added
+
+- Audit-Vault signing integration support
+- Intel User support
+- Redact Service return_result field support
+- Set custom user agent by config
+- LICENSE
+
 ## [1.6.0] - 2023-03-27
 
-###
+### Added
 
 - Algorithm support in Vault Service
 
@@ -21,7 +31,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Vault service support
-- LICENSE
 - Internal server exception support
 
 ### Changed
@@ -140,7 +149,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Domain Intel client
 - Redact client
 
-[unreleased]: https://github.com/pangeacyber/pangea-python/compare/v1.6.0...main
+[unreleased]: https://github.com/pangeacyber/pangea-python/compare/v1.7.0...main
+[1.7.0]: https://github.com/pangeacyber/pangea-python/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/pangeacyber/pangea-python/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/pangeacyber/pangea-python/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/pangeacyber/pangea-python/compare/v1.3.0...v1.4.0
