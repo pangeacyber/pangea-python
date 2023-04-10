@@ -23,6 +23,9 @@ class APIResponseModel(BaseModel):
 class APIRequestModel(BaseModel):
     class Config:
         arbitrary_types_allowed = True
+        extra = (
+            "allow"  # allow parameters despite they are not declared in model. Make SDK accept server new parameters
+        )
         json_encoders = {
             datetime.datetime: format_datetime,
         }

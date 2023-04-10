@@ -233,6 +233,8 @@ class PangeaRequest(object):
             raise exceptions.MissingConfigID(self.service, response)
         elif status == ResponseStatus.SERVICE_NOT_AVAILABLE.value:
             raise exceptions.ServiceNotAvailableException(summary, response)
+        elif status == ResponseStatus.NOT_FOUND.value:
+            raise exceptions.NotFound(response.raw_response.url, response)
         elif status == ResponseStatus.TREE_NOT_FOUND.value:
             raise exceptions.TreeNotFoundException(summary, response)
         elif status == ResponseStatus.IP_NOT_FOUND.value:
