@@ -67,7 +67,7 @@ class TestFileIntel(unittest.TestCase):
             raw=True,
         )
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
-        self.assertEqual(response.result.data.verdict, "unknown")
+        self.assertEqual(response.result.data.verdict, "malicious")
 
     def test_file_lookup_default_provider(self):
         response = self.intel_file.lookup(
@@ -86,7 +86,7 @@ class TestFileIntel(unittest.TestCase):
             raw=True,
         )
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
-        self.assertEqual(response.result.data.verdict, "unknown")
+        self.assertEqual(response.result.data.verdict, "benign")
 
     def test_file_lookup_with_bad_auth_token(self):
         token = "noarealtoken"
@@ -123,7 +123,7 @@ class TestFileIntel(unittest.TestCase):
             raw=True,
         )
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
-        self.assertEqual(response.result.data.verdict, "unknown")
+        self.assertEqual(response.result.data.verdict, "malicious")
 
     def test_file_reputation_default_provider(self):
         response = self.intel_file.hashReputation(
@@ -142,7 +142,7 @@ class TestFileIntel(unittest.TestCase):
             raw=True,
         )
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
-        self.assertEqual(response.result.data.verdict, "unknown")
+        self.assertEqual(response.result.data.verdict, "benign")
 
     def test_file_reputation_with_bad_auth_token(self):
         token = "noarealtoken"
