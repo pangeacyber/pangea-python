@@ -1,5 +1,6 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+import enum
 import hashlib
 from typing import Dict, List, Optional
 
@@ -258,6 +259,18 @@ class URLReputationResult(IntelCommonResult):
     """
 
     data: URLReputationData
+
+
+class HashType(str, enum.Enum):
+    SHA256 = "sha256"
+    SHA1 = "sha1"
+    MD5 = "md5"
+
+    def __str__(self):
+        return str(self.value)
+
+    def __repr__(self):
+        return str(self.value)
 
 
 class FileIntel(ServiceBase):
@@ -813,4 +826,199 @@ class UrlIntel(ServiceBase):
         input = URLReputationRequest(url=url, provider=provider, verbose=verbose, raw=raw)
         response = self.request.post("reputation", data=input.dict(exclude_none=True))
         response.result = URLReputationResult(**response.raw_result)
+        return response
+
+
+class UserBreachedRequest(IntelCommonRequest):
+    """
+    User breached common request data
+
+    email (str): An email address to search for
+    username (str): An username to search for
+    ip (str): An ip to search for
+    phone_number (str): A phone number to search for. minLength: 7, maxLength: 15.
+    start (str): Earliest date for search
+    end (str): Latest date for search
+    """
+
+    email: Optional[str] = None
+    username: Optional[str] = None
+    ip: Optional[str] = None
+    phone_number: Optional[str] = None
+    start: Optional[str] = None
+    end: Optional[str] = None
+
+
+class UserBreachedCommonData(APIResponseModel):
+    """
+    User breached common information
+    """
+
+    found_in_breach: bool
+    breach_count: int
+
+
+class UserBreachedData(UserBreachedCommonData):
+    """
+    User breached information
+    """
+
+    pass
+
+
+class UserBreachedResult(IntelCommonResult):
+    """
+    User breached result
+    """
+
+    data: UserBreachedData
+
+
+class UserPasswordBreachedRequest(IntelCommonRequest):
+    """
+    User password breached common request data
+
+    hash_type (str): Hash type to be looked up
+    hash_prefix (str): The prefix of the hash to be looked up.
+    """
+
+    hash_type: str
+    hash_prefix: str
+
+
+class UserPasswordBreachedData(UserBreachedCommonData):
+    """
+    User password breached information
+    """
+
+    pass
+
+
+class UserPasswordBreachedResult(IntelCommonResult):
+    """
+    User password breached result
+    """
+
+    data: UserPasswordBreachedData
+
+
+class UserIntel(ServiceBase):
+    """User Intel service client.
+
+    Provides methods to interact with [Pangea User Intel Service](/docs/api/user-intel)
+
+    The following information is needed:
+        PANGEA_TOKEN - service token which can be found on the Pangea User
+            Console at [https://console.pangea.cloud/project/tokens](https://console.pangea.cloud/project/tokens)
+
+    Examples:
+        import os
+
+        # Pangea SDK
+        from pangea.config import PangeaConfig
+        from pangea.services import UserIntel
+
+        PANGEA_TOKEN = os.getenv("PANGEA_TOKEN")
+
+        user_intel_config = PangeaConfig(domain="pangea.cloud")
+
+        # Setup Pangea User Intel service
+        user_intel = UserIntel(token=PANGEA_TOKEN, config=user_intel_config)
+    """
+
+    service_name = "user-intel"
+    version = "v1"
+
+    def user_breached(
+        self,
+        email: Optional[str] = None,
+        username: Optional[str] = None,
+        ip: Optional[str] = None,
+        phone_number: Optional[str] = None,
+        start: Optional[str] = None,
+        end: Optional[str] = None,
+        verbose: Optional[bool] = None,
+        raw: Optional[bool] = None,
+        provider: Optional[str] = None,
+    ) -> PangeaResponse[UserBreachedResult]:
+        """
+        Look up breached users
+
+        Find out if an email address, username, phone number, or IP address was exposed in a security breach.
+
+        Args:
+            email (str): An email address to search for
+            username (str): An username to search for
+            ip (str): An ip to search for
+            phone_number (str): A phone number to search for. minLength: 7, maxLength: 15.
+            start (str): Earliest date for search
+            end (str): Latest date for search
+            verbose (bool, optional): Echo the API parameters in the response
+            raw (bool, optional): Include raw data from this provider
+            provider (str, optional): Use reputation data from this provider: "crowdstrike"
+
+        Raises:
+            PangeaAPIException: If an API Error happens
+
+        Returns:
+            A PangeaResponse where the sanctioned source(s) are in the
+                response.result field.  Available response fields can be found in our [API documentation](/docs/api/url-intel)
+
+        Examples:
+            response = self.intel_user.user_breached(
+                phone_number="8005550123", provider="spycloud", verbose=True, raw=True
+            )
+        """
+
+        input = UserBreachedRequest(
+            email=email,
+            phone_number=phone_number,
+            username=username,
+            ip=ip,
+            provider=provider,
+            start=start,
+            end=end,
+            verbose=verbose,
+            raw=raw,
+        )
+        response = self.request.post("user/breached", data=input.dict(exclude_none=True))
+        response.result = UserBreachedResult(**response.raw_result)
+        return response
+
+    def password_breached(
+        self,
+        hash_type: HashType,
+        hash_prefix: str,
+        verbose: Optional[bool] = None,
+        raw: Optional[bool] = None,
+        provider: Optional[str] = None,
+    ) -> PangeaResponse[UserPasswordBreachedResult]:
+        """
+        Look up breached passwords
+
+        Find out if a password has been exposed in security breaches by providing a 5 character prefix of the password hash.
+
+        Args:
+            hash_type (str): Hash type to be looked up
+            hash_prefix (str): The prefix of the hash to be looked up.
+            verbose (bool, optional): Echo the API parameters in the response
+            raw (bool, optional): Include raw data from this provider
+            provider (str, optional): Use reputation data from this provider: "crowdstrike"
+
+        Raises:
+            PangeaAPIException: If an API Error happens
+
+        Returns:
+            A PangeaResponse where the sanctioned source(s) are in the
+                response.result field.  Available response fields can be found in our [API documentation](/docs/api/url-intel)
+
+        Examples:
+            response = self.intel_user.password_breached(hash_prefix="5baa6", hash_type=HashType.SHA256, provider="spycloud")
+        """
+
+        input = UserPasswordBreachedRequest(
+            hash_type=hash_type, hash_prefix=hash_prefix, provider=provider, verbose=verbose, raw=raw
+        )
+        response = self.request.post("password/breached", data=input.dict(exclude_none=True))
+        response.result = UserPasswordBreachedResult(**response.raw_result)
         return response
