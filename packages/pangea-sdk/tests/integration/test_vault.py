@@ -3,7 +3,6 @@ import inspect
 import json
 import random
 import unittest
-from typing import Dict, List
 
 import pangea.exceptions as pexc
 from pangea import PangeaConfig
@@ -53,7 +52,7 @@ class TestVault(unittest.TestCase):
     def setUp(self):
         self.token = get_test_token(TEST_ENVIRONMENT)
         domain = get_test_domain(TEST_ENVIRONMENT)
-        self.config = PangeaConfig(domain=domain)
+        self.config = PangeaConfig(domain=domain, custom_user_agent="sdk-test")
         self.vault = Vault(self.token, config=self.config, logger_name="vault")
         logger_set_pangea_config("vault")
 
@@ -98,7 +97,7 @@ class TestVault(unittest.TestCase):
         # self.assertNotEqual(data_b64, decrypt_bad.result.plain_text)
 
         # Decrypt wrong id
-        with self.assertRaises(pexc.ItemNotFound):
+        with self.assertRaises(pexc.VaultItemNotFound):
             self.vault.decrypt("thisisnotandid", cipher_v2, 2)
 
         # Desactivate key
@@ -110,7 +109,8 @@ class TestVault(unittest.TestCase):
         self.assertEqual(data_b64, decrypt1_deactivated_resp.result.plain_text)
 
     def signing_cycle(self, id):
-        data = "thisisamessagetosign"
+        msg = "thisisamessagetosign"
+        data = str2str_b64(msg)
         # Sign 1
         sign1_resp = self.vault.sign(id, data)
         self.assertEqual(id, sign1_resp.result.id)
@@ -149,11 +149,11 @@ class TestVault(unittest.TestCase):
         self.assertTrue(verify_default_resp.result.valid_signature)
 
         # Verify not existing version
-        with self.assertRaises(pexc.ItemNotFound):
+        with self.assertRaises(pexc.VaultItemNotFound):
             self.vault.verify(id, data, signature_v2, 10)
 
         # Verify wrong id
-        with self.assertRaises(pexc.ItemNotFound):
+        with self.assertRaises(pexc.VaultItemNotFound):
             self.vault.verify("thisisnotandid", data, signature_v2, 2)
 
         # Verify wrong signature
@@ -414,7 +414,7 @@ class TestVault(unittest.TestCase):
     def test_generate_asym_signing_all_params(self):
         algorithms = [
             AsymmetricAlgorithm.Ed25519,
-            AsymmetricAlgorithm.RSA,
+            AsymmetricAlgorithm.RSA2048_PKCS1V15_SHA256,
         ]
         purpose = KeyPurpose.SIGNING
         for a in algorithms:
@@ -423,7 +423,7 @@ class TestVault(unittest.TestCase):
 
     def test_generate_asym_encrypting_all_params(self):
         algorithms = [
-            AsymmetricAlgorithm.RSA,
+            AsymmetricAlgorithm.RSA2048_OAEP_SHA256,
         ]
         purpose = KeyPurpose.ENCRYPTION
         for a in algorithms:
@@ -441,7 +441,7 @@ class TestVault(unittest.TestCase):
 
     def test_asym_encripting_life_cycle(self):
         algorithms = [
-            AsymmetricAlgorithm.RSA,
+            AsymmetricAlgorithm.RSA2048_OAEP_SHA256,
         ]
         purpose = KeyPurpose.ENCRYPTION
         for algorithm in algorithms:
@@ -458,7 +458,7 @@ class TestVault(unittest.TestCase):
     def test_asym_signing_life_cycle(self):
         algorithms = [
             AsymmetricAlgorithm.Ed25519,
-            AsymmetricAlgorithm.RSA,
+            AsymmetricAlgorithm.RSA2048_PKCS1V15_SHA256,
         ]
         purpose = KeyPurpose.SIGNING
         for algorithm in algorithms:

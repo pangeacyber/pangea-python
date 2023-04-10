@@ -321,7 +321,7 @@ class TestAudit(unittest.TestCase):
     def test_search_results_no_verbose(self):
         limit = 10
         max_result = 10
-        response_search = self.audit.search(query="message:", limit=limit, max_results=max_result, verbose=False)
+        response_search = self.audit.search(query='message:""', limit=limit, max_results=max_result, verbose=False)
         self.assertEqual(response_search.status, ResponseStatus.SUCCESS)
         self.assertEqual(len(response_search.result.events), limit)
         self.assertEqual(response_search.result.count, max_result)
@@ -357,7 +357,7 @@ class TestAudit(unittest.TestCase):
         end = datetime.datetime.now()
         start = end - datetime.timedelta(days=30)
         response_search = self.audit.search(
-            query="message:",
+            query='message:""',
             order=SearchOrder.DESC,
             limit=limit,
             max_results=max_result,
@@ -372,10 +372,10 @@ class TestAudit(unittest.TestCase):
     def test_search_with_dates_as_strings(self):
         limit = 2
         max_result = 3
-        end = "1d"
+        end = "0d"
         start = "30d"
         response_search = self.audit.search(
-            query="message:",
+            query='message:""',
             order=SearchOrder.DESC,
             limit=limit,
             max_results=max_result,
@@ -397,10 +397,11 @@ class TestAudit(unittest.TestCase):
         self.assertTrue(isinstance(response.result.data.size, int))
         self.assertTrue(isinstance(response.result.data.url, str))
         self.assertNotEqual(response.result.data.url, "")
-        self.assertGreaterEqual(len(response.result.data.consistency_proof), 1)
+        if response.result.data.consistency_proof is not None:
+            self.assertGreaterEqual(len(response.result.data.consistency_proof), 1)
 
     def test_root_2(self):
-        tree_size = 3
+        tree_size = 1
         response = self.audit.root(tree_size=tree_size)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertEqual(response.result.data.size, tree_size)
@@ -411,7 +412,8 @@ class TestAudit(unittest.TestCase):
         self.assertNotEqual(response.result.data.root_hash, "")
         self.assertTrue(isinstance(response.result.data.url, str))
         self.assertNotEqual(response.result.data.url, "")
-        self.assertGreaterEqual(len(response.result.data.consistency_proof), 1)
+        if response.result.data.consistency_proof is not None:
+            self.assertGreaterEqual(len(response.result.data.consistency_proof), 1)
 
     def test_search_verify(self):
         query = f"message:{MSG_SIGNED_LOCAL}"

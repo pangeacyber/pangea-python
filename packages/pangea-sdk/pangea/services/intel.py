@@ -620,7 +620,7 @@ class IpIntel(ServiceBase):
 
         Args:
             ip (str): IP address to be geolocated
-            provider (str, optional): Use geolocation data from this provider ("digitalenvoy"). Default provider defined by the configuration.
+            provider (str, optional): Use geolocation data from this provider ("digitalelement"). Default provider defined by the configuration.
             verbose (bool, optional): Echo the API parameters in the response
             raw (bool, optional): Include raw data from this provider
 
@@ -632,7 +632,7 @@ class IpIntel(ServiceBase):
                 response.result field.  Available response fields can be found in our [API documentation](/docs/api/ip-intel)
 
         Examples:
-            response = ip_intel.geolocate(ip="93.231.182.110", provider="digitalenvoy")
+            response = ip_intel.geolocate(ip="93.231.182.110", provider="digitalelement")
         """
         input = IPGeolocateRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
         response = self.request.post("geolocate", data=input.dict(exclude_none=True))
@@ -649,7 +649,7 @@ class IpIntel(ServiceBase):
 
         Args:
             ip (str): IP address to be geolocated
-            provider (str, optional): Use geolocation data from this provider ("digitalenvoy"). Default provider defined by the configuration.
+            provider (str, optional): Use geolocation data from this provider ("digitalelement"). Default provider defined by the configuration.
             verbose (bool, optional): Echo the API parameters in the response
             raw (bool, optional): Include raw data from this provider
 
@@ -661,7 +661,7 @@ class IpIntel(ServiceBase):
                 response.result field.  Available response fields can be found in our [API documentation](/docs/api/ip-intel)
 
         Examples:
-            response = ip_intel.get_domain(ip="93.231.182.110", provider="digitalenvoy")
+            response = ip_intel.get_domain(ip="93.231.182.110", provider="digitalelement")
         """
         input = IPDomainRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
         response = self.request.post("domain", data=input.dict(exclude_none=True))
@@ -678,7 +678,7 @@ class IpIntel(ServiceBase):
 
         Args:
             ip (str): IP address to be geolocated
-            provider (str, optional): Use geolocation data from this provider ("digitalenvoy"). Default provider defined by the configuration.
+            provider (str, optional): Use geolocation data from this provider ("digitalelement"). Default provider defined by the configuration.
             verbose (bool, optional): Echo the API parameters in the response
             raw (bool, optional): Include raw data from this provider
 
@@ -690,7 +690,7 @@ class IpIntel(ServiceBase):
                 response.result field.  Available response fields can be found in our [API documentation](/docs/api/ip-intel)
 
         Examples:
-            response = ip_intel.is_vpn(ip="93.231.182.110", provider="digitalenvoy")
+            response = ip_intel.is_vpn(ip="93.231.182.110", provider="digitalelement")
         """
         input = IPVPNRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
         response = self.request.post("vpn", data=input.dict(exclude_none=True))
@@ -707,7 +707,7 @@ class IpIntel(ServiceBase):
 
         Args:
             ip (str): IP address to be geolocated
-            provider (str, optional): Use geolocation data from this provider ("digitalenvoy"). Default provider defined by the configuration.
+            provider (str, optional): Use geolocation data from this provider ("digitalelement"). Default provider defined by the configuration.
             verbose (bool, optional): Echo the API parameters in the response
             raw (bool, optional): Include raw data from this provider
 
@@ -719,7 +719,7 @@ class IpIntel(ServiceBase):
                 response.result field.  Available response fields can be found in our [API documentation](/docs/api/ip-intel)
 
         Examples:
-            response = ip_intel.is_proxy(ip="93.231.182.110", provider="digitalenvoy")
+            response = ip_intel.is_proxy(ip="93.231.182.110", provider="digitalelement")
         """
         input = IPProxyRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
         response = self.request.post("proxy", data=input.dict(exclude_none=True))

@@ -1,4 +1,4 @@
-__version__ = "1.4.0"
+__version__ = "1.6.0"
 
 from pangea.config import PangeaConfig
 from pangea.request import PangeaRequest

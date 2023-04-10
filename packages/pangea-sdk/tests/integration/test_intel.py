@@ -13,7 +13,7 @@ class TestDomainIntel(unittest.TestCase):
     def setUp(self):
         token = get_test_token(TEST_ENVIRONMENT)
         domain = get_test_domain(TEST_ENVIRONMENT)
-        config = PangeaConfig(domain=domain)
+        config = PangeaConfig(domain=domain, custom_user_agent="sdk-test")
         self.intel_domain = DomainIntel(token, config=config, logger_name="pangea")
         logger_set_pangea_config(logger_name=self.intel_domain.logger.name)
 
@@ -27,7 +27,7 @@ class TestDomainIntel(unittest.TestCase):
     def test_domain_lookup_with_bad_auth_token(self):
         token = "noarealtoken"
         domain = get_test_domain(TEST_ENVIRONMENT)
-        config = PangeaConfig(domain=domain)
+        config = PangeaConfig(domain=domain, custom_user_agent="sdk-test")
         badintel_domain = DomainIntel(token, config=config)
 
         with self.assertRaises(pe.UnauthorizedException):
@@ -43,7 +43,7 @@ class TestDomainIntel(unittest.TestCase):
     def test_domain_reputation_with_bad_auth_token(self):
         token = "noarealtoken"
         domain = get_test_domain(TEST_ENVIRONMENT)
-        config = PangeaConfig(domain=domain)
+        config = PangeaConfig(domain=domain, custom_user_agent="sdk-test")
         badintel_domain = DomainIntel(token, config=config)
 
         with self.assertRaises(pe.UnauthorizedException):
@@ -54,7 +54,7 @@ class TestFileIntel(unittest.TestCase):
     def setUp(self):
         token = get_test_token(TEST_ENVIRONMENT)
         domain = get_test_domain(TEST_ENVIRONMENT)
-        config = PangeaConfig(domain=domain)
+        config = PangeaConfig(domain=domain, custom_user_agent="sdk-test")
         self.intel_file = FileIntel(token, config=config, logger_name="pangea")
         logger_set_pangea_config(logger_name=self.intel_file.logger.name)
 
@@ -91,7 +91,7 @@ class TestFileIntel(unittest.TestCase):
     def test_file_lookup_with_bad_auth_token(self):
         token = "noarealtoken"
         domain = get_test_domain(TEST_ENVIRONMENT)
-        config = PangeaConfig(domain=domain)
+        config = PangeaConfig(domain=domain, custom_user_agent="sdk-test")
         badintel_domain = FileIntel(token, config=config, logger_name="pangea")
         logger_set_pangea_config(logger_name=self.intel_file.logger.name)
 
@@ -147,7 +147,7 @@ class TestFileIntel(unittest.TestCase):
     def test_file_reputation_with_bad_auth_token(self):
         token = "noarealtoken"
         domain = get_test_domain(TEST_ENVIRONMENT)
-        config = PangeaConfig(domain=domain)
+        config = PangeaConfig(domain=domain, custom_user_agent="sdk-test")
         badintel_domain = FileIntel(token, config=config)
 
         with self.assertRaises(pe.UnauthorizedException):
@@ -174,7 +174,7 @@ class TestIPIntel(unittest.TestCase):
     def setUp(self):
         token = get_test_token(TEST_ENVIRONMENT)
         domain = get_test_domain(TEST_ENVIRONMENT)
-        config = PangeaConfig(domain=domain)
+        config = PangeaConfig(domain=domain, custom_user_agent="sdk-test")
         self.intel_ip = IpIntel(token, config=config, logger_name="pangea")
         logger_set_pangea_config(logger_name=self.intel_ip.logger.name)
 
@@ -188,7 +188,7 @@ class TestIPIntel(unittest.TestCase):
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
 
     def test_ip_geolocate(self):
-        response = self.intel_ip.geolocate(ip="93.231.182.110", provider="digitalenvoy", verbose=True, raw=True)
+        response = self.intel_ip.geolocate(ip="93.231.182.110", provider="digitalelement", verbose=True, raw=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertEqual(response.result.data.country, "Federal Republic Of Germany")
         self.assertEqual(response.result.data.city, "unna")
@@ -202,7 +202,7 @@ class TestIPIntel(unittest.TestCase):
         self.assertEqual(response.result.data.postal_code, "59425")
 
     def test_ip_domain(self):
-        response = self.intel_ip.get_domain(ip="24.235.114.61", provider="digitalenvoy", verbose=True, raw=True)
+        response = self.intel_ip.get_domain(ip="24.235.114.61", provider="digitalelement", verbose=True, raw=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertTrue(response.result.data.domain_found)
         self.assertEqual("rogers.com", response.result.data.domain)
@@ -214,7 +214,7 @@ class TestIPIntel(unittest.TestCase):
         self.assertEqual("rogers.com", response.result.data.domain)
 
     def test_ip_vpn(self):
-        response = self.intel_ip.is_vpn(ip="2.56.189.74", provider="digitalenvoy", verbose=True, raw=True)
+        response = self.intel_ip.is_vpn(ip="2.56.189.74", provider="digitalelement", verbose=True, raw=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertTrue(response.result.data.is_vpn)
 
@@ -224,7 +224,7 @@ class TestIPIntel(unittest.TestCase):
         self.assertTrue(response.result.data.is_vpn)
 
     def test_ip_proxy(self):
-        response = self.intel_ip.is_proxy(ip="34.201.32.172", provider="digitalenvoy", verbose=True, raw=True)
+        response = self.intel_ip.is_proxy(ip="34.201.32.172", provider="digitalelement", verbose=True, raw=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertTrue(response.result.data.is_proxy)
 
@@ -236,7 +236,7 @@ class TestIPIntel(unittest.TestCase):
     def test_ip_lookup_with_bad_auth_token(self):
         token = "noarealtoken"
         domain = get_test_domain(TEST_ENVIRONMENT)
-        config = PangeaConfig(domain=domain)
+        config = PangeaConfig(domain=domain, custom_user_agent="sdk-test")
         badintel_ip = IpIntel(token, config=config)
 
         with self.assertRaises(pe.UnauthorizedException):
@@ -254,7 +254,7 @@ class TestIPIntel(unittest.TestCase):
     def test_ip_reputation_with_bad_auth_token(self):
         token = "noarealtoken"
         domain = get_test_domain(TEST_ENVIRONMENT)
-        config = PangeaConfig(domain=domain)
+        config = PangeaConfig(domain=domain, custom_user_agent="sdk-test")
         badintel_ip = IpIntel(token, config=config)
 
         with self.assertRaises(pe.UnauthorizedException):
@@ -265,7 +265,7 @@ class TestURLIntel(unittest.TestCase):
     def setUp(self):
         token = get_test_token(TEST_ENVIRONMENT)
         domain = get_test_domain(TEST_ENVIRONMENT)
-        config = PangeaConfig(domain=domain)
+        config = PangeaConfig(domain=domain, custom_user_agent="sdk-test")
         self.intel_url = UrlIntel(token, config=config, logger_name="pangea")
         logger_set_pangea_config(logger_name=self.intel_url.logger.name)
 
@@ -283,7 +283,7 @@ class TestURLIntel(unittest.TestCase):
     def test_url_lookup_with_bad_auth_token(self):
         token = "noarealtoken"
         domain = get_test_domain(TEST_ENVIRONMENT)
-        config = PangeaConfig(domain=domain)
+        config = PangeaConfig(domain=domain, custom_user_agent="sdk-test")
         badintel_url = UrlIntel(token, config=config)
 
         with self.assertRaises(pe.UnauthorizedException):
@@ -303,7 +303,7 @@ class TestURLIntel(unittest.TestCase):
     def test_url_reputation_with_bad_auth_token(self):
         token = "noarealtoken"
         domain = get_test_domain(TEST_ENVIRONMENT)
-        config = PangeaConfig(domain=domain)
+        config = PangeaConfig(domain=domain, custom_user_agent="sdk-test")
         badintel_url = UrlIntel(token, config=config)
 
         with self.assertRaises(pe.UnauthorizedException):
