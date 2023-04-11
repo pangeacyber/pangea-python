@@ -9,7 +9,6 @@ from pangea.services.audit.exceptions import AuditException, EventCorruption
 from pangea.services.audit.models import (
     Event,
     EventEnvelope,
-    EventSigning,
     EventVerification,
     LogRequest,
     LogResult,
@@ -102,7 +101,7 @@ class Audit(ServiceBase):
         target: Optional[str] = None,
         timestamp: Optional[datetime.datetime] = None,
         verify: bool = False,
-        signing: EventSigning = EventSigning.NONE,
+        sign_local: bool = False,
         verbose: Optional[bool] = None,
     ) -> PangeaResponse[LogResult]:
         """
@@ -155,13 +154,13 @@ class Audit(ServiceBase):
             tenant_id=self.tenant_id,
         )
 
-        return self.log_event(event=event, verify=verify, signing=signing, verbose=verbose)
+        return self.log_event(event=event, verify=verify, sign_local=sign_local, verbose=verbose)
 
     def log_event(
         self,
         event: Dict[str, Any],
         verify: bool = False,
-        signing: EventSigning = EventSigning.NONE,
+        sign_local: bool = False,
         verbose: Optional[bool] = None,
     ) -> PangeaResponse[LogResult]:
         """
@@ -195,12 +194,12 @@ class Audit(ServiceBase):
         event = {k: v for k, v in event.items() if v is not None}
         event = canonicalize_nested_json(event)
 
-        if signing == EventSigning.LOCAL and self.signer is None:
+        if sign_local is True and self.signer is None:
             raise AuditException("Error: the `signing` parameter set, but `signer` is not configured")
 
         input = LogRequest(event=event, verbose=verbose)
 
-        if signing == EventSigning.LOCAL:
+        if sign_local is True:
             data2sign = canonicalize_event(event)
             signature = self.signer.signMessage(data2sign)
             if signature is not None:

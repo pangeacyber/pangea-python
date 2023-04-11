@@ -19,17 +19,6 @@ class EventVerification(str, enum.Enum):
         return str(self.value)
 
 
-class EventSigning(enum.Enum):
-    NONE = 0
-    LOCAL = 1
-
-    def __str__(self):
-        return str(self.value)
-
-    def __repr__(self):
-        return str(self.value)
-
-
 class Event(dict):
     """
     Event to perform an auditable activity

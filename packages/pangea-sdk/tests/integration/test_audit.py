@@ -1,4 +1,3 @@
-import copy
 import datetime
 import json
 import time
@@ -8,15 +7,7 @@ import pangea.exceptions as pexc
 from pangea import PangeaConfig
 from pangea.response import PangeaResponse, ResponseStatus
 from pangea.services import Audit
-from pangea.services.audit.models import (
-    Event,
-    EventSigning,
-    EventVerification,
-    LogResult,
-    SearchOrder,
-    SearchOrderBy,
-    SearchOutput,
-)
+from pangea.services.audit.models import Event, EventVerification, LogResult, SearchOrder, SearchOrderBy, SearchOutput
 from pangea.tools import (
     TestEnvironment,
     get_custom_schema_test_token,
@@ -177,7 +168,7 @@ class TestAudit(unittest.TestCase):
             target="Target",
             new="New",
             old="Old",
-            signing=EventSigning.LOCAL,
+            sign_local=True,
             verify=True,
         )
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
@@ -238,7 +229,7 @@ class TestAudit(unittest.TestCase):
             target="Target",
             new="New",
             old="Old",
-            signing=EventSigning.LOCAL,
+            sign_local=True,
             verify=True,
         )
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
@@ -269,7 +260,7 @@ class TestAudit(unittest.TestCase):
             target="Target",
             new=new,
             old=old,
-            signing=EventSigning.LOCAL,
+            sign_local=True,
             verify=True,
         )
 
@@ -375,7 +366,7 @@ class TestAudit(unittest.TestCase):
     def test_custom_schema_log_sign_local_and_verify(self):
         response: PangeaResponse[LogResult] = self.auditCustomSchemaLocalSign.log_event(
             event=custom_schema_event,
-            signing=EventSigning.LOCAL,
+            sign_local=True,
             verify=True,
         )  # Verify true set verbose to true
 
@@ -405,7 +396,7 @@ class TestAudit(unittest.TestCase):
 
         response: PangeaResponse[LogResult] = self.auditCustomSchemaLocalSign.log_event(
             event=event,
-            signing=EventSigning.LOCAL,
+            sign_local=True,
             verify=True,
         )
 
