@@ -1,10 +1,8 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 import base64
-import copy
 import json
 import logging
-import os
 from binascii import hexlify, unhexlify
 from dataclasses import dataclass
 from datetime import datetime
@@ -13,7 +11,7 @@ from typing import Dict, List, Optional
 
 import requests
 from pangea.services.audit.models import Event, EventEnvelope, PublishedRoot
-from pangea.utils import format_datetime
+from pangea.utils import default_encoder, format_datetime
 
 Hash = bytes
 
@@ -62,14 +60,13 @@ def verify_hash(hash1: str, hash2: str) -> bool:
 
 
 def verify_envelope_hash(envelope: EventEnvelope, hash: str):
-    env_tmp = copy.deepcopy(envelope)
-    env_tmp.event = env_tmp.event.get_stringified_copy()
-    return verify_hash(hash_dict(normalize_log(env_tmp.dict(exclude_none=True))), hash)
+    return verify_hash(hash_dict(normalize_log(envelope.dict(exclude_none=True))), hash)
 
 
 def canonicalize_event(event: Event) -> bytes:
-    tpm_event = event.get_stringified_copy()
-    return canonicalize_json(normalize_log(tpm_event.dict(exclude_none=True)))
+    return json.dumps(
+        event, ensure_ascii=False, allow_nan=False, separators=(",", ":"), sort_keys=True, default=default_encoder
+    ).encode("utf-8")
 
 
 def b64encode(data: bytes) -> bytes:
@@ -154,26 +151,15 @@ def verify_membership_proof(node_hash: Hash, root_hash: Hash, proof: MembershipP
     return root_hash == node_hash
 
 
-def format_datetime(dt: datetime):
-    """
-    Format a datetime in ISO format, using Z instead of +00:00
-    """
-    ret = dt.isoformat()
-    if dt.tzinfo is not None:
-        return ret.replace("+00:00", "Z")
-    else:
-        return ret + "Z"
-
-
-def normalize_log(audit: dict) -> dict:
+def normalize_log(data: dict) -> dict:
     ans = {}
-    for key in audit:
-        if type(audit[key]) == datetime:
-            ans[key] = format_datetime(audit[key])
-        elif type(audit[key]) == dict:
-            ans[key] = normalize_log(audit[key])
+    for key in data:
+        if type(data[key]) == datetime:
+            ans[key] = format_datetime(data[key])
+        elif type(data[key]) == dict:
+            ans[key] = normalize_log(data[key])
         else:
-            ans[key] = audit[key]
+            ans[key] = data[key]
     return ans
 
 

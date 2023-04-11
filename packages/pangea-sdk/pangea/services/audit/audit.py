@@ -2,7 +2,7 @@
 # Author: Pangea Cyber Corporation
 import datetime
 import json
-from typing import Dict, Optional, Union
+from typing import Any, Dict, Optional, Union
 
 from pangea.response import PangeaResponse
 from pangea.services.audit.exceptions import AuditException, EventCorruption
@@ -40,6 +40,7 @@ from pangea.services.audit.util import (
     verify_membership_proof,
 )
 from pangea.services.base import ServiceBase
+from pangea.utils import canonicalize_nested_json
 
 
 class Audit(ServiceBase):
@@ -102,8 +103,6 @@ class Audit(ServiceBase):
         timestamp: Optional[datetime.datetime] = None,
         verify: bool = False,
         signing: EventSigning = EventSigning.NONE,
-        signature_key_id: Optional[str] = None,
-        signature_key_version: Optional[str] = None,
         verbose: Optional[bool] = None,
     ) -> PangeaResponse[LogResult]:
         """
@@ -143,8 +142,6 @@ class Audit(ServiceBase):
                     print(f"\\t{err.detail} \\n")
         """
 
-        endpoint_name = "log"
-
         event = Event(
             message=message,
             actor=actor,
@@ -158,10 +155,50 @@ class Audit(ServiceBase):
             tenant_id=self.tenant_id,
         )
 
+        return self.log_event(event=event, verify=verify, signing=signing, verbose=verbose)
+
+    def log_event(
+        self,
+        event: Dict[str, Any],
+        verify: bool = False,
+        signing: EventSigning = EventSigning.NONE,
+        verbose: Optional[bool] = None,
+    ) -> PangeaResponse[LogResult]:
+        """
+        Log an entry
+
+        Create a log entry in the Secure Audit Log.
+        Args:
+            event (dict[str, Any]): event to be logged
+            verify (bool, optional): True to verify logs consistency after response.
+            signing (bool, optional): True to sign event.
+            verbose (bool, optional): True to get a more verbose response.
+        Raises:
+            AuditException: If an audit based api exception happens
+            PangeaAPIException: If an API Error happens
+
+        Returns:
+            A PangeaResponse where the hash of event data and optional verbose
+                results are returned in the response.result field.
+                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/audit#log-an-entry).
+
+        Examples:
+            try:
+                log_response = audit.log({"message"="Hello world"}, verbose=False)
+                print(f"Response. Hash: {log_response.result.hash}")
+            except pe.PangeaAPIException as e:
+                print(f"Request Error: {e.response.summary}")
+                for err in e.errors:
+                    print(f"\\t{err.detail} \\n")
+        """
+
+        event = {k: v for k, v in event.items() if v is not None}
+        event = canonicalize_nested_json(event)
+
         if signing == EventSigning.LOCAL and self.signer is None:
             raise AuditException("Error: the `signing` parameter set, but `signer` is not configured")
 
-        input = LogRequest(event=event.get_stringified_copy(), verbose=verbose)
+        input = LogRequest(event=event, verbose=verbose)
 
         if signing == EventSigning.LOCAL:
             data2sign = canonicalize_event(event)
@@ -174,17 +211,12 @@ class Audit(ServiceBase):
             # Add public key value to public key info and serialize
             self.set_public_key(input, self.signer, self.public_key_info)
 
-        elif signing == EventSigning.VAULT:
-            input.sign = True
-            input.signature_key_id = signature_key_id
-            input.signature_key_version = signature_key_version
-
         if verify:
             input.verbose = True
             if self.prev_unpublished_root_hash:
                 input.prev_root = self.prev_unpublished_root_hash
 
-        response = self.request.post(endpoint_name, data=input.dict(exclude_none=True))
+        response = self.request.post("log", data=input.dict(exclude_none=True))
         return self.handle_log_response(response, verify=verify)
 
     def handle_log_response(self, response: PangeaResponse, verify: bool) -> PangeaResponse[LogResult]:
