@@ -151,7 +151,6 @@ class Audit(ServiceBase):
             status=status,
             target=target,
             timestamp=timestamp,
-            tenant_id=self.tenant_id,
         )
 
         return self.log_event(event=event, verify=verify, sign_local=sign_local, verbose=verbose)
@@ -190,6 +189,9 @@ class Audit(ServiceBase):
                 for err in e.errors:
                     print(f"\\t{err.detail} \\n")
         """
+
+        if event.get("tenant_id", None) is None and self.tenant_id:
+            event["tenant_id"] = self.tenant_id
 
         event = {k: v for k, v in event.items() if v is not None}
         event = canonicalize_nested_json(event)
