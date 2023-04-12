@@ -23,6 +23,7 @@ MSG_JSON = "JSON-message"
 MSG_SIGNED_LOCAL = "sign-test-local"
 MSG_SIGNED_VAULT = "sign-test-vault"
 MSG_CUSTOM_SCHEMA_NO_SIGNED = "python-sdk-custom-schema-no-signed"
+JSON_CUSTOM_SCHEMA_NO_SIGNED = "python-sdk-json-custom-schema-no-signed"
 MSG_CUSTOM_SCHEMA_SIGNED_LOCAL = "python-sdk-custom-schema-sign-local"
 MSG_CUSTOM_SCHEMA_SIGNED_VAULT = "python-sdk-custom-schema-sign-vault"
 STATUS_NO_SIGNED = "no-signed"
@@ -343,7 +344,7 @@ class TestAudit(unittest.TestCase):
     def test_custom_schema_log_json(self):
         jsonfield = {"customtag3": "mycustommsg3", "ct6": "cm6", "ct4": "cm4", "field_int": 2, "field_bool": True}
         event = {
-            "message": MSG_CUSTOM_SCHEMA_NO_SIGNED,
+            "message": JSON_CUSTOM_SCHEMA_NO_SIGNED,
             "field_int": 1,
             "field_bool": True,
             "field_str_short": STATUS_NO_SIGNED,
