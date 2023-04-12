@@ -119,7 +119,7 @@ class Audit(ServiceBase):
             target (str, optional): Used to record the specific record that was targeted by the auditable activity.
             timestamp (datetime, optional): An optional client-supplied timestamp.
             verify (bool, optional): True to verify logs consistency after response.
-            signing (bool, optional): True to sign event.
+            sign_local (bool, optional): True to sign event with local key.
             verbose (bool, optional): True to get a more verbose response.
             tenant_id (string, optional): Used to record the tenant associated with this activity.
         Raises:
@@ -169,7 +169,7 @@ class Audit(ServiceBase):
         Args:
             event (dict[str, Any]): event to be logged
             verify (bool, optional): True to verify logs consistency after response.
-            signing (bool, optional): True to sign event.
+            sign_local (bool, optional): True to sign event with local key.
             verbose (bool, optional): True to get a more verbose response.
         Raises:
             AuditException: If an audit based api exception happens
