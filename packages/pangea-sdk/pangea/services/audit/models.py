@@ -24,7 +24,6 @@ class EventVerification(str, enum.Enum):
 class EventSigning(enum.Enum):
     NONE = 0
     LOCAL = 1
-    VAULT = 2
 
     def __str__(self):
         return str(self.value)
@@ -128,9 +127,6 @@ class LogRequest(APIRequestModel):
     signature: Optional[str] = None
     public_key: Optional[str] = None
     prev_root: Optional[str] = None
-    sign: Optional[bool] = None
-    signature_key_id: Optional[str] = None
-    signature_key_version: Optional[str] = None
 
 
 class LogResult(PangeaResponseResult):

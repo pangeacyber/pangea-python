@@ -102,8 +102,6 @@ class Audit(ServiceBase):
         timestamp: Optional[datetime.datetime] = None,
         verify: bool = False,
         signing: EventSigning = EventSigning.NONE,
-        signature_key_id: Optional[str] = None,
-        signature_key_version: Optional[str] = None,
         verbose: Optional[bool] = None,
     ) -> PangeaResponse[LogResult]:
         """
@@ -173,11 +171,6 @@ class Audit(ServiceBase):
 
             # Add public key value to public key info and serialize
             self.set_public_key(input, self.signer, self.public_key_info)
-
-        elif signing == EventSigning.VAULT:
-            input.sign = True
-            input.signature_key_id = signature_key_id
-            input.signature_key_version = signature_key_version
 
         if verify:
             input.verbose = True
