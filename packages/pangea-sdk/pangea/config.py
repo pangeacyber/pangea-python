@@ -2,6 +2,7 @@
 # Author: Pangea Cyber Corporation
 
 from dataclasses import dataclass
+from typing import Optional
 
 
 @dataclass
@@ -13,21 +14,25 @@ class PangeaConfig:
 
     """
     Set to true to use plain http
+
     """
     insecure: bool = False
 
     """
     Number of retries on the initial request
+
     """
     request_retries: int = 3
 
     """'
     Backoff strategy passed to 'requests'
+
     """
     request_backoff: int = 1
 
     """
     Timeout used on initial request attempts
+
     """
     request_timeout: int = 5
 
@@ -42,3 +47,9 @@ class PangeaConfig:
 
     """
     queued_retries: int = 4
+
+    """
+    Extra user agent to be added to request user agent
+
+    """
+    custom_user_agent: Optional[str] = None

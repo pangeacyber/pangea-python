@@ -1,6 +1,7 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 import datetime
+import json
 from typing import Dict, Optional, Union
 
 from pangea.response import PangeaResponse
@@ -27,7 +28,6 @@ from pangea.services.audit.models import (
 )
 from pangea.services.audit.signing import Signer, Verifier
 from pangea.services.audit.util import (
-    b64encode_ascii,
     canonicalize_event,
     decode_consistency_proof,
     decode_hash,
@@ -73,6 +73,7 @@ class Audit(ServiceBase):
         token,
         config=None,
         private_key_file: str = "",
+        public_key_info: Dict[str, str] = {},
         tenant_id: Optional[str] = None,
         logger_name="pangea",
     ):
@@ -81,6 +82,7 @@ class Audit(ServiceBase):
         self.pub_roots: Dict[int, Root] = {}
         self.buffer_data: Optional[str] = None
         self.signer: Optional[Signer] = Signer(private_key_file) if private_key_file else None
+        self.public_key_info = public_key_info
 
         # In case of Arweave failure, ask the server for the roots
         self.allow_server_roots = True
@@ -167,8 +169,8 @@ class Audit(ServiceBase):
             else:
                 raise AuditException("Error: failure signing message")
 
-            public_bytes = self.signer.getPublicKeyBytes()
-            input.public_key = b64encode_ascii(public_bytes)
+            # Add public key value to public key info and serialize
+            self.set_public_key(input, self.signer, self.public_key_info)
 
         if verify:
             input.verbose = True
@@ -537,12 +539,6 @@ class Audit(ServiceBase):
 
         return verify_consistency_proof(curr_root_hash, prev_root_hash, proof)
 
-    def has_valid_public_key(self, key: Optional[str]) -> bool:
-        if key and not key.startswith("-----"):
-            return True
-
-        return False
-
     def verify_signature(self, audit_envelope: EventEnvelope) -> EventVerification:
         """
         Verify signature
@@ -567,6 +563,12 @@ class Audit(ServiceBase):
                 return EventVerification.NONE
         else:
             return EventVerification.NONE
+
+    def set_public_key(self, input: LogRequest, signer: Signer, public_key_info: Dict[str, str]):
+        public_key_info["key"] = signer.getPublicKeyPEM()
+        input.public_key = json.dumps(
+            public_key_info, ensure_ascii=False, allow_nan=False, separators=(",", ":"), sort_keys=True
+        )
 
     def root(self, tree_size: Optional[int] = None) -> PangeaResponse[RootResult]:
         """

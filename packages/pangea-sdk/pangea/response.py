@@ -23,6 +23,9 @@ class APIResponseModel(BaseModel):
 class APIRequestModel(BaseModel):
     class Config:
         arbitrary_types_allowed = True
+        extra = (
+            "allow"  # allow parameters despite they are not declared in model. Make SDK accept server new parameters
+        )
         json_encoders = {
             datetime.datetime: format_datetime,
         }
@@ -98,14 +101,16 @@ class PangeaResponse(Generic[T], ResponseHeader):
     raw_response: Optional[requests.Response] = None
     result: Optional[T] = None
     pangea_error: Optional[PangeaError] = None
+    _json: Any
 
     def __init__(self, response: requests.Response):
-        json = response.json()
-        super(PangeaResponse, self).__init__(**json)
+        _json = response.json()
+        super(PangeaResponse, self).__init__(**_json)
+        self._json = _json
         self.raw_response = response
-        self.raw_result = json["result"]
+        self.raw_result = self._json["result"]
         self.result = (
-            T(**json["result"])
+            T(**self._json["result"])
             if issubclass(type(T), PangeaResponseResult) and self.status == ResponseStatus.SUCCESS.value
             else None
         )
@@ -119,3 +124,7 @@ class PangeaResponse(Generic[T], ResponseHeader):
     @property
     def errors(self) -> List[ErrorField]:
         return self.pangea_error.errors if self.pangea_error is not None else []
+
+    @property
+    def json(self) -> Any:
+        return self._json

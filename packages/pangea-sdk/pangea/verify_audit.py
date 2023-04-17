@@ -22,6 +22,7 @@ from pangea.services.audit.util import (
     decode_hash,
     decode_membership_proof,
     get_arweave_published_roots,
+    get_public_key,
     hash_bytes,
     verify_consistency_proof,
     verify_membership_proof,
@@ -98,9 +99,7 @@ def _verify_hash(data: t.Dict, data_hash: str) -> t.Optional[bool]:
     return succeeded
 
 
-def _verify_unpublished_membership_proof(
-    root_hash, node_hash: str, proof: t.Optional[str]
-) -> t.Optional[bool]:
+def _verify_unpublished_membership_proof(root_hash, node_hash: str, proof: t.Optional[str]) -> t.Optional[bool]:
     global pub_roots
 
     log_section("Checking unpublished membership proof")
@@ -119,7 +118,7 @@ def _verify_unpublished_membership_proof(
 
             logger.debug("Comparing the unpublished root hash with the proof hash")
             succeeded = verify_membership_proof(node_hash_dec, root_hash_dec, proof_dec)
-        
+
         except Exception as e:
             succeeded = False
             logger.debug(str(e))
@@ -212,10 +211,10 @@ def _verify_signature(data: t.Dict) -> t.Optional[bool]:
         try:
             logger.debug("Obtaining signature and public key from the event")
             sign_envelope = create_signed_envelope(data["event"])
-            public_key_b64 = data["public_key"]
+            public_key = get_public_key(data["public_key"])
             sign_verifier = Verifier()
             logger.debug("Checking the signature")
-            if not sign_verifier.verifyMessage(data["signature"], sign_envelope, public_key_b64):
+            if not sign_verifier.verifyMessage(data["signature"], sign_envelope, public_key):
                 raise ValueError("Signature is invalid")
             succeeded = True
         except Exception:
@@ -234,10 +233,7 @@ def verify_multiple(root: t.Dict, unpublished_root: t.Dict, events: t.List[t.Dic
 
     succeeded = []
     for counter, event in enumerate(events):
-        event.update({
-            "root": root,
-            "unpublished_root": unpublished_root
-        })
+        event.update({"root": root, "unpublished_root": unpublished_root})
         event_succeeded = verify_single(event, counter + 1)
         succeeded.append(event_succeeded)
     return not any(event_succeeded is False for event_succeeded in succeeded)
@@ -268,9 +264,7 @@ def verify_single(data: t.Dict, counter: t.Optional[int] = None) -> t.Optional[b
         if not data.get("unpublished_root"):
             raise ValueError("Missing 'unpublished_root' element")
         ok_membership = _verify_unpublished_membership_proof(
-            data["unpublished_root"]["root_hash"],
-            data["hash"],
-            data.get("membership_proof")
+            data["unpublished_root"]["root_hash"], data["hash"], data.get("membership_proof")
         )
 
     if data["published"]:
@@ -278,7 +272,12 @@ def verify_single(data: t.Dict, counter: t.Optional[int] = None) -> t.Optional[b
     else:
         ok_consistency = True
 
-    all_ok = ok_hash is True and (ok_signature is True or ok_signature is None) and ok_membership is True and ok_consistency is True
+    all_ok = (
+        ok_hash is True
+        and (ok_signature is True or ok_signature is None)
+        and ok_membership is True
+        and ok_consistency is True
+    )
     any_failed = ok_hash is False or ok_signature is False or ok_membership is False or ok_consistency is False
 
     if counter:

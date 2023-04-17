@@ -130,6 +130,23 @@ def decode_consistency_proof(data: List[str]) -> ConsistencyProof:
     return root_proof
 
 
+def get_public_key(public_key_info: Optional[str]) -> Optional[str]:
+    if not public_key_info:
+        return None
+
+    try:
+        # Try to parse key_info as a json
+        key_info: dict = json.loads(public_key_info)
+        # If it's a json, public key come in "key" field
+        key = key_info.pop("key", None)
+        return key
+    except json.JSONDecodeError:
+        pass
+
+    # If it's not a json, public key should be used as a string
+    return public_key_info
+
+
 def verify_membership_proof(node_hash: Hash, root_hash: Hash, proof: MembershipProof) -> bool:
     for proof_item in proof:
         proof_hash = proof_item.node_hash

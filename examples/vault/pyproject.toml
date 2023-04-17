@@ -8,7 +8,7 @@ packages = [{include = "vault_examples"}]
 
 [tool.poetry.dependencies]
 python = "^3.7.2"
-pangea-sdk = "^1.5.0"   # FIXME: change this version to latest once vault is released
+pangea-sdk = "^1.6.0"
 
 [build-system]
 requires = ["poetry-core"]

@@ -1,6 +1,7 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 
+import copy
 import logging
 from typing import Optional
 
@@ -17,7 +18,7 @@ class ServiceBase(object):
         if not token:
             raise Exception("No token provided")
 
-        self.config = config if config else PangeaConfig()
+        self.config = config if copy.deepcopy(config) else PangeaConfig()
         self.logger = logging.getLogger(logger_name)
 
         self.request = PangeaRequest(
