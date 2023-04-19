@@ -2,23 +2,48 @@
 # Author: Pangea Cyber Corporation
 
 import enum
-from typing import Any, Dict, List, NewType, Optional
+from typing import Dict, List, NewType, Optional, Union
 
 from pangea.response import APIRequestModel, APIResponseModel, PangeaResponseResult
+from pangea.services.vault.models.common import JWK, JWKec, JWKrsa
 
 Scopes = NewType("Scopes", List[str])
-Profile = NewType("Profile", Dict[str, Any])
+Profile = NewType("Profile", Dict[str, str])
 
 
-class PasswordUpdateRequest(APIRequestModel):
-    email: str
-    old_secret: str
-    new_secret: str
+class UserPasswordResetRequest(APIRequestModel):
+    user_id: str
+    new_password: str
 
 
-class PasswordUpdateResult(PangeaResponseResult):
-    # https://dev.pangea.cloud/docs/api/authn#change-a-users-password
+class UserPasswordResetResult(PangeaResponseResult):
     pass
+
+
+class ClientPasswordChangeRequest(APIRequestModel):
+    token: str
+    old_password: str
+    new_password: str
+
+
+class ClientPasswordChangeResult(PangeaResponseResult):
+    pass
+
+
+class ClientTokenCheckRequest(APIRequestModel):
+    token: str
+
+
+class ClientTokenCheckResult(PangeaResponseResult):
+    id: str
+    type: str
+    life: int
+    expire: str
+    identity: str
+    email: str
+    scopes: Scopes
+    profile: Profile
+    created_at: str
 
 
 class IDProvider(str, enum.Enum):
@@ -73,9 +98,22 @@ class SessionListOrderBy(enum.Enum):
     ID = "id"
     CREATED_AT = "created_at"
     TYPE = "type"
-    IDENTITY = "identity"
     EMAIL = "email"
     EXPIRE = "expire"
+    ACTIVE_TOKEN_ID = "active_token_id"
+
+    def __str__(self):
+        return self.value
+
+    def __repr__(self):
+        return self.value
+
+
+class UserListOrderBy(enum.Enum):
+    ID = "id"
+    CREATED_AT = "created_at"
+    EMAIL = "email"
+    LAST_LOGIN_AT = "last_login_at"
     ACTIVE_TOKEN_ID = "active_token_id"
 
     def __str__(self):
@@ -97,10 +135,10 @@ class UserCreateRequest(APIRequestModel):
 
 
 class UserCreateResult(PangeaResponseResult):
-    identity: str
+    id: str
     email: str
     profile: Profile
-    id_provider: Optional[str] = None
+    id_providers: Optional[List[str]] = None
     require_mfa: bool
     verified: bool
     last_login_at: Optional[str]
@@ -109,7 +147,8 @@ class UserCreateResult(PangeaResponseResult):
 
 
 class UserDeleteRequest(APIRequestModel):
-    email: str
+    email: Optional[str] = None
+    id: Optional[str] = None
 
 
 class UserDeleteResult(PangeaResponseResult):
@@ -122,7 +161,6 @@ class UserInviteRequest(APIRequestModel):
     email: str
     callback: str
     state: str
-    invite_ord: Optional[str] = None
     require_mfa: Optional[bool] = None
 
 
@@ -142,6 +180,32 @@ class UserInviteResult(PangeaResponseResult, UserInvite):
     pass
 
 
+class UserInviterOrderBy(enum.Enum):
+    ID = "id"
+    CREATED_AT = "created_at"
+    EMAIL = "email"
+    TYPE = "type"
+    EXPIRE = "expire"
+    CALLBACK = "callback"
+    STATE = "state"
+    INVITER = "inviter"
+    INVITE_ORG = "invite_org"
+
+    def __str__(self):
+        return self.value
+
+    def __repr__(self):
+        return self.value
+
+
+class UserInviteListRequest(APIRequestModel):
+    filter: Optional[Dict] = None
+    last: Optional[str] = None
+    order: Optional[ItemOrder] = None
+    order_by: Optional[UserInviterOrderBy] = None
+    size: Optional[int] = None
+
+
 class UserInviteListResult(PangeaResponseResult):
     invites: List[UserInvite]
 
@@ -155,19 +219,32 @@ class UserInviteDeleteResult(PangeaResponseResult):
 
 
 class UserListRequest(APIRequestModel):
-    scopes: Scopes
-    glob_scopes: Scopes
+    use_new: bool = True  # Temporary field, need to be true
+    filter: Optional[Dict] = None
+    last: Optional[str] = None
+    order: Optional[ItemOrder] = None
+    order_by: Optional[UserListOrderBy] = None
+    size: Optional[int] = None
 
 
 class User(APIRequestModel):
-    profile: Profile
-    identity: str
+    id: str
     email: str
-    scopes: Scopes
+    profile: Profile
+    scopes: Optional[Scopes] = None
+    id_providers: List[str] = []
+    mfa_providers: List[str] = []
+    require_mfa: bool
+    verified: bool
+    disabled: bool
+    last_login_at: Optional[str] = None
+    created_at: str
 
 
 class UserListResult(PangeaResponseResult):
     users: List[User]
+    last: str
+    count: int
 
 
 class UserLoginPasswordRequest(APIRequestModel):
@@ -194,14 +271,14 @@ class LoginToken(APIResponseModel):
 # 'type': 'session',
 # 'life': 172799,
 # 'expire': '2023-02-11T20:16:52.750157Z',
-# 'identity': 'pui_a5dhmqsmpayxcohb2intdidwttkxxza2',
+# 'id': 'pui_a5dhmqsmpayxcohb2intdidwttkxxza2',
 # 'email': 'andres.tournour+test2591827@pangea.cloud',
 # 'profile': {},
 # 'created_at': '2023-02-09T20:16:52.753810Z'}
 
 
 class UserLoginResult(PangeaResponseResult):
-    refresh_token: Optional[LoginToken] = None
+    refresh_token: LoginToken
     active_token: Optional[LoginToken] = None
 
 
@@ -213,42 +290,44 @@ class UserLoginSocialRequest(APIRequestModel):
 
 
 class UserProfileGetRequest(APIRequestModel):
-    identity: Optional[str] = None
+    id: Optional[str] = None
     email: Optional[str] = None
 
 
 class UserProfileGetResult(PangeaResponseResult):
-    identity: str
+    id: str
     email: str
     profile: Profile
-    id_provider: Optional[str] = None
+    id_providers: Optional[List[str]] = None
     mfa_providers: List[str]
     require_mfa: bool
     verified: bool
     disabled: Optional[bool] = None
     last_login_at: Optional[str] = None
+    created_at: str
 
 
 class UserProfileUpdateRequest(APIRequestModel):
     profile: Profile
-    identity: Optional[str] = None
+    id: Optional[str] = None
     email: Optional[str] = None
 
 
 class UserProfileUpdateResult(PangeaResponseResult):
-    identity: str
+    id: str
     email: str
     profile: Profile
-    id_provider: Optional[str] = None
+    id_providers: Optional[List[str]] = None
     mfa_providers: List[str]
     require_mfa: bool
     verified: bool
     last_login_at: Optional[str] = None
     disabled: Optional[bool] = None
+    created_at: str
 
 
 class UserUpdateRequest(APIRequestModel):
-    identity: Optional[str] = None
+    id: Optional[str] = None
     email: Optional[str] = None
     authenticator: Optional[str] = None
     disabled: Optional[bool] = None
@@ -257,33 +336,30 @@ class UserUpdateRequest(APIRequestModel):
 
 
 class UserUpdateResult(PangeaResponseResult):
-    identity: str
+    id: str
     email: str
     profile: Profile
     scopes: Optional[Scopes] = None
-    id_provider: Optional[str] = None
+    id_providers: Optional[List[str]] = None
     mfa_providers: Optional[List[str]] = None
     require_mfa: bool
     verified: bool
     disabled: bool
     last_login_at: Optional[str] = None
+    created_at: str
 
 
 class ClientUserinfoResult(PangeaResponseResult):
-    token: str
-    id: str
-    type: str
-    life: int
-    expire: str
-    identity: str
-    email: str
-    scope: Scopes
-    profile: Profile
-    created_at: str
+    active_token: Optional[LoginToken] = None
+    refresh_token: LoginToken
 
 
 class ClientUserinfoRequest(APIRequestModel):
     code: str
+
+
+class ClientJWKSResult(PangeaResponseResult):
+    keys: List[Union[JWKec, JWKrsa, JWK]]
 
 
 #   - path: authn::/v1/flow/complete
@@ -374,6 +450,7 @@ class CommonFlowResult(PangeaResponseResult):
 class FlowResetPasswordRequest(APIRequestModel):
     flow_id: str
     password: str
+    cancel: Optional[bool] = None
     cb_state: Optional[str] = None
     cb_code: Optional[str] = None
 
@@ -426,7 +503,7 @@ class FlowSignupSocialResult(CommonFlowResult):
 #   - path: authn::/v1/flow/start
 # https://dev.pangea.cloud/docs/api/authn#start-a-new-signup-or-signin-flow
 class FlowStartRequest(APIRequestModel):
-    cb_uri: str
+    cb_uri: Optional[str] = None
     email: Optional[str] = None
     flow_types: Optional[List[FlowType]] = None
     provider: Optional[IDProvider] = None
@@ -451,8 +528,8 @@ class FlowVerifyCaptchaResult(CommonFlowResult):
 # https://dev.pangea.cloud/docs/api/authn#verify-an-email-address-during-a-signup-or-signin-flow
 class FlowVerifyEmailRequest(APIRequestModel):
     flow_id: str
-    cb_state: str
-    cb_code: str
+    cb_state: Optional[str] = None
+    cb_code: Optional[str] = None
 
 
 class FlowVerifyEmailResult(CommonFlowResult):
@@ -544,7 +621,7 @@ class UserMFAStartTOTPSecret:
 
 
 class UserMFAStartResult(PangeaResponseResult):
-    totp_secret: UserMFAStartTOTPSecret
+    totp_secret: Optional[UserMFAStartTOTPSecret] = None
 
 
 #   - path: authn::/v1/user/mfa/verify
@@ -568,16 +645,17 @@ class UserVerifyRequest(APIRequestModel):
 
 
 class UserVerifyResult(PangeaResponseResult):
-    identity: str
+    id: str
     email: str
     profile: Profile
     scopes: Scopes
-    id_provider: Optional[str] = None
+    id_providers: Optional[List[str]] = None
     mfa_providers: List[str]
     require_mfa: bool
     verified: bool
     disabled: bool
     last_login_at: Optional[str] = None
+    created_at: str
 
 
 class ClientSessionInvalidateRequest(APIRequestModel):
@@ -591,7 +669,7 @@ class ClientSessionInvalidateResult(PangeaResponseResult):
 
 class ClientSessionListRequest(APIRequestModel):
     token: str
-    filter: Optional[Dict[str, str]] = None
+    filter: Optional[Dict] = None
     last: Optional[str] = None
     order: Optional[ItemOrder] = None
     order_by: Optional[SessionListOrderBy] = None
@@ -615,21 +693,22 @@ class SessionItem(APIResponseModel):
     type: str
     life: int
     expire: str
-    identity: str
+    id: str
     email: str
-    scopes: Scopes
+    scopes: Optional[Scopes] = None
     profile: Profile
     created_at: str
-    active_token: SessionToken
-    last: str
+    active_token: Optional[SessionToken] = None
 
 
 class ClientSessionListResults(PangeaResponseResult):
     sessions: List[SessionItem]
+    last: str
 
 
 class SessionListResults(PangeaResponseResult):
     sessions: List[SessionItem]
+    last: str
 
 
 class ClientSessionLogoutRequest(APIRequestModel):
@@ -647,7 +726,7 @@ class ClientSessionRefreshRequest(APIRequestModel):
 
 class ClientSessionRefreshResult(PangeaResponseResult):
     refresh_token: LoginToken
-    active_token: LoginToken
+    active_token: Optional[LoginToken] = None
 
 
 class SessionInvalidateRequest(APIRequestModel):
@@ -659,7 +738,7 @@ class SessionInvalidateResult(PangeaResponseResult):
 
 
 class SessionListRequest(APIRequestModel):
-    filter: Optional[Dict[str, str]] = None
+    filter: Optional[Dict] = None
     last: Optional[str] = None
     order: Optional[ItemOrder] = None
     order_by: Optional[SessionListOrderBy] = None
