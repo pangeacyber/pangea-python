@@ -10,7 +10,7 @@ from pangea.services.authn.authn import AuthN
 from pangea.services.authn.models import IDProvider
 from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
 
-TEST_ENVIRONMENT = TestEnvironment.DEVELOP
+TEST_ENVIRONMENT = TestEnvironment.LIVE
 
 RANDOM_VALUE = random.randint(0, 10000000)
 EMAIL_TEST = f"andres.tournour+test{RANDOM_VALUE}@pangea.cloud"
