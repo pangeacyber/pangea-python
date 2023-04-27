@@ -2,7 +2,7 @@
 # Author: Pangea Cyber Corporation
 import datetime
 import enum
-from typing import Any, Dict, List, NewType, Optional, Union
+from typing import Dict, List, NewType, Optional, Union
 
 from pangea.response import APIRequestModel, PangeaResponseResult
 
@@ -37,6 +37,19 @@ class AsymmetricAlgorithm(str, enum.Enum):
     ES256 = "ES256"
     ES384 = "ES384"
     ES512 = "ES512"
+    ES256K = "ES256K"
+    RSA2048_OAEP_SHA1 = "RSA-OAEP-2048-SHA1"
+    RSA2048_OAEP_SHA512 = "RSA-OAEP-2048-SHA512"
+    RSA3072_OAEP_SHA1 = "RSA-OAEP-3072-SHA1"
+    RSA3072_OAEP_SHA256 = "RSA-OAEP-3072-SHA256"
+    RSA3072_OAEP_SHA512 = "RSA-OAEP-3072-SHA512"
+    RSA4096_OAEP_SHA1 = "RSA-OAEP-4096-SHA1"
+    RSA4096_OAEP_SHA256 = "RSA-OAEP-4096-SHA256"
+    RSA4096_OAEP_SHA512 = "RSA-OAEP-4096-SHA512"
+    RSA2048_PSS_SHA256 = "RSA-PSS-2048-SHA256"
+    RSA3072_PSS_SHA256 = "RSA-PSS-3072-SHA256"
+    RSA4096_PSS_SHA256 = "RSA-PSS-4096-SHA256"
+    RSA4096_PSS_SHA512 = "RSA-PSS-4096-SHA512"
     RSA = "RSA-PKCS1V15-2048-SHA256"  # deprecated, use RSA2048_PKCS1V15_SHA256 instead
 
     def __str__(self):
@@ -52,6 +65,7 @@ class SymmetricAlgorithm(str, enum.Enum):
     HS512 = "HS512"
     AES128_CFB = "AES-CFB-128"
     AES256_CFB = "AES-CFB-256"
+    AES256_GCM = "AES-GCM-256"
     AES = "AES-CFB-128"  # deprecated, use AES128_CFB instead
 
     def __str__(self):
