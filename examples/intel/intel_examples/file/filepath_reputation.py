@@ -16,7 +16,7 @@ def main():
     print(f"Checking file...")
 
     try:
-        response = intel.filepathReputation(
+        response = intel.filepath_reputation(
             filepath="./pyproject.toml",
             provider="reversinglabs",
             verbose=True,
