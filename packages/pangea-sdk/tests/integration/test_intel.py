@@ -379,7 +379,7 @@ class TestFileScan(unittest.TestCase):
     def setUp(self):
         token = get_test_token(FILESCAN_TEST_ENVIRONMENT)
         domain = get_test_domain(FILESCAN_TEST_ENVIRONMENT)
-        config = PangeaConfig(domain=domain, custom_user_agent="sdk-test", queued_retries=10, request_backoff=1)
+        config = PangeaConfig(domain=domain, custom_user_agent="sdk-test", poll_result_timeout=120)
         self.scan = FileScan(token, config=config)
         logger_set_pangea_config(logger_name=self.scan.logger.name)
 

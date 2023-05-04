@@ -37,16 +37,15 @@ class PangeaConfig:
     request_timeout: int = 5
 
     """
+    Timeout used to poll results after 202 (in secs)
+
+    """
+    poll_result_timeout: int = 30
+
+    """
     Enable queued request retry support
     """
     queued_retry_enabled: bool = True
-
-    """
-    Number of queued request retry attempts, with exponential
-    backoff (4 -> 1 + 4 + 9 + 16  = 30 seconds of sleep)
-
-    """
-    queued_retries: int = 4
 
     """
     Extra user agent to be added to request user agent

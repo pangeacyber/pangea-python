@@ -21,7 +21,7 @@ class PangeaRequest(object):
 
     Wraps Get/Post calls to support both API requests. If `queued_retry_enabled`
     is enabled, the progress of long running Post requests will queried until
-    completion or until the `queued_retries` limit is reached. Both values can
+    completion or until the `poll_result_timeout` is reached. Both values can
     be set in PangeaConfig.
     """
 
@@ -75,13 +75,13 @@ class PangeaRequest(object):
         return self._queued_retry_enabled
 
     def post(
-        self, endpoint: str = "", data: Union[str, Dict] = {}, files: Optional[List[Tuple]] = None, retry: bool = True
+        self,
+        endpoint: str = "",
+        data: Union[str, Dict] = {},
+        files: Optional[List[Tuple]] = None,
+        poll_result: bool = True,
     ) -> PangeaResponse:
         """Makes the POST call to a Pangea Service endpoint.
-
-        If queued_support mode is enabled, progress checks will be made for
-        queued requests until processing is completed or until exponential
-        backoff `queued_retries` have been reached.
 
         Args:
             endpoint(str): The Pangea Service API endpoint.
@@ -104,7 +104,7 @@ class PangeaRequest(object):
             data_send = None
 
         requests_response = self.session.post(url, headers=self._headers(), data=data_send, files=files)
-        pangea_response = self._check_retry(requests_response) if retry else PangeaResponse(requests_response)
+        pangea_response = self._poll_result(requests_response) if poll_result else PangeaResponse(requests_response)
 
         self.logger.debug(
             json.dumps(
@@ -115,12 +115,12 @@ class PangeaRequest(object):
         self._check_response(pangea_response)
         return pangea_response
 
-    def _check_retry(self, requests_response) -> PangeaResponse:
+    def _poll_result(self, requests_response) -> PangeaResponse:
         if self._queued_retry_enabled and requests_response.status_code == 202:
             response_json = requests_response.json()
             self.logger.debug(
                 json.dumps(
-                    {"service": self.service, "action": "check_retry", "response": response_json},
+                    {"service": self.service, "action": "poll_result", "response": response_json},
                     default=default_encoder,
                 )
             )
@@ -135,7 +135,7 @@ class PangeaRequest(object):
 
         return pangea_response
 
-    def get(self, url: str, check_response: bool = True, retry: bool = True) -> PangeaResponse:
+    def get(self, url: str, check_response: bool = True) -> PangeaResponse:
         """Makes the GET call to a Pangea Service endpoint.
 
         Args:
@@ -149,11 +149,10 @@ class PangeaRequest(object):
 
         self.logger.debug(json.dumps({"service": self.service, "action": "get", "url": url}))
         requests_response = self.session.get(url, headers=self._headers())
+        pangea_response = PangeaResponse(requests_response)
 
         if check_response is False:
-            return PangeaResponse(requests_response)
-
-        pangea_response = self._check_retry(requests_response) if retry else PangeaResponse(requests_response)
+            return pangea_response
 
         self.logger.debug(
             json.dumps(
@@ -165,18 +164,32 @@ class PangeaRequest(object):
         self._check_response(pangea_response)
         return pangea_response
 
+    def _get_delay(self, retry_count, start):
+        delay = retry_count * retry_count
+        now = time.time()
+        # if with this delay exceed timeout, reduce delay
+        if now - start + delay >= self.config.poll_result_timeout:
+            delay = start + self.config.poll_result_timeout - now
+
+        return delay
+
+    def _reach_timeout(self, start):
+        return time.time() - start >= self.config.poll_result_timeout
+
     def _handle_queued(self, request_id: str) -> PangeaResponse:
         retry_count = 1
+        start = time.time()
 
         while True:
-            time.sleep(retry_count * retry_count * self.config.request_backoff)
+            delay = self._get_delay(retry_count, start)
+            time.sleep(delay)
             url = self._url(f"request/{request_id}", include_version=False)
             self.logger.debug(
                 json.dumps({"service": self.service, "action": "handle_queued", "step": "retry", "url": url})
             )
             pangea_response = self.get(url, check_response=False)
 
-            if pangea_response.status == ResponseStatus.ACCEPTED.value and retry_count <= self.config.queued_retries:
+            if pangea_response.status == ResponseStatus.ACCEPTED.value and not self._reach_timeout(start):
                 retry_count += 1
             else:
                 self.logger.debug(

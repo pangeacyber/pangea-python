@@ -1118,7 +1118,7 @@ class FileScan(ServiceBase):
             raise ValueError("Need to set file_path or file arguments")
 
         data = input.dict(exclude_none=True)
-        response = self.request.post("scan", data=data, files=files, retry=sync_call)
+        response = self.request.post("scan", data=data, files=files, poll_result=sync_call)
         result = FileScanResult(**response.raw_result)
         response.result = result
         return response
