@@ -1,9 +1,10 @@
 import unittest
+from io import BytesIO
 
 import pangea.exceptions as pe
 from pangea import PangeaConfig
 from pangea.response import ResponseStatus
-from pangea.services import DomainIntel, FileIntel, IpIntel, UrlIntel, UserIntel
+from pangea.services import DomainIntel, FileIntel, FileScan, IpIntel, UrlIntel, UserIntel
 from pangea.services.intel import HashType
 from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
 
@@ -360,3 +361,38 @@ class TestUserIntel(unittest.TestCase):
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertTrue(response.result.data.found_in_breach)
         self.assertGreater(response.result.data.breach_count, 0)
+
+
+# FIXME: Update enviroment once in prod
+FILESCAN_TEST_ENVIRONMENT = TestEnvironment.DEVELOP
+EICAR = b"X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n"
+
+
+def eicar():
+    bio = BytesIO()
+    bio.write(EICAR)
+    bio.seek(0)
+    return bio
+
+
+class TestFileScan(unittest.TestCase):
+    def setUp(self):
+        token = get_test_token(FILESCAN_TEST_ENVIRONMENT)
+        domain = get_test_domain(FILESCAN_TEST_ENVIRONMENT)
+        config = PangeaConfig(domain=domain, custom_user_agent="sdk-test", queued_retries=10, request_backoff=1)
+        self.scan = FileScan(token, config=config)
+        logger_set_pangea_config(logger_name=self.scan.logger.name)
+
+    def test_scan_file(self):
+        response = self.scan.file_scan(file=eicar(), verbose=True, provider="reversinglabs")
+        self.assertEqual(response.status, "Success")
+        self.assertEqual(response.result.data.verdict, "malicious")
+        self.assertEqual(response.result.data.score, 100)
+
+    def test_scan_filepath(self):
+        response = self.scan.file_scan(file_path="README.md", verbose=True, provider="reversinglabs")
+        self.assertEqual(response.status, "Success")
+
+    def test_scan_file_async(self):
+        with self.assertRaises(pe.AcceptedRequestException):
+            response = self.scan.file_scan(file=eicar(), verbose=True, provider="reversinglabs", sync_call=False)

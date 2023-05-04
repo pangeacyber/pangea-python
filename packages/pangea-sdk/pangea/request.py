@@ -5,7 +5,7 @@ import copy
 import json
 import logging
 import time
-from typing import Dict, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 import pangea
 import requests
@@ -74,7 +74,9 @@ class PangeaRequest(object):
 
         return self._queued_retry_enabled
 
-    def post(self, endpoint: str = "", data: Union[str, Dict] = {}) -> PangeaResponse:
+    def post(
+        self, endpoint: str = "", data: Union[str, Dict] = {}, files: Optional[List[Tuple]] = None, retry: bool = True
+    ) -> PangeaResponse:
         """Makes the POST call to a Pangea Service endpoint.
 
         If queued_support mode is enabled, progress checks will be made for
@@ -95,13 +97,30 @@ class PangeaRequest(object):
             json.dumps({"service": self.service, "action": "post", "url": url, "data": data}, default=default_encoder)
         )
 
-        requests_response = self.session.post(url, headers=self._headers(), data=data_send)
+        if files:
+            multi = [("request", (None, data_send, "application/json"))]
+            multi.extend(files)
+            files = multi
+            data_send = None
 
+        requests_response = self.session.post(url, headers=self._headers(), data=data_send, files=files)
+        pangea_response = self._check_retry(requests_response) if retry else PangeaResponse(requests_response)
+
+        self.logger.debug(
+            json.dumps(
+                {"service": self.service, "action": "post", "url": url, "response": pangea_response.json},
+                default=default_encoder,
+            )
+        )
+        self._check_response(pangea_response)
+        return pangea_response
+
+    def _check_retry(self, requests_response) -> PangeaResponse:
         if self._queued_retry_enabled and requests_response.status_code == 202:
             response_json = requests_response.json()
             self.logger.debug(
                 json.dumps(
-                    {"service": self.service, "action": "post", "url": url, "response": response_json},
+                    {"service": self.service, "action": "check_retry", "response": response_json},
                     default=default_encoder,
                 )
             )
@@ -114,16 +133,9 @@ class PangeaRequest(object):
         else:
             pangea_response = PangeaResponse(requests_response)
 
-        self.logger.debug(
-            json.dumps(
-                {"service": self.service, "action": "post", "url": url, "response": pangea_response.json},
-                default=default_encoder,
-            )
-        )
-        self._check_response(pangea_response)
         return pangea_response
 
-    def get(self, endpoint: str, path: str) -> PangeaResponse:
+    def get(self, url: str, check_response: bool = True, retry: bool = True) -> PangeaResponse:
         """Makes the GET call to a Pangea Service endpoint.
 
         Args:
@@ -134,19 +146,22 @@ class PangeaRequest(object):
             PangeaResponse which contains the response in its entirety and
                various properties to retrieve individual fields
         """
-        url = self._url(f"{endpoint}/{path}")
 
-        self.logger.debug(json.dupms({"service": self.service, "action": "get", "url": url}))
+        self.logger.debug(json.dumps({"service": self.service, "action": "get", "url": url}))
         requests_response = self.session.get(url, headers=self._headers())
 
-        pangea_response = PangeaResponse(requests_response)
+        if check_response is False:
+            return PangeaResponse(requests_response)
+
+        pangea_response = self._check_retry(requests_response) if retry else PangeaResponse(requests_response)
 
         self.logger.debug(
             json.dumps(
-                {"service": self.service, "action": "post", "url": url, "response": pangea_response.json},
+                {"service": self.service, "action": "get", "url": url, "response": pangea_response.json},
                 default=default_encoder,
             )
         )
+
         self._check_response(pangea_response)
         return pangea_response
 
@@ -154,12 +169,20 @@ class PangeaRequest(object):
         retry_count = 1
 
         while True:
-            time.sleep(retry_count * retry_count)
-            pangea_response = self.get("request", request_id)
+            time.sleep(retry_count * retry_count * self.config.request_backoff)
+            url = self._url(f"request/{request_id}", include_version=False)
+            self.logger.debug(
+                json.dumps({"service": self.service, "action": "handle_queued", "step": "retry", "url": url})
+            )
+            pangea_response = self.get(url, check_response=False)
 
-            if pangea_response.code == 202 and retry_count <= self.config.queued_retries:
+            if pangea_response.status == ResponseStatus.ACCEPTED.value and retry_count <= self.config.queued_retries:
                 retry_count += 1
             else:
+                self.logger.debug(
+                    json.dumps({"service": self.service, "action": "handle_queued", "step": "exit", "url": url})
+                )
+                self._check_response(pangea_response)
                 return pangea_response
 
     def _init_session(self) -> requests.Session:
@@ -178,16 +201,15 @@ class PangeaRequest(object):
 
         return session
 
-    def _url(self, path: str) -> str:
+    def _url(self, path: str, include_version: bool = True) -> str:
         protocol = "http://" if self.config.insecure else "https://"
         domain = self.config.domain if self.config.environment == "local" else f"{self.service}.{self.config.domain}"
 
-        url = f"{protocol}{domain}/{ str(self.version) + '/' if self.version else '' }{path}"
+        url = f"{protocol}{domain}/{ str(self.version) + '/' if (self.version and include_version) else '' }{path}"
         return url
 
     def _headers(self) -> dict:
         headers = {
-            "Content-Type": "application/json",
             "User-Agent": self._user_agent,
             "Authorization": f"Bearer {self.token}",
         }
@@ -250,4 +272,6 @@ class PangeaRequest(object):
             raise exceptions.NotFound(response.raw_response.url if response.raw_response is not None else "", response)
         elif status == ResponseStatus.INTERNAL_SERVER_ERROR.value:
             raise exceptions.InternalServerError(response)
+        elif status == ResponseStatus.ACCEPTED.value:
+            raise exceptions.AcceptedRequestException(response)
         raise exceptions.PangeaAPIException(f"{summary} ", response)

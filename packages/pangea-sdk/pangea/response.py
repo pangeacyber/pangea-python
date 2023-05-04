@@ -75,6 +75,7 @@ class ResponseStatus(str, enum.Enum):
     VAULT_ITEM_NOT_FOUND = "VaultItemNotFound"
     NOT_FOUND = "NotFound"
     INTERNAL_SERVER_ERROR = "InternalError"
+    ACCEPTED = "Accepted"
 
 
 class ResponseHeader(APIResponseModel):
