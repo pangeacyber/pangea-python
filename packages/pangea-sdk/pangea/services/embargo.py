@@ -132,10 +132,7 @@ class Embargo(ServiceBase):
             \"\"\"
         """
         input = IPCheckRequest(ip=ip)
-        response = self.request.post("ip/check", data=input.dict())
-        result = EmbargoResult(**response.raw_result)
-        response.result = result
-        return response
+        return self.request.post("ip/check", EmbargoResult, data=input.dict())
 
     def iso_check(self, iso_code: str) -> PangeaResponse[EmbargoResult]:
         """
@@ -175,6 +172,4 @@ class Embargo(ServiceBase):
             \"\"\"
         """
         input = ISOCheckRequest(iso_code=iso_code)
-        response = self.request.post("iso/check", data=input.dict())
-        response.result = EmbargoResult(**response.raw_result)
-        return response
+        return self.request.post("iso/check", result_class=EmbargoResult, data=input.dict())

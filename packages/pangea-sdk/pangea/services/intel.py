@@ -333,9 +333,7 @@ class FileIntel(ServiceBase):
             response = file_intel.lookup(hash="142b638c6a60b60c7f9928da4fb85a5a8e1422a9ffdc9ee49e17e56ccca9cf6e", hash_type="sha256", provider="reversinglabs")
         """
         input = FileReputationRequest(hash=hash, hash_type=hash_type, verbose=verbose, raw=raw, provider=provider)
-        response = self.request.post("reputation", data=input.dict(exclude_none=True))
-        response.result = FileReputationResult(**response.raw_result)
-        return response
+        return self.request.post("reputation", FileReputationResult, data=input.dict(exclude_none=True))
 
     def hashReputation(
         self,
@@ -369,9 +367,7 @@ class FileIntel(ServiceBase):
 
         """
         input = FileReputationRequest(hash=hash, hash_type=hash_type, verbose=verbose, raw=raw, provider=provider)
-        response = self.request.post("reputation", data=input.dict(exclude_none=True))
-        response.result = FileReputationResult(**response.raw_result)
-        return response
+        return self.request.post("reputation", FileReputationResult, data=input.dict(exclude_none=True))
 
     @pangea_deprecated(version="1.2.0", reason="Should use FileIntel.filepathReputation()")
     def lookupFilepath(
@@ -407,9 +403,7 @@ class FileIntel(ServiceBase):
         hash = hashlib.sha256(data.read()).hexdigest()
 
         input = FileReputationRequest(hash=hash, hash_type="sha256", verbose=verbose, raw=raw, provider=provider)
-        response = self.request.post("reputation", data=input.dict(exclude_none=True))
-        response.result = FileReputationResult(**response.raw_result)
-        return response
+        return self.request.post("reputation", FileReputationResult, data=input.dict(exclude_none=True))
 
     def filepathReputation(
         self,
@@ -445,9 +439,7 @@ class FileIntel(ServiceBase):
         hash = hashlib.sha256(data.read()).hexdigest()
 
         input = FileReputationRequest(hash=hash, hash_type="sha256", verbose=verbose, raw=raw, provider=provider)
-        response = self.request.post("reputation", data=input.dict(exclude_none=True))
-        response.result = FileReputationResult(**response.raw_result)
-        return response
+        return self.request.post("reputation", FileReputationResult, data=input.dict(exclude_none=True))
 
 
 class DomainIntel(ServiceBase):
@@ -503,9 +495,7 @@ class DomainIntel(ServiceBase):
             response = domain_intel.lookup(domain="737updatesboeing.com", provider="domaintools")
         """
         input = DomainReputationRequest(domain=domain, verbose=verbose, provider=provider, raw=raw)
-        response = self.request.post("reputation", data=input.dict(exclude_none=True))
-        response.result = DomainReputationResult(**response.raw_result)
-        return response
+        return self.request.post("reputation", DomainReputationResult, data=input.dict(exclude_none=True))
 
     def reputation(
         self, domain: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
@@ -532,9 +522,7 @@ class DomainIntel(ServiceBase):
             response = domain_intel.lookup(domain="737updatesboeing.com", provider="domaintools")
         """
         input = DomainReputationRequest(domain=domain, verbose=verbose, provider=provider, raw=raw)
-        response = self.request.post("reputation", data=input.dict(exclude_none=True))
-        response.result = DomainReputationResult(**response.raw_result)
-        return response
+        return self.request.post("reputation", DomainReputationResult, data=input.dict(exclude_none=True))
 
 
 class IpIntel(ServiceBase):
@@ -591,9 +579,7 @@ class IpIntel(ServiceBase):
 
         """
         input = IPRepurationRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
-        response = self.request.post("reputation", data=input.dict(exclude_none=True))
-        response.result = IPReputationResult(**response.raw_result)
-        return response
+        return self.request.post("reputation", IPReputationResult, data=input.dict(exclude_none=True))
 
     def reputation(
         self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
@@ -620,9 +606,7 @@ class IpIntel(ServiceBase):
             response = ip_intel.reputation(ip="93.231.182.110", provider="crowdstrike")
         """
         input = IPRepurationRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
-        response = self.request.post("reputation", data=input.dict(exclude_none=True))
-        response.result = IPReputationResult(**response.raw_result)
-        return response
+        return self.request.post("reputation", IPReputationResult, data=input.dict(exclude_none=True))
 
     def geolocate(
         self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
@@ -649,9 +633,7 @@ class IpIntel(ServiceBase):
             response = ip_intel.geolocate(ip="93.231.182.110", provider="digitalelement")
         """
         input = IPGeolocateRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
-        response = self.request.post("geolocate", data=input.dict(exclude_none=True))
-        response.result = IPGeolocateResult(**response.raw_result)
-        return response
+        return self.request.post("geolocate", IPGeolocateResult, data=input.dict(exclude_none=True))
 
     def get_domain(
         self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
@@ -678,9 +660,7 @@ class IpIntel(ServiceBase):
             response = ip_intel.get_domain(ip="93.231.182.110", provider="digitalelement")
         """
         input = IPDomainRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
-        response = self.request.post("domain", data=input.dict(exclude_none=True))
-        response.result = IPDomainResult(**response.raw_result)
-        return response
+        return self.request.post("domain", IPDomainResult, data=input.dict(exclude_none=True))
 
     def is_vpn(
         self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
@@ -707,9 +687,7 @@ class IpIntel(ServiceBase):
             response = ip_intel.is_vpn(ip="93.231.182.110", provider="digitalelement")
         """
         input = IPVPNRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
-        response = self.request.post("vpn", data=input.dict(exclude_none=True))
-        response.result = IPVPNResult(**response.raw_result)
-        return response
+        return self.request.post("vpn", IPVPNResult, data=input.dict(exclude_none=True))
 
     def is_proxy(
         self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
@@ -736,9 +714,7 @@ class IpIntel(ServiceBase):
             response = ip_intel.is_proxy(ip="93.231.182.110", provider="digitalelement")
         """
         input = IPProxyRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
-        response = self.request.post("proxy", data=input.dict(exclude_none=True))
-        response.result = IPProxyResult(**response.raw_result)
-        return response
+        return self.request.post("proxy", IPProxyResult, data=input.dict(exclude_none=True))
 
 
 class UrlIntel(ServiceBase):
@@ -795,9 +771,7 @@ class UrlIntel(ServiceBase):
         """
 
         input = URLReputationRequest(url=url, provider=provider, verbose=verbose, raw=raw)
-        response = self.request.post("reputation", data=input.dict(exclude_none=True))
-        response.result = URLReputationResult(**response.raw_result)
-        return response
+        return self.request.post("reputation", URLReputationResult, data=input.dict(exclude_none=True))
 
     def reputation(
         self, url: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
@@ -825,9 +799,7 @@ class UrlIntel(ServiceBase):
         """
 
         input = URLReputationRequest(url=url, provider=provider, verbose=verbose, raw=raw)
-        response = self.request.post("reputation", data=input.dict(exclude_none=True))
-        response.result = URLReputationResult(**response.raw_result)
-        return response
+        return self.request.post("reputation", URLReputationResult, data=input.dict(exclude_none=True))
 
 
 class UserBreachedRequest(IntelCommonRequest):
@@ -982,9 +954,7 @@ class UserIntel(ServiceBase):
             verbose=verbose,
             raw=raw,
         )
-        response = self.request.post("user/breached", data=input.dict(exclude_none=True))
-        response.result = UserBreachedResult(**response.raw_result)
-        return response
+        return self.request.post("user/breached", UserBreachedResult, data=input.dict(exclude_none=True))
 
     def password_breached(
         self,
@@ -1020,9 +990,7 @@ class UserIntel(ServiceBase):
         input = UserPasswordBreachedRequest(
             hash_type=hash_type, hash_prefix=hash_prefix, provider=provider, verbose=verbose, raw=raw
         )
-        response = self.request.post("password/breached", data=input.dict(exclude_none=True))
-        response.result = UserPasswordBreachedResult(**response.raw_result)
-        return response
+        return self.request.post("password/breached", UserPasswordBreachedResult, data=input.dict(exclude_none=True))
 
 
 class FileScanRequest(IntelCommonRequest):
@@ -1118,7 +1086,4 @@ class FileScan(ServiceBase):
             raise ValueError("Need to set file_path or file arguments")
 
         data = input.dict(exclude_none=True)
-        response = self.request.post("scan", data=data, files=files, poll_result=sync_call)
-        result = FileScanResult(**response.raw_result)
-        response.result = result
-        return response
+        return self.request.post("scan", FileScanResult, data=data, files=files, poll_result=sync_call)

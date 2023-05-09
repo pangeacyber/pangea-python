@@ -106,7 +106,7 @@ class Vault(ServiceBase):
         Delete
 
         Delete a secret or key
-        
+
         Args:
             id (str): The item ID
         Raises:
@@ -123,10 +123,7 @@ class Vault(ServiceBase):
         input = DeleteRequest(
             id=id,
         )
-        response = self.request.post("delete", data=input.dict(exclude_none=True))
-        if response.raw_result is not None:
-            response.result = DeleteResult(**response.raw_result)
-        return response
+        return self.request.post("delete", DeleteResult, data=input.dict(exclude_none=True))
 
     # Get endpoint
     def get(
@@ -140,10 +137,10 @@ class Vault(ServiceBase):
         Retrieve
 
         Retrieve a secret or key, and any associated information
-        
+
         Args:
             id (str): The item ID
-            version (str, int, optional): The key version(s). 
+            version (str, int, optional): The key version(s).
                 - `all` for all versions
                 - `num` for a specific version
                 - `-num` for the `num` latest versions
@@ -171,10 +168,7 @@ class Vault(ServiceBase):
             verbose=verbose,
             version_state=version_state,
         )
-        response = self.request.post("get", data=input.dict(exclude_none=True))
-        if response.raw_result is not None:
-            response.result = GetResult(**response.raw_result)
-        return response
+        return self.request.post("get", GetResult, data=input.dict(exclude_none=True))
 
     # List endpoint
     def list(
@@ -189,7 +183,7 @@ class Vault(ServiceBase):
         List
 
         Look up a list of secrets, keys and folders, and their associated information
-        
+
         Args:
             filter (dict, optional): A set of filters to help you customize your search. Examples:
                 - "folder": "/tmp"
@@ -228,11 +222,7 @@ class Vault(ServiceBase):
             )
         """
         input = ListRequest(filter=filter, last=last, order=order, order_by=order_by, size=size)
-        response = self.request.post("list", data=input.dict(exclude_none=True))
-
-        if response.raw_result is not None:
-            response.result = ListResult(**response.raw_result)
-        return response
+        return self.request.post("list", ListResult, data=input.dict(exclude_none=True))
 
     # Update endpoint
     def update(
@@ -252,7 +242,7 @@ class Vault(ServiceBase):
         Update
 
         Update information associated with a secret or key.
-        
+
         Args:
             id (str): The item ID
             name (str, optional): The name of this item
@@ -311,10 +301,7 @@ class Vault(ServiceBase):
             expiration=expiration,
             item_state=item_state,
         )
-        response = self.request.post("update", data=input.dict(exclude_none=True))
-        if response.raw_result is not None:
-            response.result = UpdateResult(**response.raw_result)
-        return response
+        return self.request.post("update", UpdateResult, data=input.dict(exclude_none=True))
 
     def secret_store(
         self,
@@ -331,7 +318,7 @@ class Vault(ServiceBase):
         Secret store
 
         Import a secret
-        
+
         Args:
             secret (str): The secret value
             name (str): The name of this item
@@ -382,10 +369,7 @@ class Vault(ServiceBase):
             rotation_state=rotation_state,
             expiration=expiration,
         )
-        response = self.request.post("secret/store", data=input.dict(exclude_none=True))
-        if response.raw_result is not None:
-            response.result = SecretStoreResult(**response.raw_result)
-        return response
+        return self.request.post("secret/store", SecretStoreResult, data=input.dict(exclude_none=True))
 
     def pangea_token_store(
         self,
@@ -402,7 +386,7 @@ class Vault(ServiceBase):
         Pangea token store
 
         Import a secret
-        
+
         Args:
             pangea_token (str): The pangea token to store
             name (str): the name of this item
@@ -410,7 +394,7 @@ class Vault(ServiceBase):
             metadata (dict, optional): User-provided metadata
             tags (list[str], optional): A list of user-defined tags
             rotation_frequency (str, optional): Period of time between item rotations
-            rotation_state (ItemVersionState, optional): State to which the previous version should 
+            rotation_state (ItemVersionState, optional): State to which the previous version should
                 transition upon rotation. Supported options:
                 - `deactivated`
                 - `destroyed`
@@ -453,10 +437,7 @@ class Vault(ServiceBase):
             rotation_state=rotation_state,
             expiration=expiration,
         )
-        response = self.request.post("secret/store", data=input.dict(exclude_none=True))
-        if response.raw_result is not None:
-            response.result = SecretStoreResult(**response.raw_result)
-        return response
+        return self.request.post("secret/store", SecretStoreResult, data=input.dict(exclude_none=True))
 
     # Rotate endpoint
     def secret_rotate(
@@ -466,7 +447,7 @@ class Vault(ServiceBase):
         Secret rotate
 
         Rotate a secret
-        
+
         Args:
             id (str): The item ID
             secret (str): The secret value
@@ -494,10 +475,7 @@ class Vault(ServiceBase):
             )
         """
         input = SecretRotateRequest(id=id, secret=secret, rotation_state=rotation_state)
-        response = self.request.post("secret/rotate", data=input.dict(exclude_none=True))
-        if response.raw_result is not None:
-            response.result = SecretRotateResult(**response.raw_result)
-        return response
+        return self.request.post("secret/rotate", SecretRotateResult, data=input.dict(exclude_none=True))
 
     # Rotate endpoint
     def pangea_token_rotate(self, id: str) -> PangeaResponse[SecretRotateResult]:
@@ -505,7 +483,7 @@ class Vault(ServiceBase):
         Token rotate
 
         Rotate a Pangea token
-        
+
         Args:
             id (str): The item ID
 
@@ -523,10 +501,7 @@ class Vault(ServiceBase):
             )
         """
         input = SecretRotateRequest(id=id)
-        response = self.request.post("secret/rotate", data=input.dict(exclude_none=True))
-        if response.raw_result is not None:
-            response.result = SecretRotateResult(**response.raw_result)
-        return response
+        return self.request.post("secret/rotate", SecretRotateResult, data=input.dict(exclude_none=True))
 
     def symmetric_generate(
         self,
@@ -544,7 +519,7 @@ class Vault(ServiceBase):
         Symmetric generate
 
         Generate a symmetric key
-        
+
         Args:
             algorithm (SymmetricAlgorithm): The algorithm of the key
             purpose (KeyPurpose): The purpose of this key
@@ -598,10 +573,7 @@ class Vault(ServiceBase):
             rotation_state=rotation_state,
             expiration=expiration,
         )
-        response = self.request.post("key/generate", data=input.dict(exclude_none=True))
-        if response.raw_result is not None:
-            response.result = SymmetricGenerateResult(**response.raw_result)
-        return response
+        return self.request.post("key/generate", SymmetricGenerateResult, data=input.dict(exclude_none=True))
 
     def asymmetric_generate(
         self,
@@ -619,7 +591,7 @@ class Vault(ServiceBase):
         Asymmetric generate
 
         Generate an asymmetric key
-        
+
         Args:
             algorithm (AsymmetricAlgorithm): The algorithm of the key
             purpose (KeyPurpose): The purpose of this key
@@ -673,10 +645,7 @@ class Vault(ServiceBase):
             rotation_state=rotation_state,
             expiration=expiration,
         )
-        response = self.request.post("key/generate", data=input.dict(exclude_none=True))
-        if response.raw_result is not None:
-            response.result = AsymmetricGenerateResult(**response.raw_result)
-        return response
+        return self.request.post("key/generate", AsymmetricGenerateResult, data=input.dict(exclude_none=True))
 
     # Store endpoints
     def asymmetric_store(
@@ -697,7 +666,7 @@ class Vault(ServiceBase):
         Asymmetric store
 
         Import an asymmetric key
-        
+
         Args:
             private_key (EncodedPrivateKey): The private key in PEM format
             public_key (EncodedPublicKey): The public key in PEM format
@@ -757,10 +726,7 @@ class Vault(ServiceBase):
             rotation_state=rotation_state,
             expiration=expiration,
         )
-        response = self.request.post("key/store", data=input.dict(exclude_none=True))
-        if response.raw_result is not None:
-            response.result = AsymmetricStoreResult(**response.raw_result)
-        return response
+        return self.request.post("key/store", AsymmetricStoreResult, data=input.dict(exclude_none=True))
 
     def symmetric_store(
         self,
@@ -779,7 +745,7 @@ class Vault(ServiceBase):
         Symmetric store
 
         Import a symmetric key
-        
+
         Args:
             key (str): The key material (in base64)
             algorithm (SymmetricAlgorithm): The algorithm of the key
@@ -836,10 +802,7 @@ class Vault(ServiceBase):
             rotation_state=rotation_state,
             expiration=expiration,
         )
-        response = self.request.post("key/store", data=input.dict(exclude_none=True))
-        if response.raw_result is not None:
-            response.result = SymmetricStoreResult(**response.raw_result)
-        return response
+        return self.request.post("key/store", SymmetricStoreResult, data=input.dict(exclude_none=True))
 
     # Rotate endpoint
     def key_rotate(
@@ -854,7 +817,7 @@ class Vault(ServiceBase):
         Key rotate
 
         Manually rotate a symmetric or asymmetric key
-        
+
         Args:
             id (str): The ID of the item
             rotation_state (ItemVersionState, optional): State to which the previous version should transition upon rotation.
@@ -886,10 +849,7 @@ class Vault(ServiceBase):
         input = KeyRotateRequest(
             id=id, public_key=public_key, private_key=private_key, key=key, rotation_state=rotation_state
         )
-        response = self.request.post("key/rotate", data=input.dict(exclude_none=True))
-        if response.raw_result is not None:
-            response.result = KeyRotateResult(**response.raw_result)
-        return response
+        return self.request.post("key/rotate", KeyRotateResult, data=input.dict(exclude_none=True))
 
     # Encrypt
     def encrypt(self, id: str, plain_text: str, version: Optional[int] = None) -> PangeaResponse[EncryptResult]:
@@ -897,7 +857,7 @@ class Vault(ServiceBase):
         Encrypt
 
         Encrypt a message using a key
-        
+
         Args:
             id (str): The item ID
             plain_text (str): A message to be in encrypted (in base64)
@@ -919,10 +879,7 @@ class Vault(ServiceBase):
             )
         """
         input = EncryptRequest(id=id, plain_text=plain_text, version=version)
-        response = self.request.post("key/encrypt", data=input.dict(exclude_none=True))
-        if response.raw_result is not None:
-            response.result = EncryptResult(**response.raw_result)
-        return response
+        return self.request.post("key/encrypt", EncryptResult, data=input.dict(exclude_none=True))
 
     # Decrypt
     def decrypt(self, id: str, cipher_text: str, version: Optional[int] = None) -> PangeaResponse[DecryptResult]:
@@ -930,7 +887,7 @@ class Vault(ServiceBase):
         Decrypt
 
         Decrypt a message using a key
-        
+
         Args:
             id (str): The item ID
             cipher_text (str): A message encrypted by Vault (in base64)
@@ -952,10 +909,7 @@ class Vault(ServiceBase):
             )
         """
         input = DecryptRequest(id=id, cipher_text=cipher_text, version=version)
-        response = self.request.post("key/decrypt", data=input.dict(exclude_none=True))
-        if response.raw_result is not None:
-            response.result = DecryptResult(**response.raw_result)
-        return response
+        return self.request.post("key/decrypt", DecryptResult, data=input.dict(exclude_none=True))
 
     # Sign
     def sign(self, id: str, message: str, version: Optional[int] = None) -> PangeaResponse[SignResult]:
@@ -963,7 +917,7 @@ class Vault(ServiceBase):
         Sign
 
         Sign a message using a key
-        
+
         Args:
             id (str): The item ID
             message (str): The message to be signed, in base64
@@ -985,10 +939,7 @@ class Vault(ServiceBase):
             )
         """
         input = SignRequest(id=id, message=message, version=version)
-        response = self.request.post("key/sign", data=input.dict(exclude_none=True))
-        if response.raw_result is not None:
-            response.result = SignResult(**response.raw_result)
-        return response
+        return self.request.post("key/sign", SignResult, data=input.dict(exclude_none=True))
 
     # Verify
     def verify(
@@ -998,7 +949,7 @@ class Vault(ServiceBase):
         Verify
 
         Verify a signature using a key
-        
+
         Args:
             id (str): The item ID
             message (str): A message to be verified (in base64)
@@ -1027,17 +978,14 @@ class Vault(ServiceBase):
             signature=signature,
             version=version,
         )
-        response = self.request.post("key/verify", data=input.dict(exclude_none=True))
-        if response.raw_result is not None:
-            response.result = VerifyResult(**response.raw_result)
-        return response
+        return self.request.post("key/verify", VerifyResult, data=input.dict(exclude_none=True))
 
     def jwt_verify(self, jws: str) -> PangeaResponse[JWTVerifyResult]:
         """
         JWT Verify
 
         Verify the signature of a JSON Web Token (JWT)
-        
+
         Args:
             jws (str): The signed JSON Web Token (JWS)
 
@@ -1055,17 +1003,14 @@ class Vault(ServiceBase):
             )
         """
         input = JWTVerifyRequest(jws=jws)
-        response = self.request.post("key/verify/jwt", data=input.dict(exclude_none=True))
-        if response.raw_result is not None:
-            response.result = JWTVerifyResult(**response.raw_result)
-        return response
+        return self.request.post("key/verify/jwt", JWTVerifyResult, data=input.dict(exclude_none=True))
 
     def jwt_sign(self, id: str, payload: str) -> PangeaResponse[JWTSignResult]:
         """
         JWT Sign
 
         Sign a JSON Web Token (JWT) using a key
-        
+
         Args:
             id (str): The item ID
             payload (str): The JWT payload (in JSON)
@@ -1085,10 +1030,7 @@ class Vault(ServiceBase):
             )
         """
         input = JWTSignRequest(id=id, payload=payload)
-        response = self.request.post("key/sign/jwt", data=input.dict(exclude_none=True))
-        if response.raw_result is not None:
-            response.result = JWTSignResult(**response.raw_result)
-        return response
+        return self.request.post("key/sign/jwt", JWTSignResult, data=input.dict(exclude_none=True))
 
     # Get endpoint
     def jwk_get(self, id: str, version: Optional[str] = None) -> PangeaResponse[JWKGetResult]:
@@ -1096,7 +1038,7 @@ class Vault(ServiceBase):
         JWT Retrieve
 
         Retrieve a key in JWK format
-        
+
         Args:
             id (str): The item ID
             version (str, optional): The key version(s).
@@ -1117,10 +1059,7 @@ class Vault(ServiceBase):
             )
         """
         input = JWKGetRequest(id=id, version=version)
-        response = self.request.post("get/jwk", data=input.dict(exclude_none=True))
-        if response.raw_result is not None:
-            response.result = JWKGetResult(**response.raw_result)
-        return response
+        return self.request.post("get/jwk", JWKGetResult, data=input.dict(exclude_none=True))
 
     # State change
     def state_change(
@@ -1130,7 +1069,7 @@ class Vault(ServiceBase):
         State change
 
         Change the state of a specific version of a secret or key
-        
+
         Args:
             id (str): The item ID
             state (ItemVersionState): The new state of the item version. Supported options:
@@ -1140,7 +1079,7 @@ class Vault(ServiceBase):
                 - `compromised`
                 - `destroyed`
             version (int, optional): the item version
-            destroy_period (str, optional): Period of time for the destruction of a compromised key. 
+            destroy_period (str, optional): Period of time for the destruction of a compromised key.
                 Only valid if state=`compromised`
         Raises:
             PangeaAPIException: If an API Error happens
@@ -1157,7 +1096,4 @@ class Vault(ServiceBase):
             )
         """
         input = StateChangeRequest(id=id, state=state, version=version, destroy_period=destroy_period)
-        response = self.request.post("state/change", data=input.dict(exclude_none=True))
-        if response.raw_result is not None:
-            response.result = StateChangeResult(**response.raw_result)
-        return response
+        return self.request.post("state/change", StateChangeResult, data=input.dict(exclude_none=True))

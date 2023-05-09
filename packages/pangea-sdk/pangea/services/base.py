@@ -5,9 +5,10 @@ import copy
 import logging
 from typing import Optional
 
-from pangea import __version__
 from pangea.config import PangeaConfig
+from pangea.exceptions import AcceptedRequestException
 from pangea.request import PangeaRequest
+from pangea.response import PangeaResponse
 
 
 class ServiceBase(object):
@@ -39,3 +40,6 @@ class ServiceBase(object):
     @token.setter
     def token(self, value):
         self.request.token = value
+
+    def poll_result(self, exception: AcceptedRequestException) -> PangeaResponse:
+        return self.request.poll_result_once(exception.response, check_response=True)

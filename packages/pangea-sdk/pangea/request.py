@@ -11,7 +11,7 @@ import pangea
 import requests
 from pangea import exceptions
 from pangea.config import PangeaConfig
-from pangea.response import PangeaResponse, ResponseStatus
+from pangea.response import PangeaResponse, PangeaResponseResult, ResponseStatus
 from pangea.utils import default_encoder
 from requests.adapters import HTTPAdapter, Retry
 
@@ -76,7 +76,8 @@ class PangeaRequest(object):
 
     def post(
         self,
-        endpoint: str = "",
+        endpoint: str,
+        result_class: type[PangeaResponseResult],
         data: Union[str, Dict] = {},
         files: Optional[List[Tuple]] = None,
         poll_result: bool = True,
@@ -104,7 +105,9 @@ class PangeaRequest(object):
             data_send = None
 
         requests_response = self.session.post(url, headers=self._headers(), data=data_send, files=files)
-        pangea_response = self._poll_result(requests_response) if poll_result else PangeaResponse(requests_response)
+        pangea_response = PangeaResponse(requests_response, result_class=result_class)
+        if poll_result:
+            pangea_response = self._handle_queued_result(pangea_response)
 
         self.logger.debug(
             json.dumps(
@@ -115,27 +118,19 @@ class PangeaRequest(object):
         self._check_response(pangea_response)
         return pangea_response
 
-    def _poll_result(self, requests_response) -> PangeaResponse:
-        if self._queued_retry_enabled and requests_response.status_code == 202:
-            response_json = requests_response.json()
+    def _handle_queued_result(self, response: PangeaResponse) -> PangeaResponse:
+        if self._queued_retry_enabled and response.raw_response.status_code == 202:
             self.logger.debug(
                 json.dumps(
-                    {"service": self.service, "action": "poll_result", "response": response_json},
+                    {"service": self.service, "action": "poll_result", "response": response.json},
                     default=default_encoder,
                 )
             )
-            request_id = response_json.get("request_id", None)
+            response = self._poll_result_retry(response)
 
-            if not request_id:
-                raise Exception("Queue error: response did not include a 'request_id'")
+        return response
 
-            pangea_response = self._handle_queued(request_id)
-        else:
-            pangea_response = PangeaResponse(requests_response)
-
-        return pangea_response
-
-    def get(self, url: str, check_response: bool = True) -> PangeaResponse:
+    def get(self, path: str, result_class: type[PangeaResponseResult], check_response: bool = True) -> PangeaResponse:
         """Makes the GET call to a Pangea Service endpoint.
 
         Args:
@@ -147,12 +142,10 @@ class PangeaRequest(object):
                various properties to retrieve individual fields
         """
 
+        url = self._url(path, include_version=False)
         self.logger.debug(json.dumps({"service": self.service, "action": "get", "url": url}))
         requests_response = self.session.get(url, headers=self._headers())
-        pangea_response = PangeaResponse(requests_response)
-
-        if check_response is False:
-            return pangea_response
+        pangea_response = PangeaResponse(requests_response, result_class=result_class)
 
         self.logger.debug(
             json.dumps(
@@ -161,8 +154,10 @@ class PangeaRequest(object):
             )
         )
 
-        self._check_response(pangea_response)
-        return pangea_response
+        if check_response is False:
+            return pangea_response
+
+        return self._check_response(pangea_response)
 
     def _get_delay(self, retry_count, start):
         delay = retry_count * retry_count
@@ -176,27 +171,32 @@ class PangeaRequest(object):
     def _reach_timeout(self, start):
         return time.time() - start >= self.config.poll_result_timeout
 
-    def _handle_queued(self, request_id: str) -> PangeaResponse:
+    def _get_poll_path(self, request_id: str):
+        return f"request/{request_id}"
+
+    def poll_result_once(self, response: PangeaResponse, check_response: bool = True):
+        request_id = response.request_id
+        if not request_id:
+            raise exceptions.PangeaException("Poll result error error: response did not include a 'request_id'")
+
+        if response.status != ResponseStatus.ACCEPTED.value:
+            raise exceptions.PangeaException("Response already proccesed")
+
+        path = self._get_poll_path(request_id)
+        self.logger.debug(json.dumps({"service": self.service, "action": "poll_result_once", "url": path}))
+        return self.get(path, response.result_class, check_response=check_response)
+
+    def _poll_result_retry(self, response: PangeaResponse) -> PangeaResponse:
         retry_count = 1
         start = time.time()
 
-        while True:
-            delay = self._get_delay(retry_count, start)
-            time.sleep(delay)
-            url = self._url(f"request/{request_id}", include_version=False)
-            self.logger.debug(
-                json.dumps({"service": self.service, "action": "handle_queued", "step": "retry", "url": url})
-            )
-            pangea_response = self.get(url, check_response=False)
+        while response.status == ResponseStatus.ACCEPTED.value and not self._reach_timeout(start):
+            time.sleep(self._get_delay(retry_count, start))
+            response = self.poll_result_once(response, check_response=False)
+            retry_count += 1
 
-            if pangea_response.status == ResponseStatus.ACCEPTED.value and not self._reach_timeout(start):
-                retry_count += 1
-            else:
-                self.logger.debug(
-                    json.dumps({"service": self.service, "action": "handle_queued", "step": "exit", "url": url})
-                )
-                self._check_response(pangea_response)
-                return pangea_response
+        self.logger.debug(json.dumps({"service": self.service, "action": "poll_result_retry", "step": "exit"}))
+        return self._check_response(response)
 
     def _init_session(self) -> requests.Session:
         retry_config = Retry(
@@ -236,9 +236,7 @@ class PangeaRequest(object):
         summary = response.summary
 
         if status == ResponseStatus.SUCCESS.value:
-            return
-        else:
-            response.result = None
+            return response
 
         self.logger.error(
             json.dumps(

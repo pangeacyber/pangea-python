@@ -102,17 +102,21 @@ class PangeaResponse(Generic[T], ResponseHeader):
     raw_response: Optional[requests.Response] = None
     result: Optional[T] = None
     pangea_error: Optional[PangeaError] = None
+    result_class: type[PangeaResponseResult] = PangeaResponseResult
     _json: Any
 
-    def __init__(self, response: requests.Response):
+    def __init__(self, response: requests.Response, result_class: type[PangeaResponseResult]):
         _json = response.json()
         super(PangeaResponse, self).__init__(**_json)
         self._json = _json
         self.raw_response = response
         self.raw_result = self._json["result"]
+        self.result_class = result_class
         self.result = (
-            T(**self._json["result"])
-            if issubclass(type(T), PangeaResponseResult) and self.status == ResponseStatus.SUCCESS.value
+            self.result_class(**self.raw_result)
+            if self.raw_result is not None
+            and issubclass(self.result_class, PangeaResponseResult)
+            and self.status == ResponseStatus.SUCCESS.value
             else None
         )
         if not self.success:

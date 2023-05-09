@@ -1,3 +1,4 @@
+import time
 import unittest
 from io import BytesIO
 
@@ -396,3 +397,19 @@ class TestFileScan(unittest.TestCase):
     def test_scan_file_async(self):
         with self.assertRaises(pe.AcceptedRequestException):
             response = self.scan.file_scan(file=eicar(), verbose=True, provider="reversinglabs", sync_call=False)
+
+    def test_scan_file_poll_result(self):
+        exception = None
+        try:
+            response = self.scan.file_scan(file=eicar(), verbose=True, provider="reversinglabs", sync_call=False)
+            self.assertTrue(False)
+        except pe.AcceptedRequestException as e:
+            exception = e
+
+        # wait some time to get result ready and poll it
+        time.sleep(60)
+
+        response = self.scan.poll_result(exception)
+        self.assertEqual(response.status, "Success")
+        self.assertEqual(response.result.data.verdict, "malicious")
+        self.assertEqual(response.result.data.score, 100)
