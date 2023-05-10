@@ -1,8 +1,8 @@
 import base64
-import collections as c
 import copy
 import datetime
 import json
+from collections import OrderedDict
 
 
 def format_datetime(dt: datetime.datetime) -> str:
@@ -30,14 +30,14 @@ def str2str_b64(data: str):
     return base64.b64encode(data.encode("ascii")).decode("ascii")
 
 
-def dict_order_keys(data: dict) -> c.OrderedDict:
+def dict_order_keys(data: dict) -> OrderedDict:
     if isinstance(data, dict):
-        return c.OrderedDict(sorted(data.items()))
+        return OrderedDict(sorted(data.items()))
     else:
         return data
 
 
-def dict_order_keys_recursive(data: dict) -> c.OrderedDict:
+def dict_order_keys_recursive(data: dict) -> OrderedDict:
     if isinstance(data, dict):
         for k, v in data.items():
             if type(v) is dict:
