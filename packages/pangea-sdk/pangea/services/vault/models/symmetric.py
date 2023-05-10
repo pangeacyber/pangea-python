@@ -39,6 +39,7 @@ class EncryptRequest(APIRequestModel):
     id: str
     plain_text: str
     version: Optional[int] = None
+    additional_data: Optional[str]
 
 
 class EncryptResult(PangeaResponseResult):
@@ -52,6 +53,7 @@ class DecryptRequest(APIRequestModel):
     id: str
     cipher_text: str
     version: Optional[int] = None
+    additional_data: Optional[str]
 
 
 class DecryptResult(PangeaResponseResult):

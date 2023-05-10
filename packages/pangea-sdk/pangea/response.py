@@ -35,7 +35,7 @@ class PangeaResponseResult(APIResponseModel):
     pass
 
 
-class ErrorField(PangeaResponseResult):
+class ErrorField(APIResponseModel):
     """
     Field errors denote errors in fields provided in request payloads
 
