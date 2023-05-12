@@ -1,0 +1,62 @@
+import os
+import time
+from io import BytesIO
+
+import pangea.exceptions as pe
+from pangea.config import PangeaConfig
+from pangea.services import FileScan
+
+token = os.getenv("PANGEA_INTEL_TOKEN")
+domain = os.getenv("PANGEA_DOMAIN")
+
+# To work in async it's need to set up queue_retry_enable to False
+# When we call .scan() it will return an AcceptedRequestException inmediatly if server return a 202 response
+config = PangeaConfig(domain=domain, queued_retry_enabled=False)
+intel = FileScan(token, config=config)
+
+EICAR = b"X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n"
+
+
+def eicar():
+    bio = BytesIO()
+    bio.write(EICAR)
+    bio.seek(0)
+    return bio
+
+
+def main():
+    print(f"Checking file...")
+    exception = None
+    try:
+        response = intel.file_scan(file=eicar(), verbose=True, provider="reversinglabs")
+    except pe.AcceptedRequestException as e:
+        # Save exception value to request result later
+        exception = e
+        print("This is a excepted exception")
+        print(f"Request Error: {e.response.summary}")
+        for err in e.errors:
+            print(f"\t{err.detail} \n")
+    except pe.PangeaAPIException as e:
+        print("This is a unexcepted exception")
+        print(f"Request Error: {e.response.summary}")
+        for err in e.errors:
+            print(f"\t{err.detail} \n")
+        return
+
+    print("We are going to sleep some time before we poll result...")
+    # wait some time to get result ready and poll it
+    time.sleep(30)
+
+    try:
+        # poll result, hopefully this should be ready
+        response = intel.poll_result(exception)
+        print("Got result successfully...")
+        print(f"Response: {response.result}")
+    except pe.PangeaAPIException as e:
+        print(f"Request Error: {e.response.summary}")
+        for err in e.errors:
+            print(f"\t{err.detail} \n")
+
+
+if __name__ == "__main__":
+    main()
