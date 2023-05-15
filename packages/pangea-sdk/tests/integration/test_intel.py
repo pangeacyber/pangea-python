@@ -364,8 +364,6 @@ class TestUserIntel(unittest.TestCase):
         self.assertGreater(response.result.data.breach_count, 0)
 
 
-# FIXME: Update enviroment once in prod
-FILESCAN_TEST_ENVIRONMENT = TestEnvironment.DEVELOP
 EICAR = b"X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n"
 
 
@@ -378,8 +376,8 @@ def eicar():
 
 class TestFileScan(unittest.TestCase):
     def setUp(self):
-        token = get_test_token(FILESCAN_TEST_ENVIRONMENT)
-        domain = get_test_domain(FILESCAN_TEST_ENVIRONMENT)
+        token = get_test_token(TEST_ENVIRONMENT)
+        domain = get_test_domain(TEST_ENVIRONMENT)
         config = PangeaConfig(domain=domain, custom_user_agent="sdk-test", poll_result_timeout=120)
         self.scan = FileScan(token, config=config)
         logger_set_pangea_config(logger_name=self.scan.logger.name)
