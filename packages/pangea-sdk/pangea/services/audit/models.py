@@ -1,10 +1,8 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
-import copy
 import datetime
 import enum
-import json
-from typing import List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 from pangea.response import APIRequestModel, APIResponseModel, PangeaResponseResult
 
@@ -21,76 +19,95 @@ class EventVerification(str, enum.Enum):
         return str(self.value)
 
 
-class EventSigning(enum.Enum):
-    NONE = 0
-    LOCAL = 1
-
-    def __str__(self):
-        return str(self.value)
-
-    def __repr__(self):
-        return str(self.value)
-
-
-class Event(APIResponseModel):
-    """Event to perform an auditable activity
-
-    Arguments:
-    message -- A message describing a detailed account of what happened.
-    actor -- who performed the auditable activity.
-    action -- auditable action that occurred.
-    new -- The value of a record after it was changed.
-    old -- The value of a record before it was changed.
-    source -- Used to record the location from where an activity occurred.
-    status -- Record whether or not the activity was successful.
-    target -- Used to record the specific record that was targeted by the auditable activity.
-    timestamp -- An optional client-supplied timestamp.
+class Event(dict):
     """
+    Event to perform an auditable activity
 
-    message: Union[str, dict]
-    actor: Optional[str] = None
-    action: Optional[str] = None
-    new: Optional[Union[str, dict]] = None
-    old: Optional[Union[str, dict]] = None
-    source: Optional[str] = None
-    status: Optional[str] = None
-    target: Optional[str] = None
-    timestamp: Optional[datetime.datetime] = None
-    tenant_id: Optional[str] = None
-
-    _JSON_SUPPORTED_FIELDS = ["message", "new", "old"]
+    Auxiliary class to be compatible with older SDKs
+    """
 
     def __init__(self, **data):
         super().__init__(**data)
-        self.parse_json_fields()
 
-    def parse_json_fields(self):
-        """Parse JSON supported fields from string to dict"""
-        for f in self._JSON_SUPPORTED_FIELDS:
-            v = getattr(self, f)
-            if type(v) is str:
-                try:
-                    obj = json.loads(v)
-                    setattr(self, f, obj)
-                except:
-                    pass
+    @property
+    def message(self):
+        return self.get("message")
 
-    def get_stringified_copy(self):
-        """Return object copy with JSON supported fields in string format"""
-        aux = copy.deepcopy(self)
-        for f in self._JSON_SUPPORTED_FIELDS:
-            v = getattr(aux, f, None)
-            if v is not None and type(v) is dict:
-                setattr(aux, f, self._dict_to_canonicalized_str(v))
+    @message.setter
+    def message(self, value):
+        self["message"] = value
 
-        if isinstance(aux.timestamp, (datetime.datetime, datetime.date)):
-            aux.timestamp = aux.timestamp.isoformat().replace("+00:00", "Z")
+    @property
+    def actor(self):
+        return self.get("actor")
 
-        return aux
+    @actor.setter
+    def actor(self, value):
+        self["actor"] = value
 
-    def _dict_to_canonicalized_str(self, message: dict) -> str:
-        """Convert dict to canonical str"""
-        return json.dumps(message, ensure_ascii=False, allow_nan=False, separators=(",", ":"))
+    @property
+    def action(self):
+        return self.get("action")
+
+    @action.setter
+    def action(self, value):
+        self["action"] = value
+
+    @property
+    def new(self):
+        return self.get("new")
+
+    @new.setter
+    def new(self, value):
+        self["new"] = value
+
+    @property
+    def old(self):
+        return self.get("old")
+
+    @old.setter
+    def old(self, value):
+        self["old"] = value
+
+    @property
+    def status(self):
+        return self.get("status")
+
+    @status.setter
+    def status(self, value):
+        self["status"] = value
+
+    @property
+    def source(self):
+        return self.get("source")
+
+    @source.setter
+    def source(self, value):
+        self["source"] = value
+
+    @property
+    def target(self):
+        return self.get("target")
+
+    @target.setter
+    def target(self, value):
+        self["target"] = value
+
+    @property
+    def timestamp(self):
+        return self.get("timestamp")
+
+    @timestamp.setter
+    def timestamp(self, value):
+        self["timestamp"] = value
+
+    @property
+    def tenant_id(self):
+        return self.get("tenant_id")
+
+    @tenant_id.setter
+    def tenant_id(self, value):
+        self["tenant_id"] = value
 
 
 class EventEnvelope(APIResponseModel):
@@ -104,7 +121,7 @@ class EventEnvelope(APIResponseModel):
     received_at -- A server-supplied timestamp
     """
 
-    event: Event
+    event: Dict[str, Any]
     signature: Optional[str] = None
     public_key: Optional[str] = None
     received_at: datetime.datetime
@@ -122,7 +139,7 @@ class LogRequest(APIRequestModel):
     prev_root -- Unpublished root hash that was returned from the last log API call that was made. If the user does not provide prev_root, the consistency proof from the last known unpublished root will be provided.
     """
 
-    event: Event
+    event: Dict[str, Any]
     verbose: Optional[bool] = None
     signature: Optional[str] = None
     public_key: Optional[str] = None

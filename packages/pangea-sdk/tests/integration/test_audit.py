@@ -7,16 +7,10 @@ import pangea.exceptions as pexc
 from pangea import PangeaConfig
 from pangea.response import PangeaResponse, ResponseStatus
 from pangea.services import Audit
-from pangea.services.audit.models import (
-    EventSigning,
-    EventVerification,
-    LogResult,
-    SearchOrder,
-    SearchOrderBy,
-    SearchOutput,
-)
+from pangea.services.audit.models import Event, EventVerification, LogResult, SearchOrder, SearchOrderBy, SearchOutput
 from pangea.tools import (
     TestEnvironment,
+    get_custom_schema_test_token,
     get_test_domain,
     get_test_token,
     get_vault_signature_test_token,
@@ -28,16 +22,31 @@ MSG_NO_SIGNED = "test-message"
 MSG_JSON = "JSON-message"
 MSG_SIGNED_LOCAL = "sign-test-local"
 MSG_SIGNED_VAULT = "sign-test-vault"
+MSG_CUSTOM_SCHEMA_NO_SIGNED = "python-sdk-custom-schema-no-signed"
+JSON_CUSTOM_SCHEMA_NO_SIGNED = "python-sdk-json-custom-schema-no-signed"
+MSG_CUSTOM_SCHEMA_SIGNED_LOCAL = "python-sdk-custom-schema-sign-local"
+MSG_CUSTOM_SCHEMA_SIGNED_VAULT = "python-sdk-custom-schema-sign-vault"
 STATUS_NO_SIGNED = "no-signed"
 STATUS_SIGNED = "signed"
+LONG_FIELD = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed lacinia, orci eget commodo commodo non."
 
 TEST_ENVIRONMENT = TestEnvironment.LIVE
+
+custom_schema_event = {
+    "message": MSG_CUSTOM_SCHEMA_NO_SIGNED,
+    "field_int": 1,
+    "field_bool": True,
+    "field_str_short": STATUS_NO_SIGNED,
+    "field_str_long": LONG_FIELD,
+    "field_time": datetime.datetime.now(),
+}
 
 
 class TestAudit(unittest.TestCase):
     def setUp(self):
         self.token = get_test_token(TEST_ENVIRONMENT)
         self.vaultToken = get_vault_signature_test_token(TEST_ENVIRONMENT)
+        self.customSchemaToken = get_custom_schema_test_token(TestEnvironment.DEVELOP)
 
         domain = get_test_domain(TEST_ENVIRONMENT)
         self.config = PangeaConfig(domain=domain)
@@ -47,6 +56,19 @@ class TestAudit(unittest.TestCase):
         )
         self.auditVaultSign = Audit(self.vaultToken, config=self.config, logger_name="pangea")
         logger_set_pangea_config(logger_name=self.audit.logger.name)
+
+        self.auditCustomSchema = Audit(
+            get_custom_schema_test_token(TestEnvironment.DEVELOP),
+            config=PangeaConfig(get_test_domain(TestEnvironment.DEVELOP)),
+            logger_name="pangea",
+        )
+
+        self.auditCustomSchemaLocalSign = Audit(
+            get_custom_schema_test_token(TestEnvironment.DEVELOP),
+            config=PangeaConfig(get_test_domain(TestEnvironment.DEVELOP)),
+            private_key_file="./tests/testdata/privkey",
+            logger_name="pangea",
+        )
 
     def test_log_no_verbose(self):
         response: PangeaResponse[LogResult] = self.audit.log(
@@ -64,7 +86,8 @@ class TestAudit(unittest.TestCase):
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertIsNotNone(response.result.hash)
         self.assertIsNotNone(response.result.envelope)
-        self.assertEqual("mytenantid", response.result.envelope.event.tenant_id)
+        event = Event(**response.result.envelope.event)
+        self.assertEqual("mytenantid", event.tenant_id)
 
     def test_log_with_timestamp(self):
         response: PangeaResponse[LogResult] = self.audit.log(
@@ -131,8 +154,6 @@ class TestAudit(unittest.TestCase):
 
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertIsNotNone(response.result.envelope)
-        self.assertIsInstance(response.result.envelope.event.new, dict)
-        self.assertIsInstance(response.result.envelope.event.old, dict)
         self.assertIsNotNone(response.result.envelope)
         self.assertIsNotNone(response.result.membership_proof)
         self.assertEqual(response.result.membership_verification, EventVerification.PASS)
@@ -148,7 +169,7 @@ class TestAudit(unittest.TestCase):
             target="Target",
             new="New",
             old="Old",
-            signing=EventSigning.LOCAL,
+            sign_local=True,
             verify=True,
         )
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
@@ -209,7 +230,7 @@ class TestAudit(unittest.TestCase):
             target="Target",
             new="New",
             old="Old",
-            signing=EventSigning.LOCAL,
+            sign_local=True,
             verify=True,
         )
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
@@ -224,7 +245,8 @@ class TestAudit(unittest.TestCase):
             response.result.envelope.public_key,
             r'{"key":"-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAlvOyDMpK2DQ16NI8G41yINl01wMHzINBahtDPoh4+mE=\n-----END PUBLIC KEY-----\n"}',
         )
-        self.assertEqual("mytenantid", response.result.envelope.event.tenant_id)
+        event = Event(**response.result.envelope.event)
+        self.assertEqual("mytenantid", event.tenant_id)
 
     def test_log_json_sign_local_and_verify(self):
         new = {"customtag3": "mycustommsg3", "ct4": "cm4"}
@@ -239,14 +261,12 @@ class TestAudit(unittest.TestCase):
             target="Target",
             new=new,
             old=old,
-            signing=EventSigning.LOCAL,
+            sign_local=True,
             verify=True,
         )
 
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertIsNotNone(response.result.envelope)
-        self.assertIsInstance(response.result.envelope.event.new, dict)
-        self.assertIsInstance(response.result.envelope.event.old, dict)
         self.assertIsNotNone(response.result.envelope)
         self.assertIsNone(response.result.consistency_proof)
         self.assertIsNotNone(response.result.membership_proof)
@@ -271,10 +291,119 @@ class TestAudit(unittest.TestCase):
 
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertIsNotNone(response.result.envelope)
-        self.assertIsInstance(response.result.envelope.event.new, dict)
-        self.assertIsInstance(response.result.envelope.event.old, dict)
+        self.assertIsNotNone(response.result.envelope.event)
+        self.assertIsNone(response.result.consistency_proof)
+        self.assertIsNotNone(response.result.membership_proof)
+        self.assertEqual(response.result.membership_verification, EventVerification.PASS)
+        self.assertEqual(response.result.signature_verification, EventVerification.PASS)
+
+    # Test custom schema
+    def test_custom_schema_log_no_verbose(self):
+        response: PangeaResponse[LogResult] = self.auditCustomSchema.log_event(event=custom_schema_event, verbose=False)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertIsNotNone(response.result.hash)
+        self.assertIsNone(response.result.envelope)
+
+    def test_custom_schema_log_verbose_no_verify(self):
+        response: PangeaResponse[LogResult] = self.auditCustomSchema.log_event(
+            event=custom_schema_event, verify=False, verbose=True
+        )
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertIsNotNone(response.result.envelope)
         self.assertIsNone(response.result.consistency_proof)
+        self.assertIsNotNone(response.result.membership_proof)
+        self.assertEqual(response.result.consistency_verification, EventVerification.NONE)
+        self.assertEqual(response.result.membership_verification, EventVerification.NONE)
+        self.assertEqual(response.result.signature_verification, EventVerification.NONE)
+
+    def test_custom_schema_log_verify(self):
+        response: PangeaResponse[LogResult] = self.auditCustomSchema.log_event(
+            event=custom_schema_event,
+            verify=True,
+        )  # Verify true set verbose to true
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertIsNotNone(response.result.envelope)
+        self.assertIsNone(response.result.consistency_proof)
+        self.assertIsNotNone(response.result.membership_proof)
+        self.assertEqual(
+            response.result.consistency_verification, EventVerification.NONE
+        )  # Cant verify consistency on first
+        self.assertEqual(response.result.membership_verification, EventVerification.PASS)
+        self.assertEqual(response.result.signature_verification, EventVerification.NONE)
+
+        response: PangeaResponse[LogResult] = self.auditCustomSchema.log_event(
+            event=custom_schema_event,
+            verify=True,
+        )  # Verify true set verbose to true
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertIsNotNone(response.result.envelope)
+        self.assertEqual(response.result.consistency_verification, EventVerification.PASS)  # but second should pass
+        self.assertEqual(response.result.membership_verification, EventVerification.PASS)
+        self.assertEqual(response.result.signature_verification, EventVerification.NONE)
+
+    def test_custom_schema_log_json(self):
+        jsonfield = {"customtag3": "mycustommsg3", "ct6": "cm6", "ct4": "cm4", "field_int": 2, "field_bool": True}
+        event = {
+            "message": JSON_CUSTOM_SCHEMA_NO_SIGNED,
+            "field_int": 1,
+            "field_bool": True,
+            "field_str_short": STATUS_NO_SIGNED,
+            "field_str_long": jsonfield,
+            "field_time": datetime.datetime.now(),
+        }
+
+        response: PangeaResponse[LogResult] = self.auditCustomSchema.log_event(
+            event=event,
+            verify=True,
+        )
+
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertIsNotNone(response.result.envelope)
+        self.assertIsNotNone(response.result.envelope)
+        self.assertIsNotNone(response.result.membership_proof)
+        self.assertEqual(response.result.membership_verification, EventVerification.PASS)
+        self.assertEqual(response.result.signature_verification, EventVerification.NONE)
+
+    def test_custom_schema_log_sign_local_and_verify(self):
+        response: PangeaResponse[LogResult] = self.auditCustomSchemaLocalSign.log_event(
+            event=custom_schema_event,
+            sign_local=True,
+            verify=True,
+        )  # Verify true set verbose to true
+
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+
+        self.assertIsNotNone(response.result.envelope)
+        self.assertIsNone(response.result.consistency_proof)
+        self.assertIsNotNone(response.result.membership_proof)
+        self.assertEqual(response.result.consistency_verification, EventVerification.NONE)
+        self.assertEqual(response.result.membership_verification, EventVerification.PASS)
+        self.assertEqual(response.result.signature_verification, EventVerification.PASS)
+        self.assertEqual(
+            response.result.envelope.public_key,
+            r'{"key":"-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAlvOyDMpK2DQ16NI8G41yINl01wMHzINBahtDPoh4+mE=\n-----END PUBLIC KEY-----\n"}',
+        )
+
+    def test_custom_schema_log_json_sign_local_and_verify(self):
+        jsonfield = {"customtag3": "mycustommsg3", "ct6": "cm6", "ct4": "cm4", "field_int": 2, "field_bool": True}
+        event = {
+            "message": MSG_CUSTOM_SCHEMA_NO_SIGNED,
+            "field_int": 1,
+            "field_bool": True,
+            "field_str_short": STATUS_NO_SIGNED,
+            "field_str_long": jsonfield,
+            "field_time": datetime.datetime.now(),
+        }
+
+        response: PangeaResponse[LogResult] = self.auditCustomSchemaLocalSign.log_event(
+            event=event,
+            sign_local=True,
+            verify=True,
+        )
+
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertIsNotNone(response.result.envelope)
+        self.assertIsNotNone(response.result.envelope)
         self.assertIsNotNone(response.result.membership_proof)
         self.assertEqual(response.result.membership_verification, EventVerification.PASS)
         self.assertEqual(response.result.signature_verification, EventVerification.PASS)
@@ -449,7 +578,7 @@ class TestAudit(unittest.TestCase):
         self.assertEqual(len(r_desc.result.events), len(authors))
 
         for idx in range(0, len(authors)):
-            self.assertEqual(r_desc.result.events[idx].envelope.event.actor, authors[idx])
+            self.assertEqual(r_desc.result.events[idx].envelope.event["actor"], authors[idx])
 
         r_asc = self.audit.search(
             query=query, order=SearchOrder.ASC, order_by=SearchOrderBy.RECEIVED_AT, limit=len(authors)
@@ -458,7 +587,7 @@ class TestAudit(unittest.TestCase):
         self.assertEqual(len(r_asc.result.events), len(authors))
 
         for idx in range(0, len(authors)):
-            self.assertEqual(r_asc.result.events[len(authors) - 1 - idx].envelope.event.actor, authors[idx])
+            self.assertEqual(r_asc.result.events[len(authors) - 1 - idx].envelope.event["actor"], authors[idx])
 
 
 if __name__ == "__main__":

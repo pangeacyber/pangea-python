@@ -1,15 +1,24 @@
 import unittest
 
-from pangea.deep_verify import index2path, path2index
+from pangea.utils import canonicalize, canonicalize_recursive
 
 
-class TestRedact(unittest.TestCase):
+class TestTools(unittest.TestCase):
     def setUp(self):
         pass
 
-    def test_path_and_index(self):
-        for tree_size in range(1, 1000):
-            for leaf_index in range(0, tree_size - 1):
-                path = index2path(tree_size, leaf_index)
-                index = path2index(tree_size, path)
-                self.assertEqual(leaf_index, index)
+    def test_canonicalize_recursive(self):
+        field1 = {"b1": "infob1", "a1": "infoa1"}
+        field2 = {"b2": "infob2", "a2": "infoa2"}
+        test_data = {"data2": field2, "data1": field1, "data0": "data0"}
+
+        canon = canonicalize_recursive(test_data)
+        print("canonicalize_recursive: ", canon)
+
+    def test_canonicalize(self):
+        field1 = {"b1": "infob1", "a1": "infoa1"}
+        field2 = {"b2": "infob2", "a2": "infoa2"}
+        test_data = {"data2": field2, "data1": field1, "data0": "data0"}
+
+        canon = canonicalize(test_data)
+        print("canonicalize: ", canon)
