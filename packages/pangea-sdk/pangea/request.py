@@ -202,6 +202,7 @@ class PangeaRequest(object):
         retry_config = Retry(
             total=self.config.request_retries,
             backoff_factor=self.config.request_backoff,
+            status_forcelist=[500, 502, 503, 504],
         )
 
         adapter = HTTPAdapter(max_retries=retry_config)

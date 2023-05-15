@@ -28,7 +28,7 @@ class PangeaConfig:
     Backoff strategy passed to 'requests'
 
     """
-    request_backoff: int = 1
+    request_backoff: float = 0.5
 
     """
     Timeout used on initial request attempts
