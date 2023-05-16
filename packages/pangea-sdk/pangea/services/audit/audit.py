@@ -108,6 +108,9 @@ class Audit(ServiceBase):
         Log an entry
 
         Create a log entry in the Secure Audit Log.
+
+        OperationId: audit_post_v1_log
+
         Args:
             message (str, dict): A message describing a detailed account of what happened.
             actor (str, optional): Record who performed the auditable activity.
@@ -129,7 +132,8 @@ class Audit(ServiceBase):
         Returns:
             A PangeaResponse where the hash of event data and optional verbose
                 results are returned in the response.result field.
-                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/audit#log-an-entry).
+                Available response fields can be found in our
+                [API documentation](https://pangea.cloud/docs/api/audit#log-an-entry).
 
         Examples:
             try:
@@ -241,9 +245,11 @@ class Audit(ServiceBase):
         verify_events: bool = True,
     ) -> PangeaResponse[SearchOutput]:
         """
-        Search for events
+        Search the log
 
         Search for events that match the provided search criteria.
+
+        OperationId: audit_post_v1_search
 
         Args:
             query (str): Natural search string; list of keywords with optional
@@ -309,9 +315,11 @@ class Audit(ServiceBase):
         verify_events: bool = True,
     ) -> PangeaResponse[SearchResultOutput]:
         """
-        Results of a Search
+        Results of a search
 
-        Returns paginated results of a previous Search
+        Fetch paginated results of a previously executed search.
+
+        OperationId: audit_post_v1_results
 
         Args:
             id (string): the id of a search action, found in `response.result.id`
@@ -323,10 +331,18 @@ class Audit(ServiceBase):
             AuditException: If an audit based api exception happens
             PangeaAPIException: If an API Error happens
 
-        Example:
+        Examples:
+            search_res: PangeaResponse[SearchOutput] = audit.search(
+                query="message:test",
+                search_restriction={'source': ["monitor"]},
+                limit=100,
+                verify_consistency=True,
+                verify_events=True)
 
-            search_res: PangeaResponse[SearchOutput] = audit.search(query="message:test", search_restriction={'source': ["monitor"]}, limit=100, verify_consistency=True, verify_events=True)
-            result_res: PangeaResponse[SearchResultsOutput] = audit.results(id=search_res.result.id, limit=10, offset=0)
+            result_res: PangeaResponse[SearchResultsOutput] = audit.results(
+                id=search_res.result.id,
+                limit=10,
+                offset=0)
         """
 
         endpoint_name = "results"
@@ -572,12 +588,14 @@ class Audit(ServiceBase):
 
     def root(self, tree_size: Optional[int] = None) -> PangeaResponse[RootResult]:
         """
-        Retrieve tamperproof verification
+        Tamperproof verification
 
         Returns current root hash and consistency proof.
 
+        OperationId: audit_post_v1_root
+
         Args:
-            tree_size (int, optional): The size of the tree (the number of records). If None endpoint will return last tree root.
+            tree_size (int, optional): The size of the tree (the number of records). If None, endpoint will return last tree root.
 
         Returns:
             PangeaResponse[RootOutput]

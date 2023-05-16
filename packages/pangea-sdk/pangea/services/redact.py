@@ -151,10 +151,12 @@ class Redact(ServiceBase):
         """
         Redact
 
-        Redacts the content of a single text string
+        Redact sensitive information from provided text.
+
+        OperationId: redact_post_v1_redact
 
         Args:
-            text (str): The text to be redacted
+            text (str): The text data to redact
             debug (bool, optional): Setting this value to true will provide a detailed analysis of
                 the redacted data and the rules that caused redaction
             rules (list[str], optional): An array of redact rule short names
@@ -169,7 +171,7 @@ class Redact(ServiceBase):
                 [API Documentation](https://pangea.cloud/docs/api/redact#redact).
 
         Examples:
-            response = redact.redact(text="Jenny Jenny... 415-867-5309")
+            response = redact.redact(text="Jenny Jenny... 555-867-5309")
         """
 
         input = RedactRequest(text=text, debug=debug, rules=rules, return_result=return_result)
@@ -189,7 +191,9 @@ class Redact(ServiceBase):
         """
         Redact structured
 
-        Redacts text within a structured object
+        Redact sensitive information from structured data (e.g., JSON).
+
+        OperationId: redact_post_v1_redact_structured
 
         Args:
             data (dict, str): Structured data to redact
@@ -211,7 +215,12 @@ class Redact(ServiceBase):
                 [API Documentation](https://pangea.cloud/docs/api/redact#redact-structured)
 
         Examples:
-            response = redact.redact_structured(data={"number": "415-867-5309", "ip": "1.1.1.1"}, redact_format="json")
+            data = {
+                "number": "555-867-5309",
+                "ip": "1.1.1.1",
+            }
+
+            response = redact.redact_structured(data=data, redact_format="json")
         """
 
         input = StructuredRequest(

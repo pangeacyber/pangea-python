@@ -106,7 +106,9 @@ class Vault(ServiceBase):
         Delete
 
         Delete a secret or key
-        
+
+        OperationId: vault_post_v1_delete
+
         Args:
             id (str): The item ID
         Raises:
@@ -140,7 +142,9 @@ class Vault(ServiceBase):
         Retrieve
 
         Retrieve a secret or key, and any associated information
-        
+
+        OperationId: vault_post_v1_get
+
         Args:
             id (str): The item ID
             version (str, int, optional): The key version(s). 
@@ -158,7 +162,7 @@ class Vault(ServiceBase):
                 Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#retrieve).
 
         Examples:
-            vault.get(
+            response = vault.get(
                 id="pvi_p6g5i3gtbvqvc3u6zugab6qs6r63tqf5",
                 version=1,
                 version_state=ItemVersionState.ACTIVE,
@@ -189,7 +193,9 @@ class Vault(ServiceBase):
         List
 
         Look up a list of secrets, keys and folders, and their associated information
-        
+
+        OperationId: vault_post_v1_list
+
         Args:
             filter (dict, optional): A set of filters to help you customize your search. Examples:
                 - "folder": "/tmp"
@@ -213,7 +219,7 @@ class Vault(ServiceBase):
                 Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#list).
 
         Examples:
-            vault.list(
+            response = vault.list(
                 filter={
                     "folder": "/",
                     "type": "asymmetric_key",
@@ -252,7 +258,9 @@ class Vault(ServiceBase):
         Update
 
         Update information associated with a secret or key.
-        
+
+        OperationId: vault_post_v1_update
+
         Args:
             id (str): The item ID
             name (str, optional): The name of this item
@@ -280,7 +288,7 @@ class Vault(ServiceBase):
                 Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#update).
 
         Examples:
-            vault.update(
+            response = vault.update(
                 id="pvi_p6g5i3gtbvqvc3u6zugab6qs6r63tqf5",
                 name="my-very-secret-secret",
                 folder="/personal",
@@ -331,7 +339,9 @@ class Vault(ServiceBase):
         Secret store
 
         Import a secret
-        
+
+        OperationId: vault_post_v1_secret_store 1
+
         Args:
             secret (str): The secret value
             name (str): The name of this item
@@ -354,7 +364,7 @@ class Vault(ServiceBase):
                 Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#import-a-secret).
 
         Examples:
-            vault.secret_store(
+            response = vault.secret_store(
                 secret="12sdfgs4543qv@#%$casd",
                 name="my-very-secret-secret",
                 folder="/personal",
@@ -402,7 +412,9 @@ class Vault(ServiceBase):
         Pangea token store
 
         Import a secret
-        
+
+        OperationId: vault_post_v1_secret_store 2
+
         Args:
             pangea_token (str): The pangea token to store
             name (str): the name of this item
@@ -425,7 +437,7 @@ class Vault(ServiceBase):
                 Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#import-a-secret).
 
         Examples:
-            vault.pangea_token_store(
+            response = vault.pangea_token_store(
                 pangea_token="ptv_x6fdiizbon6j3bsdvnpmwxsz2aan7fqd",
                 name="my-very-secret-secret",
                 folder="/personal",
@@ -466,7 +478,9 @@ class Vault(ServiceBase):
         Secret rotate
 
         Rotate a secret
-        
+
+        OperationId: vault_post_v1_secret_rotate 1
+
         Args:
             id (str): The item ID
             secret (str): The secret value
@@ -487,7 +501,7 @@ class Vault(ServiceBase):
                 Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#rotate-a-secret).
 
         Examples:
-            vault.secret_rotate(
+            response = vault.secret_rotate(
                 id="pvi_p6g5i3gtbvqvc3u6zugab6qs6r63tqf5",
                 secret="12sdfgs4543qv@#%$casd",
                 rotation_state=ItemVersionState.DEACTIVATED,
@@ -505,7 +519,9 @@ class Vault(ServiceBase):
         Token rotate
 
         Rotate a Pangea token
-        
+
+        OperationId: vault_post_v1_secret_rotate 2
+
         Args:
             id (str): The item ID
 
@@ -518,7 +534,7 @@ class Vault(ServiceBase):
                 Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#rotate-a-secret).
 
         Examples:
-            vault.pangea_token_rotate(
+            response = vault.pangea_token_rotate(
                 id="pvi_p6g5i3gtbvqvc3u6zugab6qs6r63tqf5",
             )
         """
@@ -544,7 +560,9 @@ class Vault(ServiceBase):
         Symmetric generate
 
         Generate a symmetric key
-        
+
+        OperationId: vault_post_v1_key_generate 1
+
         Args:
             algorithm (SymmetricAlgorithm): The algorithm of the key
             purpose (KeyPurpose): The purpose of this key
@@ -568,7 +586,7 @@ class Vault(ServiceBase):
                 Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#generate).
 
         Examples:
-            vault.symmetric_generate(
+            response = vault.symmetric_generate(
                 algorithm=SymmetricAlgorithm.AES,
                 purpose=KeyPurpose.ENCRYPTION,
                 name="my-very-secret-secret",
@@ -619,7 +637,9 @@ class Vault(ServiceBase):
         Asymmetric generate
 
         Generate an asymmetric key
-        
+
+        OperationId: vault_post_v1_key_generate 2
+
         Args:
             algorithm (AsymmetricAlgorithm): The algorithm of the key
             purpose (KeyPurpose): The purpose of this key
@@ -643,7 +663,7 @@ class Vault(ServiceBase):
                 Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#generate).
 
         Examples:
-            vault.asymmetric_generate(
+            response = vault.asymmetric_generate(
                 algorithm=AsymmetricAlgorithm.RSA,
                 purpose=KeyPurpose.SIGNING,
                 name="my-very-secret-secret",
@@ -697,7 +717,9 @@ class Vault(ServiceBase):
         Asymmetric store
 
         Import an asymmetric key
-        
+
+        OperationId: vault_post_v1_key_store 1
+
         Args:
             private_key (EncodedPrivateKey): The private key in PEM format
             public_key (EncodedPublicKey): The public key in PEM format
@@ -723,7 +745,7 @@ class Vault(ServiceBase):
                 Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#import-a-key).
 
         Examples:
-            vault.asymmetric_store(
+            response = vault.asymmetric_store(
                 private_key="private key example",
                 public_key="-----BEGIN PUBLIC KEY-----\\nMCowBQYDK2VwAyEA8s5JopbEPGBylPBcMK+L5PqHMqPJW/5KYPgBHzZGncc=\\n-----END PUBLIC KEY-----",
                 algorithm="AsymmetricAlgorithm.RSA,
@@ -779,6 +801,8 @@ class Vault(ServiceBase):
         Symmetric store
 
         Import a symmetric key
+
+        OperationId: vault_post_v1_key_store 2
         
         Args:
             key (str): The key material (in base64)
@@ -804,7 +828,7 @@ class Vault(ServiceBase):
                 Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#import-a-key).
 
         Examples:
-            vault.symmetric_store(
+            response = vault.symmetric_store(
                 key="lJkk0gCLux+Q+rPNqLPEYw==",
                 algorithm=SymmetricAlgorithm.AES,
                 purpose=KeyPurpose.ENCRYPTION,
@@ -854,7 +878,9 @@ class Vault(ServiceBase):
         Key rotate
 
         Manually rotate a symmetric or asymmetric key
-        
+
+        OperationId: vault_post_v1_key_rotate
+
         Args:
             id (str): The ID of the item
             rotation_state (ItemVersionState, optional): State to which the previous version should transition upon rotation.
@@ -877,7 +903,7 @@ class Vault(ServiceBase):
                 Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#rotate).
 
         Examples:
-            vault.key_rotate(
+            response = vault.key_rotate(
                 id="pvi_p6g5i3gtbvqvc3u6zugab6qs6r63tqf5",
                 rotation_state=ItemVersionState.DEACTIVATED,
                 key="lJkk0gCLux+Q+rPNqLPEYw==",
@@ -897,7 +923,9 @@ class Vault(ServiceBase):
         Encrypt
 
         Encrypt a message using a key
-        
+
+        OperationId: vault_post_v1_key_encrypt
+
         Args:
             id (str): The item ID
             plain_text (str): A message to be in encrypted (in base64)
@@ -912,7 +940,7 @@ class Vault(ServiceBase):
                 Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#encrypt).
 
         Examples:
-            vault.encrypt(
+            response = vault.encrypt(
                 id="pvi_p6g5i3gtbvqvc3u6zugab6qs6r63tqf5",
                 plain_text="lJkk0gCLux+Q+rPNqLPEYw==",
                 version=1,
@@ -930,7 +958,9 @@ class Vault(ServiceBase):
         Decrypt
 
         Decrypt a message using a key
-        
+
+        OperationId: vault_post_v1_key_decrypt
+
         Args:
             id (str): The item ID
             cipher_text (str): A message encrypted by Vault (in base64)
@@ -945,7 +975,7 @@ class Vault(ServiceBase):
                 Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#decrypt).
 
         Examples:
-            vault.decrypt(
+            response = vault.decrypt(
                 id="pvi_p6g5i3gtbvqvc3u6zugab6qs6r63tqf5",
                 cipher_text="lJkk0gCLux+Q+rPNqLPEYw==",
                 version=1,
@@ -963,7 +993,9 @@ class Vault(ServiceBase):
         Sign
 
         Sign a message using a key
-        
+
+        OperationId: vault_post_v1_key_sign
+
         Args:
             id (str): The item ID
             message (str): The message to be signed, in base64
@@ -978,7 +1010,7 @@ class Vault(ServiceBase):
                 Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#sign).
 
         Examples:
-            vault.sign(
+            response = vault.sign(
                 id="pvi_p6g5i3gtbvqvc3u6zugab6qs6r63tqf5",
                 message="lJkk0gCLux+Q+rPNqLPEYw==",
                 version=1,
@@ -998,7 +1030,9 @@ class Vault(ServiceBase):
         Verify
 
         Verify a signature using a key
-        
+
+        OperationId: vault_post_v1_key_verify
+
         Args:
             id (str): The item ID
             message (str): A message to be verified (in base64)
@@ -1014,7 +1048,7 @@ class Vault(ServiceBase):
                 Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#verify).
 
         Examples:
-            vault.verify(
+            response = vault.verify(
                 id="pvi_p6g5i3gtbvqvc3u6zugab6qs6r63tqf5",
                 message="lJkk0gCLux+Q+rPNqLPEYw==",
                 signature="FfWuT2Mq/+cxa7wIugfhzi7ktZxVf926idJNgBDCysF/knY9B7M6wxqHMMPDEBs86D8OsEGuED21y3J7IGOpCQ==",
@@ -1037,7 +1071,9 @@ class Vault(ServiceBase):
         JWT Verify
 
         Verify the signature of a JSON Web Token (JWT)
-        
+
+        OperationId: vault_post_v1_key_verify_jwt
+
         Args:
             jws (str): The signed JSON Web Token (JWS)
 
@@ -1050,8 +1086,8 @@ class Vault(ServiceBase):
                 Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#verify-jwt).
 
         Examples:
-            vault.jwt_verify(
-                jws="ewogICJhbGciO..."
+            response = vault.jwt_verify(
+                jws="ewogICJhbGciO...",
             )
         """
         input = JWTVerifyRequest(jws=jws)
@@ -1065,7 +1101,9 @@ class Vault(ServiceBase):
         JWT Sign
 
         Sign a JSON Web Token (JWT) using a key
-        
+
+        OperationId: vault_post_v1_key_sign_jwt
+
         Args:
             id (str): The item ID
             payload (str): The JWT payload (in JSON)
@@ -1079,7 +1117,7 @@ class Vault(ServiceBase):
                 Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#sign-a-jwt).
 
         Examples:
-            vault.jwt_sign(
+            response = vault.jwt_sign(
                 id="pvi_p6g5i3gtbvqvc3u6zugab6qs6r63tqf5",
                 payload="{\\"sub\\": \\"1234567890\\",\\"name\\": \\"John Doe\\",\\"admin\\": true}"
             )
@@ -1096,7 +1134,9 @@ class Vault(ServiceBase):
         JWT Retrieve
 
         Retrieve a key in JWK format
-        
+
+        OperationId: vault_post_v1_get_jwk
+
         Args:
             id (str): The item ID
             version (str, optional): The key version(s).
@@ -1112,7 +1152,7 @@ class Vault(ServiceBase):
                 Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#retrieve-jwk").
 
         Examples:
-            vault.jwk_get(
+            response = vault.jwk_get(
                 id="pvi_p6g5i3gtbvqvc3u6zugab6qs6r63tqf5",
             )
         """
@@ -1130,7 +1170,9 @@ class Vault(ServiceBase):
         State change
 
         Change the state of a specific version of a secret or key
-        
+
+        OperationId: vault_post_v1_state_change
+
         Args:
             id (str): The item ID
             state (ItemVersionState): The new state of the item version. Supported options:
@@ -1151,7 +1193,7 @@ class Vault(ServiceBase):
                 Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#change-state").
 
         Examples:
-            vault.state_change(
+            response = vault.state_change(
                 id="pvi_p6g5i3gtbvqvc3u6zugab6qs6r63tqf5",
                 state=ItemVersionState.DEACTIVATED,
             )
