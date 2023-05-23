@@ -1,6 +1,5 @@
 import unittest
 
-import pangea.exceptions as pexc
 from pangea.services.audit.signing import Signer, Verifier
 
 

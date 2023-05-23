@@ -66,7 +66,6 @@ class Audit(ServiceBase):
     """
 
     service_name: str = "audit"
-    version: str = "v1"
 
     def __init__(
         self,
@@ -145,8 +144,6 @@ class Audit(ServiceBase):
                     print(f"\\t{err.detail} \\n")
         """
 
-        endpoint_name = "log"
-
         event = Event(
             message=message,
             actor=actor,
@@ -181,7 +178,7 @@ class Audit(ServiceBase):
             if self.prev_unpublished_root_hash:
                 input.prev_root = self.prev_unpublished_root_hash
 
-        response = self.request.post(endpoint_name, data=input.dict(exclude_none=True))
+        response = self.request.post("v1/log", data=input.dict(exclude_none=True))
         return self.handle_log_response(response, verify=verify)
 
     def handle_log_response(self, response: PangeaResponse, verify: bool) -> PangeaResponse[LogResult]:
@@ -286,8 +283,6 @@ class Audit(ServiceBase):
             response: PangeaResponse[SearchOutput] = audit.search(query="message:test", search_restriction={'source': ["monitor"]}, limit=1, verify_consistency=True, verify_events=True)
         """
 
-        endpoint_name = "search"
-
         if verify_consistency:
             verbose = True
 
@@ -303,7 +298,7 @@ class Audit(ServiceBase):
             verbose=verbose,
         )
 
-        response = self.request.post(endpoint_name, data=input.dict(exclude_none=True))
+        response = self.request.post("v1/search", data=input.dict(exclude_none=True))
         return self.handle_search_response(response, verify_consistency, verify_events)
 
     def results(
@@ -345,8 +340,6 @@ class Audit(ServiceBase):
                 offset=0)
         """
 
-        endpoint_name = "results"
-
         if limit <= 0:
             raise AuditException("The 'limit' argument must be a positive integer > 0")
 
@@ -358,7 +351,7 @@ class Audit(ServiceBase):
             limit=limit,
             offset=offset,
         )
-        response = self.request.post(endpoint_name, data=input.dict(exclude_none=True))
+        response = self.request.post("v1/results", data=input.dict(exclude_none=True))
         return self.handle_results_response(response, verify_consistency, verify_events)
 
     def handle_results_response(
@@ -608,7 +601,6 @@ class Audit(ServiceBase):
             response = audit.root(tree_size=7)
         """
         input = RootRequest(tree_size=tree_size)
-        endpoint_name = "root"
-        response = self.request.post(endpoint_name, data=input.dict(exclude_none=True))
+        response = self.request.post("v1/root", data=input.dict(exclude_none=True))
         response.result = RootResult(**response.raw_result)
         return response

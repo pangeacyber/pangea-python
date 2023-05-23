@@ -131,7 +131,6 @@ class Redact(ServiceBase):
     """
 
     service_name = "redact"
-    version = "v1"
 
     def __init__(
         self,
@@ -175,7 +174,7 @@ class Redact(ServiceBase):
         """
 
         input = RedactRequest(text=text, debug=debug, rules=rules, return_result=return_result)
-        response = self.request.post("redact", data=input.dict(exclude_none=True))
+        response = self.request.post("v1/redact", data=input.dict(exclude_none=True))
         response.result = RedactResult(**response.raw_result)
         return response
 
@@ -226,6 +225,6 @@ class Redact(ServiceBase):
         input = StructuredRequest(
             data=data, jsonp=jsonp, format=format, debug=debug, rules=rules, return_result=return_result
         )
-        response = self.request.post("redact_structured", data=input.dict(exclude_none=True))
+        response = self.request.post("v1/redact_structured", data=input.dict(exclude_none=True))
         response.result = StructuredResult(**response.raw_result)
         return response

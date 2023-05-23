@@ -298,7 +298,6 @@ class FileIntel(ServiceBase):
     """
 
     service_name = "file-intel"
-    version = "v1"
 
     @pangea_deprecated(version="1.2.0", reason="Should use FileIntel.hashReputation()")
     def lookup(
@@ -332,7 +331,7 @@ class FileIntel(ServiceBase):
             response = file_intel.lookup(hash="142b638c6a60b60c7f9928da4fb85a5a8e1422a9ffdc9ee49e17e56ccca9cf6e", hash_type="sha256", provider="reversinglabs")
         """
         input = FileReputationRequest(hash=hash, hash_type=hash_type, verbose=verbose, raw=raw, provider=provider)
-        response = self.request.post("reputation", data=input.dict(exclude_none=True))
+        response = self.request.post("v1/reputation", data=input.dict(exclude_none=True))
         response.result = FileReputationResult(**response.raw_result)
         return response
 
@@ -368,7 +367,7 @@ class FileIntel(ServiceBase):
 
         """
         input = FileReputationRequest(hash=hash, hash_type=hash_type, verbose=verbose, raw=raw, provider=provider)
-        response = self.request.post("reputation", data=input.dict(exclude_none=True))
+        response = self.request.post("v1/reputation", data=input.dict(exclude_none=True))
         response.result = FileReputationResult(**response.raw_result)
         return response
 
@@ -406,7 +405,7 @@ class FileIntel(ServiceBase):
         hash = hashlib.sha256(data.read()).hexdigest()
 
         input = FileReputationRequest(hash=hash, hash_type="sha256", verbose=verbose, raw=raw, provider=provider)
-        response = self.request.post("reputation", data=input.dict(exclude_none=True))
+        response = self.request.post("v1/reputation", data=input.dict(exclude_none=True))
         response.result = FileReputationResult(**response.raw_result)
         return response
 
@@ -449,7 +448,7 @@ class FileIntel(ServiceBase):
         hash = hashlib.sha256(data.read()).hexdigest()
 
         input = FileReputationRequest(hash=hash, hash_type="sha256", verbose=verbose, raw=raw, provider=provider)
-        response = self.request.post("reputation", data=input.dict(exclude_none=True))
+        response = self.request.post("v1/reputation", data=input.dict(exclude_none=True))
         response.result = FileReputationResult(**response.raw_result)
         return response
 
@@ -479,7 +478,6 @@ class DomainIntel(ServiceBase):
     """
 
     service_name = "domain-intel"
-    version = "v1"
 
     @pangea_deprecated(version="1.2.0", reason="Should use DomainIntel.reputation()")
     def lookup(
@@ -507,7 +505,7 @@ class DomainIntel(ServiceBase):
             response = domain_intel.lookup(domain="737updatesboeing.com", provider="domaintools")
         """
         input = DomainReputationRequest(domain=domain, verbose=verbose, provider=provider, raw=raw)
-        response = self.request.post("reputation", data=input.dict(exclude_none=True))
+        response = self.request.post("v1/reputation", data=input.dict(exclude_none=True))
         response.result = DomainReputationResult(**response.raw_result)
         return response
 
@@ -541,7 +539,7 @@ class DomainIntel(ServiceBase):
             )
         """
         input = DomainReputationRequest(domain=domain, verbose=verbose, provider=provider, raw=raw)
-        response = self.request.post("reputation", data=input.dict(exclude_none=True))
+        response = self.request.post("v1/reputation", data=input.dict(exclude_none=True))
         response.result = DomainReputationResult(**response.raw_result)
         return response
 
@@ -571,7 +569,6 @@ class IpIntel(ServiceBase):
     """
 
     service_name = "ip-intel"
-    version = "v1"
 
     @pangea_deprecated(version="1.2.0", reason="Should use IpIntel.reputation()")
     def lookup(
@@ -600,7 +597,7 @@ class IpIntel(ServiceBase):
 
         """
         input = IPRepurationRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
-        response = self.request.post("reputation", data=input.dict(exclude_none=True))
+        response = self.request.post("v1/reputation", data=input.dict(exclude_none=True))
         response.result = IPReputationResult(**response.raw_result)
         return response
 
@@ -634,7 +631,7 @@ class IpIntel(ServiceBase):
             )
         """
         input = IPRepurationRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
-        response = self.request.post("reputation", data=input.dict(exclude_none=True))
+        response = self.request.post("v1/reputation", data=input.dict(exclude_none=True))
         response.result = IPReputationResult(**response.raw_result)
         return response
 
@@ -668,7 +665,7 @@ class IpIntel(ServiceBase):
             )
         """
         input = IPGeolocateRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
-        response = self.request.post("geolocate", data=input.dict(exclude_none=True))
+        response = self.request.post("v1/geolocate", data=input.dict(exclude_none=True))
         response.result = IPGeolocateResult(**response.raw_result)
         return response
 
@@ -697,12 +694,12 @@ class IpIntel(ServiceBase):
 
         Examples:
             response = ip_intel.get_domain(
-                ip="93.231.182.110", 
+                ip="93.231.182.110",
                 provider="digitalelement",
             )
         """
         input = IPDomainRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
-        response = self.request.post("domain", data=input.dict(exclude_none=True))
+        response = self.request.post("v1/domain", data=input.dict(exclude_none=True))
         response.result = IPDomainResult(**response.raw_result)
         return response
 
@@ -736,7 +733,7 @@ class IpIntel(ServiceBase):
             )
         """
         input = IPVPNRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
-        response = self.request.post("vpn", data=input.dict(exclude_none=True))
+        response = self.request.post("v1/vpn", data=input.dict(exclude_none=True))
         response.result = IPVPNResult(**response.raw_result)
         return response
 
@@ -765,12 +762,12 @@ class IpIntel(ServiceBase):
 
         Examples:
             response = ip_intel.is_proxy(
-                ip="93.231.182.110", 
+                ip="93.231.182.110",
                 provider="digitalelement",
             )
         """
         input = IPProxyRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
-        response = self.request.post("proxy", data=input.dict(exclude_none=True))
+        response = self.request.post("v1/proxy", data=input.dict(exclude_none=True))
         response.result = IPProxyResult(**response.raw_result)
         return response
 
@@ -800,7 +797,6 @@ class UrlIntel(ServiceBase):
     """
 
     service_name = "url-intel"
-    version = "v1"
 
     @pangea_deprecated(version="1.2.0", reason="Should use UrlIntel.reputation()")
     def lookup(
@@ -829,7 +825,7 @@ class UrlIntel(ServiceBase):
         """
 
         input = URLReputationRequest(url=url, provider=provider, verbose=verbose, raw=raw)
-        response = self.request.post("reputation", data=input.dict(exclude_none=True))
+        response = self.request.post("v1/reputation", data=input.dict(exclude_none=True))
         response.result = URLReputationResult(**response.raw_result)
         return response
 
@@ -864,7 +860,7 @@ class UrlIntel(ServiceBase):
         """
 
         input = URLReputationRequest(url=url, provider=provider, verbose=verbose, raw=raw)
-        response = self.request.post("reputation", data=input.dict(exclude_none=True))
+        response = self.request.post("v1/reputation", data=input.dict(exclude_none=True))
         response.result = URLReputationResult(**response.raw_result)
         return response
 
@@ -967,7 +963,6 @@ class UserIntel(ServiceBase):
     """
 
     service_name = "user-intel"
-    version = "v1"
 
     def user_breached(
         self,
@@ -1026,7 +1021,7 @@ class UserIntel(ServiceBase):
             verbose=verbose,
             raw=raw,
         )
-        response = self.request.post("user/breached", data=input.dict(exclude_none=True))
+        response = self.request.post("v1/user/breached", data=input.dict(exclude_none=True))
         response.result = UserBreachedResult(**response.raw_result)
         return response
 
@@ -1061,8 +1056,8 @@ class UserIntel(ServiceBase):
 
         Examples:
             response = user_intel.password_breached(
-                hash_prefix="5baa6", 
-                hash_type=HashType.SHA256, 
+                hash_prefix="5baa6",
+                hash_type=HashType.SHA256,
                 provider="spycloud",
             )
         """
@@ -1070,6 +1065,6 @@ class UserIntel(ServiceBase):
         input = UserPasswordBreachedRequest(
             hash_type=hash_type, hash_prefix=hash_prefix, provider=provider, verbose=verbose, raw=raw
         )
-        response = self.request.post("password/breached", data=input.dict(exclude_none=True))
+        response = self.request.post("v1/password/breached", data=input.dict(exclude_none=True))
         response.result = UserPasswordBreachedResult(**response.raw_result)
         return response
