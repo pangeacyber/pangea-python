@@ -570,7 +570,7 @@ class Audit(ServiceBase):
 
         if audit_envelope and audit_envelope.signature and public_key:
             v = Verifier()
-            verification = v.verifyMessage(
+            verification = v.verify_signature(
                 audit_envelope.signature, canonicalize_event(audit_envelope.event), public_key
             )
             if verification is not None:

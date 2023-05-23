@@ -19,7 +19,7 @@ class TestSigner(unittest.TestCase):
         )
 
         v = Verifier()
-        verification = v.verifyMessage(signature, msg, pubkey)
+        verification = v.verify_signature(signature, bytes(msg, "utf8"), pubkey)
         self.assertTrue(verification)
 
     def test_signer_no_file(self):

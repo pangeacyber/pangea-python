@@ -1,11 +1,13 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+from abc import ABC, abstractmethod
 from base64 import b64decode, b64encode
 from typing import Dict, Optional, Union
 
+from cryptography import exceptions
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ed25519
-from cryptography.hazmat.primitives.asymmetric.types import PUBLIC_KEY_TYPES
+from pangea.exceptions import PangeaException
 from pangea.services.audit.util import b64decode_ascii, canonicalize_json
 
 
@@ -85,48 +87,60 @@ class Signer:
         )
 
 
+class AlgorithmVerifier(ABC):
+    def __init__(self, public_key):
+        self.public_key = public_key
+
+    @abstractmethod
+    def verify(self, message: bytes, signature: bytes) -> bool:
+        pass
+
+
+class ED25519Verifier(AlgorithmVerifier):
+    def verify(self, message: bytes, signature: bytes) -> bool:
+        try:
+            self.public_key.verify(signature, message)
+            return True
+        except exceptions.InvalidSignature:
+            return False
+
+
+verifiers = {
+    ed25519.Ed25519PublicKey: ED25519Verifier,
+}
+
+
 class Verifier:
     # verify message with signature and public key bytes
-    def verifyMessage(
-        self, signature_b64: str, message: Union[str, dict, bytes], public_key_input: str = None
+    def verify_signature(
+        self, signature_b64: str, message_bytes: bytes, public_key_input: str = None
     ) -> Optional[bool]:
         if self._is_pem_format(public_key_input):
-            public_key = serialization.load_pem_public_key(bytes(public_key_input, "utf-8"))
-            if not isinstance(public_key, ed25519.Ed25519PublicKey):
-                # TODO: Add support for other public key formats
-                return None
+            pubkey = self._decode_public_key(bytes(public_key_input, "utf-8"))
         else:
             # To make backward compatible with original public keys send encoded bytes in base64
             public_key_bytes = b64decode_ascii(public_key_input)
-            public_key = ed25519.Ed25519PublicKey.from_public_bytes(public_key_bytes)
+            pubkey = ed25519.Ed25519PublicKey.from_public_bytes(public_key_bytes)
 
-        if isinstance(message, str):
-            return self._verifyMessageStr(signature_b64, message, public_key)
-        elif isinstance(message, dict):
-            return self._verifyMessageJSON(signature_b64, message, public_key)
-        elif isinstance(message, bytes):
-            return self._verifyMessageBytes(signature_b64, message, public_key)
+        signature_bytes = b64decode(signature_b64)
+        for cls, verifier in verifiers.items():
+            if isinstance(pubkey, cls):
+                return verifier(pubkey).verify(message_bytes, signature_bytes)
         else:
-            raise Exception("Error: Not supported instance")
+            raise PangeaException(f"Not supported public key type: {type(pubkey)}")
+
+    def _decode_public_key(self, public_key: bytes):
+        """Parse a public key in PEM or ssh format"""
+
+        for func in (serialization.load_pem_public_key, serialization.load_ssh_public_key):
+            try:
+                return func(public_key)
+            except exceptions.UnsupportedAlgorithm as e:
+                raise e
+            except ValueError:
+                pass
+
+        raise PangeaException("Unsupported key")
 
     def _is_pem_format(self, key: str) -> bool:
         return key.startswith("-----")
-
-    # Verify a message in bytes using Ed25519 algorithm
-    def _verifyMessageBytes(self, signature_b64: str, message_bytes: bytes, public_key: PUBLIC_KEY_TYPES) -> bool:
-        try:
-            signature = b64decode(signature_b64)
-            public_key.verify(signature, message_bytes)
-            return True
-        except Exception:
-            return False
-
-    # Verify a string message using Ed25519 algorithm
-    def _verifyMessageStr(self, signature_b64: str, message: str, public_key: PUBLIC_KEY_TYPES) -> bool:
-        message_bytes = bytes(message, "utf8")
-        return self._verifyMessageBytes(signature_b64, message_bytes, public_key)
-
-    # Verify a JSON message using Ed25519 algorithm
-    def _verifyMessageJSON(self, signature_b64: str, messageJSON: dict, public_key: PUBLIC_KEY_TYPES) -> bool:
-        message_bytes = canonicalize_json(messageJSON)
-        return self._verifyMessageBytes(signature_b64, message_bytes, public_key)

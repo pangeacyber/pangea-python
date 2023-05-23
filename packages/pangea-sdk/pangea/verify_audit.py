@@ -198,7 +198,7 @@ def _verify_consistency_proof(tree_name: str, leaf_index: t.Optional[int]) -> t.
     return succeeded
 
 
-def create_signed_envelope(event: t.Dict) -> t.Dict:
+def create_signed_event(event: t.Dict) -> t.Dict:
     return {k: v for k, v in event.items() if v is not None}
 
 
@@ -210,11 +210,11 @@ def _verify_signature(data: t.Dict) -> t.Optional[bool]:
     else:
         try:
             logger.debug("Obtaining signature and public key from the event")
-            sign_envelope = create_signed_envelope(data["event"])
+            sign_event = create_signed_event(data["event"])
             public_key = get_public_key(data["public_key"])
             sign_verifier = Verifier()
             logger.debug("Checking the signature")
-            if not sign_verifier.verifyMessage(data["signature"], sign_envelope, public_key):
+            if not sign_verifier.verify_signature(data["signature"], canonicalize_json(sign_event), public_key):
                 raise ValueError("Signature is invalid")
             succeeded = True
         except Exception:
