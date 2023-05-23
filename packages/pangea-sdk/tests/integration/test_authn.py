@@ -13,10 +13,10 @@ from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logge
 TEST_ENVIRONMENT = TestEnvironment.LIVE
 
 RANDOM_VALUE = random.randint(0, 10000000)
-EMAIL_TEST = f"andres.tournour+test{RANDOM_VALUE}@pangea.cloud"
-EMAIL_DELETE = f"andres.tournour+delete{RANDOM_VALUE}@pangea.cloud"
-EMAIL_INVITE_DELETE = f"andres.tournour+invite_del{RANDOM_VALUE}@pangea.cloud"
-EMAIL_INVITE_KEEP = f"andres.tournour+invite_keep{RANDOM_VALUE}@pangea.cloud"
+EMAIL_TEST = f"user.email+test{RANDOM_VALUE}@pangea.cloud"
+EMAIL_DELETE = f"user.email+delete{RANDOM_VALUE}@pangea.cloud"
+EMAIL_INVITE_DELETE = f"user.email+invite_del{RANDOM_VALUE}@pangea.cloud"
+EMAIL_INVITE_KEEP = f"user.email+invite_keep{RANDOM_VALUE}@pangea.cloud"
 PASSWORD_OLD = "My1s+Password"
 PASSWORD_NEW = "My1s+Password_new"
 PROFILE_OLD = {"name": "User name", "country": "Argentina"}
@@ -163,3 +163,9 @@ class TestAuthN(unittest.TestCase):
         self.assertEqual(response.status, "Success")
         self.assertIsNotNone(response.result)
         self.assertGreater(len(response.result.users), 0)
+        for user in response.result.users:
+            try:
+                self.authn.user.delete(email=user.email)
+            except pexc.PangeaAPIException:
+                print(f"Fail to delete user email: {user.email}")
+                pass
