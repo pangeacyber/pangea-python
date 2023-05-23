@@ -1,6 +1,5 @@
 import unittest
 
-import pangea.exceptions as pexc
 from pangea.services.audit.signing import Signer, Verifier
 
 
@@ -8,8 +7,8 @@ class TestSigner(unittest.TestCase):
     def test_signer(self):
         msg = "signthismessage"
         signer = Signer("./tests/testdata/privkey")
-        pubkey = signer.getPublicKeyPEM()
-        signature = signer.signMessage(msg)
+        pubkey = signer.get_public_key_PEM()
+        signature = signer.sign(bytes(msg, "utf-8"))
         self.assertEqual(
             pubkey,
             "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAlvOyDMpK2DQ16NI8G41yINl01wMHzINBahtDPoh4+mE=\n-----END PUBLIC KEY-----\n",
@@ -26,16 +25,16 @@ class TestSigner(unittest.TestCase):
         with self.assertRaises(Exception):
             filename = "./not/a/file"
             signer = Signer(filename)
-            pubkey = signer.getPublicKeyBytes()
+            pubkey = signer.get_public_key_PEM()
 
     def test_signer_bad_format(self):
         with self.assertRaises(Exception):
             filename = "./tests/testdata/badformatprivkey"
             signer = Signer(filename)
-            pubkey = signer.getPublicKeyBytes()
+            pubkey = signer.get_public_key_PEM()
 
     def test_signer_no_ed25519(self):
         with self.assertRaises(Exception):
             filename = "./tests/testdata/noed25519privkey"
             signer = Signer(filename)
-            pubkey = signer.getPublicKeyBytes()
+            pubkey = signer.get_public_key_PEM()

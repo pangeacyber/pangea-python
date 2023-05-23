@@ -167,7 +167,7 @@ class Audit(ServiceBase):
 
         if signing == EventSigning.LOCAL:
             data2sign = canonicalize_event(event)
-            signature = self.signer.signMessage(data2sign)
+            signature = self.signer.sign(data2sign)
             if signature is not None:
                 input.signature = signature
             else:
@@ -581,7 +581,8 @@ class Audit(ServiceBase):
             return EventVerification.NONE
 
     def set_public_key(self, input: LogRequest, signer: Signer, public_key_info: Dict[str, str]):
-        public_key_info["key"] = signer.getPublicKeyPEM()
+        public_key_info["key"] = signer.get_public_key_PEM()
+        public_key_info["algorithm"] = signer.get_algorithm()
         input.public_key = json.dumps(
             public_key_info, ensure_ascii=False, allow_nan=False, separators=(",", ":"), sort_keys=True
         )
