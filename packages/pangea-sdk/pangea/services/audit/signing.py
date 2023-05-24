@@ -133,7 +133,7 @@ class Verifier:
     def verify_signature(
         self, signature_b64: str, message_bytes: bytes, public_key_input: str = None
     ) -> Optional[bool]:
-        if self._is_pem_format(public_key_input):
+        if self._has_header(public_key_input):
             pubkey = self._decode_public_key(bytes(public_key_input, "utf-8"))
         else:
             # To make backward compatible with original public keys send encoded bytes in base64
@@ -160,5 +160,5 @@ class Verifier:
 
         raise PangeaException("Unsupported key")
 
-    def _is_pem_format(self, key: str) -> bool:
-        return key.startswith("-----")
+    def _has_header(self, key: str) -> bool:
+        return key.startswith("----") or key.startswith("ssh-")
