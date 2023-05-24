@@ -180,7 +180,7 @@ class PangeaRequest(object):
 
     def _url(self, path: str) -> str:
         if self.config.domain.startswith("http://") or self.config.domain.startswith("https://"):
-            # is FQDN
+            # it's URL
             url = f"{self.config.domain}/{path}"
         else:
             schema = "http://" if self.config.insecure else "https://"
