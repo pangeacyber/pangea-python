@@ -40,9 +40,9 @@ class TestConfig(unittest.TestCase):
         url = audit.request._url(path)
         self.assertEqual(f"https://{subdomain}{domain}/{path}", url)
 
-    def test_fqdn(self):
-        fqdn = "http://myfqdndomain.net"
-        config = PangeaConfig(domain=fqdn)
+    def test_url(self):
+        url = "http://myurldomain.net"
+        config = PangeaConfig(domain=url)
         audit = Audit(token, config=config)
         url = audit.request._url(path)
-        self.assertEqual(f"{fqdn}/{path}", url)
+        self.assertEqual(f"{url}/{path}", url)
