@@ -25,10 +25,9 @@ class PangeaRequest(object):
     be set in PangeaConfig.
     """
 
-    def __init__(self, config: PangeaConfig, token: str, version: str, service: str, logger: logging.Logger):
+    def __init__(self, config: PangeaConfig, token: str, service: str, logger: logging.Logger):
         self.config = copy.deepcopy(config)
         self.token = token
-        self.version = version
         self.service = service
 
         # Queued request retry support flag
@@ -142,7 +141,7 @@ class PangeaRequest(object):
                various properties to retrieve individual fields
         """
 
-        url = self._url(path, include_version=False)
+        url = self._url(path)
         self.logger.debug(json.dumps({"service": self.service, "action": "get", "url": url}))
         requests_response = self.session.get(url, headers=self._headers())
         pangea_response = PangeaResponse(requests_response, result_class=result_class)
@@ -215,11 +214,16 @@ class PangeaRequest(object):
 
         return session
 
-    def _url(self, path: str, include_version: bool = True) -> str:
-        protocol = "http://" if self.config.insecure else "https://"
-        domain = self.config.domain if self.config.environment == "local" else f"{self.service}.{self.config.domain}"
-
-        url = f"{protocol}{domain}/{ str(self.version) + '/' if (self.version and include_version) else '' }{path}"
+    def _url(self, path: str) -> str:
+        if self.config.domain.startswith("http://") or self.config.domain.startswith("https://"):
+            # it's URL
+            url = f"{self.config.domain}/{path}"
+        else:
+            schema = "http://" if self.config.insecure else "https://"
+            domain = (
+                self.config.domain if self.config.environment == "local" else f"{self.service}.{self.config.domain}"
+            )
+            url = f"{schema}{domain}/{path}"
         return url
 
     def _headers(self) -> dict:

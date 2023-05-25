@@ -13,7 +13,6 @@ from pangea.response import PangeaResponse
 
 class ServiceBase(object):
     service_name: str = "base"
-    version: str = "v1"
 
     def __init__(self, token, config: Optional[PangeaConfig] = None, logger_name: str = "pangea"):
         if not token:
@@ -25,7 +24,6 @@ class ServiceBase(object):
         self.request = PangeaRequest(
             self.config,
             token,
-            self.version,
             self.service_name,
             self.logger,
         )

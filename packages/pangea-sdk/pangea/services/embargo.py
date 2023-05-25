@@ -78,13 +78,14 @@ class Embargo(ServiceBase):
     """
 
     service_name = "embargo"
-    version = "v1"
 
     def ip_check(self, ip: str) -> PangeaResponse[EmbargoResult]:
         """
         Check IP
 
-        Check this IP against known sanction and trade embargo lists.
+        Check an IP against known sanction and trade embargo lists.
+
+        OperationId: embargo_post_v1_ip_check
 
         Args:
             ip (str): Geolocate this IP and check the corresponding country
@@ -100,45 +101,18 @@ class Embargo(ServiceBase):
                 in our [API Documentation](https://pangea.cloud/docs/api/embargo).
 
         Examples:
-            response = embargo.ip_check("1.1.1.1")
-
-            \"\"\"
-            response contains:
-            {
-                "request_id": "prq_lws4ldnnruaos2a4c2ohgw7ijodzqf52",
-                "request_time": "2022-07-06T23:37:36.952Z",
-                "response_time": "2022-07-06T23:37:37.104Z",
-                "status": "success",
-                "summary": "Found country in 1 embargo list(s)",
-                "result": {
-                    "sanctions": [
-                    {
-                        "list_name": "ITAR",
-                        "embargoed_country_name": "North Korea/Democratic Peoples Republic of Korea",
-                        "embargoed_country_iso_code": "KP",
-                        "issuing_country": "US",
-                        "annotations": {
-                        "reference": {
-                            "paragraph": "d1",
-                            "regulation": "CFR 126.1"
-                        },
-                        "restriction_name": "ITAR"
-                        }
-                    }
-                    ],
-                    "count": 1
-                }
-            }
-            \"\"\"
+            response = embargo.ip_check("190.6.64.94")
         """
         input = IPCheckRequest(ip=ip)
-        return self.request.post("ip/check", EmbargoResult, data=input.dict())
+        return self.request.post("v1/ip/check", EmbargoResult, data=input.dict())
 
     def iso_check(self, iso_code: str) -> PangeaResponse[EmbargoResult]:
         """
         ISO Code Check
 
         Check this country against known sanction and trade embargo lists.
+
+        OperationId: embargo_post_v1_iso_check
 
         Args:
             iso_code (str): Check this two character country ISO-code against
@@ -154,22 +128,7 @@ class Embargo(ServiceBase):
                 in our [API Documentation](https://pangea.cloud/docs/api/embargo).
 
         Examples:
-            response = embargo.lookup("FR")
-
-            \"\"\"
-            response contains:
-            {
-                "request_id": "prq_fa6yqoztkfdyg655s6dut5e3bn3plmj5",
-                "request_time": "2022-07-06T23:44:29.248Z",
-                "response_time": "2022-07-06T23:44:29.357Z",
-                "status": "success",
-                "summary": "Found country in 0 embargo list(s)",
-                "result": {
-                    "sanctions": null,
-                    "count": 0
-                }
-            }
-            \"\"\"
+            response = embargo.iso_check("CU")
         """
         input = ISOCheckRequest(iso_code=iso_code)
-        return self.request.post("iso/check", result_class=EmbargoResult, data=input.dict())
+        return self.request.post("v1/iso/check", result_class=EmbargoResult, data=input.dict())

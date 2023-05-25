@@ -9,7 +9,7 @@ from pangea.services import DomainIntel, FileIntel, FileScan, IpIntel, UrlIntel,
 from pangea.services.intel import HashType
 from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
 
-TEST_ENVIRONMENT = TestEnvironment.LIVE
+TEST_ENVIRONMENT = TestEnvironment.DEVELOP
 
 
 class TestDomainIntel(unittest.TestCase):
@@ -245,10 +245,14 @@ class TestIPIntel(unittest.TestCase):
         with self.assertRaises(pe.UnauthorizedException):
             badintel_ip.lookup(ip="93.231.182.110", provider="crowdstrike")
 
-    def test_ip_reputation(self):
+    def test_ip_reputation_crowdstrike(self):
         response = self.intel_ip.reputation(ip="93.231.182.110", provider="crowdstrike", verbose=True, raw=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertEqual(response.result.data.verdict, "malicious")
+
+    def test_ip_reputation_cymru(self):
+        response = self.intel_ip.reputation(ip="93.231.182.110", provider="cymru", verbose=True, raw=True)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
 
     def test_ip_reputation_default_provider(self):
         response = self.intel_ip.reputation(ip="93.231.182.110", verbose=True, raw=True)
