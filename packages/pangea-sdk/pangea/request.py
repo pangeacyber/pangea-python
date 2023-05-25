@@ -5,7 +5,7 @@ import copy
 import json
 import logging
 import time
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Type, Union
 
 import pangea
 import requests
@@ -76,7 +76,7 @@ class PangeaRequest(object):
     def post(
         self,
         endpoint: str,
-        result_class: type[PangeaResponseResult],
+        result_class: Type[PangeaResponseResult],
         data: Union[str, Dict] = {},
         files: Optional[List[Tuple]] = None,
         poll_result: bool = True,
@@ -129,7 +129,7 @@ class PangeaRequest(object):
 
         return response
 
-    def get(self, path: str, result_class: type[PangeaResponseResult], check_response: bool = True) -> PangeaResponse:
+    def get(self, path: str, result_class: Type[PangeaResponseResult], check_response: bool = True) -> PangeaResponse:
         """Makes the GET call to a Pangea Service endpoint.
 
         Args:
