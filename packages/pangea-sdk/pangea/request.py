@@ -73,7 +73,7 @@ class PangeaRequest(object):
 
         return self._queued_retry_enabled
 
-    def post(self, endpoint: str = "", data: Union[str, Dict] = {}) -> PangeaResponse:
+    def post(self, endpoint: str = "", data: Dict = {}) -> PangeaResponse:
         """Makes the POST call to a Pangea Service endpoint.
 
         If queued_support mode is enabled, progress checks will be made for
@@ -89,6 +89,10 @@ class PangeaRequest(object):
                various properties to retrieve individual fields
         """
         url = self._url(endpoint)
+        # Set config ID if available
+        if self.config.config_id and data.pop("config_id", None) is None:
+            data["config_id"] = self.config.config_id
+
         data_send = json.dumps(data, default=default_encoder) if isinstance(data, dict) else data
         self.logger.debug(
             json.dumps({"service": self.service, "action": "post", "url": url, "data": data}, default=default_encoder)
