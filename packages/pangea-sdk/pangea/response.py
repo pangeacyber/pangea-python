@@ -2,7 +2,7 @@
 # Author: Pangea Cyber Corporation
 import datetime
 import enum
-from typing import Any, Dict, Generic, List, Optional, TypeVar
+from typing import Any, Dict, Generic, List, Optional, Type, TypeVar
 
 import requests
 from pangea.utils import format_datetime
@@ -102,10 +102,10 @@ class PangeaResponse(Generic[T], ResponseHeader):
     raw_response: Optional[requests.Response] = None
     result: Optional[T] = None
     pangea_error: Optional[PangeaError] = None
-    result_class: type[PangeaResponseResult] = PangeaResponseResult
+    result_class: Type[PangeaResponseResult] = PangeaResponseResult
     _json: Any
 
-    def __init__(self, response: requests.Response, result_class: type[PangeaResponseResult]):
+    def __init__(self, response: requests.Response, result_class: Type[PangeaResponseResult]):
         _json = response.json()
         super(PangeaResponse, self).__init__(**_json)
         self._json = _json
