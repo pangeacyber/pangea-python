@@ -4,6 +4,7 @@ import enum
 import hashlib
 from typing import Dict, List, Optional
 
+from pangea.exceptions import PangeaException
 from pangea.response import APIRequestModel, APIResponseModel, PangeaResponse, PangeaResponseResult
 
 from .base import ServiceBase
@@ -297,7 +298,6 @@ class FileIntel(ServiceBase):
     """
 
     service_name = "file-intel"
-    version = "v1"
 
     def hash_reputation(
         self,
@@ -331,7 +331,7 @@ class FileIntel(ServiceBase):
 
         """
         input = FileReputationRequest(hash=hash, hash_type=hash_type, verbose=verbose, raw=raw, provider=provider)
-        response = self.request.post("reputation", data=input.dict(exclude_none=True))
+        response = self.request.post("v1/reputation", data=input.dict(exclude_none=True))
         response.result = FileReputationResult(**response.raw_result)
         return response
 
@@ -348,6 +348,8 @@ class FileIntel(ServiceBase):
         Retrieve hash-based file reputation from a provider, including an optional detailed report.
         This function take care of calculate filepath hash and make the request to service
 
+        OperationId: file_intel_post_v1_reputation
+
         Args:
             filepath (str): The path to the file to be looked up
             provider (str, optional): Use reputation data from these providers: "reversinglabs" or "crowdstrike"
@@ -362,14 +364,17 @@ class FileIntel(ServiceBase):
                 response.result field.  Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/file-intel).
 
         Examples:
-            response = file_intel.filepathReputation(filepath="./myfile.exe", provider="reversinglabs"))
+            response = file_intel.filepathReputation(
+                filepath="./myfile.exe",
+                provider="reversinglabs",
+            )
         """
 
         data = open(filepath, "rb")
         hash = hashlib.sha256(data.read()).hexdigest()
 
         input = FileReputationRequest(hash=hash, hash_type="sha256", verbose=verbose, raw=raw, provider=provider)
-        response = self.request.post("reputation", data=input.dict(exclude_none=True))
+        response = self.request.post("v1/reputation", data=input.dict(exclude_none=True))
         response.result = FileReputationResult(**response.raw_result)
         return response
 
@@ -399,15 +404,16 @@ class DomainIntel(ServiceBase):
     """
 
     service_name = "domain-intel"
-    version = "v1"
 
     def reputation(
         self, domain: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
     ) -> PangeaResponse[DomainReputationResult]:
         """
-        Reputation check
+        Reputation
 
         Retrieve reputation for a domain from a provider, including an optional detailed report.
+
+        OperationId: domain_intel_post_v1_reputation
 
         Args:
             domain (str): The domain to be looked up
@@ -423,10 +429,13 @@ class DomainIntel(ServiceBase):
                 response.result field.  Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/domain-intel).
 
         Examples:
-            response = domain_intel.lookup(domain="737updatesboeing.com", provider="domaintools")
+            response = domain_intel.lookup(
+                domain="737updatesboeing.com",
+                provider="domaintools",
+            )
         """
         input = DomainReputationRequest(domain=domain, verbose=verbose, provider=provider, raw=raw)
-        response = self.request.post("reputation", data=input.dict(exclude_none=True))
+        response = self.request.post("v1/reputation", data=input.dict(exclude_none=True))
         response.result = DomainReputationResult(**response.raw_result)
         return response
 
@@ -456,7 +465,6 @@ class IpIntel(ServiceBase):
     """
 
     service_name = "ip-intel"
-    version = "v1"
 
     def reputation(
         self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
@@ -465,6 +473,8 @@ class IpIntel(ServiceBase):
         Reputation
 
         Retrieve a reputation score for an IP address from a provider, including an optional detailed report.
+
+        OperationId: ip_intel_post_v1_reputation
 
         Args:
             ip (str): The IP to be looked up
@@ -480,10 +490,13 @@ class IpIntel(ServiceBase):
                 response.result field.  Available response fields can be found in our [API documentation](/docs/api/ip-intel)
 
         Examples:
-            response = ip_intel.reputation(ip="93.231.182.110", provider="crowdstrike")
+            response = ip_intel.reputation(
+                ip="93.231.182.110",
+                provider="crowdstrike",
+            )
         """
         input = IPRepurationRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
-        response = self.request.post("reputation", data=input.dict(exclude_none=True))
+        response = self.request.post("v1/reputation", data=input.dict(exclude_none=True))
         response.result = IPReputationResult(**response.raw_result)
         return response
 
@@ -495,6 +508,8 @@ class IpIntel(ServiceBase):
 
         Retrieve information about the location of an IP address.
 
+        OperationId: ip_intel_post_v1_geolocate
+
         Args:
             ip (str): IP address to be geolocated
             provider (str, optional): Use geolocation data from this provider ("digitalelement"). Default provider defined by the configuration.
@@ -509,10 +524,13 @@ class IpIntel(ServiceBase):
                 response.result field.  Available response fields can be found in our [API documentation](/docs/api/ip-intel)
 
         Examples:
-            response = ip_intel.geolocate(ip="93.231.182.110", provider="digitalelement")
+            response = ip_intel.geolocate(
+                ip="93.231.182.110",
+                provider="digitalelement",
+            )
         """
         input = IPGeolocateRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
-        response = self.request.post("geolocate", data=input.dict(exclude_none=True))
+        response = self.request.post("v1/geolocate", data=input.dict(exclude_none=True))
         response.result = IPGeolocateResult(**response.raw_result)
         return response
 
@@ -524,8 +542,10 @@ class IpIntel(ServiceBase):
 
         Retrieve the domain name associated with an IP address.
 
+        OperationId: ip_intel_post_v1_domain
+
         Args:
-            ip (str): IP address to be geolocated
+            ip (str): The IP to be looked up
             provider (str, optional): Use geolocation data from this provider ("digitalelement"). Default provider defined by the configuration.
             verbose (bool, optional): Echo the API parameters in the response
             raw (bool, optional): Include raw data from this provider
@@ -538,10 +558,13 @@ class IpIntel(ServiceBase):
                 response.result field.  Available response fields can be found in our [API documentation](/docs/api/ip-intel)
 
         Examples:
-            response = ip_intel.get_domain(ip="93.231.182.110", provider="digitalelement")
+            response = ip_intel.get_domain(
+                ip="93.231.182.110",
+                provider="digitalelement",
+            )
         """
         input = IPDomainRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
-        response = self.request.post("domain", data=input.dict(exclude_none=True))
+        response = self.request.post("v1/domain", data=input.dict(exclude_none=True))
         response.result = IPDomainResult(**response.raw_result)
         return response
 
@@ -553,8 +576,10 @@ class IpIntel(ServiceBase):
 
         Determine if an IP address is provided by a VPN service.
 
+        OperationId: ip_intel_post_v1_vpn
+
         Args:
-            ip (str): IP address to be geolocated
+            ip (str): The IP to be looked up
             provider (str, optional): Use geolocation data from this provider ("digitalelement"). Default provider defined by the configuration.
             verbose (bool, optional): Echo the API parameters in the response
             raw (bool, optional): Include raw data from this provider
@@ -567,10 +592,13 @@ class IpIntel(ServiceBase):
                 response.result field.  Available response fields can be found in our [API documentation](/docs/api/ip-intel)
 
         Examples:
-            response = ip_intel.is_vpn(ip="93.231.182.110", provider="digitalelement")
+            response = ip_intel.is_vpn(
+                ip="93.231.182.110",
+                provider="digitalelement",
+            )
         """
         input = IPVPNRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
-        response = self.request.post("vpn", data=input.dict(exclude_none=True))
+        response = self.request.post("v1/vpn", data=input.dict(exclude_none=True))
         response.result = IPVPNResult(**response.raw_result)
         return response
 
@@ -582,8 +610,10 @@ class IpIntel(ServiceBase):
 
         Determine if an IP address is provided by a proxy service.
 
+        OperationId: ip_intel_post_v1_proxy
+
         Args:
-            ip (str): IP address to be geolocated
+            ip (str): The IP to be looked up
             provider (str, optional): Use geolocation data from this provider ("digitalelement"). Default provider defined by the configuration.
             verbose (bool, optional): Echo the API parameters in the response
             raw (bool, optional): Include raw data from this provider
@@ -596,10 +626,13 @@ class IpIntel(ServiceBase):
                 response.result field.  Available response fields can be found in our [API documentation](/docs/api/ip-intel)
 
         Examples:
-            response = ip_intel.is_proxy(ip="93.231.182.110", provider="digitalelement")
+            response = ip_intel.is_proxy(
+                ip="93.231.182.110",
+                provider="digitalelement",
+            )
         """
         input = IPProxyRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
-        response = self.request.post("proxy", data=input.dict(exclude_none=True))
+        response = self.request.post("v1/proxy", data=input.dict(exclude_none=True))
         response.result = IPProxyResult(**response.raw_result)
         return response
 
@@ -629,15 +662,16 @@ class UrlIntel(ServiceBase):
     """
 
     service_name = "url-intel"
-    version = "v1"
 
     def reputation(
         self, url: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
     ) -> PangeaResponse[URLReputationResult]:
         """
-        Reputation check
+        Reputation
 
         Retrieve URL address reputation from a provider.
+
+        OperationId: url_intel_post_v1_reputation
 
         Args:
             url (str): The URL to be looked up
@@ -653,11 +687,14 @@ class UrlIntel(ServiceBase):
                 response.result field.  Available response fields can be found in our [API documentation](/docs/api/url-intel)
 
         Examples:
-            response = url_intel.reputation(url="http://113.235.101.11:54384", provider="crowdstrike")
+            response = url_intel.reputation(
+                url="http://113.235.101.11:54384",
+                provider="crowdstrike",
+            )
         """
 
         input = URLReputationRequest(url=url, provider=provider, verbose=verbose, raw=raw)
-        response = self.request.post("reputation", data=input.dict(exclude_none=True))
+        response = self.request.post("v1/reputation", data=input.dict(exclude_none=True))
         response.result = URLReputationResult(**response.raw_result)
         return response
 
@@ -760,7 +797,6 @@ class UserIntel(ServiceBase):
     """
 
     service_name = "user-intel"
-    version = "v1"
 
     def user_breached(
         self,
@@ -778,6 +814,8 @@ class UserIntel(ServiceBase):
         Look up breached users
 
         Find out if an email address, username, phone number, or IP address was exposed in a security breach.
+
+        OperationId: user_intel_post_v1_user_breached
 
         Args:
             email (str): An email address to search for
@@ -798,8 +836,11 @@ class UserIntel(ServiceBase):
                 response.result field.  Available response fields can be found in our [API documentation](/docs/api/url-intel)
 
         Examples:
-            response = self.intel_user.user_breached(
-                phone_number="8005550123", provider="spycloud", verbose=True, raw=True
+            response = user_intel.user_breached(
+                phone_number="8005550123",
+                provider="spycloud",
+                verbose=True,
+                raw=True,
             )
         """
 
@@ -814,7 +855,7 @@ class UserIntel(ServiceBase):
             verbose=verbose,
             raw=raw,
         )
-        response = self.request.post("user/breached", data=input.dict(exclude_none=True))
+        response = self.request.post("v1/user/breached", data=input.dict(exclude_none=True))
         response.result = UserBreachedResult(**response.raw_result)
         return response
 
@@ -823,13 +864,15 @@ class UserIntel(ServiceBase):
         hash_type: HashType,
         hash_prefix: str,
         verbose: Optional[bool] = None,
-        raw: Optional[bool] = None,
+        raw: Optional[bool] = True,
         provider: Optional[str] = None,
     ) -> PangeaResponse[UserPasswordBreachedResult]:
         """
         Look up breached passwords
 
         Find out if a password has been exposed in security breaches by providing a 5 character prefix of the password hash.
+
+        OperationId: user_intel_post_v1_password_breached
 
         Args:
             hash_type (str): Hash type to be looked up
@@ -846,12 +889,39 @@ class UserIntel(ServiceBase):
                 response.result field.  Available response fields can be found in our [API documentation](/docs/api/url-intel)
 
         Examples:
-            response = self.intel_user.password_breached(hash_prefix="5baa6", hash_type=HashType.SHA256, provider="spycloud")
+            response = user_intel.password_breached(
+                hash_prefix="5baa6",
+                hash_type=HashType.SHA256,
+                provider="spycloud",
+            )
         """
 
         input = UserPasswordBreachedRequest(
             hash_type=hash_type, hash_prefix=hash_prefix, provider=provider, verbose=verbose, raw=raw
         )
-        response = self.request.post("password/breached", data=input.dict(exclude_none=True))
+        response = self.request.post("v1/password/breached", data=input.dict(exclude_none=True))
         response.result = UserPasswordBreachedResult(**response.raw_result)
         return response
+
+    class PasswordStatus(enum.Enum):
+        BREACHED = 0
+        UNBREACHED = 1
+        INCONCLUSIVE = 2
+
+    @staticmethod
+    def is_password_breached(response: PangeaResponse[UserBreachedResult], hash: str) -> PasswordStatus:
+        if response.result.raw_data is None:
+            raise PangeaException("Need raw data to check if hash is breached. Send request with raw=true")
+
+        hash_data = response.result.raw_data.pop(hash, None)
+        if hash_data is not None:
+            # If hash is present in raw data, it's because it was breached
+            return UserIntel.PasswordStatus.BREACHED
+        else:
+            # If it's not present, should check if I have all breached hash
+            # Server will return a maximum of 1000 hash, so if breached count is greater than that,
+            # I can't conclude is password is or is not breached
+            if len(response.result.raw_data.keys()) >= 1000:
+                return UserIntel.PasswordStatus.INCONCLUSIVE
+            else:
+                return UserIntel.PasswordStatus.UNBREACHED

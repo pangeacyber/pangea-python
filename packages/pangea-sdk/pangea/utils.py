@@ -2,7 +2,9 @@ import base64
 import copy
 import datetime
 import json
+from binascii import hexlify
 from collections import OrderedDict
+from hashlib import sha1, sha256
 
 
 def format_datetime(dt: datetime.datetime) -> str:
@@ -70,3 +72,17 @@ def canonicalize(data: dict) -> str:
         return format_datetime(data)
     else:
         return str(data)
+
+
+def hash_sha256(data: str) -> str:
+    # Return sha256 hash in hex format
+    return hexlify(sha256(data.encode("ascii")).digest()).decode("utf8")
+
+
+def hash_sha1(data: str) -> str:
+    # Return sha1 hash in hex format
+    return hexlify(sha1(data.encode("ascii")).digest()).decode("utf8")
+
+
+def get_prefix(hash: str, len: int = 5):
+    return hash[0:5]

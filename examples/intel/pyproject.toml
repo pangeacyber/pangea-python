@@ -1,14 +1,14 @@
 [tool.poetry]
-name = "vault-examples"
+name = "intel-examples"
 version = "1.0.0"
 description = "This is a set of examples about how to use python SDK to communicate with Vault service"
 authors = ["H. Andres Tournour <andres.tournour@pangea.cloud>"]
 readme = "README.md"
-packages = [{include = "vault_examples"}]
+packages = [{include = "intel_examples"}]
 
 [tool.poetry.dependencies]
 python = "^3.7.2"
-pangea-sdk = "^1.7.0"
+pangea-sdk = "^1.9.0"
 
 [build-system]
 requires = ["poetry-core"]

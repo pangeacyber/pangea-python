@@ -182,7 +182,7 @@ class TestAudit(unittest.TestCase):
         self.assertEqual(response.result.signature_verification, EventVerification.PASS)
         self.assertEqual(
             response.result.envelope.public_key,
-            r'{"key":"-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAlvOyDMpK2DQ16NI8G41yINl01wMHzINBahtDPoh4+mE=\n-----END PUBLIC KEY-----\n"}',
+            r'{"algorithm":"ED25519","key":"-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAlvOyDMpK2DQ16NI8G41yINl01wMHzINBahtDPoh4+mE=\n-----END PUBLIC KEY-----\n"}',
         )
 
     def test_log_sign_vault_and_verify(self):
@@ -243,7 +243,7 @@ class TestAudit(unittest.TestCase):
         self.assertEqual(response.result.signature_verification, EventVerification.PASS)
         self.assertEqual(
             response.result.envelope.public_key,
-            r'{"key":"-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAlvOyDMpK2DQ16NI8G41yINl01wMHzINBahtDPoh4+mE=\n-----END PUBLIC KEY-----\n"}',
+            r'{"algorithm":"ED25519","key":"-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAlvOyDMpK2DQ16NI8G41yINl01wMHzINBahtDPoh4+mE=\n-----END PUBLIC KEY-----\n"}',
         )
         event = Event(**response.result.envelope.event)
         self.assertEqual("mytenantid", event.tenant_id)

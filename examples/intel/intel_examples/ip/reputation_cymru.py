@@ -2,19 +2,19 @@ import os
 
 import pangea.exceptions as pe
 from pangea.config import PangeaConfig
-from pangea.services import UserIntel
+from pangea.services import IpIntel
 
 token = os.getenv("PANGEA_INTEL_TOKEN")
 domain = os.getenv("PANGEA_DOMAIN")
 config = PangeaConfig(domain=domain)
-intel = UserIntel(token, config=config)
+intel = IpIntel(token, config=config)
 
 
 def main():
-    print("Checking user by IP...")
+    print(f"Checking IP...")
 
     try:
-        response = intel.user_breached(ip="192.168.140.37", provider="spycloud", verbose=True, raw=True)
+        response = intel.reputation(ip="93.231.182.110", provider="cymru", verbose=True, raw=True)
         print(f"Response: {response.result}")
     except pe.PangeaAPIException as e:
         print(f"Request Error: {e.response.summary}")

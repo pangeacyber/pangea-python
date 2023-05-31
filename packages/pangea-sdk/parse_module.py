@@ -4,12 +4,16 @@ import typing as t
 import types
 import json
 
+import re
+
 import inspect
 from inspect import _empty
 
 import docstring_parser
 
 logger = logging.Logger(__file__)
+
+OID_REGEX = re.compile("OperationId:\s+(.*)")
 
 
 def _format_annotation(annotation, base_module=None):
@@ -94,6 +98,20 @@ Commenting this out because:
 #     return desc, examples
 
 
+def _parse_operation_id(docstring):
+    """
+    Takes the raw docstring and searches for an OperationId
+
+    Returns the OperationId if found, or None
+    """
+    match = OID_REGEX.search(docstring)
+
+    if match:
+        return match.group(1)
+
+    return None
+
+
 def _parse_function(function, function_cache=set()) -> t.Optional[dict]:
     if function in function_cache:
         return None
@@ -107,9 +125,12 @@ def _parse_function(function, function_cache=set()) -> t.Optional[dict]:
         "examples": [ex.description for ex in parsed_doc.examples],
         "parameters": [],
         "returns": None,
-        "deprecated": getattr(function, "_deprecated", False),
         # "raises": parsed_fn.raises
     }
+
+    parsed_operation_id = _parse_operation_id(doc)
+    if parsed_operation_id:
+        ret["operation_id"] = parsed_operation_id
 
     for parameter in parsed_doc.params:
         ret["parameters"].append({

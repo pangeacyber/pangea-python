@@ -151,6 +151,10 @@ class TestIPIntel(unittest.TestCase):
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertEqual(response.result.data.verdict, "malicious")
 
+    def test_ip_reputation_cymru(self):
+        response = self.intel_ip.reputation(ip="93.231.182.110", provider="cymru", verbose=True, raw=True)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+
     def test_ip_reputation_default_provider(self):
         response = self.intel_ip.reputation(ip="93.231.182.110", verbose=True, raw=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
