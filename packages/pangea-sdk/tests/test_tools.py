@@ -1,6 +1,6 @@
 import unittest
 
-from pangea.utils import canonicalize, canonicalize_recursive
+from pangea.utils import canonicalize, canonicalize_nested_json
 
 
 class TestTools(unittest.TestCase):
@@ -12,7 +12,7 @@ class TestTools(unittest.TestCase):
         field2 = {"b2": "infob2", "a2": "infoa2"}
         test_data = {"data2": field2, "data1": field1, "data0": "data0"}
 
-        canon = canonicalize_recursive(test_data)
+        canon = canonicalize(canonicalize_nested_json(test_data))
         print("canonicalize_recursive: ", canon)
 
     def test_canonicalize(self):
