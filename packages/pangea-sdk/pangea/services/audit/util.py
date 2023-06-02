@@ -72,10 +72,10 @@ def canonicalize_event(event: Event) -> bytes:
     return canonicalize_json(normalize_log(tpm_event.dict(exclude_none=True)))
 
 
-def b64encode(data: bytes) -> bytes:
+def b64encode(data: bytes) -> str:
     ret = None
     if data is not None:
-        ret = base64.b64encode(data)
+        ret = base64.b64encode(data).decode("utf-8")
     return ret
 
 
@@ -93,7 +93,7 @@ def b64decode_ascii(data: str) -> bytes:
     return ret
 
 
-def b64decode(data) -> bytes:
+def b64decode(data: str) -> bytes:
     ret = None
     if data is not None:
         ret = base64.b64decode(data)
