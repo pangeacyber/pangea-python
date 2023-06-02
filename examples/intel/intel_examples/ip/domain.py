@@ -11,11 +11,13 @@ intel = IpIntel(token, config=config)
 
 
 def main():
-    print("Geolocate IP...")
+    print("Get IP's Domain...")
 
     try:
-        response = intel.geolocate(ip="93.231.182.110", provider="digitalelement", verbose=True, raw=True)
-        print(f"Response: {response.result}")
+        response = intel.get_domain(ip="24.235.114.61", provider="digitalelement", verbose=True, raw=True)
+        print(f"IP's domain was {'' if response.result.data.domain_found is True else 'not '}found")
+        if response.result.data.domain_found:
+            print(f"IP's domain is: {response.result.data.domain}")
     except pe.PangeaAPIException as e:
         print(f"Request Error: {e.response.summary}")
         print(e)

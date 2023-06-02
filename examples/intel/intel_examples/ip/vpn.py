@@ -11,11 +11,14 @@ intel = IpIntel(token, config=config)
 
 
 def main():
-    print("Geolocate IP...")
+    print("Checking IP's a VPN...")
 
     try:
-        response = intel.geolocate(ip="93.231.182.110", provider="digitalelement", verbose=True, raw=True)
-        print(f"Response: {response.result}")
+        response = intel.is_vpn(ip="2.56.189.74", provider="digitalelement", verbose=True, raw=True)
+        if response.result.data.is_vpn:
+            print("IP is a VPN")
+        else:
+            print("IP is not a VPN")
     except pe.PangeaAPIException as e:
         print(f"Request Error: {e.response.summary}")
         print(e)
