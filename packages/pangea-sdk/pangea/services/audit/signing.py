@@ -138,7 +138,7 @@ class Verifier:
         else:
             # To make backward compatible with original public keys send encoded bytes in base64
             public_key_bytes = b64decode_ascii(public_key_input)
-            pubkey = ed25519.Ed25519PublicKey.from_public_bytes(public_key_bytes)
+            pubkey = ed25519.Ed25519PublicKey.from_public_bytes(public_key_bytes[-32:])
 
         signature_bytes = b64decode(signature_b64)
         for cls, verifier in verifiers.items():
