@@ -7,6 +7,7 @@ import pangea.exceptions as pexc
 from pangea import PangeaConfig
 from pangea.response import PangeaResponse, ResponseStatus
 from pangea.services import Audit
+from pangea.services.audit.exceptions import AuditException
 from pangea.services.audit.models import (
     EventSigning,
     EventVerification,
@@ -350,6 +351,20 @@ class TestAudit(unittest.TestCase):
 
         # This should fail because offset is out of range
         self.assertRaises(pexc.BadOffsetException, resultBadOffset)
+
+    def test_result_bad_offset(self):
+        def resultBadOffset():
+            self.audit.results(id="id", limit=1, offset=-1)
+
+        # This should fail because offset is out of range
+        self.assertRaises(AuditException, resultBadOffset)
+
+    def test_result_bad_limit(self):
+        def resultBadLimit():
+            self.audit.results(id="id", limit=-1, offset=1)
+
+        # This should fail because offset is out of range
+        self.assertRaises(AuditException, resultBadLimit)
 
     def test_search_with_dates(self):
         limit = 2
