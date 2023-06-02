@@ -165,6 +165,15 @@ class TestAudit(unittest.TestCase):
             r'{"algorithm":"ED25519","key":"-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAlvOyDMpK2DQ16NI8G41yINl01wMHzINBahtDPoh4+mE=\n-----END PUBLIC KEY-----\n"}',
         )
 
+    def test_sign_without_signer(self):
+        def log():
+            response: PangeaResponse[LogResult] = self.audit.log(
+                message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verbose=False, signing=EventSigning.LOCAL
+            )
+
+        # This should fail because there is no signed configured
+        self.assertRaises(AuditException, log)
+
     def test_log_sign_vault_and_verify(self):
         response = self.auditVaultSign.log(
             message=MSG_SIGNED_VAULT,
