@@ -186,13 +186,6 @@ def hash_dict(data: dict) -> str:
     return sha256(canonicalize_json(data)).hexdigest()
 
 
-def base64url_decode(input_parameter):
-    rem = len(input_parameter) % 4
-    if rem > 0:
-        input_parameter += "=" * (4 - rem)
-    return base64.urlsafe_b64decode(input_parameter)
-
-
 def arweave_transaction_url(trans_id: str):
     return f"{ARWEAVE_BASE_URL}/{trans_id}/"
 
