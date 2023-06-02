@@ -11,6 +11,7 @@ from pangea.request import PangeaRequest
 
 class ServiceBase(object):
     service_name: str = "base"
+    _support_multi_config: bool = False
 
     def __init__(self, token, config: Optional[PangeaConfig] = None, logger_name: str = "pangea"):
         if not token:
@@ -20,10 +21,11 @@ class ServiceBase(object):
         self.logger = logging.getLogger(logger_name)
 
         self.request = PangeaRequest(
-            self.config,
-            token,
-            self.service_name,
-            self.logger,
+            config=self.config,
+            token=token,
+            service=self.service_name,
+            logger=self.logger,
+            check_config_id=self._support_multi_config,
         )
 
         extra_headers = {}
