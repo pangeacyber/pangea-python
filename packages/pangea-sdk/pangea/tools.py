@@ -8,7 +8,7 @@ import logging
 import os
 import sys
 import typing as t
-from datetime import date, datetime, timezone
+from datetime import datetime, timezone
 from logging.handlers import TimedRotatingFileHandler
 
 from pangea.config import PangeaConfig

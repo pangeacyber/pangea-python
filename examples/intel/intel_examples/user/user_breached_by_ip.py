@@ -11,7 +11,7 @@ intel = UserIntel(token, config=config)
 
 
 def main():
-    print(f"Checking user by IP...")
+    print("Checking user by IP...")
 
     try:
         response = intel.user_breached(ip="192.168.140.37", provider="spycloud", verbose=True, raw=True)

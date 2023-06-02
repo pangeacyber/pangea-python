@@ -44,5 +44,5 @@ class TestConfig(unittest.TestCase):
         url = "http://myurldomain.net"
         config = PangeaConfig(domain=url)
         audit = Audit(token, config=config)
-        url = audit.request._url(path)
-        self.assertEqual(f"{url}/{path}", url)
+        service_url = audit.request._url(path)
+        self.assertEqual(f"{url}/{path}", service_url)

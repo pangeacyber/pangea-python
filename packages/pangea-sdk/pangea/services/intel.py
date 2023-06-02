@@ -5,6 +5,7 @@ import hashlib
 from typing import Dict, List, Optional
 
 from pangea.deprecated import pangea_deprecated
+from pangea.exceptions import PangeaException
 from pangea.response import APIRequestModel, APIResponseModel, PangeaResponse, PangeaResponseResult
 
 from .base import ServiceBase
@@ -1035,7 +1036,7 @@ class UserIntel(ServiceBase):
         hash_type: HashType,
         hash_prefix: str,
         verbose: Optional[bool] = None,
-        raw: Optional[bool] = None,
+        raw: Optional[bool] = True,
         provider: Optional[str] = None,
     ) -> PangeaResponse[UserPasswordBreachedResult]:
         """
@@ -1073,3 +1074,26 @@ class UserIntel(ServiceBase):
         response = self.request.post("v1/password/breached", data=input.dict(exclude_none=True))
         response.result = UserPasswordBreachedResult(**response.raw_result)
         return response
+
+    class PasswordStatus(enum.Enum):
+        BREACHED = 0
+        UNBREACHED = 1
+        INCONCLUSIVE = 2
+
+    @staticmethod
+    def is_password_breached(response: PangeaResponse[UserBreachedResult], hash: str) -> PasswordStatus:
+        if response.result.raw_data is None:
+            raise PangeaException("Need raw data to check if hash is breached. Send request with raw=true")
+
+        hash_data = response.result.raw_data.pop(hash, None)
+        if hash_data is not None:
+            # If hash is present in raw data, it's because it was breached
+            return UserIntel.PasswordStatus.BREACHED
+        else:
+            # If it's not present, should check if I have all breached hash
+            # Server will return a maximum of 1000 hash, so if breached count is greater than that,
+            # I can't conclude is password is or is not breached
+            if len(response.result.raw_data.keys()) >= 1000:
+                return UserIntel.PasswordStatus.INCONCLUSIVE
+            else:
+                return UserIntel.PasswordStatus.UNBREACHED

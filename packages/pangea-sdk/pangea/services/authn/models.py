@@ -243,7 +243,7 @@ class User(APIRequestModel):
 
 class UserListResult(PangeaResponseResult):
     users: List[User]
-    last: str
+    last: Optional[str] = None
     count: int
 
 
