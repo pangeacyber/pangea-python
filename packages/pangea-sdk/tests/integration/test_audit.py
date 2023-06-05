@@ -294,7 +294,7 @@ class TestAudit(unittest.TestCase):
         max_result = 3
         response_search = self.audit.search(
             query="message:" + MSG_SIGNED_LOCAL,
-            order=SearchOrder.DESC,
+            order=SearchOrder.ASC,
             limit=limit,
             max_results=max_result,
             verbose=True,
@@ -443,7 +443,7 @@ class TestAudit(unittest.TestCase):
         query = f"message:{MSG_SIGNED_LOCAL}"
         response = self.audit.search(
             query=query,
-            order=SearchOrder.DESC,
+            order=SearchOrder.ASC,
             limit=2,
             max_results=2,
             verify_consistency=True,
@@ -467,7 +467,7 @@ class TestAudit(unittest.TestCase):
 
         query = "message:" + msg
         r_desc: PangeaResponse[SearchOutput] = self.audit.search(
-            query=query, order=SearchOrder.DESC, order_by=SearchOrderBy.RECEIVED_AT, limit=len(authors)
+            query=query, order=SearchOrder.ASC, order_by=SearchOrderBy.RECEIVED_AT, limit=len(authors)
         )
         self.assertEqual(r_desc.status, ResponseStatus.SUCCESS)
         self.assertEqual(len(r_desc.result.events), len(authors))
@@ -476,7 +476,7 @@ class TestAudit(unittest.TestCase):
             self.assertEqual(r_desc.result.events[idx].envelope.event.actor, authors[idx])
 
         r_asc = self.audit.search(
-            query=query, order=SearchOrder.ASC, order_by=SearchOrderBy.RECEIVED_AT, limit=len(authors)
+            query=query, order=SearchOrder.DESC, order_by=SearchOrderBy.RECEIVED_AT, limit=len(authors)
         )
         self.assertEqual(r_asc.status, ResponseStatus.SUCCESS)
         self.assertEqual(len(r_asc.result.events), len(authors))
