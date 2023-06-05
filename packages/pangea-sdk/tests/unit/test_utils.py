@@ -4,7 +4,7 @@ from pangea.services.audit.util import b64decode, b64decode_ascii, b64encode, b6
 from pangea.utils import default_encoder, get_prefix, hash_sha1, hash_sha256, str2str_b64
 
 
-class TestAuditUtil(unittest.TestCase):
+class TestUtils(unittest.TestCase):
     def test_base64(self):
         msg = "message"
         msg_b64 = str2str_b64(msg)
