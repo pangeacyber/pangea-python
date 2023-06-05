@@ -35,7 +35,7 @@ class TestEnums(unittest.TestCase):
 
     def test_intel_enums(self):
         hash_type = HashType.SHA256
-        hash_type
+        repr(hash_type)
         self.assertEqual(str(hash_type), "sha256")
 
     def test_vault_enums(self):
