@@ -483,7 +483,3 @@ class TestAudit(unittest.TestCase):
 
         for idx in range(0, len(authors)):
             self.assertEqual(r_asc.result.events[len(authors) - 1 - idx].envelope.event.actor, authors[idx])
-
-
-if __name__ == "__main__":
-    unittest.main()
