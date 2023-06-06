@@ -409,7 +409,7 @@ class TestFileScan(unittest.TestCase):
             exception = e
 
         # wait some time to get result ready and poll it
-        time.sleep(60)
+        time.sleep(120)
 
         response = self.scan.poll_result(exception)
         self.assertEqual(response.status, "Success")
