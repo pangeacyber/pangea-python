@@ -8,17 +8,21 @@ class TestSigner(unittest.TestCase):
         msg = "signthismessage"
         signer = Signer("./tests/testdata/privkey")
         pubkey = signer.get_public_key_PEM()
+        pubkey_bytes = "MCowBQYDK2VwAyEAlvOyDMpK2DQ16NI8G41yINl01wMHzINBahtDPoh4+mE="
+        signature_expected = "yRqaZIAXEuhaCN6n7inzQVdn0Zdh947cDbF1sS+YPQGl6vyEGesBdkuDjbo1HlcHk11BgJYXu30ZfrNx/BY1Bg=="
         signature = signer.sign(bytes(msg, "utf-8"))
         self.assertEqual(
             pubkey,
             "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAlvOyDMpK2DQ16NI8G41yINl01wMHzINBahtDPoh4+mE=\n-----END PUBLIC KEY-----\n",
         )
-        self.assertEqual(
-            signature, "yRqaZIAXEuhaCN6n7inzQVdn0Zdh947cDbF1sS+YPQGl6vyEGesBdkuDjbo1HlcHk11BgJYXu30ZfrNx/BY1Bg=="
-        )
+        self.assertEqual(signature, signature_expected)
 
         v = Verifier()
         verification = v.verify_signature(signature, bytes(msg, "utf8"), pubkey)
+        self.assertTrue(verification)
+
+        # Verify old format public key
+        verification = v.verify_signature(signature, bytes(msg, "utf8"), pubkey_bytes)
         self.assertTrue(verification)
 
     def test_signer_no_file(self):

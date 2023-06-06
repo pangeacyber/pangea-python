@@ -8,7 +8,7 @@ import logging
 import os
 import sys
 import typing as t
-from datetime import date, datetime, timezone
+from datetime import datetime, timezone
 from logging.handlers import TimedRotatingFileHandler
 
 from pangea.config import PangeaConfig
@@ -100,7 +100,8 @@ def file_events(root_hashes: t.Dict[int, str], f: io.TextIOWrapper) -> t.Iterato
 
 def init_audit(token: str, domain: str) -> Audit:
     config = PangeaConfig(domain=domain)
-    audit = Audit(token, config=config)
+    audit = Audit(token, config=config, logger_name="audit")
+    logger_set_pangea_config(logger_name=audit.logger.name)
     return audit
 
 

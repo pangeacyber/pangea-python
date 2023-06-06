@@ -86,19 +86,6 @@ def get_proof_path(proof: str) -> str:
     return "".join(elem[0] for elem in proof.split(","))
 
 
-def height(size: int) -> int:
-    return int(math.log2(size)) + 1
-
-
-def index_number(tree_height: int, membership_proof: str) -> int:
-    decoded_proof = audit_util.decode_membership_proof(membership_proof)
-    idx_number: int = 0
-    for idx, proof in enumerate(decoded_proof):
-        if proof.side == "left":
-            idx_number += round(2 ** (tree_height - idx - 1))
-    return idx_number
-
-
 def verify_hash(data: dict, data_hash: str) -> bool:
     """Verify the hash of an event"""
     succeeded = False
