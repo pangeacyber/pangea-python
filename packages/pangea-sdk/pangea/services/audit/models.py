@@ -187,8 +187,8 @@ class SearchRestriction(APIResponseModel):
 
 
 class SearchOrder(str, enum.Enum):
-    ASC = "desc"
-    DESC = "asc"
+    ASC = "asc"
+    DESC = "desc"
 
     def __str__(self):
         return str(self.value)

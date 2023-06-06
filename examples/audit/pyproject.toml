@@ -8,7 +8,7 @@ packages = [{include = "audit_examples"}]
 
 [tool.poetry.dependencies]
 python = "^3.7.2"
-pangea-sdk = "^1.5.0"
+pangea-sdk = "^1.9.1"
 
 [build-system]
 requires = ["poetry-core"]
