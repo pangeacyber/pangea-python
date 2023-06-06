@@ -35,4 +35,4 @@ def hash_sha1(data: str) -> str:
 
 
 def get_prefix(hash: str, len: int = 5):
-    return hash[0:5]
+    return hash[0:len]

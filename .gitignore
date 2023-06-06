@@ -31,3 +31,4 @@ packages/pangea-sdk/logs/
 # generated docs
 python_sdk.json
 pangea_sdk_logs.json*
+packages/pangea-sdk/tests/testdata/dump.json

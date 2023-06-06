@@ -72,10 +72,10 @@ def canonicalize_event(event: Event) -> bytes:
     return canonicalize_json(normalize_log(tpm_event.dict(exclude_none=True)))
 
 
-def b64encode(data: bytes) -> bytes:
+def b64encode(data: bytes) -> str:
     ret = None
     if data is not None:
-        ret = base64.b64encode(data)
+        ret = base64.b64encode(data).decode("utf-8")
     return ret
 
 
@@ -93,7 +93,7 @@ def b64decode_ascii(data: str) -> bytes:
     return ret
 
 
-def b64decode(data) -> bytes:
+def b64decode(data: str) -> bytes:
     ret = None
     if data is not None:
         ret = base64.b64decode(data)
@@ -184,13 +184,6 @@ def hash_str(data: str) -> str:
 
 def hash_dict(data: dict) -> str:
     return sha256(canonicalize_json(data)).hexdigest()
-
-
-def base64url_decode(input_parameter):
-    rem = len(input_parameter) % 4
-    if rem > 0:
-        input_parameter += "=" * (4 - rem)
-    return base64.urlsafe_b64decode(input_parameter)
 
 
 def arweave_transaction_url(trans_id: str):

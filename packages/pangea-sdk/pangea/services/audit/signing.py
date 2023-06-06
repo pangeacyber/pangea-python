@@ -1,7 +1,6 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 from abc import ABC, abstractmethod
-from base64 import b64decode, b64encode
 from typing import Optional
 
 from cryptography import exceptions
@@ -9,7 +8,7 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ed25519
 from cryptography.hazmat.primitives.asymmetric.types import PRIVATE_KEY_TYPES
 from pangea.exceptions import PangeaException
-from pangea.services.audit.util import b64decode_ascii
+from pangea.services.audit.util import b64decode, b64decode_ascii, b64encode_ascii
 from pangea.services.vault.models.common import AsymmetricAlgorithm
 
 
@@ -33,7 +32,7 @@ class AlgorithmSigner(ABC):
 class ED25519Signer(AlgorithmSigner):
     def sign(self, message: bytes) -> str:
         signature = self.private_key.sign(message)
-        return b64encode(signature).decode("ascii")
+        return b64encode_ascii(signature)
 
     def get_public_key_PEM(self) -> str:
         return (

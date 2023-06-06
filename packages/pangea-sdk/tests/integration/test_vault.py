@@ -88,6 +88,10 @@ class TestVault(unittest.TestCase):
         decrypt2_resp = self.vault.decrypt(id, cipher_v2, 2)
         self.assertTrue(data_b64, decrypt2_resp.result.plain_text)
 
+        # Update
+        update_resp = self.vault.update(id, folder="updated")
+        self.assertEqual(id, update_resp.result.id)
+
         # Decrypt default version
         decrypt_default_resp = self.vault.decrypt(id, cipher_v2)
         self.assertEqual(data_b64, decrypt_default_resp.result.plain_text)
@@ -147,6 +151,10 @@ class TestVault(unittest.TestCase):
         self.assertEqual(id, verify_default_resp.result.id)
         self.assertEqual(2, verify_default_resp.result.version)
         self.assertTrue(verify_default_resp.result.valid_signature)
+
+        # Update
+        update_resp = self.vault.update(id, folder="updated")
+        self.assertEqual(id, update_resp.result.id)
 
         # Verify not existing version
         with self.assertRaises(pexc.PangeaAPIException):
@@ -352,6 +360,10 @@ class TestVault(unittest.TestCase):
         verify2_resp = self.vault.jwt_verify(jws_v2)
         self.assertTrue(verify2_resp.result.valid_signature)
 
+        # Update
+        update_resp = self.vault.update(id, folder="updated")
+        self.assertEqual(id, update_resp.result.id)
+
         # Deactivate key
         state_change_resp = self.vault.state_change(id, ItemVersionState.DEACTIVATED, version=1)
         self.assertEqual(id, state_change_resp.result.id)
@@ -386,6 +398,10 @@ class TestVault(unittest.TestCase):
         # Verify 2
         verify2_resp = self.vault.jwt_verify(jws_v2)
         self.assertTrue(verify2_resp.result.valid_signature)
+
+        # Update
+        update_resp = self.vault.update(id, folder="updated")
+        self.assertEqual(id, update_resp.result.id)
 
         # Get default
         get_resp = self.vault.jwk_get(id)
@@ -510,6 +526,10 @@ class TestVault(unittest.TestCase):
         self.assertEqual(secret_v2, get_resp.result.current_version.secret)
         self.assertEqual(ItemType.SECRET, get_resp.result.type)
 
+        # update
+        update_resp = self.vault.update(id, folder="updated")
+        self.assertEqual(id, update_resp.result.id)
+
         state_change_resp = self.vault.state_change(id, ItemVersionState.DEACTIVATED, version=2)
         self.assertEqual(id, state_change_resp.result.id)
 
@@ -556,3 +576,17 @@ class TestVault(unittest.TestCase):
                 print(e)
                 self.vault.delete(id=id)
                 self.assertTrue(False)
+
+    def test_list(self):
+        list_resp = self.vault.list()
+        self.assertGreater(list_resp.result.count, 0)
+        self.assertGreater(len(list_resp.result.items), 0)
+
+        for i in list_resp.result.items:
+            try:
+                if i.id is not None:
+                    del_resp = self.vault.delete(i.id)
+                    self.assertEqual(i.id, del_resp.result.id)
+            except pexc.PangeaAPIException as e:
+                print(i)
+                print(e)
