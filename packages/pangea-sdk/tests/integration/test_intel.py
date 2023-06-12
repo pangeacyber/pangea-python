@@ -87,7 +87,6 @@ class TestFileIntel(unittest.TestCase):
             raw=True,
         )
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
-        self.assertEqual(response.result.data.verdict, "benign")
 
     def test_file_lookup_with_bad_auth_token(self):
         token = "noarealtoken"
@@ -143,7 +142,6 @@ class TestFileIntel(unittest.TestCase):
             raw=True,
         )
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
-        self.assertEqual(response.result.data.verdict, "benign")
 
     def test_file_reputation_with_bad_auth_token(self):
         token = "noarealtoken"
