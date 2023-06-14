@@ -7,6 +7,7 @@ import pangea.exceptions as pexc
 from pangea import PangeaConfig
 from pangea.response import PangeaResponse, ResponseStatus
 from pangea.services import Audit
+from pangea.services.audit.exceptions import AuditException
 from pangea.services.audit.models import (
     EventSigning,
     EventVerification,
@@ -164,6 +165,15 @@ class TestAudit(unittest.TestCase):
             r'{"algorithm":"ED25519","key":"-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAlvOyDMpK2DQ16NI8G41yINl01wMHzINBahtDPoh4+mE=\n-----END PUBLIC KEY-----\n"}',
         )
 
+    def test_sign_without_signer(self):
+        def log():
+            response: PangeaResponse[LogResult] = self.audit.log(
+                message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verbose=False, signing=EventSigning.LOCAL
+            )
+
+        # This should fail because there is no signed configured
+        self.assertRaises(AuditException, log)
+
     def test_log_sign_vault_and_verify(self):
         response = self.auditVaultSign.log(
             message=MSG_SIGNED_VAULT,
@@ -284,7 +294,7 @@ class TestAudit(unittest.TestCase):
         max_result = 3
         response_search = self.audit.search(
             query="message:" + MSG_SIGNED_LOCAL,
-            order=SearchOrder.DESC,
+            order=SearchOrder.ASC,
             limit=limit,
             max_results=max_result,
             verbose=True,
@@ -350,6 +360,20 @@ class TestAudit(unittest.TestCase):
 
         # This should fail because offset is out of range
         self.assertRaises(pexc.BadOffsetException, resultBadOffset)
+
+    def test_result_bad_offset(self):
+        def resultBadOffset():
+            self.audit.results(id="id", limit=1, offset=-1)
+
+        # This should fail because offset is out of range
+        self.assertRaises(AuditException, resultBadOffset)
+
+    def test_result_bad_limit(self):
+        def resultBadLimit():
+            self.audit.results(id="id", limit=-1, offset=1)
+
+        # This should fail because offset is out of range
+        self.assertRaises(AuditException, resultBadLimit)
 
     def test_search_with_dates(self):
         limit = 2
@@ -419,7 +443,7 @@ class TestAudit(unittest.TestCase):
         query = f"message:{MSG_SIGNED_LOCAL}"
         response = self.audit.search(
             query=query,
-            order=SearchOrder.DESC,
+            order=SearchOrder.ASC,
             limit=2,
             max_results=2,
             verify_consistency=True,
@@ -443,7 +467,7 @@ class TestAudit(unittest.TestCase):
 
         query = "message:" + msg
         r_desc: PangeaResponse[SearchOutput] = self.audit.search(
-            query=query, order=SearchOrder.DESC, order_by=SearchOrderBy.RECEIVED_AT, limit=len(authors)
+            query=query, order=SearchOrder.ASC, order_by=SearchOrderBy.RECEIVED_AT, limit=len(authors)
         )
         self.assertEqual(r_desc.status, ResponseStatus.SUCCESS)
         self.assertEqual(len(r_desc.result.events), len(authors))
@@ -452,14 +476,10 @@ class TestAudit(unittest.TestCase):
             self.assertEqual(r_desc.result.events[idx].envelope.event.actor, authors[idx])
 
         r_asc = self.audit.search(
-            query=query, order=SearchOrder.ASC, order_by=SearchOrderBy.RECEIVED_AT, limit=len(authors)
+            query=query, order=SearchOrder.DESC, order_by=SearchOrderBy.RECEIVED_AT, limit=len(authors)
         )
         self.assertEqual(r_asc.status, ResponseStatus.SUCCESS)
         self.assertEqual(len(r_asc.result.events), len(authors))
 
         for idx in range(0, len(authors)):
             self.assertEqual(r_asc.result.events[len(authors) - 1 - idx].envelope.event.actor, authors[idx])
-
-
-if __name__ == "__main__":
-    unittest.main()

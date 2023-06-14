@@ -11,11 +11,14 @@ intel = IpIntel(token, config=config)
 
 
 def main():
-    print("Geolocate IP...")
+    print("Checking IP's proxy...")
 
     try:
-        response = intel.geolocate(ip="93.231.182.110", provider="digitalelement", verbose=True, raw=True)
-        print(f"Response: {response.result}")
+        response = intel.is_proxy(ip="34.201.32.172", provider="digitalelement", verbose=True, raw=True)
+        if response.result.data.is_proxy:
+            print("IP is a proxy")
+        else:
+            print("IP is not a proxy")
     except pe.PangeaAPIException as e:
         print(f"Request Error: {e.response.summary}")
         print(e)

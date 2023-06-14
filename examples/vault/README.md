@@ -10,7 +10,8 @@ On this example root directory (./examples/vault) run
 poetry install
 ```
 
-Set up environment variables `PANGEA_VAULT_TOKEN` and `PANGEA_DOMAIN` with your project token configured Pangea User Console (token should have access to Vault service) and with your pangea domain.
+Set up environment variables ([Instructions](https://pangea.cloud/docs/getting-started/integrate/#set-environment-variables)) `PANGEA_VAULT_TOKEN` and `PANGEA_DOMAIN` with your project token configured on Pangea User Console (token should have access to Vault service [Instructions](https://pangea.cloud/docs/getting-started/configure-services/#configure-a-pangea-service)) and with your pangea domain.
+
 
 ## Run
 
