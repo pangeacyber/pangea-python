@@ -12,13 +12,13 @@ from pangea.tools import logger_set_pangea_config
 token = os.getenv("PANGEA_AUDIT_TOKEN")
 domain = os.getenv("PANGEA_DOMAIN")
 config = PangeaConfig(domain=domain)
-audit = Audit(token, config=config, private_key_file="./tests/testdata/privkey", logger_name="audit")
+audit = Audit(token, config=config, private_key_file="./key/privkey", logger_name="audit")
 logger_set_pangea_config(logger_name=audit.logger.name)
 
 
 def main():
     print("Log Data...")
-    msg = "Hello world"
+    msg = "python-sdk-standard-schema-example"
 
     try:
         log_response = audit.log(
@@ -32,7 +32,7 @@ def main():
             old="Old message that it's been updated",
             verify=True,
             verbose=False,
-            signing=True,
+            sign_local=True,
         )
         print(f"Log Request ID: {log_response.request_id}, Status: {log_response.status}")
     except pe.PangeaAPIException as e:
@@ -45,11 +45,10 @@ def main():
 
     page_size = 10
     query = "message:" + msg
-    restriction = {"source": ["monitor"]}
 
     try:
         search_res: PangeaResponse[SearchOutput] = audit.search(
-            query=query, search_restriction=restriction, limit=page_size, verify_consistency=True, verify_events=True
+            query=query, limit=page_size, verify_consistency=True, verify_events=True
         )
 
         result_id = search_res.result.id
@@ -81,8 +80,8 @@ def print_page_results(search_res: PangeaResponse[SearchResultOutput], offset, c
     print("\n--------------------------------------------------------------------\n")
     for row in search_res.result.events:
         print(
-            f"{row.envelope.received_at}\t{row.envelope.event.message}\t{row.envelope.event.source}\t\t"
-            f"{row.envelope.event.actor}\t\t{row.membership_verification}\t\t {row.consistency_verification}\t\t {row.signature_verification}\t\t"
+            f"{row.envelope.received_at}\t{row.envelope.event['message']}\t{row.envelope.event['source']}\t\t"
+            f"{row.envelope.event['actor']}\t\t{row.membership_verification}\t\t {row.consistency_verification}\t\t {row.signature_verification}\t\t"
         )
     print(
         f"\nResults: {offset+1}-{offset+len(search_res.result.events)} of {count}",

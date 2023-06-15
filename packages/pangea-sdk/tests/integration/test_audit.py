@@ -31,7 +31,7 @@ STATUS_NO_SIGNED = "no-signed"
 STATUS_SIGNED = "signed"
 LONG_FIELD = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed lacinia, orci eget commodo commodo non."
 
-TEST_ENVIRONMENT = TestEnvironment.LIVE
+TEST_ENVIRONMENT = TestEnvironment.DEVELOP
 
 custom_schema_event = {
     "message": MSG_CUSTOM_SCHEMA_NO_SIGNED,
@@ -47,7 +47,7 @@ class TestAudit(unittest.TestCase):
     def setUp(self):
         self.token = get_test_token(TEST_ENVIRONMENT)
         self.vaultToken = get_vault_signature_test_token(TEST_ENVIRONMENT)
-        self.customSchemaToken = get_custom_schema_test_token(TestEnvironment.DEVELOP)
+        self.customSchemaToken = get_custom_schema_test_token(TEST_ENVIRONMENT)
 
         domain = get_test_domain(TEST_ENVIRONMENT)
         self.config = PangeaConfig(domain=domain)
