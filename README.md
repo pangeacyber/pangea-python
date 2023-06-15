@@ -22,4 +22,4 @@ The Pangea repository for all things Python
 ## Pangea Python SDK
 
 [Pangea SDK](https://github.com/pangeacyber/pangea-python/tree/main/packages/pangea-sdk)
-
+[Pangea SDK examples](https://github.com/pangeacyber/pangea-python/tree/main/examples)

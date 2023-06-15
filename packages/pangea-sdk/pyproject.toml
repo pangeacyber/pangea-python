@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pangea-sdk"
-version = "1.9.0"
+version = "1.9.1"
 description = "Pangea API SDK"
 authors = ["Glenn Gallien <glenn.gallien@pangea.cloud>"]
 license = "MIT"

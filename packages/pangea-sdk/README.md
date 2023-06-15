@@ -17,9 +17,9 @@
 
 # Pangea Python SDK
 
-A Python SDK for integrating with Pangea Services.
+A Python SDK for integrating with Pangea Services. [Click here](https://pangea.cloud/docs/#everything-a-builder-needs-united) to check out Pangea services.
 
-## Setup
+## Installation
 
 ```
 pip3 install pangea-sdk
@@ -29,97 +29,11 @@ poetry add pangea-sdk
 
 ## Usage
 
-### Secure Audit Service - Log Data
-
-```
-import os
-import pangea.exceptions as pe
-from pangea.config import PangeaConfig
-from pangea.services import Audit
-
-# Read your project domain from an env variable
-domain = os.getenv("PANGEA_DOMAIN")
-
-# Read your access token from an env variable
-token = os.getenv("PANGEA_TOKEN")
-
-# Create a Config object contain the Audit Config ID
-config = PangeaConfig(domain=domain)
-
-# Initialize an Audit instance using the config object
-audit = Audit(token, config=config)
-
-# Create test data
-# All input fields are listed, only `message` is required
-print(f"Logging...")
-try:
-    # Create test data
-    # All input fields are listed, only `message` is required
-    log_response = audit.log(
-        message="despicable act prevented",
-        action="reboot",
-        actor="villan",
-        target="world",
-        status="error",
-        source="some device",
-        verbose=True
-    )
-    print(f"Response: {log_response.result}")
-except pe.PangeaAPIException as e:
-    # Catch exception in case something fails
-    print(f"Request Error: {e.response.summary}")
-    for err in e.errors:
-        print(f"\t{err.detail} \n")
-
-```
-
-### Secure Audit Service - Search Data
-
-```
-# This is a search example to be used on repo readme file
-import os
-import pangea.exceptions as pe
-from pangea.config import PangeaConfig
-from pangea.services import Audit
-
-# Read your project domain from an env variable
-domain = os.getenv("PANGEA_DOMAIN")
-
-# Read your access token from an env variable
-token = os.getenv("PANGEA_AUDIT_TOKEN")
-
-# Create a Config object contain the Audit Config
-config = PangeaConfig(domain=domain)
-
-# Initialize an Audit instance using the config object
-audit = Audit(token, config=config)
-
-print(f"Searching...")
-try:
-    # Search for 'message' containing 'prevented'
-    # filtered on 'source=test', with 5 results per-page
-    response = audit.search(
-            query="message:prevented",
-            limit=5
-        )
-except pe.PangeaAPIException as e:
-    # Catch exception in case something fails and print error
-    print(f"Request Error: {e.response.summary}")
-    for err in e.errors:
-        print(f"\t{err.detail} \n")
-    exit()
-
-print("Search Request ID:", response.request_id, "\n")
-
-print(
-    f"Found {response.result.count} event(s)",
-)
-for row in response.result.events:
-    print(f"{row.envelope.received_at}\t| actor: {row.envelope.event.actor}\t| action: {row.envelope.event.action}\t| target: {row.envelope.event.target}\t| status: {row.envelope.event.status}\t| message: {row.envelope.event.message}")
-
-```
+For samples apps look at [/examples](https://github.com/pangeacyber/pangea-python/tree/main/examples) folder in this repository. There you will find basic samples apps for each services supported on this SDK. Each service folder has a README.md with intructions to install, setup and run.
 
 ### Secure Audit Service - Integrity Tools
+
+Python Pangea SDK include also some extra features to validate Audit Service log's integrity. Here we explain how to run them.
 
 #### Verify audit data
 
@@ -160,8 +74,8 @@ usage: poetry run python -m pangea.dump_audit [-h] [--token TOKEN] [--domain DOM
 Pangea Audit Dump Tool
 
 positional arguments:
-  start                 Start timestamp. Supports a variety of formats, including ISO-8601
-  end                   End timestamp. Supports a variety of formats, including ISO-8601
+  start                 Start timestamp. Supports a variety of formats, including ISO-8601. e.g.: 2023-06-05T18:05:15.030667Z
+  end                   End timestamp. Supports a variety of formats, including ISO-8601. e.g.: 2023-06-05T18:05:15.030667Z
 
 options:
   -h, --help            show this help message and exit
@@ -200,6 +114,13 @@ It accepts multiple file formats:
 - a search response from the REST API (see `verify_audit`)
 
 
+## Reporting issues and new features
+
+If faced some issue using or testing this SDK or a new feature request feel free to open an issue [clicking here](https://github.com/pangeacyber/pangea-python/issues).
+We would need you to provide some basic information like what SDK's version you are using, stack trace if you got it, framework used, and steps to reproduce the issue.
+Also feel free to contact [Pangea support](mailto:support@pangea.cloud) by email or send us a message on [Slack](https://pangea.cloud/join-slack/)
+
+
 ## Contributing
 
 Currently, the setup scripts only have support for Mac/ZSH environments.
@@ -208,37 +129,6 @@ Future support is incoming.
 To install our linters, simply run `./dev/setup_repo.sh`
 These linters will run on every `git commit` operation.
 
-## Generate SDK Documentation
+### Send a PR
 
-### Overview
-
-Throughout the SDK, there are Python doc strings that serve as the source of our SDK docs.
-
-The documentation pipeline here looks like:
-
-1. Write doc strings throughout your Python code. Please refer to existing doc strings as an example of what and how to document.
-1. Make your pull request.
-1. After the pull request is merged, go ahead and run the `parse_module.py` script to generate the JSON docs uses for rendering.
-1. Copy the output from `parse_module.py` and overwrite the existing `python_sdk.json` file in the docs repo. File is located in `platform/docs/openapi/python_sdk.json` in the Pangea monorepo. Save this and make a merge request to update the Python SDK docs in the Pangea monorepo.
-
-### Running the autogen sdk doc script
-
-Make sure you have all the dependencies installed. From the root of the `pangea-sdk` package in the `pangea-python` repo run:
-
-```shell
-poetry install
-```
-
-Now run the script
-
-```shell
-poetry run python parse_module.py
-```
-
-That will output the script in the terminal. If you're on a mac, you can do
-
-```shell
-poetry run python parse_module.py | pbcopy
-```
-
-to copy the output from the script into your clipboard. At the moment, a bunch of stuff will be printed to the terminal if you pipe it to `pbcopy`, but the script still works and copies the output to your clipboard.
+If you would like to [send a PR](https://github.com/pangeacyber/pangea-python/pulls) including a new feature or fixing a bug in code or an error in documents we will really appreciate it and after review and approval you will be included in our [contributors list](./CONTRIBUTING.md)
