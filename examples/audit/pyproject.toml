@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "audit-examples"
-version = "1.0.0"
+version = "2.0.0"
 description = "This is a set of examples about how to use python SDK to communicate with Vault service"
 authors = ["H. Andres Tournour <andres.tournour@pangea.cloud>"]
 readme = "README.md"
@@ -8,7 +8,7 @@ packages = [{include = "audit_examples"}]
 
 [tool.poetry.dependencies]
 python = "^3.7.2"
-pangea-sdk = "^1.9.1"
+pangea-sdk = "^2.0.0"
 
 [build-system]
 requires = ["poetry-core"]
