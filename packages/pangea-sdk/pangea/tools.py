@@ -116,31 +116,38 @@ def filter_deep_none(data: t.Dict) -> t.Dict:
     return {k: v if not isinstance(v, t.Dict) else filter_deep_none(v) for k, v in data.items() if v is not None}
 
 
-def get_test_domain(environment: TestEnvironment):
-    env_var_name = f"PANGEA_INTEGRATION_DOMAIN_{environment}"
+def _load_env_var(env_var_name: str):
     value = os.getenv(env_var_name)
     if not value:
         raise PangeaException(f"{env_var_name} env var need to be set")
 
     return value
+
+
+def get_test_domain(environment: TestEnvironment):
+    env_var_name = f"PANGEA_INTEGRATION_DOMAIN_{environment}"
+    return _load_env_var(env_var_name)
 
 
 def get_test_token(environment: TestEnvironment):
     env_var_name = f"PANGEA_INTEGRATION_TOKEN_{environment}"
-    value = os.getenv(env_var_name)
-    if not value:
-        raise PangeaException(f"{env_var_name} env var need to be set")
-
-    return value
+    return _load_env_var(env_var_name)
 
 
 def get_vault_signature_test_token(environment: TestEnvironment):
     env_var_name = f"PANGEA_INTEGRATION_VAULT_TOKEN_{environment}"
-    value = os.getenv(env_var_name)
-    if not value:
-        raise PangeaException(f"{env_var_name} env var need to be set")
+    return _load_env_var(env_var_name)
 
-    return value
+
+def get_multi_config_test_token(environment: TestEnvironment):
+    env_var_name = f"PANGEA_INTEGRATION_MULTI_CONFIG_TOKEN_{environment}"
+    return _load_env_var(env_var_name)
+
+
+def get_config_id(environment: TestEnvironment, service: str, config_number: int):
+    service = service.upper()
+    env_var_name = f"PANGEA_{service}_CONFIG_ID_{config_number}_{environment}"
+    return _load_env_var(env_var_name)
 
 
 class SequenceFollower:

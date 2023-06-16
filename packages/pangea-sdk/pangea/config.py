@@ -12,6 +12,8 @@ class PangeaConfig:
     domain: str = "aws.us.pangea.cloud"
     environment: str = "production"
 
+    config_id: Optional[str] = None
+
     """
     Set to true to use plain http
 

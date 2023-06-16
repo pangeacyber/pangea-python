@@ -299,6 +299,7 @@ class FileIntel(ServiceBase):
     """
 
     service_name = "file-intel"
+    _support_multi_config = False
 
     @pangea_deprecated(version="1.2.0", reason="Should use FileIntel.hashReputation()")
     def lookup(
@@ -479,6 +480,7 @@ class DomainIntel(ServiceBase):
     """
 
     service_name = "domain-intel"
+    _support_multi_config = False
 
     @pangea_deprecated(version="1.2.0", reason="Should use DomainIntel.reputation()")
     def lookup(
@@ -570,6 +572,7 @@ class IpIntel(ServiceBase):
     """
 
     service_name = "ip-intel"
+    _support_multi_config = False
 
     @pangea_deprecated(version="1.2.0", reason="Should use IpIntel.reputation()")
     def lookup(
@@ -798,6 +801,7 @@ class UrlIntel(ServiceBase):
     """
 
     service_name = "url-intel"
+    _support_multi_config = False
 
     @pangea_deprecated(version="1.2.0", reason="Should use UrlIntel.reputation()")
     def lookup(
@@ -964,6 +968,7 @@ class UserIntel(ServiceBase):
     """
 
     service_name = "user-intel"
+    _support_multi_config = False
 
     def user_breached(
         self,
