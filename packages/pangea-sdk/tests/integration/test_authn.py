@@ -263,7 +263,8 @@ class TestAuthN(unittest.TestCase):
             self.assertIsNotNone(response_login.result.refresh_token)
 
             # session logout
-            self.authn.session.logout(user_id=response_login.result.active_token.id)
+            response_logout = self.authn.session.logout(user_id=response_login.result.active_token.id)
+            self.assertEqual(response_logout.status, "Success")
 
         except pexc.PangeaAPIException as e:
             print(e)
