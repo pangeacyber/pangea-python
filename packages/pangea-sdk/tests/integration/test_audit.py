@@ -11,7 +11,9 @@ from pangea.services.audit.exceptions import AuditException
 from pangea.services.audit.models import Event, EventVerification, LogResult, SearchOrder, SearchOrderBy, SearchOutput
 from pangea.tools import (
     TestEnvironment,
+    get_config_id,
     get_custom_schema_test_token,
+    get_multi_config_test_token,
     get_test_domain,
     get_test_token,
     get_vault_signature_test_token,
@@ -31,7 +33,7 @@ STATUS_NO_SIGNED = "no-signed"
 STATUS_SIGNED = "signed"
 LONG_FIELD = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed lacinia, orci eget commodo commodo non."
 
-TEST_ENVIRONMENT = TestEnvironment.LIVE
+TEST_ENVIRONMENT = TestEnvironment.DEVELOP
 
 custom_schema_event = {
     "message": MSG_CUSTOM_SCHEMA_NO_SIGNED,
@@ -45,18 +47,20 @@ custom_schema_event = {
 
 class TestAudit(unittest.TestCase):
     def setUp(self):
-        self.token = get_test_token(TEST_ENVIRONMENT)
+        self.general_token = get_test_token(TEST_ENVIRONMENT)
         self.vaultToken = get_vault_signature_test_token(TEST_ENVIRONMENT)
-        self.customSchemaToken = get_custom_schema_test_token(TestEnvironment.DEVELOP)
+        self.custom_schema_token = get_custom_schema_test_token(TestEnvironment.DEVELOP)
+        self.vault_token = get_vault_signature_test_token(TEST_ENVIRONMENT)
+        self.multi_config_token = get_multi_config_test_token(TEST_ENVIRONMENT)
 
-        domain = get_test_domain(TEST_ENVIRONMENT)
-        self.config = PangeaConfig(domain=domain)
-        self.audit = Audit(self.token, config=self.config, logger_name="pangea")
-        self.auditLocalSign = Audit(
-            self.token, config=self.config, private_key_file="./tests/testdata/privkey", logger_name="pangea"
+        self.domain = get_test_domain(TEST_ENVIRONMENT)
+        self.config = PangeaConfig(domain=self.domain)
+        self.audit_general = Audit(self.general_token, config=self.config, logger_name="pangea")
+        self.audit_local_sign = Audit(
+            self.general_token, config=self.config, private_key_file="./tests/testdata/privkey", logger_name="pangea"
         )
-        self.auditVaultSign = Audit(self.vaultToken, config=self.config, logger_name="pangea")
-        logger_set_pangea_config(logger_name=self.audit.logger.name)
+        self.audit_vault_sign = Audit(self.vault_token, config=self.config, logger_name="pangea")
+        logger_set_pangea_config(logger_name=self.audit_general.logger.name)
 
         self.auditCustomSchema = Audit(
             get_custom_schema_test_token(TestEnvironment.DEVELOP),
@@ -72,7 +76,7 @@ class TestAudit(unittest.TestCase):
         )
 
     def test_log_no_verbose(self):
-        response: PangeaResponse[LogResult] = self.audit.log(
+        response: PangeaResponse[LogResult] = self.audit_general.log(
             message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verbose=False
         )
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
@@ -80,7 +84,7 @@ class TestAudit(unittest.TestCase):
         self.assertIsNone(response.result.envelope)
 
     def test_log_tenant_id(self):
-        audit = Audit(self.token, config=self.config, tenant_id="mytenantid")
+        audit = Audit(self.general_token, config=self.config, tenant_id="mytenantid")
         response: PangeaResponse[LogResult] = audit.log(
             message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verbose=True
         )
@@ -91,7 +95,7 @@ class TestAudit(unittest.TestCase):
         self.assertEqual("mytenantid", event.tenant_id)
 
     def test_log_with_timestamp(self):
-        response: PangeaResponse[LogResult] = self.audit.log(
+        response: PangeaResponse[LogResult] = self.audit_general.log(
             message=MSG_NO_SIGNED,
             actor=ACTOR,
             status=STATUS_NO_SIGNED,
@@ -103,7 +107,7 @@ class TestAudit(unittest.TestCase):
         self.assertIsNone(response.result.envelope)
 
     def test_log_verbose_no_verify(self):
-        response: PangeaResponse[LogResult] = self.audit.log(
+        response: PangeaResponse[LogResult] = self.audit_general.log(
             message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verify=False, verbose=True
         )
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
@@ -115,7 +119,7 @@ class TestAudit(unittest.TestCase):
         self.assertEqual(response.result.signature_verification, EventVerification.NONE)
 
     def test_log_verify(self):
-        response: PangeaResponse[LogResult] = self.audit.log(
+        response: PangeaResponse[LogResult] = self.audit_general.log(
             message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verify=True
         )  # Verify true set verbose to true
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
@@ -128,7 +132,7 @@ class TestAudit(unittest.TestCase):
         self.assertEqual(response.result.membership_verification, EventVerification.PASS)
         self.assertEqual(response.result.signature_verification, EventVerification.NONE)
 
-        response: PangeaResponse[LogResult] = self.audit.log(
+        response: PangeaResponse[LogResult] = self.audit_general.log(
             message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verify=True
         )
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
@@ -141,7 +145,7 @@ class TestAudit(unittest.TestCase):
         new = {"customtag3": "mycustommsg3", "ct4": "cm4"}
         old = {"customtag5": "mycustommsg5", "ct6": "cm6"}
 
-        response = self.audit.log(
+        response = self.audit_general.log(
             message=MSG_JSON,
             actor=ACTOR,
             action="Action",
@@ -161,7 +165,7 @@ class TestAudit(unittest.TestCase):
         self.assertEqual(response.result.signature_verification, EventVerification.NONE)
 
     def test_log_sign_local_and_verify(self):
-        response = self.auditLocalSign.log(
+        response = self.audit_local_sign.log(
             message=MSG_SIGNED_LOCAL,
             actor=ACTOR,
             action="Action",
@@ -188,7 +192,7 @@ class TestAudit(unittest.TestCase):
 
     def test_sign_without_signer(self):
         def log():
-            response: PangeaResponse[LogResult] = self.audit.log(
+            response: PangeaResponse[LogResult] = self.audit_general.log(
                 message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verbose=False, sign_local=True
             )
 
@@ -196,7 +200,7 @@ class TestAudit(unittest.TestCase):
         self.assertRaises(AuditException, log)
 
     def test_log_sign_vault_and_verify(self):
-        response = self.auditVaultSign.log(
+        response = self.audit_vault_sign.log(
             message=MSG_SIGNED_VAULT,
             actor=ACTOR,
             action="Action",
@@ -225,7 +229,7 @@ class TestAudit(unittest.TestCase):
 
     def test_log_sign_local_and_tenant_id(self):
         audit = Audit(
-            self.token,
+            self.general_token,
             config=self.config,
             private_key_file="./tests/testdata/privkey",
             tenant_id="mytenantid",
@@ -262,7 +266,7 @@ class TestAudit(unittest.TestCase):
         new = {"customtag3": "mycustommsg3", "ct4": "cm4"}
         old = {"customtag5": "mycustommsg5", "ct6": "cm6"}
 
-        response = self.auditLocalSign.log(
+        response = self.audit_local_sign.log(
             message=MSG_JSON,
             actor=ACTOR,
             action="Action",
@@ -287,7 +291,7 @@ class TestAudit(unittest.TestCase):
         new = {"customtag3": "mycustommsg3", "ct4": "cm4"}
         old = {"customtag5": "mycustommsg5", "ct6": "cm6"}
 
-        response = self.auditVaultSign.log(
+        response = self.audit_vault_sign.log(
             message=MSG_JSON,
             actor=ACTOR,
             action="Action",
@@ -421,7 +425,7 @@ class TestAudit(unittest.TestCase):
     def test_search_results_verbose(self):
         limit = 2
         max_result = 3
-        response_search = self.audit.search(
+        response_search = self.audit_general.search(
             query="message:" + MSG_SIGNED_LOCAL,
             order=SearchOrder.ASC,
             limit=limit,
@@ -434,7 +438,9 @@ class TestAudit(unittest.TestCase):
 
         resultsLimit = 2
         # Verify consistency en true
-        response_results = self.audit.results(id=response_search.result.id, limit=resultsLimit, verify_consistency=True)
+        response_results = self.audit_general.results(
+            id=response_search.result.id, limit=resultsLimit, verify_consistency=True
+        )
         self.assertEqual(response_results.status, ResponseStatus.SUCCESS)
         self.assertEqual(len(response_results.result.events), resultsLimit)
         for event in response_results.result.events:
@@ -442,7 +448,7 @@ class TestAudit(unittest.TestCase):
             self.assertEqual(event.membership_verification, EventVerification.PASS)
 
         # Verify consistency en false
-        response_results = self.audit.results(
+        response_results = self.audit_general.results(
             id=response_search.result.id, limit=resultsLimit, offset=1, verify_consistency=False
         )
         self.assertEqual(response_results.status, ResponseStatus.SUCCESS)
@@ -452,7 +458,7 @@ class TestAudit(unittest.TestCase):
             self.assertEqual(event.membership_verification, EventVerification.NONE)
 
         def resultBadOffset():
-            self.audit.results(id=response_search.result.id, limit=1, offset=max_result + 1)
+            self.audit_general.results(id=response_search.result.id, limit=1, offset=max_result + 1)
 
         # This should fail because offset is out of range
         self.assertRaises(pexc.BadOffsetException, resultBadOffset)
@@ -460,14 +466,18 @@ class TestAudit(unittest.TestCase):
     def test_search_results_no_verbose(self):
         limit = 10
         max_result = 10
-        response_search = self.audit.search(query='message:""', limit=limit, max_results=max_result, verbose=False)
+        response_search = self.audit_general.search(
+            query='message:""', limit=limit, max_results=max_result, verbose=False
+        )
         self.assertEqual(response_search.status, ResponseStatus.SUCCESS)
         self.assertEqual(len(response_search.result.events), limit)
         self.assertEqual(response_search.result.count, max_result)
 
         resultsLimit = 2
         # Verify consistency en true
-        response_results = self.audit.results(id=response_search.result.id, limit=resultsLimit, verify_consistency=True)
+        response_results = self.audit_general.results(
+            id=response_search.result.id, limit=resultsLimit, verify_consistency=True
+        )
         self.assertEqual(response_results.status, ResponseStatus.SUCCESS)
         self.assertEqual(len(response_results.result.events), resultsLimit)
         for event in response_results.result.events:
@@ -475,7 +485,7 @@ class TestAudit(unittest.TestCase):
             self.assertEqual(event.membership_verification, EventVerification.NONE)
 
         # Verify consistency en false
-        response_results = self.audit.results(
+        response_results = self.audit_general.results(
             id=response_search.result.id, limit=resultsLimit, offset=1, verify_consistency=False
         )
         self.assertEqual(response_results.status, ResponseStatus.SUCCESS)
@@ -485,21 +495,21 @@ class TestAudit(unittest.TestCase):
             self.assertEqual(event.membership_verification, EventVerification.NONE)
 
         def resultBadOffset():
-            self.audit.results(id=response_search.result.id, limit=1, offset=max_result + 1)
+            self.audit_general.results(id=response_search.result.id, limit=1, offset=max_result + 1)
 
         # This should fail because offset is out of range
         self.assertRaises(pexc.BadOffsetException, resultBadOffset)
 
     def test_result_bad_offset(self):
         def resultBadOffset():
-            self.audit.results(id="id", limit=1, offset=-1)
+            self.audit_general.results(id="id", limit=1, offset=-1)
 
         # This should fail because offset is out of range
         self.assertRaises(AuditException, resultBadOffset)
 
     def test_result_bad_limit(self):
         def resultBadLimit():
-            self.audit.results(id="id", limit=-1, offset=1)
+            self.audit_general.results(id="id", limit=-1, offset=1)
 
         # This should fail because offset is out of range
         self.assertRaises(AuditException, resultBadLimit)
@@ -509,7 +519,7 @@ class TestAudit(unittest.TestCase):
         max_result = 3
         end = datetime.datetime.now()
         start = end - datetime.timedelta(days=30)
-        response_search = self.audit.search(
+        response_search = self.audit_general.search(
             query='message:""',
             order=SearchOrder.DESC,
             limit=limit,
@@ -527,7 +537,7 @@ class TestAudit(unittest.TestCase):
         max_result = 3
         end = "0d"
         start = "30d"
-        response_search = self.audit.search(
+        response_search = self.audit_general.search(
             query='message:""',
             order=SearchOrder.DESC,
             limit=limit,
@@ -541,7 +551,7 @@ class TestAudit(unittest.TestCase):
         self.assertEqual(response_search.result.count, max_result)
 
     def test_root_1(self):
-        response = self.audit.root()
+        response = self.audit_general.root()
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertTrue(isinstance(response.result.data.tree_name, str))
         self.assertNotEqual(response.result.data.tree_name, "")
@@ -555,7 +565,7 @@ class TestAudit(unittest.TestCase):
 
     def test_root_2(self):
         tree_size = 1
-        response = self.audit.root(tree_size=tree_size)
+        response = self.audit_general.root(tree_size=tree_size)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertEqual(response.result.data.size, tree_size)
 
@@ -570,7 +580,7 @@ class TestAudit(unittest.TestCase):
 
     def test_search_verify(self):
         query = f"message:{MSG_SIGNED_LOCAL}"
-        response = self.audit.search(
+        response = self.audit_general.search(
             query=query,
             order=SearchOrder.ASC,
             limit=2,
@@ -591,11 +601,11 @@ class TestAudit(unittest.TestCase):
         authors = ["alex", "bob", "chris", "david", "evan"]
 
         for idx in range(0, len(authors)):
-            resp = self.audit.log(message=msg, actor=authors[idx])
+            resp = self.audit_general.log(message=msg, actor=authors[idx])
             self.assertEqual(resp.status, ResponseStatus.SUCCESS)
 
         query = "message:" + msg
-        r_desc: PangeaResponse[SearchOutput] = self.audit.search(
+        r_desc: PangeaResponse[SearchOutput] = self.audit_general.search(
             query=query, order=SearchOrder.ASC, order_by=SearchOrderBy.RECEIVED_AT, limit=len(authors)
         )
         self.assertEqual(r_desc.status, ResponseStatus.SUCCESS)
@@ -604,7 +614,7 @@ class TestAudit(unittest.TestCase):
         for idx in range(0, len(authors)):
             self.assertEqual(r_desc.result.events[idx].envelope.event["actor"], authors[idx])
 
-        r_asc = self.audit.search(
+        r_asc = self.audit_general.search(
             query=query, order=SearchOrder.DESC, order_by=SearchOrderBy.RECEIVED_AT, limit=len(authors)
         )
         self.assertEqual(r_asc.status, ResponseStatus.SUCCESS)
@@ -612,3 +622,39 @@ class TestAudit(unittest.TestCase):
 
         for idx in range(0, len(authors)):
             self.assertEqual(r_asc.result.events[len(authors) - 1 - idx].envelope.event.actor, authors[idx])
+
+    def test_multi_config_log(self):
+        config = PangeaConfig(domain=self.domain)
+        audit_multi_config = Audit(self.multi_config_token, config=config)
+
+        def log_without_config_id():
+            response: PangeaResponse[LogResult] = audit_multi_config.log(
+                message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verbose=True
+            )
+
+        # This should fail because this token has multi config but we didn't set up a config id
+        self.assertRaises(pexc.PangeaAPIException, log_without_config_id)
+
+    def test_multi_config_log_config_1(self):
+        config_id = get_config_id(TEST_ENVIRONMENT, "audit", 1)
+        config = PangeaConfig(domain=self.domain, config_id=config_id)
+        audit_multi_config = Audit(self.multi_config_token, config=config)
+
+        response: PangeaResponse[LogResult] = audit_multi_config.log(
+            message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verbose=True
+        )
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertIsNotNone(response.result.hash)
+        self.assertIsNotNone(response.result.envelope)
+
+    def test_multi_config_log_config_2(self):
+        config_id = get_config_id(TEST_ENVIRONMENT, "audit", 2)
+        config = PangeaConfig(domain=self.domain, config_id=config_id)
+        audit_multi_config = Audit(self.multi_config_token, config=config)
+
+        response: PangeaResponse[LogResult] = audit_multi_config.log(
+            message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verbose=True
+        )
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertIsNotNone(response.result.hash)
+        self.assertIsNotNone(response.result.envelope)

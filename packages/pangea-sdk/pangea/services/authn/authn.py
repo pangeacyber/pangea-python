@@ -8,6 +8,7 @@ from pangea.response import PangeaResponse
 from pangea.services.base import ServiceBase
 
 SERVICE_NAME = "authn"
+SUPPORT_MULTI_CONFIG = True
 
 
 class AuthN(ServiceBase):
@@ -33,7 +34,8 @@ class AuthN(ServiceBase):
         authn = AuthN(token=PANGEA_TOKEN, config=authn_config)
     """
 
-    service_name: str = SERVICE_NAME
+    service_name = SERVICE_NAME
+    _support_multi_config = SUPPORT_MULTI_CONFIG
 
     def __init__(
         self,
@@ -48,7 +50,8 @@ class AuthN(ServiceBase):
         self.session = AuthN.Session(token, config, logger_name=logger_name)
 
     class Session(ServiceBase):
-        service_name: str = SERVICE_NAME
+        service_name = SERVICE_NAME
+        _support_multi_config = SUPPORT_MULTI_CONFIG
 
         def __init__(
             self,
@@ -93,7 +96,8 @@ class AuthN(ServiceBase):
             return response
 
     class Client(ServiceBase):
-        service_name: str = SERVICE_NAME
+        service_name = SERVICE_NAME
+        _support_multi_config = SUPPORT_MULTI_CONFIG
 
         def __init__(
             self,
@@ -122,7 +126,8 @@ class AuthN(ServiceBase):
             return response
 
         class Session(ServiceBase):
-            service_name: str = SERVICE_NAME
+            service_name = SERVICE_NAME
+            _support_multi_config = SUPPORT_MULTI_CONFIG
 
             def __init__(
                 self,
@@ -181,7 +186,8 @@ class AuthN(ServiceBase):
                 return response
 
         class Password(ServiceBase):
-            service_name: str = SERVICE_NAME
+            service_name = SERVICE_NAME
+            _support_multi_config = SUPPORT_MULTI_CONFIG
 
             def __init__(
                 self,
@@ -202,7 +208,8 @@ class AuthN(ServiceBase):
                 return response
 
         class Token(ServiceBase):
-            service_name: str = SERVICE_NAME
+            service_name = SERVICE_NAME
+            _support_multi_config = SUPPORT_MULTI_CONFIG
 
             def __init__(
                 self,
@@ -220,7 +227,8 @@ class AuthN(ServiceBase):
             return response
 
     class User(ServiceBase):
-        service_name: str = SERVICE_NAME
+        service_name = SERVICE_NAME
+        _support_multi_config = SUPPORT_MULTI_CONFIG
 
         def __init__(
             self,
@@ -350,7 +358,8 @@ class AuthN(ServiceBase):
             return response
 
         class Password(ServiceBase):
-            service_name: str = SERVICE_NAME
+            service_name = SERVICE_NAME
+            _support_multi_config = SUPPORT_MULTI_CONFIG
 
             def __init__(
                 self,
@@ -370,7 +379,8 @@ class AuthN(ServiceBase):
                 return response
 
         class Login(ServiceBase):
-            service_name: str = SERVICE_NAME
+            service_name = SERVICE_NAME
+            _support_multi_config = SUPPORT_MULTI_CONFIG
 
             def __init__(
                 self,
@@ -403,7 +413,8 @@ class AuthN(ServiceBase):
                 return response
 
         class MFA(ServiceBase):
-            service_name: str = SERVICE_NAME
+            service_name = SERVICE_NAME
+            _support_multi_config = SUPPORT_MULTI_CONFIG
 
             def __init__(
                 self,
@@ -460,7 +471,8 @@ class AuthN(ServiceBase):
                 return response
 
         class Profile(ServiceBase):
-            service_name: str = SERVICE_NAME
+            service_name = SERVICE_NAME
+            _support_multi_config = SUPPORT_MULTI_CONFIG
 
             def __init__(
                 self,
@@ -500,7 +512,8 @@ class AuthN(ServiceBase):
                 return response
 
         class Invites(ServiceBase):
-            service_name: str = SERVICE_NAME
+            service_name = SERVICE_NAME
+            _support_multi_config = SUPPORT_MULTI_CONFIG
 
             def __init__(
                 self,
@@ -536,7 +549,8 @@ class AuthN(ServiceBase):
                 return response
 
     class Flow(ServiceBase):
-        service_name: str = SERVICE_NAME
+        service_name = SERVICE_NAME
+        _support_multi_config = SUPPORT_MULTI_CONFIG
 
         def __init__(
             self,
@@ -575,7 +589,8 @@ class AuthN(ServiceBase):
             return response
 
         class Reset(ServiceBase):
-            service_name: str = SERVICE_NAME
+            service_name = SERVICE_NAME
+            _support_multi_config = SUPPORT_MULTI_CONFIG
 
             def __init__(
                 self,
@@ -604,7 +619,8 @@ class AuthN(ServiceBase):
                 return response
 
         class Enroll(ServiceBase):
-            service_name: str = SERVICE_NAME
+            service_name = SERVICE_NAME
+            _support_multi_config = SUPPORT_MULTI_CONFIG
 
             def __init__(
                 self,
@@ -616,7 +632,8 @@ class AuthN(ServiceBase):
                 self.mfa = AuthN.Flow.Enroll.MFA(token, config, logger_name=logger_name)
 
             class MFA(ServiceBase):
-                service_name: str = SERVICE_NAME
+                service_name = SERVICE_NAME
+                _support_multi_config = SUPPORT_MULTI_CONFIG
 
                 def __init__(
                     self,
@@ -649,7 +666,8 @@ class AuthN(ServiceBase):
                     return response
 
         class Signup(ServiceBase):
-            service_name: str = SERVICE_NAME
+            service_name = SERVICE_NAME
+            _support_multi_config = SUPPORT_MULTI_CONFIG
 
             def __init__(
                 self,
@@ -682,7 +700,8 @@ class AuthN(ServiceBase):
                 return response
 
         class Verify(ServiceBase):
-            service_name: str = SERVICE_NAME
+            service_name = SERVICE_NAME
+            _support_multi_config = SUPPORT_MULTI_CONFIG
 
             def __init__(
                 self,
@@ -734,7 +753,8 @@ class AuthN(ServiceBase):
                 return response
 
             class MFA(ServiceBase):
-                service_name: str = SERVICE_NAME
+                service_name = SERVICE_NAME
+                _support_multi_config = SUPPORT_MULTI_CONFIG
 
                 def __init__(
                     self,
@@ -765,23 +785,3 @@ class AuthN(ServiceBase):
                     if response.raw_result is not None:
                         response.result = m.FlowVerifyMFAStartResult(**response.raw_result)
                     return response
-
-    # class Token(ServiceBase):
-    #     service_name: str = SERVICE_NAME
-    #
-
-    #     def __init__(
-    #         self,
-    #         token,
-    #         config=None,
-    #       logger_name="pangea",
-    #     ):
-    #         super().__init__(token, config, logger_name=logger_name)
-
-    #     # https://dev.pangea.cloud/docs/api/authn?focus=authn#invalidate-a-session-by-session-id-using-a-client-token
-    #     def list(self, ) -> PangeaResponse[m.ClientSessionInvalidateResult]:
-    #         input = m.ClientSessionInvalidateRequest(token=token, session_id=session_id)
-    #         response = self.request.post("v1/client/session/invalidate", data=input.dict(exclude_none=True))
-    #         if response.raw_result is not None:
-    #             response.result = m.ClientSessionInvalidateResult(**response.raw_result)
-    #         return response
