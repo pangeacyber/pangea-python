@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - Unreleased
+
+# Added
+
+- Custom schema support: Add Audit.log_event() to use custom schema
+
+# Changed
+
+- Custom schema support breaking change: event is a dict now
+- Audit.log(): signing param rename to sign_local due to vault signing is set by token config
+- Rename FileIntel.hashReputation to hash_reputation, and filepathReputation to filepath_reputation
+
+# Removed
+
+- Intel lookup deprecated methods.
+
+
 ## [1.9.1] - 2023-06-08
 
 # Added
