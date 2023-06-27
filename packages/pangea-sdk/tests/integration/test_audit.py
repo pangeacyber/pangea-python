@@ -621,7 +621,7 @@ class TestAudit(unittest.TestCase):
         self.assertEqual(len(r_asc.result.events), len(authors))
 
         for idx in range(0, len(authors)):
-            self.assertEqual(r_asc.result.events[len(authors) - 1 - idx].envelope.event.actor, authors[idx])
+            self.assertEqual(r_asc.result.events[len(authors) - 1 - idx].envelope.event["actor"], authors[idx])
 
     def test_multi_config_log(self):
         config = PangeaConfig(domain=self.domain)
