@@ -41,7 +41,7 @@ class ClientTokenCheckResult(PangeaResponseResult):
     expire: str
     identity: str
     email: str
-    scopes: Scopes
+    scopes: Optional[Scopes] = None
     profile: Profile
     created_at: str
 
@@ -219,7 +219,6 @@ class UserInviteDeleteResult(PangeaResponseResult):
 
 
 class UserListRequest(APIRequestModel):
-    use_new: bool = True  # Temporary field, need to be true
     filter: Optional[Dict] = None
     last: Optional[str] = None
     order: Optional[ItemOrder] = None
@@ -648,7 +647,7 @@ class UserVerifyResult(PangeaResponseResult):
     id: str
     email: str
     profile: Profile
-    scopes: Scopes
+    scopes: Optional[Scopes] = None
     id_providers: Optional[List[str]] = None
     mfa_providers: List[str]
     require_mfa: bool
@@ -683,7 +682,7 @@ class SessionToken(APIResponseModel):
     expire: str
     identity: str
     email: str
-    scopes: Scopes
+    scopes: Optional[Scopes] = None
     profile: Profile
     created_at: str
 
@@ -693,7 +692,6 @@ class SessionItem(APIResponseModel):
     type: str
     life: int
     expire: str
-    id: str
     email: str
     scopes: Optional[Scopes] = None
     profile: Profile
