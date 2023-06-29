@@ -61,16 +61,32 @@ class AuthN(ServiceBase):
         ):
             super().__init__(token, config, logger_name=logger_name)
 
-        # https://dev.pangea.cloud/docs/api/authn#invalidate-a-session-by-session-id
+        # https://pangea.cloud/docs/api/authn#invalidate-session
         # - path: authn::/v1/session/invalidate
         def invalidate(self, session_id: str) -> PangeaResponse[m.SessionInvalidateResult]:
+            """
+            Invalidate Session
+
+            Invalidate a session by session ID.
+
+            OperationId: authn_post_v1_session_invalidate
+
+            Args:
+                session_id (str): An ID for a token
+
+            Returns:
+                A PangeaResponse with an empty object in the response.result field.
+
+            Examples:
+                authn.session.invalidate("pmt_zppkzrjguxyblaia6itbiesejn7jejnr")
+            """
             input = m.SessionInvalidateRequest(session_id=session_id)
             response = self.request.post("v1/session/invalidate", data=input.dict(exclude_none=True))
             if response.raw_result is not None:
                 response.result = m.SessionInvalidateResult(**response.raw_result)
             return response
 
-        # https://dev.pangea.cloud/docs/api/authn#list-sessions
+        # https://pangea.cloud/docs/api/authn#list-session-service-token
         # - path: authn::/v1/session/list
         def list(
             self,
@@ -80,15 +96,53 @@ class AuthN(ServiceBase):
             order_by: Optional[m.SessionListOrderBy] = None,
             size: Optional[int] = None,
         ) -> PangeaResponse[m.SessionListResults]:
+            """
+            List session (service token)
+
+            List sessions.
+
+            OperationId: authn_post_v1_session_list
+
+            Args:
+                filter (dict, optional):
+                last (str, optional): Reflected value from a previous response to obtain the next page of results.
+                order (m.ItemOrder, optional): Order results asc(ending) or desc(ending).
+                order_by (m.SessionListOrderBy, optional): Which field to order results by.
+                size (int, optional): Maximum results to include in the response. Minimum: 1.
+
+            Returns:
+                A PangeaResponse with a list of sessions in the response.result field.
+                    Available response fields can be found in our
+                    [API Documentation](https://pangea.cloud/docs/api/authn#list-session-service-token).
+
+            Examples:
+                response = authn.session.list()
+            """
             input = m.SessionListRequest(filter=filter, last=last, order=order, order_by=order_by, size=size)
             response = self.request.post("v1/session/list", data=input.dict(exclude_none=True))
             if response.raw_result is not None:
                 response.result = m.SessionListResults(**response.raw_result)
             return response
 
-        # https://dev.pangea.cloud/docs/api/authn#invalidate-all-sessions-belonging-to-a-user
+        # https://pangea.cloud/docs/api/authn#log-out-service-token
         # - path: authn::/v1/session/logout
         def logout(self, user_id: str) -> PangeaResponse[m.SessionLogoutResult]:
+            """
+            Log out (service token)
+
+            Invalidate all sessions belonging to a user.
+
+            OperationId: authn_post_v1_session_logout
+
+            Args:
+                user_id (str): The identity of a user or a service.
+
+            Returns:
+                A PangeaResponse with an empty object in the response.result field.
+
+            Examples:
+                authn.session.logout("pui_xpkhwpnz2cmegsws737xbsqnmnuwtvm5")
+            """
             input = m.SessionLogoutRequest(user_id=user_id)
             response = self.request.post("v1/session/logout", data=input.dict(exclude_none=True))
             if response.raw_result is not None:
@@ -109,17 +163,55 @@ class AuthN(ServiceBase):
             self.session = AuthN.Client.Session(token, config, logger_name=logger_name)
             self.password = AuthN.Client.Password(token, config, logger_name=logger_name)
 
-        # https://dev.pangea.cloud/docs/api/authn#complete-a-login
+        # https://pangea.cloud/docs/api/authn#get-user-client-token
+        # - path: authn::/v1/client/userinfo
         def userinfo(self, code: str) -> PangeaResponse[m.ClientUserinfoResult]:
+            """
+            Get User (client token)
+
+            Retrieve the logged in user's token and information.
+
+            OperationId: authn_post_v1_client_userinfo
+
+            Args:
+                code (str): A one-time ticket
+
+            Returns:
+                A PangeaResponse with credentials for a login session in the response.result field.
+                    Available response fields can be found in our
+                    [API Documentation](https://pangea.cloud/docs/api/authn#get-user-client-token).
+
+            Examples:
+                response = authn.client.userinfo(
+                    "pmc_d6chl6qulpn3it34oerwm3cqwsjd6dxw"
+                )
+            """
             input = m.ClientUserinfoRequest(code=code)
             response = self.request.post("v1/client/userinfo", data=input.dict(exclude_none=True))
             if response.raw_result is not None:
                 response.result = m.ClientUserinfoResult(**response.raw_result)
             return response
 
+        # https://pangea.cloud/docs/api/authn#get-jwt-verification-keys
+        # - path: authn::/v1/client/jwks
         def jwks(
             self,
         ) -> PangeaResponse[m.ClientJWKSResult]:
+            """
+            Get JWT verification keys
+
+            Get JWT verification keys.
+
+            OperationId: authn_post_v1_client_jwks
+
+            Returns:
+                A PangeaResponse with jwt verification keys in the response.result field.
+                    Available response fields can be found in our
+                    [API Documentation](https://pangea.cloud/docs/api/authn#get-jwt-verification-keys).
+            
+            Examples:
+                response = authn.client.jwks()
+            """
             response = self.request.post("v1/client/jwks", {})
             if response.raw_result is not None:
                 response.result = m.ClientJWKSResult(**response.raw_result)
@@ -137,16 +229,36 @@ class AuthN(ServiceBase):
             ):
                 super().__init__(token, config, logger_name=logger_name)
 
+            # https://pangea.cloud/docs/api/authn#invalidate-session-client
             # - path: authn::/v1/client/session/invalidate
-            # https://dev.pangea.cloud/docs/api/authn?focus=authn#invalidate-a-session-by-session-id-using-a-client-token
             def invalidate(self, token: str, session_id: str) -> PangeaResponse[m.ClientSessionInvalidateResult]:
+                """
+                Invalidate Session | Client
+
+                Invalidate a session by session ID using a client token.
+
+                OperationId: authn_post_v1_client_session_invalidate
+
+                Args:
+                    token (str): A user token value
+                    session_id (str): An ID for a token
+
+                Returns:
+                    A PangeaResponse with an empty object in the response.result field.
+
+                Examples:
+                    authn.client.session.invalidate(
+                        "ptu_wuk7tvtpswyjtlsx52b7yyi2l7zotv4a",
+                        "pmt_zppkzrjguxyblaia6itbiesejn7jejnr"
+                    )
+                """
                 input = m.ClientSessionInvalidateRequest(token=token, session_id=session_id)
                 response = self.request.post("v1/client/session/invalidate", data=input.dict(exclude_none=True))
                 if response.raw_result is not None:
                     response.result = m.ClientSessionInvalidateResult(**response.raw_result)
                 return response
 
-            # https://dev.pangea.cloud/docs/api/authn#list-sessions-using-a-client-token
+            # https://pangea.cloud/docs/api/authn#list-sessions-client-token
             # - path: authn::/v1/client/session/list
             def list(
                 self,
@@ -157,6 +269,31 @@ class AuthN(ServiceBase):
                 order_by: Optional[m.SessionListOrderBy] = None,
                 size: Optional[int] = None,
             ) -> PangeaResponse[m.ClientSessionListResults]:
+                """
+                List sessions (client token)
+
+                List sessions using a client token.
+
+                OperationId: authn_post_v1_client_session_list
+
+                Args:
+                    token (str): A user token value
+                    filter (dict, optional):
+                    last (str, optional): Reflected value from a previous response to obtain the next page of results.
+                    order (m.ItemOrder, optional): Order results asc(ending) or desc(ending).
+                    order_by (m.SessionListOrderBy, optional): Which field to order results by.
+                    size (int, optional): Maximum results to include in the response. Minimum: 1.
+
+                Returns:
+                    A PangeaResponse with a list of sessions in the response.result field.
+                        Available response fields can be found in our
+                        [API Documentation](https://pangea.cloud/docs/api/authn#list-sessions-client-token).
+
+                Examples:
+                    response = authn.client.session.list(
+                        "ptu_wuk7tvtpswyjtlsx52b7yyi2l7zotv4a"
+                    )
+                """
                 input = m.ClientSessionInvalidateRequest(
                     token=token, filter=filter, last=last, order=order, order_by=order_by, size=size
                 )
@@ -165,20 +302,58 @@ class AuthN(ServiceBase):
                     response.result = m.ClientSessionListResults(**response.raw_result)
                 return response
 
-            # https://dev.pangea.cloud/docs/api/authn#log-out-the-current-users-session
+            # https://pangea.cloud/docs/api/authn#log-out-client-token
             # - path: authn::/v1/client/session/logout
             def logout(self, token: str) -> PangeaResponse[m.ClientSessionLogoutResult]:
+                """
+                Log out (client token)
+
+                Log out the current user's session.
+
+                OperationId: authn_post_v1_client_session_logout
+
+                Args:
+                    token (str): A user token value
+
+                Returns:
+                    A PangeaResponse with an empty object in the response.result field.
+
+                Examples:
+                    authn.client.session.logout("ptu_wuk7tvtpswyjtlsx52b7yyi2l7zotv4a")
+                """
                 input = m.ClientSessionLogoutRequest(token=token)
                 response = self.request.post("v1/client/session/logout", data=input.dict(exclude_none=True))
                 if response.raw_result is not None:
                     response.result = m.ClientSessionLogoutResult(**response.raw_result)
                 return response
 
-            # https://dev.pangea.cloud/docs/api/authn#refresh-a-session-token
+            # https://pangea.cloud/docs/api/authn#refresh-a-session
             # - path: authn::/v1/client/session/refresh
             def refresh(
                 self, refresh_token: str, user_token: Optional[str] = None
             ) -> PangeaResponse[m.ClientSessionRefreshResult]:
+                """
+                Refresh a Session
+
+                Refresh a session token.
+
+                OperationId: authn_post_v1_client_session_refresh
+
+                Args:
+                    refresh_token (str): A refresh token value
+                    user_token (str, optional): A user token value
+
+                Returns:
+                    A PangeaResponse with credentials for a login session in the response.result field.
+                        Available response fields can be found in our
+                        [API Documentation](https://pangea.cloud/docs/api/authn#refresh-a-session).
+
+                Examples:
+                    response = authn.client.session.refresh(
+                        "ptr_xpkhwpnz2cmegsws737xbsqnmnuwtbm5",
+                        "ptu_wuk7tvtpswyjtlsx52b7yyi2l7zotv4a"
+                    )
+                """
                 input = m.ClientSessionRefreshRequest(refresh_token=refresh_token, user_token=user_token)
                 response = self.request.post("v1/client/session/refresh", data=input.dict(exclude_none=True))
                 if response.raw_result is not None:
@@ -197,10 +372,33 @@ class AuthN(ServiceBase):
             ):
                 super().__init__(token, config, logger_name=logger_name)
 
-            # https://dev.pangea.cloud/docs/api/authn#change-a-users-password
+            # https://pangea.cloud/docs/api/authn#change-a-users-password
+            # - path: authn::/v1/client/password/change
             def change(
                 self, token: str, old_password: str, new_password: str
             ) -> PangeaResponse[m.ClientPasswordChangeResult]:
+                """
+                Change a user's password
+
+                Change a user's password given the current password.
+
+                OperationId: authn_post_v1_client_password_change
+
+                Args:
+                    token (str): A user token value
+                    old_password (str):
+                    new_password (str):
+
+                Returns:
+                    A PangeaResponse with an empty object in the response.result field.
+
+                Examples:
+                    authn.client.password.change(
+                        "ptu_wuk7tvtpswyjtlsx52b7yyi2l7zotv4a",
+                        "hunter2",
+                        "My2n+Password"
+                    )
+                """
                 input = m.ClientPasswordChangeRequest(token=token, old_password=old_password, new_password=new_password)
                 response = self.request.post("v1/client/password/change", data=input.dict(exclude_none=True))
                 if response.raw_result is not None:
@@ -219,7 +417,29 @@ class AuthN(ServiceBase):
             ):
                 super().__init__(token, config, logger_name=logger_name)
 
+        # https://pangea.cloud/docs/api/authn#check-a-token
+        # - path: authn::/v1/client/token/check
         def check(self, token: str) -> PangeaResponse[m.ClientTokenCheckResult]:
+            """
+            Check a token
+
+            Look up a token and return its contents.
+
+            OperationId: authn_post_v1_client_token_check
+
+            Args:
+                token (str): A token value
+
+            Returns:
+                A PangeaResponse with a token and its information in the response.result field.
+                    Available response fields can be found in our
+                    [API Documentation](https://pangea.cloud/docs/api/authn#check-a-token).
+
+            Examples:
+                response = authn.client.token.check(
+                    "ptu_wuk7tvtpswyjtlsx52b7yyi2l7zotv4a"
+                )
+            """
             input = m.ClientTokenCheckRequest(token=token)
             response = self.request.post("v1/client/token/check", data=input.dict(exclude_none=True))
             if response.raw_result is not None:
