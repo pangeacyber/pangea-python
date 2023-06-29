@@ -78,7 +78,9 @@ class AuthN(ServiceBase):
                 A PangeaResponse with an empty object in the response.result field.
 
             Examples:
-                authn.session.invalidate("pmt_zppkzrjguxyblaia6itbiesejn7jejnr")
+                authn.session.invalidate(
+                    session_id="pmt_zppkzrjguxyblaia6itbiesejn7jejnr"
+                )
             """
             input = m.SessionInvalidateRequest(session_id=session_id)
             response = self.request.post("v1/session/invalidate", data=input.dict(exclude_none=True))
@@ -141,7 +143,9 @@ class AuthN(ServiceBase):
                 A PangeaResponse with an empty object in the response.result field.
 
             Examples:
-                authn.session.logout("pui_xpkhwpnz2cmegsws737xbsqnmnuwtvm5")
+                authn.session.logout(
+                    user_id="pui_xpkhwpnz2cmegsws737xbsqnmnuwtvm5"
+                )
             """
             input = m.SessionLogoutRequest(user_id=user_id)
             response = self.request.post("v1/session/logout", data=input.dict(exclude_none=True))
@@ -183,7 +187,7 @@ class AuthN(ServiceBase):
 
             Examples:
                 response = authn.client.userinfo(
-                    "pmc_d6chl6qulpn3it34oerwm3cqwsjd6dxw"
+                    code="pmc_d6chl6qulpn3it34oerwm3cqwsjd6dxw"
                 )
             """
             input = m.ClientUserinfoRequest(code=code)
@@ -248,8 +252,8 @@ class AuthN(ServiceBase):
 
                 Examples:
                     authn.client.session.invalidate(
-                        "ptu_wuk7tvtpswyjtlsx52b7yyi2l7zotv4a",
-                        "pmt_zppkzrjguxyblaia6itbiesejn7jejnr"
+                        token="ptu_wuk7tvtpswyjtlsx52b7yyi2l7zotv4a",
+                        session_id="pmt_zppkzrjguxyblaia6itbiesejn7jejnr"
                     )
                 """
                 input = m.ClientSessionInvalidateRequest(token=token, session_id=session_id)
@@ -291,7 +295,7 @@ class AuthN(ServiceBase):
 
                 Examples:
                     response = authn.client.session.list(
-                        "ptu_wuk7tvtpswyjtlsx52b7yyi2l7zotv4a"
+                        token="ptu_wuk7tvtpswyjtlsx52b7yyi2l7zotv4a"
                     )
                 """
                 input = m.ClientSessionInvalidateRequest(
@@ -319,7 +323,9 @@ class AuthN(ServiceBase):
                     A PangeaResponse with an empty object in the response.result field.
 
                 Examples:
-                    authn.client.session.logout("ptu_wuk7tvtpswyjtlsx52b7yyi2l7zotv4a")
+                    authn.client.session.logout(
+                        token="ptu_wuk7tvtpswyjtlsx52b7yyi2l7zotv4a"
+                    )
                 """
                 input = m.ClientSessionLogoutRequest(token=token)
                 response = self.request.post("v1/client/session/logout", data=input.dict(exclude_none=True))
@@ -350,8 +356,8 @@ class AuthN(ServiceBase):
 
                 Examples:
                     response = authn.client.session.refresh(
-                        "ptr_xpkhwpnz2cmegsws737xbsqnmnuwtbm5",
-                        "ptu_wuk7tvtpswyjtlsx52b7yyi2l7zotv4a"
+                        refresh_token="ptr_xpkhwpnz2cmegsws737xbsqnmnuwtbm5",
+                        user_token="ptu_wuk7tvtpswyjtlsx52b7yyi2l7zotv4a"
                     )
                 """
                 input = m.ClientSessionRefreshRequest(refresh_token=refresh_token, user_token=user_token)
@@ -394,9 +400,9 @@ class AuthN(ServiceBase):
 
                 Examples:
                     authn.client.password.change(
-                        "ptu_wuk7tvtpswyjtlsx52b7yyi2l7zotv4a",
-                        "hunter2",
-                        "My2n+Password"
+                        token="ptu_wuk7tvtpswyjtlsx52b7yyi2l7zotv4a",
+                        old_password="hunter2",
+                        new_password="My2n+Password"
                     )
                 """
                 input = m.ClientPasswordChangeRequest(token=token, old_password=old_password, new_password=new_password)
@@ -437,7 +443,7 @@ class AuthN(ServiceBase):
 
             Examples:
                 response = authn.client.token.check(
-                    "ptu_wuk7tvtpswyjtlsx52b7yyi2l7zotv4a"
+                    token="ptu_wuk7tvtpswyjtlsx52b7yyi2l7zotv4a"
                 )
             """
             input = m.ClientTokenCheckRequest(token=token)
@@ -462,8 +468,8 @@ class AuthN(ServiceBase):
             self.mfa = AuthN.User.MFA(token, config, logger_name=logger_name)
             self.login = AuthN.User.Login(token, config, logger_name=logger_name)
 
+        # https://pangea.cloud/docs/api/authn#create-user
         #   - path: authn::/v1/user/create
-        # https://dev.pangea.cloud/docs/api/authn#create-user
         def create(
             self,
             email: str,
@@ -474,7 +480,34 @@ class AuthN(ServiceBase):
             profile: Optional[m.Profile] = None,
             scopes: Optional[m.Scopes] = None,
         ) -> PangeaResponse[m.UserCreateResult]:
+            """
+            Create User
 
+            Create a user.
+
+            OperationId: authn_post_v1_user_create
+
+            Args:
+                email (str): An email address
+                authenticator (str): A provider-specific authenticator, such as a password or a social identity.
+                id_provider (m.IDProvider, optional): Mechanism for authenticating a user's identity
+                verified (bool, optional): True if the user's email has been verified
+                require_mfa (bool, optional): True if the user must use MFA during authentication
+                profile (m.Profile, optional): A user profile as a collection of string properties
+                scopes (m.Scopes, optional): A list of scopes
+
+            Returns:
+                A PangeaResponse with a user and its information in the response.result field.
+                    Available response fields can be found in our
+                    [API Documentation](https://pangea.cloud/docs/api/authn#create-user).
+            
+            Examples:
+                response = authn.user.create(
+                    email="joe.user@email.com",
+                    password="My1s+Password",
+                    id_provider=IDProvider.PASSWORD
+                )
+            """
             input = m.UserCreateRequest(
                 email=email,
                 authenticator=authenticator,
