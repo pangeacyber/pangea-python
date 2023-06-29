@@ -166,6 +166,7 @@ class AuthN(ServiceBase):
             super().__init__(token, config, logger_name=logger_name)
             self.session = AuthN.Client.Session(token, config, logger_name=logger_name)
             self.password = AuthN.Client.Password(token, config, logger_name=logger_name)
+            self.token_enpoints = AuthN.Client.Token(token, config, logger_name=logger_name)
 
         # https://pangea.cloud/docs/api/authn#get-user-client-token
         # - path: authn::/v1/client/userinfo
@@ -298,7 +299,7 @@ class AuthN(ServiceBase):
                         token="ptu_wuk7tvtpswyjtlsx52b7yyi2l7zotv4a"
                     )
                 """
-                input = m.ClientSessionInvalidateRequest(
+                input = m.ClientSessionListRequest(
                     token=token, filter=filter, last=last, order=order, order_by=order_by, size=size
                 )
                 response = self.request.post("v1/client/session/list", data=input.dict(exclude_none=True))
@@ -423,34 +424,32 @@ class AuthN(ServiceBase):
             ):
                 super().__init__(token, config, logger_name=logger_name)
 
-        # https://pangea.cloud/docs/api/authn#check-a-token
-        # - path: authn::/v1/client/token/check
-        def check(self, token: str) -> PangeaResponse[m.ClientTokenCheckResult]:
-            """
-            Check a token
+            def check(self, token: str) -> PangeaResponse[m.ClientTokenCheckResult]:
+                """
+                Check a token
 
-            Look up a token and return its contents.
+                Look up a token and return its contents.
 
-            OperationId: authn_post_v1_client_token_check
+                OperationId: authn_post_v1_client_token_check
 
-            Args:
-                token (str): A token value
+                Args:
+                    token (str): A token value
 
-            Returns:
-                A PangeaResponse with a token and its information in the response.result field.
-                    Available response fields can be found in our
-                    [API Documentation](https://pangea.cloud/docs/api/authn#check-a-token).
+                Returns:
+                    A PangeaResponse with a token and its information in the response.result field.
+                        Available response fields can be found in our
+                        [API Documentation](https://pangea.cloud/docs/api/authn#check-a-token).
 
-            Examples:
-                response = authn.client.token.check(
-                    token="ptu_wuk7tvtpswyjtlsx52b7yyi2l7zotv4a"
-                )
-            """
-            input = m.ClientTokenCheckRequest(token=token)
-            response = self.request.post("v1/client/token/check", data=input.dict(exclude_none=True))
-            if response.raw_result is not None:
-                response.result = m.ClientTokenCheckResult(**response.raw_result)
-            return response
+                Examples:
+                    response = authn.client.token.check(
+                        token="ptu_wuk7tvtpswyjtlsx52b7yyi2l7zotv4a"
+                    )
+                """
+                input = m.ClientTokenCheckRequest(token=token)
+                response = self.request.post("v1/client/token/check", data=input.dict(exclude_none=True))
+                if response.raw_result is not None:
+                    response.result = m.ClientTokenCheckResult(**response.raw_result)
+                return response
 
     class User(ServiceBase):
         service_name = SERVICE_NAME
@@ -467,6 +466,7 @@ class AuthN(ServiceBase):
             self.invites = AuthN.User.Invites(token, config, logger_name=logger_name)
             self.mfa = AuthN.User.MFA(token, config, logger_name=logger_name)
             self.login = AuthN.User.Login(token, config, logger_name=logger_name)
+            self.password = AuthN.User.Password(token, config, logger_name=logger_name)
 
         # https://pangea.cloud/docs/api/authn#create-user
         #   - path: authn::/v1/user/create
