@@ -21,6 +21,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Intel lookup deprecated methods.
 
+## [1.10.0] - 2023-06-26
+
+# Added
+- Multiconfig support
+- Instructions to setup token and domain in examples
 
 ## [1.9.1] - 2023-06-08
 
@@ -199,7 +204,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Domain Intel client
 - Redact client
 
-[unreleased]: https://github.com/pangeacyber/pangea-python/compare/v1.9.1...main
+[unreleased]: https://github.com/pangeacyber/pangea-python/compare/v1.10.0...main
+[1.10.0]: https://github.com/pangeacyber/pangea-python/compare/v1.9.1...v1.10.0
 [1.9.1]: https://github.com/pangeacyber/pangea-python/compare/v1.9.0...v1.9.1
 [1.9.0]: https://github.com/pangeacyber/pangea-python/compare/v1.8.0...v1.9.0
 [1.8.0]: https://github.com/pangeacyber/pangea-python/compare/v1.7.0...v1.8.0

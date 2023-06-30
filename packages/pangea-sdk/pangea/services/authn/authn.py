@@ -108,6 +108,7 @@ class AuthN(ServiceBase):
             super().__init__(token, config, logger_name=logger_name)
             self.session = AuthN.Client.Session(token, config, logger_name=logger_name)
             self.password = AuthN.Client.Password(token, config, logger_name=logger_name)
+            self.token_enpoints = AuthN.Client.Token(token, config, logger_name=logger_name)
 
         # https://dev.pangea.cloud/docs/api/authn#complete-a-login
         def userinfo(self, code: str) -> PangeaResponse[m.ClientUserinfoResult]:
@@ -157,7 +158,7 @@ class AuthN(ServiceBase):
                 order_by: Optional[m.SessionListOrderBy] = None,
                 size: Optional[int] = None,
             ) -> PangeaResponse[m.ClientSessionListResults]:
-                input = m.ClientSessionInvalidateRequest(
+                input = m.ClientSessionListRequest(
                     token=token, filter=filter, last=last, order=order, order_by=order_by, size=size
                 )
                 response = self.request.post("v1/client/session/list", data=input.dict(exclude_none=True))
@@ -219,12 +220,12 @@ class AuthN(ServiceBase):
             ):
                 super().__init__(token, config, logger_name=logger_name)
 
-        def check(self, token: str) -> PangeaResponse[m.ClientTokenCheckResult]:
-            input = m.ClientTokenCheckRequest(token=token)
-            response = self.request.post("v1/client/token/check", data=input.dict(exclude_none=True))
-            if response.raw_result is not None:
-                response.result = m.ClientTokenCheckResult(**response.raw_result)
-            return response
+            def check(self, token: str) -> PangeaResponse[m.ClientTokenCheckResult]:
+                input = m.ClientTokenCheckRequest(token=token)
+                response = self.request.post("v1/client/token/check", data=input.dict(exclude_none=True))
+                if response.raw_result is not None:
+                    response.result = m.ClientTokenCheckResult(**response.raw_result)
+                return response
 
     class User(ServiceBase):
         service_name = SERVICE_NAME
@@ -241,6 +242,7 @@ class AuthN(ServiceBase):
             self.invites = AuthN.User.Invites(token, config, logger_name=logger_name)
             self.mfa = AuthN.User.MFA(token, config, logger_name=logger_name)
             self.login = AuthN.User.Login(token, config, logger_name=logger_name)
+            self.password = AuthN.User.Password(token, config, logger_name=logger_name)
 
         #   - path: authn::/v1/user/create
         # https://dev.pangea.cloud/docs/api/authn#create-user
