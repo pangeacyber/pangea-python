@@ -182,7 +182,7 @@ class TestAuthN(unittest.TestCase):
 
             tokens = response_login.result
             # check token
-            response = self.authn.client.token_enpoints.check(token=tokens.active_token.token)
+            response = self.authn.client.token_endpoints.check(token=tokens.active_token.token)
             self.assertEqual(response.status, "Success")
 
             # refresh
