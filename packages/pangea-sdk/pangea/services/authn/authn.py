@@ -72,7 +72,7 @@ class AuthN(ServiceBase):
             OperationId: authn_post_v1_session_invalidate
 
             Args:
-                session_id (str): An ID for a token
+                session_id (str): An ID for a session
 
             Returns:
                 A PangeaResponse with an empty object in the response.result field.
@@ -137,7 +137,7 @@ class AuthN(ServiceBase):
             OperationId: authn_post_v1_session_logout
 
             Args:
-                user_id (str): The identity of a user or a service.
+                user_id (str): The id of a user.
 
             Returns:
                 A PangeaResponse with an empty object in the response.result field.
@@ -246,7 +246,7 @@ class AuthN(ServiceBase):
 
                 Args:
                     token (str): A user token value
-                    session_id (str): An ID for a token
+                    session_id (str): An ID for a session
 
                 Returns:
                     A PangeaResponse with an empty object in the response.result field.
@@ -534,7 +534,7 @@ class AuthN(ServiceBase):
 
             Args:
                 email (str, optional): An email address
-                id (str, optional): The identity of a user or a service
+                id (str, optional): The id of a user or a service
 
             Returns:
                 A PangeaResponse with an empty object in the response.result field.
