@@ -166,7 +166,7 @@ class AuthN(ServiceBase):
             super().__init__(token, config, logger_name=logger_name)
             self.session = AuthN.Client.Session(token, config, logger_name=logger_name)
             self.password = AuthN.Client.Password(token, config, logger_name=logger_name)
-            self.token_enpoints = AuthN.Client.Token(token, config, logger_name=logger_name)
+            self.token_endpoints = AuthN.Client.Token(token, config, logger_name=logger_name)
 
         # https://pangea.cloud/docs/api/authn#get-user-client-token
         # - path: authn::/v1/client/userinfo
@@ -441,7 +441,7 @@ class AuthN(ServiceBase):
                         [API Documentation](https://pangea.cloud/docs/api/authn#check-a-token).
 
                 Examples:
-                    response = authn.client.token.check(
+                    response = authn.client.token_endpoints.check(
                         token="ptu_wuk7tvtpswyjtlsx52b7yyi2l7zotv4a",
                     )
                 """
@@ -1190,25 +1190,77 @@ class AuthN(ServiceBase):
             self.verify = AuthN.Flow.Verify(token, config, logger_name=logger_name)
             self.reset = AuthN.Flow.Reset(token, config, logger_name=logger_name)
 
-        #   - path: authn::/v1/flow/complete
-        # https://dev.pangea.cloud/docs/api/authn#complete-a-login-or-signup-flow
+        # https://pangea.cloud/docs/api/authn#complete-sign-up-in
+        # - path: authn::/v1/flow/complete
         def complete(self, flow_id: str) -> PangeaResponse[m.FlowCompleteResult]:
+            """
+            Complete Sign-up/in
+
+            Complete a login or signup flow.
+
+            OperationId: authn_post_v1_flow_complete
+
+            Args:
+                flow_id (str): An ID for a login or signup flow
+
+            Returns:
+                A PangeaResponse with credentials for a login session in the response.result field.
+                    Available response fields can be found in our
+                    [API Documentation](https://pangea.cloud/docs/api/authn#complete-sign-up-in).
+
+            Examples:
+                response = authn.flow.complete(
+                    flow_id="pfl_dxiqyuq7ndc5ycjwdgmguwuodizcaqhh",
+                )
+            """
             input = m.FlowCompleteRequest(flow_id=flow_id)
             response = self.request.post("v1/flow/complete", data=input.dict(exclude_none=True))
             if response.raw_result is not None:
                 response.result = m.FlowCompleteResult(**response.raw_result)
             return response
 
-        #   - path: authn::/v1/flow/start
-        # https://dev.pangea.cloud/docs/api/authn#start-a-new-signup-or-signin-flow
+        # https://pangea.cloud/docs/api/authn#start-a-sign-up-in
+        # - path: authn::/v1/flow/start
         def start(
             self,
             cb_uri: Optional[str] = None,
             email: Optional[str] = None,
             flow_types: Optional[List[m.FlowType]] = None,
-            provider: Optional[m.MFAProvider] = None,
+            provider: Optional[m.IDProvider] = None,
+            invitation: Optional[str] = None,
         ) -> PangeaResponse[m.FlowStartResult]:
-            input = m.FlowStartRequest(cb_uri=cb_uri, email=email, flow_types=flow_types, provider=provider)
+            """
+            Start a sign-up/in
+
+            Start a new signup or signin flow.
+
+            OperationId: authn_post_v1_flow_start
+
+            Args:
+                cb_uri (str, optional): A login callback URI
+                email (str, optional): An email address
+                flow_types (List[m.FlowType], optional): A list of flow types
+                provider (m.IDProvider, optional): Mechanism for authenticating a user's identity
+                invitation (str, optional): A one-time ticket
+
+            Returns:
+                A PangeaResponse with information about next steps needed
+                    to complete a flow in the response.result field.
+                    Available response fields can be found in our
+                    [API Documentation](https://pangea.cloud/docs/api/authn#start-a-sign-up-in).
+
+            Examples:
+                response = authn.flow.start(
+                    cb_uri="https://www.myserver.com/callback",
+                    email="joe.user@email.com",
+                    flow_types=[
+                        FlowType.SIGNUP,
+                        FlowType.SIGNIN,
+                    ],
+                    provider=IDProvider.PASSWORD,
+                )
+            """
+            input = m.FlowStartRequest(cb_uri=cb_uri, email=email, flow_types=flow_types, provider=provider, invitation=invitation)
             response = self.request.post("v1/flow/start", data=input.dict(exclude_none=True))
             if response.raw_result is not None:
                 response.result = m.FlowStartResult(**response.raw_result)
@@ -1226,18 +1278,40 @@ class AuthN(ServiceBase):
             ):
                 super().__init__(token, config, logger_name=logger_name)
 
-            #   - path: authn::/v1/flow/reset/password
-            # https://dev.pangea.cloud/docs/api/authn#reset-password-during-signin
+            # https://pangea.cloud/docs/api/authn#password-reset
+            # - path: authn::/v1/flow/reset/password
             def password(
                 self,
                 flow_id: str,
-                password: str,
+                password: Optional[str] = None,
                 cancel: Optional[bool] = None,
-                cb_state: Optional[str] = None,
-                cb_code: Optional[str] = None,
             ) -> PangeaResponse[m.FlowResetPasswordResult]:
+                """
+                Password Reset
+
+                Reset password during sign-in.
+
+                OperationId: authn_post_v1_flow_reset_password
+
+                Args:
+                    flow_id (str): An ID for a login or signup flow
+                    password (str): A password
+                    cancel (bool, optional):
+
+                Returns:
+                    A PangeaResponse with information about next steps needed
+                        to complete a flow in the response.result field.
+                        Available response fields can be found in our
+                        [API Documentation](https://pangea.cloud/docs/api/authn#password-reset).
+
+                Examples:
+                    response = authn.flow.reset.password(
+                        flow_id="pfl_dxiqyuq7ndc5ycjwdgmguwuodizcaqhh",
+                        password="My1s+Password",
+                    )
+                """
                 input = m.FlowResetPasswordRequest(
-                    flow_id=flow_id, password=password, cb_state=cb_state, cb_code=cb_code, cancel=cancel
+                    flow_id=flow_id, password=password, cancel=cancel
                 )
                 response = self.request.post("v1/flow/reset/password", data=input.dict(exclude_none=True))
                 if response.raw_result is not None:
@@ -1269,22 +1343,71 @@ class AuthN(ServiceBase):
                 ):
                     super().__init__(token, config, logger_name=logger_name)
 
-                #   - path: authn::/v1/flow/enroll/mfa/complete
-                # https://dev.pangea.cloud/docs/api/authn#complete-mfa-enrollment-by-verifying-a-trial-mfa-code
+                # https://pangea.cloud/docs/api/authn#complete-mfa-enrollment
+                # - path: authn::/v1/flow/enroll/mfa/complete
                 def complete(
                     self, flow_id: str, code: Optional[str] = None, cancel: Optional[bool] = None
                 ) -> PangeaResponse[m.FlowEnrollMFAcompleteResult]:
+                    """
+                    Complete MFA Enrollment
+
+                    Complete MFA enrollment by verifying a trial MFA code.
+
+                    OperationId: authn_post_v1_flow_enroll_mfa_complete
+
+                    Args:
+                        flow_id (str): An ID for a login or signup flow
+                        code (str, optional): A six digit MFA code
+                        cancel (bool, optional):
+
+                    Returns:
+                        A PangeaResponse with information about next steps needed
+                            to complete a flow in the response.result field.
+                            Available response fields can be found in our
+                            [API Documentation](https://pangea.cloud/docs/api/authn#complete-mfa-enrollment).
+
+                    Examples:
+                        response = authn.flow.enroll.mfa.complete(
+                            flow_id="pfl_dxiqyuq7ndc5ycjwdgmguwuodizcaqhh",
+                            code="999999",
+                        )
+                    """
                     input = m.FlowEnrollMFACompleteRequest(flow_id=flow_id, code=code, cancel=cancel)
                     response = self.request.post("v1/flow/enroll/mfa/complete", data=input.dict(exclude_none=True))
                     if response.raw_result is not None:
                         response.result = m.FlowEnrollMFAcompleteResult(**response.raw_result)
                     return response
 
-                #   - path: authn::/v1/flow/enroll/mfa/start
-                # https://dev.pangea.cloud/docs/api/authn#start-the-process-of-enrolling-an-mfa
+                # https://pangea.cloud/docs/api/authn#start-mfa-enrollment
+                # - path: authn::/v1/flow/enroll/mfa/start
                 def start(
                     self, flow_id: str, mfa_provider: m.MFAProvider, phone: Optional[str] = None
                 ) -> PangeaResponse[m.FlowEnrollMFAStartResult]:
+                    """
+                    Start MFA Enrollment
+
+                    Start the process of enrolling an MFA.
+
+                    OperationId: authn_post_v1_flow_enroll_mfa_start
+
+                    Args:
+                        flow_id (str): An ID for a login or signup flow
+                        mfa_provider (m.MFAProvider): Additional mechanism for authenticating a user's identity
+                        phone (str, optional): A phone number
+
+                    Returns:
+                        A PangeaResponse with information about next steps needed
+                            to complete a flow in the response.result field.
+                            Available response fields can be found in our
+                            [API Documentation](https://pangea.cloud/docs/api/authn#start-mfa-enrollment).
+
+                    Examples:
+                        response = authn.flow.enroll.mfa.start(
+                            flow_id="pfl_dxiqyuq7ndc5ycjwdgmguwuodizcaqhh",
+                            mfa_provider=MFAProvider.SMS_OTP,
+                            phone="1-808-555-0173",
+                        )
+                    """
                     input = m.FlowEnrollMFAStartRequest(flow_id=flow_id, mfa_provider=mfa_provider, phone=phone)
                     response = self.request.post("v1/flow/enroll/mfa/start", data=input.dict(exclude_none=True))
                     if response.raw_result is not None:
@@ -1303,11 +1426,38 @@ class AuthN(ServiceBase):
             ):
                 super().__init__(token, config, logger_name=logger_name)
 
-            #   - path: authn::/v1/flow/signup/password
-            # https://dev.pangea.cloud/docs/api/authn#signup-a-new-account-using-a-password
+            # https://pangea.cloud/docs/api/authn#password-sign-up
+            # - path: authn::/v1/flow/signup/password
             def password(
                 self, flow_id: str, password: str, first_name: str, last_name: str
             ) -> PangeaResponse[m.FlowSignupPasswordResult]:
+                """
+                Password Sign-up
+
+                Signup a new account using a password.
+
+                OperationId: authn_post_v1_flow_signup_password
+
+                Args:
+                    flow_id (str): An ID for a login or signup flow
+                    password (str): A password
+                    first_name (str):
+                    last_name (str):
+
+                Returns:
+                    A PangeaResponse with information about next steps needed
+                        to complete a flow in the response.result field.
+                        Available response fields can be found in our
+                        [API Documentation](https://pangea.cloud/docs/api/authn#password-sign-up).
+                
+                Examples:
+                    response = authn.flow.signup.password(
+                        flow_id="pfl_dxiqyuq7ndc5ycjwdgmguwuodizcaqhh",
+                        password="My1s+Password",
+                        first_name="Joe",
+                        last_name="User",
+                    )
+                """
                 input = m.FlowSignupPasswordRequest(
                     flow_id=flow_id, password=password, first_name=first_name, last_name=last_name
                 )
@@ -1316,9 +1466,34 @@ class AuthN(ServiceBase):
                     response.result = m.FlowSignupPasswordResult(**response.raw_result)
                 return response
 
-            #   - path: authn::/v1/flow/signup/social
-            # https://dev.pangea.cloud/docs/api/authn#signup-a-new-account-using-a-social-provider
+            # https://pangea.cloud/docs/api/authn#social-sign-up
+            # - path: authn::/v1/flow/signup/social
             def social(self, flow_id: str, cb_state: str, cb_code: str) -> PangeaResponse[m.FlowSignupSocialResult]:
+                """
+                Social Sign-up
+
+                Signup a new account using a social provider.
+
+                OperationId: authn_post_v1_flow_signup_social
+
+                Args:
+                    flow_id (str): An ID for a login or signup flow
+                    cb_state (str): State tracking string for login callbacks
+                    cb_code (str): A social oauth callback code
+
+                Returns:
+                    A PangeaResponse with information about next steps needed
+                        to complete a flow in the response.result field.
+                        Available response fields can be found in our
+                        [API Documentation](https://pangea.cloud/docs/api/authn#social-sign-up).
+
+                Examples:
+                    response = authn.flow.signup.social(
+                        flow_id="pfl_dxiqyuq7ndc5ycjwdgmguwuodizcaqhh",
+                        cb_state="pcb_zurr3lkcwdp5keq73htsfpcii5k4zgm7",
+                        cb_code="poc_fwg3ul4db1jpivexru3wyj354u9ej5e2",
+                    )
+                """
                 input = m.FlowSignupSocialRequest(flow_id=flow_id, cb_state=cb_state, cb_code=cb_code)
                 response = self.request.post("v1/flow/signup/social", data=input.dict(exclude_none=True))
                 if response.raw_result is not None:
@@ -1338,40 +1513,137 @@ class AuthN(ServiceBase):
                 super().__init__(token, config, logger_name=logger_name)
                 self.mfa = AuthN.Flow.Verify.MFA(token, config, logger_name=logger_name)
 
-            #   - path: authn::/v1/flow/verify/captcha
-            # https://dev.pangea.cloud/docs/api/authn#verify-a-captcha-during-a-signup-or-signin-flow
+            # https://pangea.cloud/docs/api/authn#verify-captcha
+            # - path: authn::/v1/flow/verify/captcha
             def captcha(self, flow_id: str, code: str) -> PangeaResponse[m.FlowVerifyCaptchaResult]:
+                """
+                Verify Captcha
+
+                Verify a CAPTCHA during a signup or signin flow.
+
+                OperationId: authn_post_v1_flow_verify_captcha
+
+                Args:
+                    flow_id (str): An ID for a login or signup flow
+                    code (str): CAPTCHA verification code
+
+                Returns:
+                    A PangeaResponse with information about next steps needed
+                        to complete a flow in the response.result field.
+                        Available response fields can be found in our
+                        [API Documentation](https://pangea.cloud/docs/api/authn#verify-captcha).
+
+                Examples:
+                    response = authn.flow.verify.captcha(
+                        flow_id="pfl_dxiqyuq7ndc5ycjwdgmguwuodizcaqhh",
+                        code="SOMEREALLYLONGANDOPAQUESTRINGFROMCAPTCHAVERIFICATION",
+                    )
+                """
                 input = m.FlowVerifyCaptchaRequest(flow_id=flow_id, code=code)
                 response = self.request.post("v1/flow/verify/captcha", data=input.dict(exclude_none=True))
                 if response.raw_result is not None:
                     response.result = m.FlowVerifyCaptchaResult(**response.raw_result)
                 return response
 
-            #   - path: authn::/v1/flow/verify/email
-            # https://dev.pangea.cloud/docs/api/authn#verify-an-email-address-during-a-signup-or-signin-flow
+            # https://pangea.cloud/docs/api/authn#verify-email-address
+            # - path: authn::/v1/flow/verify/email
             def email(
                 self, flow_id: str, cb_state: Optional[str] = None, cb_code: Optional[str] = None
             ) -> PangeaResponse[m.FlowVerifyEmailResult]:
+                """
+                Verify Email Address
+
+                Verify an email address during a signup or signin flow.
+
+                OperationId: authn_post_v1_flow_verify_email
+
+                Args:
+                    flow_id (str): An ID for a login or signup flow
+                    cb_state (str, optional): State tracking string for login callbacks
+                    cb_code (str, optional): A social oauth callback code
+
+                Returns:
+                    A PangeaResponse with information about next steps needed
+                        to complete a flow in the response.result field.
+                        Available response fields can be found in our
+                        [API Documentation](https://pangea.cloud/docs/api/authn#verify-email-address).
+
+                Examples:
+                    response = authn.flow.verify.email(
+                        flow_id="pfl_dxiqyuq7ndc5ycjwdgmguwuodizcaqhh",
+                        cb_state="pcb_zurr3lkcwdp5keq73htsfpcii5k4zgm7",
+                        cb_code="poc_fwg3ul4db1jpivexru3wyj354u9ej5e2",
+                    )
+                """
                 input = m.FlowVerifyEmailRequest(flow_id=flow_id, cb_state=cb_state, cb_code=cb_code)
                 response = self.request.post("v1/flow/verify/email", data=input.dict(exclude_none=True))
                 if response.raw_result is not None:
                     response.result = m.FlowVerifyEmailResult(**response.raw_result)
                 return response
 
-            #   - path: authn::/v1/flow/verify/password
-            # https://dev.pangea.cloud/docs/api/authn#sign-in-with-a-password
+            # https://pangea.cloud/docs/api/authn#password-sign-in
+            # - path: authn::/v1/flow/verify/password
             def password(
                 self, flow_id: str, password: Optional[str] = None, cancel: Optional[bool] = None
             ) -> PangeaResponse[m.FlowVerifyPasswordResult]:
+                """
+                Password Sign-in
+
+                Sign in with a password.
+
+                OperationId: authn_post_v1_flow_verify_password
+
+                Args:
+                    flow_id (str): An ID for a login or signup flow
+                    password (str, optional): A password
+                    cancel (bool, optional):
+
+                Returns:
+                    A PangeaResponse with information about next steps needed
+                        to complete a flow in the response.result field.
+                        Available response fields can be found in our
+                        [API Documentation](https://pangea.cloud/docs/api/authn#password-sign-in).
+
+                Examples:
+                    response = authn.flow.verify.password(
+                        flow_id="pfl_dxiqyuq7ndc5ycjwdgmguwuodizcaqhh",
+                        password="My1s+Password",
+                    )
+                """
                 input = m.FlowVerifyPasswordRequest(flow_id=flow_id, password=password, cancel=cancel)
                 response = self.request.post("v1/flow/verify/password", data=input.dict(exclude_none=True))
                 if response.raw_result is not None:
                     response.result = m.FlowVerifyPasswordResult(**response.raw_result)
                 return response
 
-            #   - path: authn::/v1/flow/verify/social
-            # https://dev.pangea.cloud/docs/api/authn#signin-with-a-social-provider
+            # https://pangea.cloud/docs/api/authn#social-sign-in
+            # - path: authn::/v1/flow/verify/social
             def social(self, flow_id: str, cb_state: str, cb_code: str) -> PangeaResponse[m.FlowVerifySocialResult]:
+                """
+                Social Sign-in
+
+                Signin with a social provider.
+
+                OperationId: authn_post_v1_flow_verify_social
+
+                Args:
+                    flow_id (str): An ID for a login or signup flow
+                    cb_state (str): State tracking string for login callbacks
+                    cb_code (str): A social oauth callback code
+
+                Returns:
+                    A PangeaResponse with information about next steps needed
+                        to complete a flow in the response.result field.
+                        Available response fields can be found in our
+                        [API Documentation](https://pangea.cloud/docs/api/authn#social-sign-in).
+
+                Examples:
+                    response = authn.flow.verify.social(
+                        flow_id="pfl_dxiqyuq7ndc5ycjwdgmguwuodizcaqhh",
+                        cb_state="pcb_zurr3lkcwdp5keq73htsfpcii5k4zgm7",
+                        cb_code="poc_fwg3ul4db1jpivexru3wyj354u9ej5e2",
+                    )
+                """
                 input = m.FlowVerifySocialRequest(flow_id=flow_id, cb_state=cb_state, cb_code=cb_code)
                 response = self.request.post("v1/flow/verify/social", data=input.dict(exclude_none=True))
                 if response.raw_result is not None:
@@ -1390,22 +1662,69 @@ class AuthN(ServiceBase):
                 ):
                     super().__init__(token, config, logger_name=logger_name)
 
-                #   - path: authn::/v1/flow/verify/mfa/complete
-                # https://dev.pangea.cloud/docs/api/authn#complete-mfa-verification
+                # https://pangea.cloud/docs/api/authn#complete-mfa-verification
+                # - path: authn::/v1/flow/verify/mfa/complete
                 def complete(
                     self, flow_id: str, code: Optional[str] = None, cancel: Optional[bool] = None
                 ) -> PangeaResponse[m.FlowVerifyMFACompleteResult]:
+                    """
+                    Complete MFA Verification
+
+                    Complete MFA verification.
+
+                    OperationId: authn_post_v1_flow_verify_mfa_complete
+
+                    Args:
+                        flow_id (str): An ID for a login or signup flow
+                        code (str, optional): A six digit MFA code
+                        cancel (bool, optional):
+
+                    Returns:
+                        A PangeaResponse with information about next steps needed
+                            to complete a flow in the response.result field.
+                            Available response fields can be found in our
+                            [API Documentation](https://pangea.cloud/docs/api/authn#complete-mfa-verification).
+
+                    Examples:
+                        response = authn.flow.verify.mfa.complete(
+                            flow_id="pfl_dxiqyuq7ndc5ycjwdgmguwuodizcaqhh",
+                            code="999999",
+                        )
+                    """
                     input = m.FlowVerifyMFACompleteRequest(flow_id=flow_id, code=code, cancel=cancel)
                     response = self.request.post("v1/flow/verify/mfa/complete", data=input.dict(exclude_none=True))
                     if response.raw_result is not None:
                         response.result = m.FlowVerifyMFACompleteResult(**response.raw_result)
                     return response
 
-                #   - path: authn::/v1/flow/verify/mfa/start
-                # https://dev.pangea.cloud/docs/api/authn#start-the-process-of-mfa-verification
+                # https://pangea.cloud/docs/api/authn#start-mfa-verification
+                # - path: authn::/v1/flow/verify/mfa/start
                 def start(
                     self, flow_id: str, mfa_provider: m.MFAProvider
                 ) -> PangeaResponse[m.FlowVerifyMFAStartResult]:
+                    """
+                    Start MFA Verification
+
+                    Start the process of MFA verification.
+
+                    OperationId: authn_post_v1_flow_verify_mfa_start
+
+                    Args:
+                        flow_id (str): An ID for a login or signup flow
+                        mfa_provider (m.MFAProvider): Additional mechanism for authenticating a user's identity
+
+                    Returns:
+                        A PangeaResponse with information about next steps needed
+                            to complete a flow in the response.result field.
+                            Available response fields can be found in our
+                            [API Documentation](https://pangea.cloud/docs/api/authn#start-mfa-verification).
+
+                    Examples:
+                        response = authn.flow.verify.mfa.start(
+                            flow_id="pfl_dxiqyuq7ndc5ycjwdgmguwuodizcaqhh",
+                            mfa_provider=MFAProvider.TOTP,
+                        )
+                    """
                     input = m.FlowVerifyMFAStartRequest(flow_id=flow_id, mfa_provider=mfa_provider)
                     response = self.request.post("v1/flow/verify/mfa/start", data=input.dict(exclude_none=True))
                     if response.raw_result is not None:

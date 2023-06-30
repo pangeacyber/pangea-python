@@ -450,8 +450,6 @@ class FlowResetPasswordRequest(APIRequestModel):
     flow_id: str
     password: str
     cancel: Optional[bool] = None
-    cb_state: Optional[str] = None
-    cb_code: Optional[str] = None
 
 
 class FlowResetPasswordResult(CommonFlowResult):
@@ -506,6 +504,7 @@ class FlowStartRequest(APIRequestModel):
     email: Optional[str] = None
     flow_types: Optional[List[FlowType]] = None
     provider: Optional[IDProvider] = None
+    invitation: Optional[str] = None
 
 
 class FlowStartResult(CommonFlowResult):
