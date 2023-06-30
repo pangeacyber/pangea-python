@@ -123,7 +123,7 @@ class UserListOrderBy(enum.Enum):
         return self.value
 
 
-# https://dev.pangea.cloud/docs/api/authn#create-user
+# https://pangea.cloud/docs/api/authn#create-user
 class UserCreateRequest(APIRequestModel):
     email: str
     authenticator: str
@@ -152,7 +152,7 @@ class UserDeleteRequest(APIRequestModel):
 
 
 class UserDeleteResult(PangeaResponseResult):
-    # https://dev.pangea.cloud/docs/api/authn#delete-a-user
+    # https://pangea.cloud/docs/api/authn#delete-user
     pass
 
 
@@ -361,8 +361,8 @@ class ClientJWKSResult(PangeaResponseResult):
     keys: List[Union[JWKec, JWKrsa, JWK]]
 
 
-#   - path: authn::/v1/flow/complete
-# https://dev.pangea.cloud/docs/api/authn#complete-a-login-or-signup-flow
+# - path: authn::/v1/flow/complete
+# https://pangea.cloud/docs/api/authn#complete-sign-up-in
 class FlowCompleteRequest(APIRequestModel):
     flow_id: str
 
@@ -372,8 +372,8 @@ class FlowCompleteResult(PangeaResponseResult):
     login_token: LoginToken
 
 
-#   - path: authn::/v1/flow/enroll/mfa/complete
-# https://dev.pangea.cloud/docs/api/authn#complete-mfa-enrollment-by-verifying-a-trial-mfa-code
+# - path: authn::/v1/flow/enroll/mfa/complete
+# https://pangea.cloud/docs/api/authn#complete-mfa-enrollment
 class FlowEnrollMFACompleteRequest(APIRequestModel):
     flow_id: str
     code: str
@@ -460,8 +460,8 @@ class FlowEnrollMFAcompleteResult(CommonFlowResult):
     pass
 
 
-#   - path: authn::/v1/flow/enroll/mfa/start
-# https://dev.pangea.cloud/docs/api/authn#start-the-process-of-enrolling-an-mfa
+# - path: authn::/v1/flow/enroll/mfa/start
+# https://pangea.cloud/docs/api/authn#start-mfa-enrollment
 class FlowEnrollMFAStartRequest(APIRequestModel):
     flow_id: str
     mfa_provider: MFAProvider
@@ -472,8 +472,8 @@ class FlowEnrollMFAStartResult(CommonFlowResult):
     pass
 
 
-#   - path: authn::/v1/flow/signup/password
-# https://dev.pangea.cloud/docs/api/authn#signup-a-new-account-using-a-password
+# - path: authn::/v1/flow/signup/password
+# https://pangea.cloud/docs/api/authn#password-sign-up
 class FlowSignupPasswordRequest(APIRequestModel):
     flow_id: str
     password: str
@@ -485,8 +485,8 @@ class FlowSignupPasswordResult(CommonFlowResult):
     pass
 
 
-#   - path: authn::/v1/flow/signup/social
-# https://dev.pangea.cloud/docs/api/authn#signup-a-new-account-using-a-social-provider
+# - path: authn::/v1/flow/signup/social
+# https://pangea.cloud/docs/api/authn#social-sign-up
 class FlowSignupSocialRequest(APIRequestModel):
     flow_id: str
     cb_state: str
@@ -497,8 +497,8 @@ class FlowSignupSocialResult(CommonFlowResult):
     pass
 
 
-#   - path: authn::/v1/flow/start
-# https://dev.pangea.cloud/docs/api/authn#start-a-new-signup-or-signin-flow
+# - path: authn::/v1/flow/start
+# https://pangea.cloud/docs/api/authn#start-a-sign-up-in
 class FlowStartRequest(APIRequestModel):
     cb_uri: Optional[str] = None
     email: Optional[str] = None
@@ -511,8 +511,8 @@ class FlowStartResult(CommonFlowResult):
     pass
 
 
-#   - path: authn::/v1/flow/verify/captcha
-# https://dev.pangea.cloud/docs/api/authn#verify-a-captcha-during-a-signup-or-signin-flow
+# - path: authn::/v1/flow/verify/captcha
+# https://pangea.cloud/docs/api/authn#verify-captcha
 class FlowVerifyCaptchaRequest(APIRequestModel):
     flow_id: str
     code: str
@@ -522,8 +522,8 @@ class FlowVerifyCaptchaResult(CommonFlowResult):
     pass
 
 
-#   - path: authn::/v1/flow/verify/email
-# https://dev.pangea.cloud/docs/api/authn#verify-an-email-address-during-a-signup-or-signin-flow
+# - path: authn::/v1/flow/verify/email
+# https://pangea.cloud/docs/api/authn#verify-email-address
 class FlowVerifyEmailRequest(APIRequestModel):
     flow_id: str
     cb_state: Optional[str] = None
@@ -534,8 +534,8 @@ class FlowVerifyEmailResult(CommonFlowResult):
     pass
 
 
-#   - path: authn::/v1/flow/verify/mfa/complete
-# https://dev.pangea.cloud/docs/api/authn#complete-mfa-verification
+# - path: authn::/v1/flow/verify/mfa/complete
+# https://pangea.cloud/docs/api/authn#complete-mfa-verification
 class FlowVerifyMFACompleteRequest(APIRequestModel):
     flow_id: str
     code: Optional[str] = None
@@ -546,8 +546,8 @@ class FlowVerifyMFACompleteResult(CommonFlowResult):
     pass
 
 
-#   - path: authn::/v1/flow/verify/mfa/start
-# https://dev.pangea.cloud/docs/api/authn#start-the-process-of-mfa-verification
+# - path: authn::/v1/flow/verify/mfa/start
+# https://pangea.cloud/docs/api/authn#start-mfa-verification
 class FlowVerifyMFAStartRequest(APIRequestModel):
     flow_id: str
     mfa_provider: MFAProvider
@@ -557,8 +557,8 @@ class FlowVerifyMFAStartResult(CommonFlowResult):
     pass
 
 
-#   - path: authn::/v1/flow/verify/password
-# https://dev.pangea.cloud/docs/api/authn#sign-in-with-a-password
+# - path: authn::/v1/flow/verify/password
+# https://pangea.cloud/docs/api/authn#password-sign-in
 class FlowVerifyPasswordRequest(APIRequestModel):
     flow_id: str
     password: Optional[str] = None
@@ -569,8 +569,8 @@ class FlowVerifyPasswordResult(CommonFlowResult):
     pass
 
 
-#   - path: authn::/v1/flow/verify/social
-# https://dev.pangea.cloud/docs/api/authn#signin-with-a-social-provider
+# - path: authn::/v1/flow/verify/social
+# https://pangea.cloud/docs/api/authn#social-sign-in
 class FlowVerifySocialRequest(APIRequestModel):
     flow_id: str
     cb_state: str
@@ -581,8 +581,8 @@ class FlowVerifySocialResult(CommonFlowResult):
     pass
 
 
-#   - path: authn::/v1/user/mfa/delete
-# https://dev.pangea.cloud/docs/api/authn#delete-mfa-enrollment-for-a-user
+# - path: authn::/v1/user/mfa/delete
+# https://pangea.cloud/docs/api/authn#delete-mfa-enrollment
 class UserMFADeleteRequest(APIRequestModel):
     user_id: str
     mfa_provider: MFAProvider
@@ -592,8 +592,8 @@ class UserMFADeleteResult(PangeaResponseResult):
     pass
 
 
-#   - path: authn::/v1/user/mfa/enroll
-# https://dev.pangea.cloud/docs/api/authn#enroll-mfa-for-a-user
+# - path: authn::/v1/user/mfa/enroll
+# https://pangea.cloud/docs/api/authn#enroll-in-mfa
 class UserMFAEnrollRequest(APIRequestModel):
     user_id: str
     mfa_provider: MFAProvider
@@ -604,8 +604,8 @@ class UserMFAEnrollResult(PangeaResponseResult):
     pass
 
 
-#   - path: authn::/v1/user/mfa/start
-# https://dev.pangea.cloud/docs/api/authn#start-mfa-verification-for-a-user
+# - path: authn::/v1/user/mfa/start
+# https://pangea.cloud/docs/api/authn#start-mfa-verification
 class UserMFAStartRequest(APIRequestModel):
     user_id: str
     mfa_provider: MFAProvider
@@ -622,8 +622,8 @@ class UserMFAStartResult(PangeaResponseResult):
     totp_secret: Optional[UserMFAStartTOTPSecret] = None
 
 
-#   - path: authn::/v1/user/mfa/verify
-# https://dev.pangea.cloud/docs/api/authn#verify-an-mfa-code
+# - path: authn::/v1/user/mfa/verify
+# https://pangea.cloud/docs/api/authn#verify-an-mfa-code
 class UserMFAverifyRequest(APIRequestModel):
     user_id: str
     mfa_provider: MFAProvider
@@ -634,8 +634,8 @@ class UserMFAVerifyResult(PangeaResponseResult):
     pass
 
 
-#   - path: authn::/v1/user/verify
-# https://dev.pangea.cloud/docs/api/authn#verify-a-user
+# - path: authn::/v1/user/verify
+# https://pangea.cloud/docs/api/authn#verify-user
 class UserVerifyRequest(APIRequestModel):
     id_provider: IDProvider
     email: str
