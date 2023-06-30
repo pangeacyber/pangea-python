@@ -1,3 +1,4 @@
+import datetime
 import os
 
 import pangea.exceptions as pe
@@ -9,30 +10,33 @@ from pangea.tools import logger_set_pangea_config
 
 # This example shows how to perform an audit log, and then search for thats results
 
-token = os.getenv("PANGEA_AUDIT_TOKEN")
+token = os.getenv("PANGEA_AUDIT_CUSTOM_SCHEMA_TOKEN")
 domain = os.getenv("PANGEA_DOMAIN")
 config = PangeaConfig(domain=domain)
-audit = Audit(token, config=config, private_key_file="./tests/testdata/privkey", logger_name="audit")
+audit = Audit(token, config=config, private_key_file="./key/privkey", logger_name="audit")
 logger_set_pangea_config(logger_name=audit.logger.name)
+
+msg = "python-sdk-custom-schema-example"
+
+custom_schema_event = {
+    "message": msg,
+    "field_int": 1,
+    "field_bool": True,
+    "field_str_short": "python-sdk-signed",
+    "field_str_long": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed lacinia, orci eget commodo commodo non.",
+    "field_time": datetime.datetime.now(),
+}
 
 
 def main():
     print("Log Data...")
-    msg = "Hello world"
 
     try:
-        log_response = audit.log(
-            message=msg,
-            actor="Someone",
-            action="Testing",
-            source="monitor",
-            status="Good",
-            target="Another spot",
-            new="New updated message",
-            old="Old message that it's been updated",
+        log_response = audit.log_event(
+            event=custom_schema_event,
             verify=True,
             verbose=False,
-            signing=True,
+            sign_local=True,
         )
         print(f"Log Request ID: {log_response.request_id}, Status: {log_response.status}")
     except pe.PangeaAPIException as e:
@@ -45,11 +49,10 @@ def main():
 
     page_size = 10
     query = "message:" + msg
-    restriction = {"source": ["monitor"]}
 
     try:
         search_res: PangeaResponse[SearchOutput] = audit.search(
-            query=query, search_restriction=restriction, limit=page_size, verify_consistency=True, verify_events=True
+            query=query, limit=page_size, verify_consistency=True, verify_events=True
         )
 
         result_id = search_res.result.id
@@ -74,15 +77,14 @@ def main():
 
 
 def print_header_results():
-    print(f"\n\nreceived_at\t\t\t\tMessage \tSource " f"\t\tActor \t\tMembership \tConsistency \tSignature\t")
+    print(f"\n\nreceived_at\t\t\t\tMessage \t\tMembership \tConsistency \tSignature\t")
 
 
 def print_page_results(search_res: PangeaResponse[SearchResultOutput], offset, count):
     print("\n--------------------------------------------------------------------\n")
     for row in search_res.result.events:
         print(
-            f"{row.envelope.received_at}\t{row.envelope.event.message}\t{row.envelope.event.source}\t\t"
-            f"{row.envelope.event.actor}\t\t{row.membership_verification}\t\t {row.consistency_verification}\t\t {row.signature_verification}\t\t"
+            f"{row.envelope.received_at}\t{row.envelope.event['message']}\t{row.membership_verification}\t\t {row.consistency_verification}\t\t {row.signature_verification}\t\t"
         )
     print(
         f"\nResults: {offset+1}-{offset+len(search_res.result.events)} of {count}",

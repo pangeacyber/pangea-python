@@ -1,5 +1,5 @@
-import base64
 import os
+import time
 
 import pangea.exceptions as pe
 from pangea.config import PangeaConfig
@@ -16,18 +16,25 @@ def main():
     vault = Vault(token, config=config)
 
     try:
+        # name should be unique
+        name = f"Python sign example {int(time.time())}"
+
         # create an asymmetric key with Pangea-provided material and default parameters
         create_response = vault.asymmetric_generate(
-            algorithm=AsymmetricAlgorithm.Ed25519, purpose=KeyPurpose.SIGNING, name="test key"
+            algorithm=AsymmetricAlgorithm.Ed25519, purpose=KeyPurpose.SIGNING, name=name
         )
         key_id = create_response.result.id
 
         # sign a message
-        msg = str2str_b64("hello world")
+        text = "hello world"
+        msg = str2str_b64(text)
+        print(f"text to sign: {text}")
         sign_response = vault.sign(key_id, msg)
         signature = sign_response.result.signature
+        print(f"Signature: {signature}")
 
         # verify it
+        print("Verifying...")
         verify_response = vault.verify(key_id, msg, signature)
         if verify_response.result.valid_signature:
             print("Signature verified succesfully")

@@ -17,7 +17,7 @@ config = PangeaConfig(domain=domain)
 # Initialize an Audit instance using the config object
 audit = Audit(token, config=config)
 
-print(f"Searching...")
+print("Searching...")
 try:
     # Search for 'message' containing 'prevented'
     # filtered on 'source=test', with 5 results per-page
@@ -36,5 +36,5 @@ print(
 )
 for row in response.result.events:
     print(
-        f"{row.envelope.received_at}\t| actor: {row.envelope.event.actor}\t| action: {row.envelope.event.action}\t| target: {row.envelope.event.target}\t| status: {row.envelope.event.status}\t| message: {row.envelope.event.message}"
+        f"{row.envelope.received_at}\t| actor: {row.envelope.event['actor']}\t| action: {row.envelope.event['action']}\t| target: {row.envelope.event['target']}\t| status: {row.envelope.event['status']}\t| message: {row.envelope.event['message']}"
     )

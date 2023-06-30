@@ -48,8 +48,7 @@ custom_schema_event = {
 class TestAudit(unittest.TestCase):
     def setUp(self):
         self.general_token = get_test_token(TEST_ENVIRONMENT)
-        self.vaultToken = get_vault_signature_test_token(TEST_ENVIRONMENT)
-        self.custom_schema_token = get_custom_schema_test_token(TestEnvironment.DEVELOP)
+        self.custom_schema_token = get_custom_schema_test_token(TEST_ENVIRONMENT)
         self.vault_token = get_vault_signature_test_token(TEST_ENVIRONMENT)
         self.multi_config_token = get_multi_config_test_token(TEST_ENVIRONMENT)
 
