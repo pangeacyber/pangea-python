@@ -2,7 +2,7 @@
 # Author: Pangea Cyber Corporation
 import datetime
 import enum
-from typing import Any, Dict, Generic, List, Optional, TypeVar
+from typing import Any, Dict, Generic, List, Optional, Type, TypeVar
 
 import requests
 from pangea.utils import format_datetime
@@ -75,6 +75,7 @@ class ResponseStatus(str, enum.Enum):
     VAULT_ITEM_NOT_FOUND = "VaultItemNotFound"
     NOT_FOUND = "NotFound"
     INTERNAL_SERVER_ERROR = "InternalError"
+    ACCEPTED = "Accepted"
 
 
 class ResponseHeader(APIResponseModel):
@@ -101,17 +102,21 @@ class PangeaResponse(Generic[T], ResponseHeader):
     raw_response: Optional[requests.Response] = None
     result: Optional[T] = None
     pangea_error: Optional[PangeaError] = None
+    result_class: Type[PangeaResponseResult] = PangeaResponseResult
     _json: Any
 
-    def __init__(self, response: requests.Response):
+    def __init__(self, response: requests.Response, result_class: Type[PangeaResponseResult]):
         _json = response.json()
         super(PangeaResponse, self).__init__(**_json)
         self._json = _json
         self.raw_response = response
         self.raw_result = self._json["result"]
+        self.result_class = result_class
         self.result = (
-            T(**self._json["result"])
-            if issubclass(type(T), PangeaResponseResult) and self.status == ResponseStatus.SUCCESS.value
+            self.result_class(**self.raw_result)
+            if self.raw_result is not None
+            and issubclass(self.result_class, PangeaResponseResult)
+            and self.status == ResponseStatus.SUCCESS.value
             else None
         )
         if not self.success:

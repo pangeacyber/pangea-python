@@ -284,7 +284,7 @@ class UpdateRequest(APIRequestModel):
     item_state: Optional[ItemState] = None
 
 
-class UpdateResult(APIRequestModel):
+class UpdateResult(PangeaResponseResult):
     id: str
 
 
