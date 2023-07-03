@@ -83,10 +83,9 @@ class AuthN(ServiceBase):
                 )
             """
             input = m.SessionInvalidateRequest(session_id=session_id)
-            response = self.request.post("v1/session/invalidate", data=input.dict(exclude_none=True))
-            if response.raw_result is not None:
-                response.result = m.SessionInvalidateResult(**response.raw_result)
-            return response
+            return self.request.post(
+                "v1/session/invalidate", m.SessionInvalidateResult, data=input.dict(exclude_none=True)
+            )
 
         # https://pangea.cloud/docs/api/authn#list-session-service-token
         # - path: authn::/v1/session/list
@@ -121,10 +120,7 @@ class AuthN(ServiceBase):
                 response = authn.session.list()
             """
             input = m.SessionListRequest(filter=filter, last=last, order=order, order_by=order_by, size=size)
-            response = self.request.post("v1/session/list", data=input.dict(exclude_none=True))
-            if response.raw_result is not None:
-                response.result = m.SessionListResults(**response.raw_result)
-            return response
+            return self.request.post("v1/session/list", m.SessionListResults, data=input.dict(exclude_none=True))
 
         # https://pangea.cloud/docs/api/authn#log-out-service-token
         # - path: authn::/v1/session/logout
@@ -148,10 +144,7 @@ class AuthN(ServiceBase):
                 )
             """
             input = m.SessionLogoutRequest(user_id=user_id)
-            response = self.request.post("v1/session/logout", data=input.dict(exclude_none=True))
-            if response.raw_result is not None:
-                response.result = m.SessionLogoutResult(**response.raw_result)
-            return response
+            return self.request.post("v1/session/logout", m.SessionLogoutResult, data=input.dict(exclude_none=True))
 
     class Client(ServiceBase):
         service_name = SERVICE_NAME
@@ -192,10 +185,7 @@ class AuthN(ServiceBase):
                 )
             """
             input = m.ClientUserinfoRequest(code=code)
-            response = self.request.post("v1/client/userinfo", data=input.dict(exclude_none=True))
-            if response.raw_result is not None:
-                response.result = m.ClientUserinfoResult(**response.raw_result)
-            return response
+            return self.request.post("v1/client/userinfo", m.ClientUserinfoResult, data=input.dict(exclude_none=True))
 
         # https://pangea.cloud/docs/api/authn#get-jwt-verification-keys
         # - path: authn::/v1/client/jwks
@@ -217,10 +207,7 @@ class AuthN(ServiceBase):
             Examples:
                 response = authn.client.jwks()
             """
-            response = self.request.post("v1/client/jwks", {})
-            if response.raw_result is not None:
-                response.result = m.ClientJWKSResult(**response.raw_result)
-            return response
+            return self.request.post("v1/client/jwks", m.ClientJWKSResult, {})
 
         class Session(ServiceBase):
             service_name = SERVICE_NAME
@@ -258,10 +245,9 @@ class AuthN(ServiceBase):
                     )
                 """
                 input = m.ClientSessionInvalidateRequest(token=token, session_id=session_id)
-                response = self.request.post("v1/client/session/invalidate", data=input.dict(exclude_none=True))
-                if response.raw_result is not None:
-                    response.result = m.ClientSessionInvalidateResult(**response.raw_result)
-                return response
+                return self.request.post(
+                    "v1/client/session/invalidate", m.ClientSessionInvalidateResult, data=input.dict(exclude_none=True)
+                )
 
             # https://pangea.cloud/docs/api/authn#list-sessions-client-token
             # - path: authn::/v1/client/session/list
@@ -302,10 +288,9 @@ class AuthN(ServiceBase):
                 input = m.ClientSessionListRequest(
                     token=token, filter=filter, last=last, order=order, order_by=order_by, size=size
                 )
-                response = self.request.post("v1/client/session/list", data=input.dict(exclude_none=True))
-                if response.raw_result is not None:
-                    response.result = m.ClientSessionListResults(**response.raw_result)
-                return response
+                return self.request.post(
+                    "v1/client/session/list", m.ClientSessionListResults, data=input.dict(exclude_none=True)
+                )
 
             # https://pangea.cloud/docs/api/authn#log-out-client-token
             # - path: authn::/v1/client/session/logout
@@ -329,10 +314,9 @@ class AuthN(ServiceBase):
                     )
                 """
                 input = m.ClientSessionLogoutRequest(token=token)
-                response = self.request.post("v1/client/session/logout", data=input.dict(exclude_none=True))
-                if response.raw_result is not None:
-                    response.result = m.ClientSessionLogoutResult(**response.raw_result)
-                return response
+                return self.request.post(
+                    "v1/client/session/logout", m.ClientSessionLogoutResult, data=input.dict(exclude_none=True)
+                )
 
             # https://pangea.cloud/docs/api/authn#refresh-a-session
             # - path: authn::/v1/client/session/refresh
@@ -362,10 +346,9 @@ class AuthN(ServiceBase):
                     )
                 """
                 input = m.ClientSessionRefreshRequest(refresh_token=refresh_token, user_token=user_token)
-                response = self.request.post("v1/client/session/refresh", data=input.dict(exclude_none=True))
-                if response.raw_result is not None:
-                    response.result = m.ClientSessionRefreshResult(**response.raw_result)
-                return response
+                return self.request.post(
+                    "v1/client/session/refresh", m.ClientSessionRefreshResult, data=input.dict(exclude_none=True)
+                )
 
         class Password(ServiceBase):
             service_name = SERVICE_NAME
@@ -407,10 +390,9 @@ class AuthN(ServiceBase):
                     )
                 """
                 input = m.ClientPasswordChangeRequest(token=token, old_password=old_password, new_password=new_password)
-                response = self.request.post("v1/client/password/change", data=input.dict(exclude_none=True))
-                if response.raw_result is not None:
-                    response.result = m.ClientPasswordChangeResult(**response.raw_result)
-                return response
+                return self.request.post(
+                    "v1/client/password/change", m.ClientPasswordChangeResult, data=input.dict(exclude_none=True)
+                )
 
         class Token(ServiceBase):
             service_name = SERVICE_NAME
@@ -446,10 +428,9 @@ class AuthN(ServiceBase):
                     )
                 """
                 input = m.ClientTokenCheckRequest(token=token)
-                response = self.request.post("v1/client/token/check", data=input.dict(exclude_none=True))
-                if response.raw_result is not None:
-                    response.result = m.ClientTokenCheckResult(**response.raw_result)
-                return response
+                return self.request.post(
+                    "v1/client/token/check", m.ClientTokenCheckResult, data=input.dict(exclude_none=True)
+                )
 
     class User(ServiceBase):
         service_name = SERVICE_NAME
@@ -517,10 +498,7 @@ class AuthN(ServiceBase):
                 profile=profile,
                 scopes=scopes,
             )
-            response = self.request.post("v1/user/create", data=input.dict(exclude_none=True))
-            if response.raw_result is not None:
-                response.result = m.UserCreateResult(**response.raw_result)
-            return response
+            return self.request.post("v1/user/create", m.UserCreateResult, data=input.dict(exclude_none=True))
 
         # https://pangea.cloud/docs/api/authn#delete-user
         # - path: authn::/v1/user/delete
@@ -543,10 +521,7 @@ class AuthN(ServiceBase):
                 authn.user.delete(email="example@example.com")
             """
             input = m.UserDeleteRequest(email=email, id=id)
-            response = self.request.post("v1/user/delete", data=input.dict(exclude_none=True))
-            if response.raw_result is not None:
-                response.result = m.UserDeleteResult(**response.raw_result)
-            return response
+            return self.request.post("v1/user/delete", m.UserDeleteResult, data=input.dict(exclude_none=True))
 
         # https://pangea.cloud/docs/api/authn#update-users-settings
         # - path: authn::/v1/user/update
@@ -569,9 +544,9 @@ class AuthN(ServiceBase):
             Args:
                 id (str, optional): The identity of a user or a service
                 email (str, optional): An email address
-                authenticator (str, optional): A provider-specific authenticator, 
+                authenticator (str, optional): A provider-specific authenticator,
                     such as a password or a social identity.
-                disabled (bool, optional): New disabled value. 
+                disabled (bool, optional): New disabled value.
                     Disabling a user account will prevent them from logging in.
                 require_mfa (bool, optional): True if the user must use MFA during authentication
                 verified (bool, optional): True if the user's email has been verified
@@ -596,10 +571,7 @@ class AuthN(ServiceBase):
                 verified=verified,
             )
 
-            response = self.request.post("v1/user/update", data=input.dict(exclude_none=True))
-            if response.raw_result is not None:
-                response.result = m.UserUpdateResult(**response.raw_result)
-            return response
+            return self.request.post("v1/user/update", m.UserUpdateResult, data=input.dict(exclude_none=True))
 
         # https://pangea.cloud/docs/api/authn#invite-user
         # - path: authn::/v1/user/invite
@@ -624,7 +596,7 @@ class AuthN(ServiceBase):
                 callback (str): A login callback URI
                 state (str): State tracking string for login callbacks
                 require_mfa (bool, optional): Require the user to authenticate with MFA
-            
+
             Returns:
                 A PangeaResponse with a pending user invitation in the response.result field.
                     Available response fields can be found in our
@@ -646,10 +618,7 @@ class AuthN(ServiceBase):
                 state=state,
                 require_mfa=require_mfa,
             )
-            response = self.request.post("v1/user/invite", data=input.dict(exclude_none=True))
-            if response.raw_result is not None:
-                response.result = m.UserInviteResult(**response.raw_result)
-            return response
+            return self.request.post("v1/user/invite", m.UserInviteResult, data=input.dict(exclude_none=True))
 
         # https://pangea.cloud/docs/api/authn#list-users
         # - path: authn::/v1/user/list
@@ -690,10 +659,7 @@ class AuthN(ServiceBase):
                 order_by=order_by,
                 size=size,
             )
-            response = self.request.post("v1/user/list", data=input.dict(exclude_none=True))
-            if response.raw_result is not None:
-                response.result = m.UserListResult(**response.raw_result)
-            return response
+            return self.request.post("v1/user/list", m.UserListResult, data=input.dict(exclude_none=True))
 
         # https://pangea.cloud/docs/api/authn#verify-user
         # - path: authn::/v1/user/verify
@@ -725,10 +691,7 @@ class AuthN(ServiceBase):
                 )
             """
             input = m.UserVerifyRequest(id_provider=id_provider, email=email, authenticator=authenticator)
-            response = self.request.post("v1/user/verify", data=input.dict(exclude_none=True))
-            if response.raw_result is not None:
-                response.result = m.UserVerifyResult(**response.raw_result)
-            return response
+            return self.request.post("v1/user/verify", m.UserVerifyResult, data=input.dict(exclude_none=True))
 
         class Password(ServiceBase):
             service_name = SERVICE_NAME
@@ -765,10 +728,9 @@ class AuthN(ServiceBase):
                     )
                 """
                 input = m.UserPasswordResetRequest(user_id=user_id, new_password=new_password)
-                response = self.request.post("v1/user/password/reset", data=input.dict(exclude_none=True))
-                if response.raw_result is not None:
-                    response.result = m.UserPasswordResetResult(**response.raw_result)
-                return response
+                return self.request.post(
+                    "v1/user/password/reset", m.UserPasswordResetResult, data=input.dict(exclude_none=True)
+                )
 
         class Login(ServiceBase):
             service_name = SERVICE_NAME
@@ -815,10 +777,9 @@ class AuthN(ServiceBase):
                     )
                 """
                 input = m.UserLoginPasswordRequest(email=email, password=password, extra_profile=extra_profile)
-                response = self.request.post("v1/user/login/password", data=input.dict(exclude_none=True))
-                if response.raw_result is not None:
-                    response.result = m.UserLoginResult(**response.raw_result)
-                return response
+                return self.request.post(
+                    "v1/user/login/password", m.UserLoginResult, data=input.dict(exclude_none=True)
+                )
 
             # https://pangea.cloud/docs/api/authn#login-with-a-social-provider
             # - path: authn::/v1/user/login/social
@@ -857,10 +818,7 @@ class AuthN(ServiceBase):
                 input = m.UserLoginSocialRequest(
                     provider=provider, email=email, social_id=social_id, extra_profile=extra_profile
                 )
-                response = self.request.post("v1/user/login/social", data=input.dict(exclude_none=True))
-                if response.raw_result is not None:
-                    response.result = m.UserLoginResult(**response.raw_result)
-                return response
+                return self.request.post("v1/user/login/social", m.UserLoginResult, data=input.dict(exclude_none=True))
 
         class MFA(ServiceBase):
             service_name = SERVICE_NAME
@@ -898,10 +856,9 @@ class AuthN(ServiceBase):
                     )
                 """
                 input = m.UserMFADeleteRequest(user_id=user_id, mfa_provider=mfa_provider)
-                response = self.request.post("v1/user/mfa/delete", data=input.dict(exclude_none=True))
-                if response.raw_result is not None:
-                    response.result = m.UserMFADeleteResult(**response.raw_result)
-                return response
+                return self.request.post(
+                    "v1/user/mfa/delete", m.UserMFADeleteResult, data=input.dict(exclude_none=True)
+                )
 
             # https://pangea.cloud/docs/api/authn#enroll-in-mfa
             # - path: authn::/v1/user/mfa/enroll
@@ -931,10 +888,9 @@ class AuthN(ServiceBase):
                     )
                 """
                 input = m.UserMFAEnrollRequest(user_id=user_id, mfa_provider=mfa_provider, code=code)
-                response = self.request.post("v1/user/mfa/enroll", data=input.dict(exclude_none=True))
-                if response.raw_result is not None:
-                    response.result = m.UserMFAEnrollResult(**response.raw_result)
-                return response
+                return self.request.post(
+                    "v1/user/mfa/enroll", m.UserMFAEnrollResult, data=input.dict(exclude_none=True)
+                )
 
             # https://pangea.cloud/docs/api/authn#user-start-mfa-verification
             # - path: authn::/v1/user/mfa/start
@@ -948,7 +904,7 @@ class AuthN(ServiceBase):
                 """
                 Start MFA Verification
 
-                Start MFA verification for a user, generating a new one-time code, and 
+                Start MFA verification for a user, generating a new one-time code, and
                     sending it if necessary. When enrolling TOTP, this returns the TOTP secret.
 
                 OperationId: authn_post_v1_user_mfa_start
@@ -972,10 +928,7 @@ class AuthN(ServiceBase):
                     )
                 """
                 input = m.UserMFAStartRequest(user_id=user_id, mfa_provider=mfa_provider, enroll=enroll, phone=phone)
-                response = self.request.post("v1/user/mfa/start", data=input.dict(exclude_none=True))
-                if response.raw_result is not None:
-                    response.result = m.UserMFAStartResult(**response.raw_result)
-                return response
+                return self.request.post("v1/user/mfa/start", m.UserMFAStartResult, data=input.dict(exclude_none=True))
 
             # https://pangea.cloud/docs/api/authn#verify-an-mfa-code
             # - path: authn::/v1/user/mfa/verify
@@ -1005,10 +958,9 @@ class AuthN(ServiceBase):
                     )
                 """
                 input = m.UserMFAverifyRequest(user_id=user_id, mfa_provider=mfa_provider, code=code)
-                response = self.request.post("v1/user/mfa/verify", data=input.dict(exclude_none=True))
-                if response.raw_result is not None:
-                    response.result = m.UserMFAVerifyResult(**response.raw_result)
-                return response
+                return self.request.post(
+                    "v1/user/mfa/verify", m.UserMFAVerifyResult, data=input.dict(exclude_none=True)
+                )
 
         class Profile(ServiceBase):
             service_name = SERVICE_NAME
@@ -1049,10 +1001,9 @@ class AuthN(ServiceBase):
                     )
                 """
                 input = m.UserProfileGetRequest(id=id, email=email)
-                response = self.request.post("v1/user/profile/get", data=input.dict(exclude_none=True))
-                if response.raw_result is not None:
-                    response.result = m.UserProfileGetResult(**response.raw_result)
-                return response
+                return self.request.post(
+                    "v1/user/profile/get", m.UserProfileGetResult, data=input.dict(exclude_none=True)
+                )
 
             # https://pangea.cloud/docs/api/authn#update-user
             # - path: authn::/v1/user/profile/update
@@ -1092,10 +1043,9 @@ class AuthN(ServiceBase):
                     email=email,
                     profile=profile,
                 )
-                response = self.request.post("v1/user/profile/update", data=input.dict(exclude_none=True))
-                if response.raw_result is not None:
-                    response.result = m.UserProfileUpdateResult(**response.raw_result)
-                return response
+                return self.request.post(
+                    "v1/user/profile/update", m.UserProfileUpdateResult, data=input.dict(exclude_none=True)
+                )
 
         class Invites(ServiceBase):
             service_name = SERVICE_NAME
@@ -1142,10 +1092,9 @@ class AuthN(ServiceBase):
                     response = authn.user.invites.list()
                 """
                 input = m.UserInviteListRequest(filter=filter, last=last, order=order, order_by=order_by, size=size)
-                response = self.request.post("v1/user/invite/list", data=input.dict(exclude_none=True))
-                if response.raw_result is not None:
-                    response.result = m.UserInviteListResult(**response.raw_result)
-                return response
+                return self.request.post(
+                    "v1/user/invite/list", m.UserInviteListResult, data=input.dict(exclude_none=True)
+                )
 
             # https://pangea.cloud/docs/api/authn#delete-invite
             # - path: authn::/v1/user/invite/delete
@@ -1169,10 +1118,9 @@ class AuthN(ServiceBase):
                     )
                 """
                 input = m.UserInviteDeleteRequest(id=id)
-                response = self.request.post("v1/user/invite/delete", data=input.dict(exclude_none=True))
-                if response.raw_result is not None:
-                    response.result = m.UserInviteDeleteResult(**response.raw_result)
-                return response
+                return self.request.post(
+                    "v1/user/invite/delete", m.UserInviteDeleteResult, data=input.dict(exclude_none=True)
+                )
 
     class Flow(ServiceBase):
         service_name = SERVICE_NAME
@@ -1214,10 +1162,7 @@ class AuthN(ServiceBase):
                 )
             """
             input = m.FlowCompleteRequest(flow_id=flow_id)
-            response = self.request.post("v1/flow/complete", data=input.dict(exclude_none=True))
-            if response.raw_result is not None:
-                response.result = m.FlowCompleteResult(**response.raw_result)
-            return response
+            return self.request.post("v1/flow/complete", m.FlowCompleteResult, data=input.dict(exclude_none=True))
 
         # https://pangea.cloud/docs/api/authn#start-a-sign-up-in
         # - path: authn::/v1/flow/start
@@ -1260,11 +1205,10 @@ class AuthN(ServiceBase):
                     provider=IDProvider.PASSWORD,
                 )
             """
-            input = m.FlowStartRequest(cb_uri=cb_uri, email=email, flow_types=flow_types, provider=provider, invitation=invitation)
-            response = self.request.post("v1/flow/start", data=input.dict(exclude_none=True))
-            if response.raw_result is not None:
-                response.result = m.FlowStartResult(**response.raw_result)
-            return response
+            input = m.FlowStartRequest(
+                cb_uri=cb_uri, email=email, flow_types=flow_types, provider=provider, invitation=invitation
+            )
+            return self.request.post("v1/flow/start", m.FlowStartResult, data=input.dict(exclude_none=True))
 
         class Reset(ServiceBase):
             service_name = SERVICE_NAME
@@ -1310,13 +1254,10 @@ class AuthN(ServiceBase):
                         password="My1s+Password",
                     )
                 """
-                input = m.FlowResetPasswordRequest(
-                    flow_id=flow_id, password=password, cancel=cancel
+                input = m.FlowResetPasswordRequest(flow_id=flow_id, password=password, cancel=cancel)
+                return self.request.post(
+                    "v1/flow/reset/password", m.FlowResetPasswordResult, data=input.dict(exclude_none=True)
                 )
-                response = self.request.post("v1/flow/reset/password", data=input.dict(exclude_none=True))
-                if response.raw_result is not None:
-                    response.result = m.FlowResetPasswordResult(**response.raw_result)
-                return response
 
         class Enroll(ServiceBase):
             service_name = SERVICE_NAME
@@ -1373,10 +1314,9 @@ class AuthN(ServiceBase):
                         )
                     """
                     input = m.FlowEnrollMFACompleteRequest(flow_id=flow_id, code=code, cancel=cancel)
-                    response = self.request.post("v1/flow/enroll/mfa/complete", data=input.dict(exclude_none=True))
-                    if response.raw_result is not None:
-                        response.result = m.FlowEnrollMFAcompleteResult(**response.raw_result)
-                    return response
+                    return self.request.post(
+                        "v1/flow/enroll/mfa/complete", m.FlowEnrollMFAcompleteResult, data=input.dict(exclude_none=True)
+                    )
 
                 # https://pangea.cloud/docs/api/authn#start-mfa-enrollment
                 # - path: authn::/v1/flow/enroll/mfa/start
@@ -1409,10 +1349,9 @@ class AuthN(ServiceBase):
                         )
                     """
                     input = m.FlowEnrollMFAStartRequest(flow_id=flow_id, mfa_provider=mfa_provider, phone=phone)
-                    response = self.request.post("v1/flow/enroll/mfa/start", data=input.dict(exclude_none=True))
-                    if response.raw_result is not None:
-                        response.result = m.FlowEnrollMFAStartResult(**response.raw_result)
-                    return response
+                    return self.request.post(
+                        "v1/flow/enroll/mfa/start", m.FlowEnrollMFAStartResult, data=input.dict(exclude_none=True)
+                    )
 
         class Signup(ServiceBase):
             service_name = SERVICE_NAME
@@ -1449,7 +1388,7 @@ class AuthN(ServiceBase):
                         to complete a flow in the response.result field.
                         Available response fields can be found in our
                         [API Documentation](https://pangea.cloud/docs/api/authn#password-sign-up).
-                
+
                 Examples:
                     response = authn.flow.signup.password(
                         flow_id="pfl_dxiqyuq7ndc5ycjwdgmguwuodizcaqhh",
@@ -1461,10 +1400,9 @@ class AuthN(ServiceBase):
                 input = m.FlowSignupPasswordRequest(
                     flow_id=flow_id, password=password, first_name=first_name, last_name=last_name
                 )
-                response = self.request.post("v1/flow/signup/password", data=input.dict(exclude_none=True))
-                if response.raw_result is not None:
-                    response.result = m.FlowSignupPasswordResult(**response.raw_result)
-                return response
+                return self.request.post(
+                    "v1/flow/signup/password", m.FlowSignupPasswordResult, data=input.dict(exclude_none=True)
+                )
 
             # https://pangea.cloud/docs/api/authn#social-sign-up
             # - path: authn::/v1/flow/signup/social
@@ -1495,10 +1433,9 @@ class AuthN(ServiceBase):
                     )
                 """
                 input = m.FlowSignupSocialRequest(flow_id=flow_id, cb_state=cb_state, cb_code=cb_code)
-                response = self.request.post("v1/flow/signup/social", data=input.dict(exclude_none=True))
-                if response.raw_result is not None:
-                    response.result = m.FlowSignupSocialResult(**response.raw_result)
-                return response
+                return self.request.post(
+                    "v1/flow/signup/social", m.FlowSignupSocialResult, data=input.dict(exclude_none=True)
+                )
 
         class Verify(ServiceBase):
             service_name = SERVICE_NAME
@@ -1540,10 +1477,9 @@ class AuthN(ServiceBase):
                     )
                 """
                 input = m.FlowVerifyCaptchaRequest(flow_id=flow_id, code=code)
-                response = self.request.post("v1/flow/verify/captcha", data=input.dict(exclude_none=True))
-                if response.raw_result is not None:
-                    response.result = m.FlowVerifyCaptchaResult(**response.raw_result)
-                return response
+                return self.request.post(
+                    "v1/flow/verify/captcha", m.FlowVerifyCaptchaResult, data=input.dict(exclude_none=True)
+                )
 
             # https://pangea.cloud/docs/api/authn#verify-email-address
             # - path: authn::/v1/flow/verify/email
@@ -1576,10 +1512,9 @@ class AuthN(ServiceBase):
                     )
                 """
                 input = m.FlowVerifyEmailRequest(flow_id=flow_id, cb_state=cb_state, cb_code=cb_code)
-                response = self.request.post("v1/flow/verify/email", data=input.dict(exclude_none=True))
-                if response.raw_result is not None:
-                    response.result = m.FlowVerifyEmailResult(**response.raw_result)
-                return response
+                return self.request.post(
+                    "v1/flow/verify/email", m.FlowVerifyEmailResult, data=input.dict(exclude_none=True)
+                )
 
             # https://pangea.cloud/docs/api/authn#password-sign-in
             # - path: authn::/v1/flow/verify/password
@@ -1611,10 +1546,9 @@ class AuthN(ServiceBase):
                     )
                 """
                 input = m.FlowVerifyPasswordRequest(flow_id=flow_id, password=password, cancel=cancel)
-                response = self.request.post("v1/flow/verify/password", data=input.dict(exclude_none=True))
-                if response.raw_result is not None:
-                    response.result = m.FlowVerifyPasswordResult(**response.raw_result)
-                return response
+                return self.request.post(
+                    "v1/flow/verify/password", m.FlowVerifyPasswordResult, data=input.dict(exclude_none=True)
+                )
 
             # https://pangea.cloud/docs/api/authn#social-sign-in
             # - path: authn::/v1/flow/verify/social
@@ -1645,10 +1579,9 @@ class AuthN(ServiceBase):
                     )
                 """
                 input = m.FlowVerifySocialRequest(flow_id=flow_id, cb_state=cb_state, cb_code=cb_code)
-                response = self.request.post("v1/flow/verify/social", data=input.dict(exclude_none=True))
-                if response.raw_result is not None:
-                    response.result = m.FlowVerifySocialResult(**response.raw_result)
-                return response
+                return self.request.post(
+                    "v1/flow/verify/social", m.FlowVerifySocialResult, data=input.dict(exclude_none=True)
+                )
 
             class MFA(ServiceBase):
                 service_name = SERVICE_NAME
@@ -1692,10 +1625,9 @@ class AuthN(ServiceBase):
                         )
                     """
                     input = m.FlowVerifyMFACompleteRequest(flow_id=flow_id, code=code, cancel=cancel)
-                    response = self.request.post("v1/flow/verify/mfa/complete", data=input.dict(exclude_none=True))
-                    if response.raw_result is not None:
-                        response.result = m.FlowVerifyMFACompleteResult(**response.raw_result)
-                    return response
+                    return self.request.post(
+                        "v1/flow/verify/mfa/complete", m.FlowVerifyMFACompleteResult, data=input.dict(exclude_none=True)
+                    )
 
                 # https://pangea.cloud/docs/api/authn#start-mfa-verification
                 # - path: authn::/v1/flow/verify/mfa/start
@@ -1726,7 +1658,6 @@ class AuthN(ServiceBase):
                         )
                     """
                     input = m.FlowVerifyMFAStartRequest(flow_id=flow_id, mfa_provider=mfa_provider)
-                    response = self.request.post("v1/flow/verify/mfa/start", data=input.dict(exclude_none=True))
-                    if response.raw_result is not None:
-                        response.result = m.FlowVerifyMFAStartResult(**response.raw_result)
-                    return response
+                    return self.request.post(
+                        "v1/flow/verify/mfa/start", m.FlowVerifyMFAStartResult, data=input.dict(exclude_none=True)
+                    )

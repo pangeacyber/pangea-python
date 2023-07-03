@@ -88,13 +88,6 @@ class MissingConfigID(PangeaAPIException):
         )
 
 
-class NotFound(PangeaAPIException):
-    """Resource not found"""
-
-    def __init__(self, url: str, response: PangeaResponse):
-        super(NotFound, self).__init__(f"Resource not found: {url}", response)
-
-
 class ProviderErrorException(PangeaAPIException):
     """Downstream provider error"""
 
@@ -105,6 +98,17 @@ class InternalServerError(PangeaAPIException):
     def __init__(self, response: PangeaResponse):
         message = f"summary: {response.summary}. request_id: {response.request_id}. request_time: {response.request_time}. response_time: ${response.response_time}"
         super().__init__(message, response)
+
+
+class AcceptedRequestException(PangeaAPIException):
+    """Accepted request exception. Async response"""
+
+    request_id: str
+
+    def __init__(self, response: PangeaResponse):
+        message = f"summary: {response.summary}. request_id: {response.request_id}."
+        super().__init__(message, response)
+        self.request_id = response.request_id
 
 
 class ServiceNotAvailableException(PangeaAPIException):
