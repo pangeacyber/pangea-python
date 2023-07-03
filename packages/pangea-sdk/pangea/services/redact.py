@@ -131,6 +131,7 @@ class Redact(ServiceBase):
     """
 
     service_name = "redact"
+    _support_multi_config = False
 
     def __init__(
         self,

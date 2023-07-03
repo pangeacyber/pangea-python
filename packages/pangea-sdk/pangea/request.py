@@ -25,7 +25,9 @@ class PangeaRequest(object):
     be set in PangeaConfig.
     """
 
-    def __init__(self, config: PangeaConfig, token: str, service: str, logger: logging.Logger):
+    def __init__(
+        self, config: PangeaConfig, token: str, service: str, logger: logging.Logger, check_config_id: bool = False
+    ):
         self.config = copy.deepcopy(config)
         self.token = token
         self.service = service
@@ -38,6 +40,7 @@ class PangeaRequest(object):
         self._user_agent = ""
         self.set_custom_user_agent(config.custom_user_agent)
         self.session: requests.Session = self._init_session()
+        self._check_config_id = check_config_id
 
         self.logger = logger
 
@@ -92,6 +95,10 @@ class PangeaRequest(object):
                various properties to retrieve individual fields
         """
         url = self._url(endpoint)
+        # Set config ID if available
+        if self._check_config_id and self.config.config_id and data.pop("config_id", None) is None:
+            data["config_id"] = self.config.config_id
+
         data_send = json.dumps(data, default=default_encoder) if isinstance(data, dict) else data
         self.logger.debug(
             json.dumps({"service": self.service, "action": "post", "url": url, "data": data}, default=default_encoder)

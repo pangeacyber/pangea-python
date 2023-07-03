@@ -63,17 +63,30 @@ class TestAuthN(unittest.TestCase):
     def test_authn_a3_login_n_password_change(self):
         # This could (should) fail if test_authn_a1_user_create_with_password failed
         try:
-            response = self.authn.user.login.password(email=EMAIL_TEST, password=PASSWORD_OLD)
-            self.assertEqual(response.status, "Success")
-            self.assertIsNotNone(response.result)
-            self.assertIsNotNone(response.result.active_token)
-            self.assertIsNotNone(response.result.refresh_token)
+            # login
+            response_login = self.authn.user.login.password(email=EMAIL_TEST, password=PASSWORD_OLD)
+            self.assertEqual(response_login.status, "Success")
+            self.assertIsNotNone(response_login.result)
+            self.assertIsNotNone(response_login.result.active_token)
+            self.assertIsNotNone(response_login.result.refresh_token)
 
-            response = self.authn.client.password.change(
-                token=response.result.active_token.token, old_password=PASSWORD_OLD, new_password=PASSWORD_NEW
+            # verify
+            response_verify = self.authn.user.verify(
+                id_provider=IDProvider.PASSWORD, email=EMAIL_TEST, authenticator=PASSWORD_OLD
             )
-            self.assertEqual(response.status, "Success")
-            self.assertIsNone(response.result)
+            self.assertEqual(response_verify.status, "Success")
+
+            # password change
+            response_change = self.authn.client.password.change(
+                token=response_login.result.active_token.token, old_password=PASSWORD_OLD, new_password=PASSWORD_NEW
+            )
+            self.assertEqual(response_change.status, "Success")
+            self.assertIsNone(response_change.result)
+
+            # password reset
+            response_reset = self.authn.user.password.reset(user_id=USER_ID, new_password=PASSWORD_NEW)
+            self.assertEqual(response_reset.status, "Success")
+
         except pexc.PangeaAPIException as e:
             print(e)
             self.assertTrue(False)
@@ -158,7 +171,106 @@ class TestAuthN(unittest.TestCase):
         self.assertIsNotNone(response.result)
         self.assertGreater(len(response.result.invites), 0)
 
-    def test_authn_user_list(self):
+    def test_authn_c1_login_n_some_validations(self):
+        # This could (should) fail if test_authn_a1_user_create_with_password failed
+        try:
+            response_login = self.authn.user.login.password(email=EMAIL_TEST, password=PASSWORD_NEW)
+            self.assertEqual(response_login.status, "Success")
+            self.assertIsNotNone(response_login.result)
+            self.assertIsNotNone(response_login.result.active_token)
+            self.assertIsNotNone(response_login.result.refresh_token)
+
+            tokens = response_login.result
+            # check token
+            response = self.authn.client.token_endpoints.check(token=tokens.active_token.token)
+            self.assertEqual(response.status, "Success")
+
+            # refresh
+            response_refresh = self.authn.client.session.refresh(
+                refresh_token=tokens.refresh_token.token, user_token=tokens.active_token.token
+            )
+            self.assertEqual(response_refresh.status, "Success")
+            tokens = response_refresh.result
+
+            # logout
+            response_logout = self.authn.client.session.logout(token=tokens.active_token.token)
+            self.assertEqual(response_logout.status, "Success")
+
+        except pexc.PangeaAPIException as e:
+            print(e)
+            self.assertTrue(False)
+
+    def test_authn_c2_login_n_session_invalidate(self):
+        # This could (should) fail if test_authn_a1_user_create_with_password failed
+        try:
+            response_login = self.authn.user.login.password(email=EMAIL_TEST, password=PASSWORD_NEW)
+            self.assertEqual(response_login.status, "Success")
+            self.assertIsNotNone(response_login.result)
+            self.assertIsNotNone(response_login.result.active_token)
+            self.assertIsNotNone(response_login.result.refresh_token)
+
+            # list sessions
+            response = self.authn.session.list()
+            self.assertEqual(response.status, "Success")
+            self.assertIsNotNone(response.result)
+            self.assertGreater(len(response.result.sessions), 0)
+            for session in response.result.sessions:
+                try:
+                    self.authn.session.invalidate(session_id=session.id)
+                except pexc.PangeaAPIException:
+                    print(f"Fail to invalidate session_id: {session.id}")
+                    pass
+
+        except pexc.PangeaAPIException as e:
+            print(e)
+            self.assertTrue(False)
+
+    def test_authn_c2_login_n_client_session_invalidate(self):
+        # This could (should) fail if test_authn_a1_user_create_with_password failed
+        try:
+            response_login = self.authn.user.login.password(email=EMAIL_TEST, password=PASSWORD_NEW)
+            self.assertEqual(response_login.status, "Success")
+            self.assertIsNotNone(response_login.result)
+            self.assertIsNotNone(response_login.result.active_token)
+            self.assertIsNotNone(response_login.result.refresh_token)
+            token = response_login.result.active_token.token
+
+            # list sessions
+            response = self.authn.client.session.list(token=token)
+            self.assertEqual(response.status, "Success")
+            self.assertIsNotNone(response.result)
+            self.assertGreater(len(response.result.sessions), 0)
+
+            for session in response.result.sessions:
+                try:
+                    self.authn.client.session.invalidate(token=token, session_id=session.id)
+                except pexc.PangeaAPIException as e:
+                    print(f"Fail to invalidate session_id[{session.id}] token[{token}]")
+                    print(e)
+                    pass
+
+        except pexc.PangeaAPIException as e:
+            print(e)
+            self.assertTrue(False)
+
+    def test_authn_c3_login_n_logout_sessions(self):
+        # This could (should) fail if test_authn_a1_user_create_with_password failed
+        try:
+            response_login = self.authn.user.login.password(email=EMAIL_TEST, password=PASSWORD_NEW)
+            self.assertEqual(response_login.status, "Success")
+            self.assertIsNotNone(response_login.result)
+            self.assertIsNotNone(response_login.result.active_token)
+            self.assertIsNotNone(response_login.result.refresh_token)
+
+            # session logout
+            response_logout = self.authn.session.logout(user_id=response_login.result.active_token.id)
+            self.assertEqual(response_logout.status, "Success")
+
+        except pexc.PangeaAPIException as e:
+            print(e)
+            self.assertTrue(False)
+
+    def test_authn_z1_user_list(self):
         response = self.authn.user.list()
         self.assertEqual(response.status, "Success")
         self.assertIsNotNone(response.result)

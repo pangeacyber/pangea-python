@@ -10,7 +10,7 @@ On this example root directory (./examples/intel) run
 poetry install
 ```
 
-Set up environment variables `PANGEA_INTEL_TOKEN` and `PANGEA_DOMAIN` with your project token configured on Pangea User Console (token should have access to Intel services) and with your pangea domain.
+Set up environment variables ([Instructions](https://pangea.cloud/docs/getting-started/integrate/#set-environment-variables)) `PANGEA_INTEL_TOKEN` and `PANGEA_DOMAIN` with your project token configured on Pangea User Console (token should have access to Intel services [Instructions](https://pangea.cloud/docs/getting-started/configure-services/#configure-a-pangea-service)) and with your pangea domain.
 
 ## Run
 

@@ -65,7 +65,8 @@ class Audit(ServiceBase):
         audit = Audit(token=PANGEA_TOKEN, config=audit_config)
     """
 
-    service_name: str = "audit"
+    service_name = "audit"
+    _support_multi_config = True
 
     def __init__(
         self,

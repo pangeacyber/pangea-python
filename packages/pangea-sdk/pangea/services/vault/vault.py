@@ -89,7 +89,8 @@ class Vault(ServiceBase):
         vault = Vault(token=PANGEA_VAULT_TOKEN, config=audit_config)
     """
 
-    service_name: str = "vault"
+    service_name = "vault"
+    _support_multi_config = False
 
     def __init__(
         self,
