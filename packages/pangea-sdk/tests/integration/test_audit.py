@@ -51,6 +51,7 @@ class TestAudit(unittest.TestCase):
         self.custom_schema_token = get_custom_schema_test_token(TEST_ENVIRONMENT)
         self.vault_token = get_vault_signature_test_token(TEST_ENVIRONMENT)
         self.multi_config_token = get_multi_config_test_token(TEST_ENVIRONMENT)
+        self.custom_schema_token = get_custom_schema_test_token(TEST_ENVIRONMENT)
 
         self.domain = get_test_domain(TEST_ENVIRONMENT)
         self.config = PangeaConfig(domain=self.domain)
@@ -62,14 +63,14 @@ class TestAudit(unittest.TestCase):
         logger_set_pangea_config(logger_name=self.audit_general.logger.name)
 
         self.auditCustomSchema = Audit(
-            get_custom_schema_test_token(TestEnvironment.DEVELOP),
-            config=PangeaConfig(get_test_domain(TestEnvironment.DEVELOP)),
+            self.custom_schema_token,
+            config=PangeaConfig(self.domain),
             logger_name="pangea",
         )
 
         self.auditCustomSchemaLocalSign = Audit(
-            get_custom_schema_test_token(TestEnvironment.DEVELOP),
-            config=PangeaConfig(get_test_domain(TestEnvironment.DEVELOP)),
+            self.custom_schema_token,
+            config=PangeaConfig(domain=self.domain),
             private_key_file="./tests/testdata/privkey",
             logger_name="pangea",
         )
