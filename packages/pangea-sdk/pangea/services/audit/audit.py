@@ -221,14 +221,13 @@ class Audit(ServiceBase):
             if self.prev_unpublished_root_hash:
                 input.prev_root = self.prev_unpublished_root_hash
 
-        response = self.request.post("v1/log", data=input.dict(exclude_none=True))
+        response = self.request.post("v1/log", LogResult, data=input.dict(exclude_none=True))
         return self.handle_log_response(response, verify=verify)
 
     def handle_log_response(self, response: PangeaResponse, verify: bool) -> PangeaResponse[LogResult]:
         if not response.success:
             return response
 
-        response.result = LogResult(**response.raw_result)
         new_unpublished_root_hash = response.result.unpublished_root
 
         if verify:
@@ -341,7 +340,7 @@ class Audit(ServiceBase):
             verbose=verbose,
         )
 
-        response = self.request.post("v1/search", data=input.dict(exclude_none=True))
+        response = self.request.post("v1/search", SearchOutput, data=input.dict(exclude_none=True))
         return self.handle_search_response(response, verify_consistency, verify_events)
 
     def results(
@@ -394,7 +393,7 @@ class Audit(ServiceBase):
             limit=limit,
             offset=offset,
         )
-        response = self.request.post("v1/results", data=input.dict(exclude_none=True))
+        response = self.request.post("v1/results", SearchResultOutput, data=input.dict(exclude_none=True))
         return self.handle_results_response(response, verify_consistency, verify_events)
 
     def handle_results_response(
@@ -403,7 +402,6 @@ class Audit(ServiceBase):
         if not response.success:
             return response
 
-        response.result = SearchResultOutput(**response.raw_result)
         return self.process_search_results(response, verify_consistency, verify_events)
 
     def handle_search_response(
@@ -412,7 +410,6 @@ class Audit(ServiceBase):
         if not response.success:
             return response
 
-        response.result = SearchOutput(**response.raw_result)
         return self.process_search_results(response, verify_consistency, verify_events)
 
     def process_search_results(
@@ -645,6 +642,4 @@ class Audit(ServiceBase):
             response = audit.root(tree_size=7)
         """
         input = RootRequest(tree_size=tree_size)
-        response = self.request.post("v1/root", data=input.dict(exclude_none=True))
-        response.result = RootResult(**response.raw_result)
-        return response
+        return self.request.post("v1/root", RootResult, data=input.dict(exclude_none=True))

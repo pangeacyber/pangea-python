@@ -2,10 +2,11 @@
 # Author: Pangea Cyber Corporation
 import enum
 import hashlib
+import io
 from typing import Dict, List, Optional
 
 from pangea.exceptions import PangeaException
-from pangea.response import APIRequestModel, APIResponseModel, PangeaResponse, PangeaResponseResult
+from pangea.response import APIRequestModel, PangeaResponse, PangeaResponseResult
 
 from .base import ServiceBase
 
@@ -45,7 +46,7 @@ class FileReputationRequest(APIRequestModel):
     hash_type: str
 
 
-class FileReputationData(APIResponseModel):
+class FileReputationData(PangeaResponseResult):
     """
     File reputation information
     """
@@ -81,7 +82,7 @@ class IPRepurationRequest(IPCommonRequest):
     pass
 
 
-class IPReputationData(APIResponseModel):
+class IPReputationData(PangeaResponseResult):
     """
     IP reputation information
     """
@@ -207,7 +208,7 @@ class DomainReputationRequest(DomainCommonRequest):
     pass
 
 
-class DomainReputationData(APIResponseModel):
+class DomainReputationData(PangeaResponseResult):
     """
     Domain Reputation information
     """
@@ -243,7 +244,7 @@ class URLReputationRequest(URLCommonRequest):
     pass
 
 
-class URLReputationData(APIResponseModel):
+class URLReputationData(PangeaResponseResult):
     """
     URL reputation information
     """
@@ -332,9 +333,7 @@ class FileIntel(ServiceBase):
 
         """
         input = FileReputationRequest(hash=hash, hash_type=hash_type, verbose=verbose, raw=raw, provider=provider)
-        response = self.request.post("v1/reputation", data=input.dict(exclude_none=True))
-        response.result = FileReputationResult(**response.raw_result)
-        return response
+        return self.request.post("v1/reputation", FileReputationResult, data=input.dict(exclude_none=True))
 
     def filepath_reputation(
         self,
@@ -375,9 +374,7 @@ class FileIntel(ServiceBase):
         hash = hashlib.sha256(data.read()).hexdigest()
 
         input = FileReputationRequest(hash=hash, hash_type="sha256", verbose=verbose, raw=raw, provider=provider)
-        response = self.request.post("v1/reputation", data=input.dict(exclude_none=True))
-        response.result = FileReputationResult(**response.raw_result)
-        return response
+        return self.request.post("v1/reputation", FileReputationResult, data=input.dict(exclude_none=True))
 
 
 class DomainIntel(ServiceBase):
@@ -437,9 +434,7 @@ class DomainIntel(ServiceBase):
             )
         """
         input = DomainReputationRequest(domain=domain, verbose=verbose, provider=provider, raw=raw)
-        response = self.request.post("v1/reputation", data=input.dict(exclude_none=True))
-        response.result = DomainReputationResult(**response.raw_result)
-        return response
+        return self.request.post("v1/reputation", DomainReputationResult, data=input.dict(exclude_none=True))
 
 
 class IpIntel(ServiceBase):
@@ -499,9 +494,7 @@ class IpIntel(ServiceBase):
             )
         """
         input = IPRepurationRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
-        response = self.request.post("v1/reputation", data=input.dict(exclude_none=True))
-        response.result = IPReputationResult(**response.raw_result)
-        return response
+        return self.request.post("v1/reputation", IPReputationResult, data=input.dict(exclude_none=True))
 
     def geolocate(
         self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
@@ -533,9 +526,7 @@ class IpIntel(ServiceBase):
             )
         """
         input = IPGeolocateRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
-        response = self.request.post("v1/geolocate", data=input.dict(exclude_none=True))
-        response.result = IPGeolocateResult(**response.raw_result)
-        return response
+        return self.request.post("v1/geolocate", IPGeolocateResult, data=input.dict(exclude_none=True))
 
     def get_domain(
         self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
@@ -567,9 +558,7 @@ class IpIntel(ServiceBase):
             )
         """
         input = IPDomainRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
-        response = self.request.post("v1/domain", data=input.dict(exclude_none=True))
-        response.result = IPDomainResult(**response.raw_result)
-        return response
+        return self.request.post("v1/domain", IPDomainResult, data=input.dict(exclude_none=True))
 
     def is_vpn(
         self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
@@ -601,9 +590,7 @@ class IpIntel(ServiceBase):
             )
         """
         input = IPVPNRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
-        response = self.request.post("v1/vpn", data=input.dict(exclude_none=True))
-        response.result = IPVPNResult(**response.raw_result)
-        return response
+        return self.request.post("v1/vpn", IPVPNResult, data=input.dict(exclude_none=True))
 
     def is_proxy(
         self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
@@ -635,9 +622,7 @@ class IpIntel(ServiceBase):
             )
         """
         input = IPProxyRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
-        response = self.request.post("v1/proxy", data=input.dict(exclude_none=True))
-        response.result = IPProxyResult(**response.raw_result)
-        return response
+        return self.request.post("v1/proxy", IPProxyResult, data=input.dict(exclude_none=True))
 
 
 class UrlIntel(ServiceBase):
@@ -698,9 +683,7 @@ class UrlIntel(ServiceBase):
         """
 
         input = URLReputationRequest(url=url, provider=provider, verbose=verbose, raw=raw)
-        response = self.request.post("v1/reputation", data=input.dict(exclude_none=True))
-        response.result = URLReputationResult(**response.raw_result)
-        return response
+        return self.request.post("v1/reputation", URLReputationResult, data=input.dict(exclude_none=True))
 
 
 class UserBreachedRequest(IntelCommonRequest):
@@ -723,7 +706,7 @@ class UserBreachedRequest(IntelCommonRequest):
     end: Optional[str] = None
 
 
-class UserBreachedCommonData(APIResponseModel):
+class UserBreachedCommonData(PangeaResponseResult):
     """
     User breached common information
     """
@@ -860,9 +843,7 @@ class UserIntel(ServiceBase):
             verbose=verbose,
             raw=raw,
         )
-        response = self.request.post("v1/user/breached", data=input.dict(exclude_none=True))
-        response.result = UserBreachedResult(**response.raw_result)
-        return response
+        return self.request.post("v1/user/breached", UserBreachedResult, data=input.dict(exclude_none=True))
 
     def password_breached(
         self,
@@ -904,9 +885,7 @@ class UserIntel(ServiceBase):
         input = UserPasswordBreachedRequest(
             hash_type=hash_type, hash_prefix=hash_prefix, provider=provider, verbose=verbose, raw=raw
         )
-        response = self.request.post("v1/password/breached", data=input.dict(exclude_none=True))
-        response.result = UserPasswordBreachedResult(**response.raw_result)
-        return response
+        return self.request.post("v1/password/breached", UserPasswordBreachedResult, data=input.dict(exclude_none=True))
 
     class PasswordStatus(enum.Enum):
         BREACHED = 0
