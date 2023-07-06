@@ -19,8 +19,8 @@ def main():
     print(f"Logging: {msg}")
 
     try:
-        log_response = audit.log(message=msg, verbose=False)
-        print(f"Response: {log_response.result}")
+        log_response = audit.log(message=msg, verbose=True)
+        print(f"Envelope: {log_response.result.envelope}")
     except pe.PangeaAPIException as e:
         print(f"Request Error: {e.response.summary}")
         for err in e.errors:

@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2023-07-06
+
+# Added
+
+- Custom schema support: Add Audit.log_event() to use custom schema
+
+# Changed
+
+- Custom schema support breaking change: event is a dict now
+- Audit.log(): signing param rename to sign_local due to vault signing is set by token config
+- Rename FileIntel.hashReputation to hash_reputation, and filepathReputation to filepath_reputation
+
+# Removed
+
+- Intel lookup deprecated methods.
+
 ## [1.10.0] - 2023-06-26
 
 # Added
@@ -188,7 +204,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Domain Intel client
 - Redact client
 
-[unreleased]: https://github.com/pangeacyber/pangea-python/compare/v1.10.0...main
+[unreleased]: https://github.com/pangeacyber/pangea-python/compare/v2.0.0...main
+[2.0.0]: https://github.com/pangeacyber/pangea-python/compare/v1.10.0...v2.0.0
 [1.10.0]: https://github.com/pangeacyber/pangea-python/compare/v1.9.1...v1.10.0
 [1.9.1]: https://github.com/pangeacyber/pangea-python/compare/v1.9.0...v1.9.1
 [1.9.0]: https://github.com/pangeacyber/pangea-python/compare/v1.8.0...v1.9.0

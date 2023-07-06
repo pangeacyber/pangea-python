@@ -16,7 +16,7 @@ def main():
 
     try:
         redact_response = redact.redact(text=text)
-        print(f"Response: {redact_response.result}")
+        print(f"Redacted text: {redact_response.result.redacted_text}")
     except pe.PangeaAPIException as e:
         print(f"Embargo Request Error: {e.response.summary}")
         for err in e.errors:

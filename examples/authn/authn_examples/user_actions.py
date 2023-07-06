@@ -61,7 +61,8 @@ def main():
 
         print("\n\nListing users...")
         response = authn.user.list()
-        print(f"List users success. {len(response.result.users)} users on list")
+        print(f"List users success. {response.result.count} users on this project")
+        print(f"List users success. {len(response.result.users)} users listed")
 
         print("\n\nDeleting user...")
         response = authn.user.delete(email=USER_EMAIL)

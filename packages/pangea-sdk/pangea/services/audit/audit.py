@@ -2,14 +2,13 @@
 # Author: Pangea Cyber Corporation
 import datetime
 import json
-from typing import Dict, Optional, Union
+from typing import Any, Dict, Optional, Union
 
 from pangea.response import PangeaResponse
 from pangea.services.audit.exceptions import AuditException, EventCorruption
 from pangea.services.audit.models import (
     Event,
     EventEnvelope,
-    EventSigning,
     EventVerification,
     LogRequest,
     LogResult,
@@ -40,6 +39,7 @@ from pangea.services.audit.util import (
     verify_membership_proof,
 )
 from pangea.services.base import ServiceBase
+from pangea.utils import canonicalize_nested_json
 
 
 class Audit(ServiceBase):
@@ -101,7 +101,7 @@ class Audit(ServiceBase):
         target: Optional[str] = None,
         timestamp: Optional[datetime.datetime] = None,
         verify: bool = False,
-        signing: EventSigning = EventSigning.NONE,
+        sign_local: bool = False,
         verbose: Optional[bool] = None,
     ) -> PangeaResponse[LogResult]:
         """
@@ -122,7 +122,7 @@ class Audit(ServiceBase):
             target (str, optional): Used to record the specific record that was targeted by the auditable activity.
             timestamp (datetime, optional): An optional client-supplied timestamp.
             verify (bool, optional): True to verify logs consistency after response.
-            signing (bool, optional): True to sign event.
+            sign_local (bool, optional): True to sign event with local key.
             verbose (bool, optional): True to get a more verbose response.
             tenant_id (string, optional): Used to record the tenant associated with this activity.
         Raises:
@@ -155,15 +155,57 @@ class Audit(ServiceBase):
             status=status,
             target=target,
             timestamp=timestamp,
-            tenant_id=self.tenant_id,
         )
 
-        if signing == EventSigning.LOCAL and self.signer is None:
+        return self.log_event(event=event, verify=verify, sign_local=sign_local, verbose=verbose)
+
+    def log_event(
+        self,
+        event: Dict[str, Any],
+        verify: bool = False,
+        sign_local: bool = False,
+        verbose: Optional[bool] = None,
+    ) -> PangeaResponse[LogResult]:
+        """
+        Log an entry
+
+        Create a log entry in the Secure Audit Log.
+        Args:
+            event (dict[str, Any]): event to be logged
+            verify (bool, optional): True to verify logs consistency after response.
+            sign_local (bool, optional): True to sign event with local key.
+            verbose (bool, optional): True to get a more verbose response.
+        Raises:
+            AuditException: If an audit based api exception happens
+            PangeaAPIException: If an API Error happens
+
+        Returns:
+            A PangeaResponse where the hash of event data and optional verbose
+                results are returned in the response.result field.
+                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/audit#log-an-entry).
+
+        Examples:
+            try:
+                log_response = audit.log({"message"="Hello world"}, verbose=False)
+                print(f"Response. Hash: {log_response.result.hash}")
+            except pe.PangeaAPIException as e:
+                print(f"Request Error: {e.response.summary}")
+                for err in e.errors:
+                    print(f"\\t{err.detail} \\n")
+        """
+
+        if event.get("tenant_id", None) is None and self.tenant_id:
+            event["tenant_id"] = self.tenant_id
+
+        event = {k: v for k, v in event.items() if v is not None}
+        event = canonicalize_nested_json(event)
+
+        if sign_local is True and self.signer is None:
             raise AuditException("Error: the `signing` parameter set, but `signer` is not configured")
 
-        input = LogRequest(event=event.get_stringified_copy(), verbose=verbose)
+        input = LogRequest(event=event, verbose=verbose)
 
-        if signing == EventSigning.LOCAL:
+        if sign_local is True:
             data2sign = canonicalize_event(event)
             signature = self.signer.sign(data2sign)
             if signature is not None:
