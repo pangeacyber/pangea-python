@@ -22,6 +22,8 @@ from pangea.services.vault.models.common import (
     EncodedPrivateKey,
     EncodedPublicKey,
     EncodedSymmetricKey,
+    FolderCreateRequest,
+    FolderCreateResult,
     GetRequest,
     GetResult,
     ItemOrder,
@@ -1139,3 +1141,15 @@ class Vault(ServiceBase):
         """
         input = StateChangeRequest(id=id, state=state, version=version, destroy_period=destroy_period)
         return self.request.post("v1/state/change", StateChangeResult, data=input.dict(exclude_none=True))
+
+    # Folder create
+    def folder_create(
+        self,
+        name: str,
+        folder: str,
+        metadata: Optional[Metadata] = None,
+        tags: Optional[Tags] = None,
+    ) -> PangeaResponse[FolderCreateResult]:
+        """ """
+        input = FolderCreateRequest(name=name, folder=folder, metadata=metadata, tags=tags)
+        return self.request.post("v1/folder/create", FolderCreateResult, data=input.dict(exclude_none=True))

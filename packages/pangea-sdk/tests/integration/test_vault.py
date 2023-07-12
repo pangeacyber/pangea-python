@@ -590,3 +590,27 @@ class TestVault(unittest.TestCase):
             except pexc.PangeaAPIException as e:
                 print(i)
                 print(e)
+
+    def test_folders(self):
+        FOLDER_PARENT = f"test_parent_folder_{TIME}/"
+        FOLDER_NAME = "test_folder_name"
+        FOLDER_NAME_NEW = "test_folder_name_new"
+
+        # Create parent
+        create_parent_resp = self.vault.folder_create(name=FOLDER_PARENT, folder="/")
+        self.assertIsNotNone(create_parent_resp.result.id)
+
+        # Create folder
+        create_folder_resp = self.vault.folder_create(name=FOLDER_NAME, folder=FOLDER_PARENT)
+        self.assertIsNotNone(create_folder_resp.result.id)
+
+        # Update name
+        update_folder_resp = self.vault.update(id=create_folder_resp.result.id, name=FOLDER_NAME_NEW)
+        self.assertEqual(create_folder_resp.result.id, update_folder_resp.result.id)
+
+        # List
+        list_resp = self.vault.list(filter={"folder": FOLDER_PARENT})
+        self.assertEqual(1, list_resp.result.count)
+        self.assertEqual(create_folder_resp.result.id, list_resp.result.items[0].id)
+        self.assertEqual("folder", list_resp.result.items[0].type)
+        self.assertEqual(FOLDER_NAME_NEW, list_resp.result.items[0].name)

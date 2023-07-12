@@ -353,3 +353,14 @@ class StateChangeResult(PangeaResponseResult):
     version: int
     state: str
     destroy_at: Optional[str] = None
+
+
+class FolderCreateRequest(APIRequestModel):
+    name: str
+    folder: str
+    metadata: Optional[Metadata] = None
+    tags: Optional[Tags] = None
+
+
+class FolderCreateResult(PangeaResponseResult):
+    id: str
