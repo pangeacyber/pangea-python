@@ -614,3 +614,11 @@ class TestVault(unittest.TestCase):
         self.assertEqual(create_folder_resp.result.id, list_resp.result.items[0].id)
         self.assertEqual("folder", list_resp.result.items[0].type)
         self.assertEqual(FOLDER_NAME_NEW, list_resp.result.items[0].name)
+
+        # Delete folder
+        delete_resp = self.vault.delete(id=update_folder_resp.result.id)
+        self.assertEqual(delete_resp.result.id, update_folder_resp.result.id)
+
+        # Delete parent folder
+        delete_resp = self.vault.delete(id=create_parent_resp.result.id)
+        self.assertEqual(delete_resp.result.id, create_parent_resp.result.id)
