@@ -1150,6 +1150,31 @@ class Vault(ServiceBase):
         metadata: Optional[Metadata] = None,
         tags: Optional[Tags] = None,
     ) -> PangeaResponse[FolderCreateResult]:
-        """ """
+        """
+        Create
+
+        Creates a folder
+
+        OperationId: vault_post_v1_folder_create
+
+        Args:
+            name (str): The name of this folder
+            folder (str): The parent folder where this folder is stored
+            medadata (int, Metadata): User-provided metadata
+            tags (str, Tags): A list of user-defined tags
+        Raises:
+            PangeaAPIException: If an API Error happens
+
+        Returns:
+            A PangeaResponse where the state change object
+                is returned in the response.result field.
+                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#create").
+
+        Examples:
+            response = vault.folder_create(
+                name="folder_name",
+                folder="parent/folder/name",
+            )
+        """
         input = FolderCreateRequest(name=name, folder=folder, metadata=metadata, tags=tags)
         return self.request.post("v1/folder/create", FolderCreateResult, data=input.dict(exclude_none=True))
