@@ -22,6 +22,8 @@ from pangea.services.vault.models.common import (
     EncodedPrivateKey,
     EncodedPublicKey,
     EncodedSymmetricKey,
+    FolderCreateRequest,
+    FolderCreateResult,
     GetRequest,
     GetResult,
     ItemOrder,
@@ -1139,3 +1141,40 @@ class Vault(ServiceBase):
         """
         input = StateChangeRequest(id=id, state=state, version=version, destroy_period=destroy_period)
         return self.request.post("v1/state/change", StateChangeResult, data=input.dict(exclude_none=True))
+
+    # Folder create
+    def folder_create(
+        self,
+        name: str,
+        folder: str,
+        metadata: Optional[Metadata] = None,
+        tags: Optional[Tags] = None,
+    ) -> PangeaResponse[FolderCreateResult]:
+        """
+        Create
+
+        Creates a folder
+
+        OperationId: vault_post_v1_folder_create
+
+        Args:
+            name (str): The name of this folder
+            folder (str): The parent folder where this folder is stored
+            medadata (Metadata, optional): User-provided metadata
+            tags (Tags, optional): A list of user-defined tags
+        Raises:
+            PangeaAPIException: If an API Error happens
+
+        Returns:
+            A PangeaResponse where the state change object
+                is returned in the response.result field.
+                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#create").
+
+        Examples:
+            response = vault.folder_create(
+                name="folder_name",
+                folder="parent/folder/name",
+            )
+        """
+        input = FolderCreateRequest(name=name, folder=folder, metadata=metadata, tags=tags)
+        return self.request.post("v1/folder/create", FolderCreateResult, data=input.dict(exclude_none=True))
