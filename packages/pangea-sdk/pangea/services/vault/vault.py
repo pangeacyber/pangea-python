@@ -1160,8 +1160,8 @@ class Vault(ServiceBase):
         Args:
             name (str): The name of this folder
             folder (str): The parent folder where this folder is stored
-            medadata (int, Metadata): User-provided metadata
-            tags (str, Tags): A list of user-defined tags
+            medadata (Metadata, optional): User-provided metadata
+            tags (Tags, optional): A list of user-defined tags
         Raises:
             PangeaAPIException: If an API Error happens
 
