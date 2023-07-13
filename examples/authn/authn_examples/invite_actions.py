@@ -56,6 +56,7 @@ def main():
         print(f"List success. {len(response.result.invites)} invites")
         print("\nList result:", response.result)
 
+        print("\nExamples run successfully")
     except pe.PangeaAPIException as e:
         print(f"AuthN Request Error: {e.response.summary}")
         for err in e.errors:
