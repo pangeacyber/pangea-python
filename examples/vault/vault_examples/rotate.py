@@ -1,4 +1,5 @@
 import os
+import time
 
 import pangea.exceptions as pe
 from pangea.config import PangeaConfig
@@ -14,10 +15,13 @@ def main():
     try:
         secret_1 = "my first secret"
         secret_2 = "my second secret"
+        # name should be unique
+        name = f"Python secret example {int(time.time())}"
 
         # store a secret
-        create_response = vault.secret_store(name="very secret", secret=secret_1)
+        create_response = vault.secret_store(name=name, secret=secret_1)
         secret_id = create_response.result.id
+        print(f"Created success. ID: {secret_id}")
 
         # rotate it
         vault.secret_rotate(secret_id, secret_2)

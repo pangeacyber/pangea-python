@@ -15,7 +15,8 @@ def main():
 
     try:
         response = intel.user_breached(username="shortpatrick", provider="spycloud", verbose=True, raw=True)
-        print(f"Response: {response.result}")
+        print(f"Found in breach: {response.result.data.found_in_breach}")
+        print(f"Breach count: {response.result.data.breach_count}")
     except pe.PangeaAPIException as e:
         print(f"Request Error: {e.response.summary}")
         for err in e.errors:

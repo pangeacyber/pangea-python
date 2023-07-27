@@ -6,7 +6,7 @@ from typing import Optional
 from cryptography import exceptions
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ed25519
-from cryptography.hazmat.primitives.asymmetric.types import PRIVATE_KEY_TYPES
+from cryptography.hazmat.primitives.asymmetric.types import PrivateKeyTypes
 from pangea.exceptions import PangeaException
 from pangea.services.audit.util import b64decode, b64decode_ascii, b64encode_ascii
 from pangea.services.vault.models.common import AsymmetricAlgorithm
@@ -14,7 +14,7 @@ from pangea.services.vault.models.common import AsymmetricAlgorithm
 
 class AlgorithmSigner(ABC):
     def __init__(self, private_key):
-        self.private_key: PRIVATE_KEY_TYPES = private_key
+        self.private_key: PrivateKeyTypes = private_key
 
     @abstractmethod
     def sign(self, message: bytes) -> str:

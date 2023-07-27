@@ -150,6 +150,24 @@ def get_config_id(environment: TestEnvironment, service: str, config_number: int
     return _load_env_var(env_var_name)
 
 
+def get_custom_schema_test_token(environment: TestEnvironment):
+    env_var_name = f"PANGEA_INTEGRATION_CUSTOM_SCHEMA_TOKEN_{environment}"
+    value = os.getenv(env_var_name)
+    if not value:
+        raise PangeaException(f"{env_var_name} env var need to be set")
+
+    return value
+
+
+def get_custom_schema_vault_test_token(environment: TestEnvironment):
+    env_var_name = f"PANGEA_INTEGRATION_CUSTOM_SCHEMA_TOKEN_{environment}"
+    value = os.getenv(env_var_name)
+    if not value:
+        raise PangeaException(f"{env_var_name} env var need to be set")
+
+    return value
+
+
 class SequenceFollower:
     """
     Follows an unordered sequence of integers, looking for holes
