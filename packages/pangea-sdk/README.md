@@ -131,4 +131,4 @@ These linters will run on every `git commit` operation.
 
 ### Send a PR
 
-If you would like to [send a PR](https://github.com/pangeacyber/pangea-python/pulls) including a new feature or fixing a bug in code or an error in documents we will really appreciate it and after review and approval you will be included in our [contributors list](./CONTRIBUTING.md)
+If you would like to [send a PR](https://github.com/pangeacyber/pangea-python/pulls) including a new feature or fixing a bug in code or an error in documents we will really appreciate it and after review and approval you will be included in our [contributors list](https://github.com/pangeacyber/pangea-python/blob/main/packages/pangea-sdk/CONTRIBUTING.md)
