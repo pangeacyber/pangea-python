@@ -23,6 +23,7 @@ env/
 # editors
 .idea
 .vscode
+.DS_Store
 
 # test coverage
 .coverage
