@@ -1,6 +1,5 @@
 import os
 import time
-from io import BytesIO
 
 import pangea.exceptions as pe
 from pangea.config import PangeaConfig
@@ -14,21 +13,15 @@ domain = os.getenv("PANGEA_DOMAIN")
 config = PangeaConfig(domain=domain, queued_retry_enabled=False)
 intel = FileScan(token, config=config)
 
-EICAR = b"X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n"
-
-
-def eicar():
-    bio = BytesIO()
-    bio.write(EICAR)
-    bio.seek(0)
-    return bio
+FILEPATH = "./intel_examples/file_scan/testfile.pdf"
 
 
 def main():
-    print(f"Checking file...")
+    print("Checking file...")
     exception = None
     try:
-        response = intel.file_scan(file=eicar(), verbose=True, provider="reversinglabs")
+        with open(FILEPATH, "rb") as f:
+            response = intel.file_scan(file=f, verbose=True, provider="crowdstrike")
     except pe.AcceptedRequestException as e:
         # Save exception value to request result later
         exception = e
@@ -45,7 +38,7 @@ def main():
 
     print("We are going to sleep some time before we poll result...")
     # wait some time to get result ready and poll it
-    time.sleep(30)
+    time.sleep(20)
 
     try:
         # poll result, hopefully this should be ready

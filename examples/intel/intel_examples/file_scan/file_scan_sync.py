@@ -1,5 +1,4 @@
 import os
-from io import BytesIO
 
 import pangea.exceptions as pe
 from pangea.config import PangeaConfig
@@ -12,22 +11,16 @@ domain = os.getenv("PANGEA_DOMAIN")
 config = PangeaConfig(domain=domain, queued_retry_enabled=True, poll_result_timeout=120)
 intel = FileScan(token, config=config)
 
-EICAR = b"X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n"
-
-
-def eicar():
-    bio = BytesIO()
-    bio.write(EICAR)
-    bio.seek(0)
-    return bio
+FILEPATH = "./intel_examples/file_scan/testfile.pdf"
 
 
 def main():
-    print(f"Checking file...")
+    print("Checking file...")
 
     try:
-        response = intel.file_scan(file=eicar(), verbose=True, provider="reversinglabs")
-        print(f"Response: {response.result}")
+        with open(FILEPATH, "rb") as f:
+            response = intel.file_scan(file=f, verbose=True, provider="reversinglabs")
+            print(f"Response: {response.result}")
     except pe.PangeaAPIException as e:
         print(f"Request Error: {e.response.summary}")
         for err in e.errors:
