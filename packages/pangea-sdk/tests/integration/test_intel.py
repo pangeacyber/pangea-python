@@ -269,29 +269,33 @@ class TestFileScan(unittest.TestCase):
         logger_set_pangea_config(logger_name=self.scan.logger.name)
 
     def test_scan_file(self):
-        response = self.scan.file_scan(file=eicar(), verbose=True, provider="reversinglabs")
-        self.assertEqual(response.status, "Success")
-        self.assertEqual(response.result.data.verdict, "malicious")
-        self.assertEqual(response.result.data.score, 100)
+        try:
+            response = self.scan.file_scan(file=eicar(), verbose=True, provider="crowdstrike")
+            self.assertEqual(response.status, "Success")
+            self.assertEqual(response.result.data.verdict, "malicious")
+            self.assertEqual(response.result.data.score, 100)
+        except pe.PangeaAPIException as e:
+            print(e)
+            self.assertTrue(False)
 
     def test_scan_filepath(self):
-        response = self.scan.file_scan(file_path="README.md", verbose=True, provider="reversinglabs")
+        response = self.scan.file_scan(file_path="README.md", verbose=True, provider="crowdstrike")
         self.assertEqual(response.status, "Success")
 
     def test_scan_file_async(self):
         with self.assertRaises(pe.AcceptedRequestException):
-            response = self.scan.file_scan(file=eicar(), verbose=True, provider="reversinglabs", sync_call=False)
+            response = self.scan.file_scan(file=eicar(), verbose=True, provider="crowdstrike", sync_call=False)
 
     def test_scan_file_poll_result(self):
         exception = None
         try:
-            response = self.scan.file_scan(file=eicar(), verbose=True, provider="reversinglabs", sync_call=False)
+            response = self.scan.file_scan(file=eicar(), verbose=True, provider="crowdstrike", sync_call=False)
             self.assertTrue(False)
         except pe.AcceptedRequestException as e:
             exception = e
 
         # wait some time to get result ready and poll it
-        time.sleep(120)
+        time.sleep(30)
 
         response = self.scan.poll_result(exception)
         self.assertEqual(response.status, "Success")
