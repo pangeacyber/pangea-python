@@ -1,6 +1,5 @@
 import time
 import unittest
-from io import BytesIO
 
 import pangea.exceptions as pe
 from pangea import PangeaConfig
@@ -9,7 +8,7 @@ from pangea.services import DomainIntel, FileIntel, FileScan, IpIntel, UrlIntel,
 from pangea.services.intel import HashType
 from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
 
-TEST_ENVIRONMENT = TestEnvironment.DEVELOP
+TEST_ENVIRONMENT = TestEnvironment.LIVE
 
 
 class TestDomainIntel(unittest.TestCase):
@@ -250,14 +249,11 @@ class TestUserIntel(unittest.TestCase):
         self.assertGreater(response.result.data.breach_count, 0)
 
 
-EICAR = b"X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n"
+PDF_FILEPATH = "./tests/testdata/testfile.pdf"
 
 
-def eicar():
-    bio = BytesIO()
-    bio.write(EICAR)
-    bio.seek(0)
-    return bio
+def get_test_file():
+    return open(PDF_FILEPATH, "rb")
 
 
 class TestFileScan(unittest.TestCase):
@@ -270,34 +266,38 @@ class TestFileScan(unittest.TestCase):
 
     def test_scan_file(self):
         try:
-            response = self.scan.file_scan(file=eicar(), verbose=True, provider="crowdstrike")
-            self.assertEqual(response.status, "Success")
-            self.assertEqual(response.result.data.verdict, "malicious")
-            self.assertEqual(response.result.data.score, 100)
+            with get_test_file() as f:
+                response = self.scan.file_scan(file=f, verbose=True, provider="crowdstrike")
+                self.assertEqual(response.status, "Success")
+                self.assertEqual(response.result.data.verdict, "benign")
+                self.assertEqual(response.result.data.score, 0)
         except pe.PangeaAPIException as e:
             print(e)
+            print(type(e))
             self.assertTrue(False)
 
     def test_scan_filepath(self):
-        response = self.scan.file_scan(file_path="README.md", verbose=True, provider="crowdstrike")
+        response = self.scan.file_scan(file_path=PDF_FILEPATH, verbose=True, provider="crowdstrike")
         self.assertEqual(response.status, "Success")
 
     def test_scan_file_async(self):
         with self.assertRaises(pe.AcceptedRequestException):
-            response = self.scan.file_scan(file=eicar(), verbose=True, provider="crowdstrike", sync_call=False)
+            with get_test_file() as f:
+                response = self.scan.file_scan(file=f, verbose=True, provider="crowdstrike", sync_call=False)
 
     def test_scan_file_poll_result(self):
         exception = None
         try:
-            response = self.scan.file_scan(file=eicar(), verbose=True, provider="crowdstrike", sync_call=False)
-            self.assertTrue(False)
+            with get_test_file() as f:
+                response = self.scan.file_scan(file=f, verbose=True, provider="crowdstrike", sync_call=False)
+                self.assertTrue(False)
         except pe.AcceptedRequestException as e:
             exception = e
 
         # wait some time to get result ready and poll it
-        time.sleep(30)
+        time.sleep(10)
 
         response = self.scan.poll_result(exception)
         self.assertEqual(response.status, "Success")
-        self.assertEqual(response.result.data.verdict, "malicious")
-        self.assertEqual(response.result.data.score, 100)
+        self.assertEqual(response.result.data.verdict, "benign")
+        self.assertEqual(response.result.data.score, 0)
