@@ -19,7 +19,7 @@ def main():
 
     try:
         with open(FILEPATH, "rb") as f:
-            response = intel.file_scan(file=f, verbose=True, provider="reversinglabs")
+            response = intel.file_scan(file=f, verbose=True, provider="crowdstrike")
             print(f"Response: {response.result}")
     except pe.PangeaAPIException as e:
         print(f"Request Error: {e.response.summary}")
