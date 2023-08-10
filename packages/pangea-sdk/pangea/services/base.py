@@ -42,4 +42,21 @@ class ServiceBase(object):
         self.request.token = value
 
     def poll_result(self, exception: AcceptedRequestException) -> PangeaResponse:
+        """
+        Poll result
+
+        Returns request's result that has been accepted by the server
+
+        Args:
+            exception (AcceptedRequestException): Exception raise by SDK on the call that is been processed.
+
+        Returns:
+            PangeaResponse
+
+        Raises:
+            PangeaAPIException: If an API Error happens
+
+        Examples:
+            response = service.poll_result(exception)
+        """
         return self.request.poll_result_once(exception.response, check_response=True)
