@@ -180,6 +180,13 @@ class PangeaRequest(object):
     def _get_poll_path(self, request_id: str):
         return f"request/{request_id}"
 
+    def poll_result_by_id(
+        self, request_id: str, result_class: Union[Type[PangeaResponseResult], dict], check_response: bool = True
+    ):
+        path = self._get_poll_path(request_id)
+        self.logger.debug(json.dumps({"service": self.service, "action": "poll_result_once", "url": path}))
+        return self.get(path, result_class, check_response=check_response)
+
     def poll_result_once(self, response: PangeaResponse, check_response: bool = True):
         request_id = response.request_id
         if not request_id:
@@ -188,9 +195,7 @@ class PangeaRequest(object):
         if response.status != ResponseStatus.ACCEPTED.value:
             raise exceptions.PangeaException("Response already proccesed")
 
-        path = self._get_poll_path(request_id)
-        self.logger.debug(json.dumps({"service": self.service, "action": "poll_result_once", "url": path}))
-        return self.get(path, response.result_class, check_response=check_response)
+        self.poll_result_by_id(request_id, response.result_class, check_response=check_response)
 
     def _poll_result_retry(self, response: PangeaResponse) -> PangeaResponse:
         retry_count = 1

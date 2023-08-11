@@ -214,7 +214,7 @@ class Audit(ServiceBase):
                 raise AuditException("Error: failure signing message")
 
             # Add public key value to public key info and serialize
-            self.set_public_key(input, self.signer, self.public_key_info)
+            self._set_public_key(input, self.signer, self.public_key_info)
 
         if verify:
             input.verbose = True
@@ -613,7 +613,7 @@ class Audit(ServiceBase):
         else:
             return EventVerification.NONE
 
-    def set_public_key(self, input: LogRequest, signer: Signer, public_key_info: Dict[str, str]):
+    def _set_public_key(self, input: LogRequest, signer: Signer, public_key_info: Dict[str, str]):
         public_key_info["key"] = signer.get_public_key_PEM()
         public_key_info["algorithm"] = signer.get_algorithm()
         input.public_key = json.dumps(
