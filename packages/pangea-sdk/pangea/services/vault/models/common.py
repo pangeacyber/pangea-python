@@ -217,9 +217,16 @@ class ItemData(PangeaResponseResult):
     purpose: Optional[str] = None
 
 
+class InheritedSettings(PangeaResponseResult):
+    rotation_frequency: bool
+    rotation_state: bool
+    rotation_grace_period: bool
+
+
 class GetResult(ItemData):
     versions: List[ItemVersionData] = []
     rotation_grace_period: Optional[str] = None
+    inherited_settings: InheritedSettings
 
 
 class ListItemData(ItemData):
