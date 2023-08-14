@@ -36,7 +36,7 @@ class PangeaAPIException(PangeaException):
         if self.response.errors:
             ret += "Errors: \n"
             for ef in self.response.errors:
-                ret += f"\t {ef.detail}\n"
+                ret += f"\t{str(ef)}\n"
         return ret
 
     def __str__(self) -> str:
