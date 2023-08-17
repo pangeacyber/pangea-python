@@ -226,7 +226,7 @@ class InheritedSettings(PangeaResponseResult):
 class GetResult(ItemData):
     versions: List[ItemVersionData] = []
     rotation_grace_period: Optional[str] = None
-    inherited_settings: InheritedSettings
+    inherited_settings: Optional[InheritedSettings] = None
 
 
 class ListItemData(ItemData):
