@@ -51,6 +51,12 @@ class ErrorField(APIResponseModel):
     source: str
     path: Optional[str] = None
 
+    def __repr__(self):
+        return f"{self.source} {self.code}: {self.detail}."
+
+    def __str__(self) -> str:
+        return self.__repr__()
+
 
 class PangeaError(PangeaResponseResult):
     errors: List[ErrorField] = []

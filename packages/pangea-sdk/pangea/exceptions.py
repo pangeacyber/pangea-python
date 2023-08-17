@@ -29,19 +29,18 @@ class PangeaAPIException(PangeaException):
 
     def __repr__(self) -> str:
         ret = f"Summary: {self.response.summary}\n"
+        ret += f"status: {self.response.status}\n"
+        ret += f"request_id: {self.response.request_id}\n"
+        ret += f"request_time: {self.response.request_time}\n"
+        ret += f"response_time: {self.response.response_time}\n"
         if self.response.errors:
             ret += "Errors: \n"
             for ef in self.response.errors:
-                ret += f"\t {ef.detail}\n"
+                ret += f"\t{str(ef)}\n"
         return ret
 
     def __str__(self) -> str:
-        ret = f"Summary: {self.response.summary}\n"
-        if self.response.errors:
-            ret += "Errors: \n"
-            for ef in self.response.errors:
-                ret += f"\t {ef.detail}\n"
-        return ret
+        return self.__repr__()
 
 
 class ValidationException(PangeaAPIException):
