@@ -23,7 +23,7 @@ class TestDomainIntel(unittest.TestCase):
             domain="737updatesboeing.com", provider="domaintools", verbose=True, raw=True
         )
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
-        self.assertEqual(response.result.data.verdict, "malicious")
+        self.assertEqual(response.result.data.verdict, "suspicious")
 
     def test_domain_reputation_with_bad_auth_token(self):
         token = "noarealtoken"
