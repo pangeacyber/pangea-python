@@ -21,10 +21,10 @@ class TestDomainIntel(unittest.TestCase):
 
     def test_domain_reputation(self):
         response = self.intel_domain.reputation(
-            domain="737updatesboeing.com", provider="domaintools", verbose=True, raw=True
+            domain="737updatesboeing.com", provider="crowdstrike", verbose=True, raw=True
         )
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
-        self.assertEqual(response.result.data.verdict, "malicious")
+        self.assertEqual(response.result.data.verdict, "suspicious")
 
     def test_domain_reputation_with_bad_auth_token(self):
         token = "noarealtoken"
