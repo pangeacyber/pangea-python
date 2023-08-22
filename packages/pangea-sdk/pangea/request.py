@@ -121,8 +121,7 @@ class PangeaRequest(object):
                 default=default_encoder,
             )
         )
-        self._check_response(pangea_response)
-        return pangea_response
+        return self._check_response(pangea_response)
 
     def _handle_queued_result(self, response: PangeaResponse) -> PangeaResponse:
         if self._queued_retry_enabled and response.raw_response.status_code == 202:
@@ -195,7 +194,7 @@ class PangeaRequest(object):
         if response.status != ResponseStatus.ACCEPTED.value:
             raise exceptions.PangeaException("Response already proccesed")
 
-        self.poll_result_by_id(request_id, response.result_class, check_response=check_response)
+        return self.poll_result_by_id(request_id, response.result_class, check_response=check_response)
 
     def _poll_result_retry(self, response: PangeaResponse) -> PangeaResponse:
         retry_count = 1
@@ -248,7 +247,7 @@ class PangeaRequest(object):
         self._extra_headers.update(headers)
         return self._extra_headers
 
-    def _check_response(self, response: PangeaResponse):
+    def _check_response(self, response: PangeaResponse) -> PangeaResponse:
         status = response.status
         summary = response.summary
 
