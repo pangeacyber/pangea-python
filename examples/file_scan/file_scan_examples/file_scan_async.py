@@ -24,6 +24,10 @@ def main():
     try:
         with open(FILEPATH, "rb") as f:
             response = client.file_scan(file=f, verbose=True, provider="crowdstrike")
+
+        print("Scan success on first attempt...")
+        print(f"Response: {response.result}")
+        exit()
     except pe.AcceptedRequestException as e:
         # Save exception value to request result later
         exception = e
