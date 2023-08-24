@@ -761,19 +761,19 @@ class AgreementType(enum.Enum):
         return self.value
 
 
-class AgreementCreate(APIRequestModel):
+class AgreementCreateRequest(APIRequestModel):
     type: AgreementType
     name: str
     text: str
     active: Optional[bool] = None
 
 
-class AgreementInfo(APIResponseModel):
+class AgreementInfo(PangeaResponseResult):
     type: str
     id: str
     created_at: str
     updated_at: str
-    published_at: str
+    published_at: Optional[str] = None
     name: str
     text: str
     active: bool
@@ -788,7 +788,7 @@ class AgreementDeleteRequest(APIRequestModel):
     id: str
 
 
-class AgreementDeteleResult(PangeaResponseResult):
+class AgreementDeleteResult(PangeaResponseResult):
     pass
 
 

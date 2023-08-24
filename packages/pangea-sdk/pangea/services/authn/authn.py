@@ -48,6 +48,7 @@ class AuthN(ServiceBase):
         self.flow = AuthN.Flow(token, config, logger_name=logger_name)
         self.client = AuthN.Client(token, config, logger_name=logger_name)
         self.session = AuthN.Session(token, config, logger_name=logger_name)
+        self.agreements = AuthN.Agreements(token, config, logger_name=logger_name)
 
     class Session(ServiceBase):
         service_name = SERVICE_NAME
@@ -1674,13 +1675,19 @@ class AuthN(ServiceBase):
         ):
             super().__init__(token, config, logger_name=logger_name)
 
-        def create(self, type: m.AgreementType, name: str, text: str, active: Optional[bool] = None):
-            input = m.AgreementDeleteRequest(type=type, name=name, text=text, active=active)
-            return self.request.post("v1/agreement/create", m.AgreementCreateResult, data=input.dict(exclude_none=True))
+        def create(
+            self, type: m.AgreementType, name: str, text: str, active: Optional[bool] = None
+        ) -> PangeaResponse[m.AgreementCreateResult]:
+            input = m.AgreementCreateRequest(type=type, name=name, text=text, active=active)
+            return self.request.post(
+                "v1/agreements/create", m.AgreementCreateResult, data=input.dict(exclude_none=True)
+            )
 
-        def delete(self, type: m.AgreementType, id: str):
+        def delete(self, type: m.AgreementType, id: str) -> PangeaResponse[m.AgreementDeleteResult]:
             input = m.AgreementDeleteRequest(type=type, id=id)
-            return self.request.post("v1/agreement/delete", m.AgreementDeteleResult, data=input.dict(exclude_none=True))
+            return self.request.post(
+                "v1/agreements/delete", m.AgreementDeleteResult, data=input.dict(exclude_none=True)
+            )
 
         def list(
             self,
@@ -1689,9 +1696,9 @@ class AuthN(ServiceBase):
             order: Optional[m.ItemOrder] = None,
             order_by: Optional[m.AgreementListOrderBy] = None,
             size: Optional[int] = None,
-        ):
+        ) -> PangeaResponse[m.AgreementListResult]:
             input = m.AgreementListRequest(filter=filter, last=last, order=order, order_by=order_by, size=size)
-            return self.request.post("v1/agreement/list", m.AgreementListResult, data=input.dict(exclude_none=True))
+            return self.request.post("v1/agreements/list", m.AgreementListResult, data=input.dict(exclude_none=True))
 
         def update(
             self,
@@ -1700,6 +1707,8 @@ class AuthN(ServiceBase):
             name: Optional[str] = None,
             text: Optional[str] = None,
             active: Optional[bool] = None,
-        ):
+        ) -> PangeaResponse[m.AgreementUpdateResult]:
             input = m.AgreementUpdateRequest(type=type, id=id, name=name, text=text, active=active)
-            return self.request.post("v1/agreement/update", m.AgreementUpdateResult, data=input.dict(exclude_none=True))
+            return self.request.post(
+                "v1/agreements/update", m.AgreementUpdateResult, data=input.dict(exclude_none=True)
+            )

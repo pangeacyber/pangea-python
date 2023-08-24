@@ -1,17 +1,19 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 
+import datetime
 import random
 import unittest
 
 import pangea.exceptions as pexc
 from pangea import PangeaConfig
 from pangea.services.authn.authn import AuthN
-from pangea.services.authn.models import IDProvider
+from pangea.services.authn.models import AgreementType, IDProvider
 from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
 
 TEST_ENVIRONMENT = TestEnvironment.LIVE
 
+TIME = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 RANDOM_VALUE = random.randint(0, 10000000)
 EMAIL_TEST = f"user.email+test{RANDOM_VALUE}@pangea.cloud"
 EMAIL_DELETE = f"user.email+delete{RANDOM_VALUE}@pangea.cloud"
@@ -281,3 +283,45 @@ class TestAuthN(unittest.TestCase):
             except pexc.PangeaAPIException:
                 print(f"Fail to delete user email: {user.email}")
                 pass
+
+    def agreements_cycle(self, type: AgreementType):
+        name = f"{type}_{TIME}"
+        text = "This is agreement text"
+        active = False
+
+        # Create agreement
+        response = self.authn.agreements.create(type=type, name=name, text=text, active=active)
+        self.assertEqual(response.result.type, str(type))
+        self.assertEqual(response.result.name, name)
+        self.assertEqual(response.result.text, text)
+        self.assertEqual(response.result.active, active)
+        id = response.result.id
+        self.assertIsNotNone(id)
+
+        # Update agreement
+        new_name = f"{name}_v2"
+        new_text = f"{text} v2"
+
+        response = self.authn.agreements.update(type=type, id=id, name=new_name, text=new_text, active=active)
+        self.assertEqual(response.result.name, new_name)
+        self.assertEqual(response.result.text, new_text)
+        self.assertEqual(response.result.active, active)
+
+        # List
+        response = self.authn.agreements.list()
+        self.assertGreater(response.result.count, 0)
+        self.assertGreater(len(response.result.agreements), 0)
+        count = response.result.count  # save current value
+
+        # delete
+        response = self.authn.agreements.delete(type=type, id=id)
+
+        # List again
+        response = self.authn.agreements.list()
+        self.assertEqual(response.result.count, count - 1)
+
+    def test_agreements_eula(self):
+        self.agreements_cycle(AgreementType.EULA)
+
+    def test_agreements_privacy_policy(self):
+        self.agreements_cycle(AgreementType.PRIVACY_POLICY)
