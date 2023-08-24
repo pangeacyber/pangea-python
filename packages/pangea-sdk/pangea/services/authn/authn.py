@@ -1661,3 +1661,45 @@ class AuthN(ServiceBase):
                     return self.request.post(
                         "v1/flow/verify/mfa/start", m.FlowVerifyMFAStartResult, data=input.dict(exclude_none=True)
                     )
+
+    class Agreements(ServiceBase):
+        service_name = SERVICE_NAME
+        _support_multi_config = SUPPORT_MULTI_CONFIG
+
+        def __init__(
+            self,
+            token,
+            config=None,
+            logger_name="pangea",
+        ):
+            super().__init__(token, config, logger_name=logger_name)
+
+        def create(self, type: m.AgreementType, name: str, text: str, active: Optional[bool] = None):
+            input = m.AgreementDeleteRequest(type=type, name=name, text=text, active=active)
+            return self.request.post("v1/agreement/create", m.AgreementCreateResult, data=input.dict(exclude_none=True))
+
+        def delete(self, type: m.AgreementType, id: str):
+            input = m.AgreementDeleteRequest(type=type, id=id)
+            return self.request.post("v1/agreement/delete", m.AgreementDeteleResult, data=input.dict(exclude_none=True))
+
+        def list(
+            self,
+            filter: Optional[dict[str, str]] = None,
+            last: Optional[str] = None,
+            order: Optional[m.ItemOrder] = None,
+            order_by: Optional[m.AgreementListOrderBy] = None,
+            size: Optional[int] = None,
+        ):
+            input = m.AgreementListRequest(filter=filter, last=last, order=order, order_by=order_by, size=size)
+            return self.request.post("v1/agreement/list", m.AgreementListResult, data=input.dict(exclude_none=True))
+
+        def update(
+            self,
+            type: m.AgreementType,
+            id: str,
+            name: Optional[str] = None,
+            text: Optional[str] = None,
+            active: Optional[bool] = None,
+        ):
+            input = m.AgreementUpdateRequest(type=type, id=id, name=name, text=text, active=active)
+            return self.request.post("v1/agreement/update", m.AgreementUpdateResult, data=input.dict(exclude_none=True))
