@@ -748,3 +748,84 @@ class SessionLogoutRequest(APIRequestModel):
 
 class SessionLogoutResult(PangeaResponseResult):
     pass
+
+
+class AgreementType(enum.Enum):
+    EULA = "eula"
+    PRIVACY_POLICY = "privacy_policy"
+
+    def __str__(self):
+        return self.value
+
+    def __repr__(self):
+        return self.value
+
+
+class AgreementCreateRequest(APIRequestModel):
+    type: AgreementType
+    name: str
+    text: str
+    active: Optional[bool] = None
+
+
+class AgreementInfo(PangeaResponseResult):
+    type: str
+    id: str
+    created_at: str
+    updated_at: str
+    published_at: Optional[str] = None
+    name: str
+    text: str
+    active: bool
+
+
+class AgreementCreateResult(AgreementInfo):
+    pass
+
+
+class AgreementDeleteRequest(APIRequestModel):
+    type: AgreementType
+    id: str
+
+
+class AgreementDeleteResult(PangeaResponseResult):
+    pass
+
+
+class AgreementListOrderBy(enum.Enum):
+    ID = "id"
+    CREATED_AT = "created_at"
+    NAME = "name"
+    TEXT = "text"
+
+    def __str__(self):
+        return self.value
+
+    def __repr__(self):
+        return self.value
+
+
+class AgreementListRequest(APIRequestModel):
+    filter: Optional[Dict] = None
+    last: Optional[str] = None
+    order: Optional[ItemOrder] = None
+    order_by: Optional[AgreementListOrderBy] = None
+    size: Optional[int] = None
+
+
+class AgreementListResult(PangeaResponseResult):
+    agreements: List[AgreementInfo]
+    count: int
+    last: Optional[str] = None
+
+
+class AgreementUpdateRequest(APIRequestModel):
+    type: AgreementType
+    id: str
+    name: Optional[str] = None
+    text: Optional[str] = None
+    active: Optional[bool] = None
+
+
+class AgreementUpdateResult(AgreementInfo):
+    pass
