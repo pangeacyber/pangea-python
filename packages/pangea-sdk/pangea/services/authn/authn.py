@@ -1691,7 +1691,7 @@ class AuthN(ServiceBase):
 
         def list(
             self,
-            filter: Optional[dict[str, str]] = None,
+            filter: Optional[Dict] = None,
             last: Optional[str] = None,
             order: Optional[m.ItemOrder] = None,
             order_by: Optional[m.AgreementListOrderBy] = None,
