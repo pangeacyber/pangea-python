@@ -806,7 +806,7 @@ class AgreementListOrderBy(enum.Enum):
 
 
 class AgreementListRequest(APIRequestModel):
-    filter: Optional[Dict[str, str]] = None
+    filter: Optional[Dict] = None
     last: Optional[str] = None
     order: Optional[ItemOrder] = None
     order_by: Optional[AgreementListOrderBy] = None
