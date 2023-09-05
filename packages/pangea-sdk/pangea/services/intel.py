@@ -2,7 +2,6 @@
 # Author: Pangea Cyber Corporation
 import enum
 import hashlib
-import io
 from typing import Dict, List, Optional
 
 from pangea.exceptions import PangeaException

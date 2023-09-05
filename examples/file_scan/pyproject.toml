@@ -1,10 +1,10 @@
 [tool.poetry]
-name = "intel-examples"
-version = "2.1.0"
-description = "This is a set of examples about how to use python SDK to communicate with Vault service"
+name = "filescan-examples"
+version = "2.0.0"
+description = "This is a set of examples about how to use python SDK to communicate with FileScan service"
 authors = ["H. Andres Tournour <andres.tournour@pangea.cloud>"]
 readme = "README.md"
-packages = [{include = "intel_examples"}]
+packages = [{include = "file_scan_examples"}]
 
 [tool.poetry.dependencies]
 python = "^3.7.2"

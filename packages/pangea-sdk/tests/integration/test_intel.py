@@ -1,9 +1,10 @@
+import time
 import unittest
 
 import pangea.exceptions as pe
 from pangea import PangeaConfig
 from pangea.response import ResponseStatus
-from pangea.services import DomainIntel, FileIntel, IpIntel, UrlIntel, UserIntel
+from pangea.services import DomainIntel, FileIntel, FileScan, IpIntel, UrlIntel, UserIntel
 from pangea.services.intel import HashType
 from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
 
