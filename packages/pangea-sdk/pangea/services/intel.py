@@ -196,7 +196,8 @@ class DomainCommonRequest(IntelCommonRequest):
     domain (str): Domain address to be analyzed
     """
 
-    domain: str
+    domain: Optional[str] = None
+    domain_list: Optional[List[str]] = None
 
 
 class DomainReputationRequest(DomainCommonRequest):
@@ -217,12 +218,17 @@ class DomainReputationData(PangeaResponseResult):
     verdict: str
 
 
+class ReputationDataItem(DomainReputationData):
+    indicator: str
+
+
 class DomainReputationResult(PangeaResponseResult):
     """
     Domain reputation result
     """
 
     data: DomainReputationData
+    data_list: Optional[List[ReputationDataItem]] = None
 
 
 class URLCommonRequest(IntelCommonRequest):
@@ -404,7 +410,12 @@ class DomainIntel(ServiceBase):
     _support_multi_config = False
 
     def reputation(
-        self, domain: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
+        self,
+        domain: Optional[str] = None,
+        domain_list: Optional[List[str]] = None,
+        verbose: Optional[bool] = None,
+        raw: Optional[bool] = None,
+        provider: Optional[str] = None,
     ) -> PangeaResponse[DomainReputationResult]:
         """
         Reputation
@@ -432,7 +443,9 @@ class DomainIntel(ServiceBase):
                 provider="domaintools",
             )
         """
-        input = DomainReputationRequest(domain=domain, verbose=verbose, provider=provider, raw=raw)
+        input = DomainReputationRequest(
+            domain=domain, domain_list=domain_list, verbose=verbose, provider=provider, raw=raw
+        )
         return self.request.post("v1/reputation", DomainReputationResult, data=input.dict(exclude_none=True))
 
 

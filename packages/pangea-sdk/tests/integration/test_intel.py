@@ -1,14 +1,13 @@
-import time
 import unittest
 
 import pangea.exceptions as pe
 from pangea import PangeaConfig
 from pangea.response import ResponseStatus
-from pangea.services import DomainIntel, FileIntel, FileScan, IpIntel, UrlIntel, UserIntel
+from pangea.services import DomainIntel, FileIntel, IpIntel, UrlIntel, UserIntel
 from pangea.services.intel import HashType
 from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
 
-TEST_ENVIRONMENT = TestEnvironment.LIVE
+TEST_ENVIRONMENT = TestEnvironment.DEVELOP
 
 
 class TestDomainIntel(unittest.TestCase):
@@ -25,6 +24,13 @@ class TestDomainIntel(unittest.TestCase):
         )
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertEqual(response.result.data.verdict, "malicious")
+
+    def test_domain_list_reputation(self):
+        domain_list = ["pemewizubidob.cafij.co.za", "redbomb.com.tr", "kmbk8.hicp.net"]
+        response = self.intel_domain.reputation(domain_list=domain_list, provider="crowdstrike", verbose=True, raw=True)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertEqual(response.result.data.verdict, "malicious")
+        self.assertEqual(len(response.result.data_list), 3)
 
     def test_domain_reputation_with_bad_auth_token(self):
         token = "noarealtoken"
