@@ -9,9 +9,25 @@ from typing import Optional
 class PangeaConfig:
     """Holds run time configuration information used by SDK components."""
 
+    """
+    Used to set pangea domain (and port if needed), it should not include service subdomain
+    just for particular use cases when environment = "local", domain could be set to an url including:
+    scheme (http:// or https://), subdomain, domain and port.
+
+    """
     domain: str = "aws.us.pangea.cloud"
+
+    """
+    Used to generate service url.
+    It should be only 'production' or 'local' in case of particular services that can run locally as Redact
+
+    """
     environment: str = "production"
 
+    """
+    Only used for services that support multiconfig (e.g.: Audit service)
+
+    """
     config_id: Optional[str] = None
 
     """
@@ -26,7 +42,7 @@ class PangeaConfig:
     """
     request_retries: int = 3
 
-    """'
+    """
     Backoff strategy passed to 'requests'
 
     """
