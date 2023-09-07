@@ -33,6 +33,16 @@ class IntelCommonResult(PangeaResponseResult):
     raw_data: Optional[Dict] = None
 
 
+class IntelReputationData(PangeaResponseResult):
+    category: List[str]
+    score: int
+    verdict: str
+
+
+class IntelReputationDataItem(IntelReputationData):
+    indicator: str
+
+
 class FileReputationRequest(APIRequestModel):
     """
     File reputation request data
@@ -45,14 +55,12 @@ class FileReputationRequest(APIRequestModel):
     hash_type: str
 
 
-class FileReputationData(PangeaResponseResult):
+class FileReputationData(IntelReputationData):
     """
     File reputation information
     """
 
-    category: List[str]
-    score: int
-    verdict: str
+    pass
 
 
 class FileReputationResult(PangeaResponseResult):
@@ -81,14 +89,12 @@ class IPRepurationRequest(IPCommonRequest):
     pass
 
 
-class IPReputationData(PangeaResponseResult):
+class IPReputationData(IntelReputationData):
     """
     IP reputation information
     """
 
-    category: List[str]
-    score: int
-    verdict: str
+    pass
 
 
 class IPReputationResult(PangeaResponseResult):
@@ -208,18 +214,14 @@ class DomainReputationRequest(DomainCommonRequest):
     pass
 
 
-class DomainReputationData(PangeaResponseResult):
+class DomainReputationData(IntelReputationData):
     """
     Domain Reputation information
     """
 
-    category: List[str]
-    score: int
-    verdict: str
 
-
-class ReputationDataItem(DomainReputationData):
-    indicator: str
+class DomainReputationDataItem(IntelReputationDataItem):
+    pass
 
 
 class DomainReputationResult(PangeaResponseResult):
@@ -228,7 +230,7 @@ class DomainReputationResult(PangeaResponseResult):
     """
 
     data: DomainReputationData
-    data_list: Optional[List[ReputationDataItem]] = None
+    data_list: Optional[Dict[str, DomainReputationDataItem]] = None
 
 
 class URLCommonRequest(IntelCommonRequest):
@@ -238,7 +240,7 @@ class URLCommonRequest(IntelCommonRequest):
     url (str): URL address to be analyzed
     """
 
-    url: str
+    url: Optional[str] = None
 
 
 class URLReputationRequest(URLCommonRequest):
@@ -246,17 +248,19 @@ class URLReputationRequest(URLCommonRequest):
     URL reputation request data
     """
 
-    pass
+    url_list: Optional[List[str]] = None
 
 
-class URLReputationData(PangeaResponseResult):
+class URLReputationData(IntelReputationData):
     """
     URL reputation information
     """
 
-    category: List[str]
-    score: int
-    verdict: str
+    pass
+
+
+class URLReputationDataItem(IntelReputationDataItem):
+    pass
 
 
 class URLReputationResult(IntelCommonResult):
@@ -265,6 +269,7 @@ class URLReputationResult(IntelCommonResult):
     """
 
     data: URLReputationData
+    data_list: Optional[Dict[str, URLReputationDataItem]] = None
 
 
 class HashType(str, enum.Enum):
@@ -665,7 +670,12 @@ class UrlIntel(ServiceBase):
     _support_multi_config = False
 
     def reputation(
-        self, url: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
+        self,
+        url: Optional[str] = None,
+        url_list: Optional[List[str]] = None,
+        verbose: Optional[bool] = None,
+        raw: Optional[bool] = None,
+        provider: Optional[str] = None,
     ) -> PangeaResponse[URLReputationResult]:
         """
         Reputation
@@ -694,7 +704,7 @@ class UrlIntel(ServiceBase):
             )
         """
 
-        input = URLReputationRequest(url=url, provider=provider, verbose=verbose, raw=raw)
+        input = URLReputationRequest(url=url, url_list=url_list, provider=provider, verbose=verbose, raw=raw)
         return self.request.post("v1/reputation", URLReputationResult, data=input.dict(exclude_none=True))
 
 

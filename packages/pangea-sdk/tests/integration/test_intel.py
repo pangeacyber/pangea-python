@@ -24,8 +24,9 @@ class TestDomainIntel(unittest.TestCase):
         )
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertEqual(response.result.data.verdict, "malicious")
+        self.assertIsNone(response.result.data_list)
 
-    def test_domain_list_reputation(self):
+    def test_domain_reputation_bulk(self):
         domain_list = ["pemewizubidob.cafij.co.za", "redbomb.com.tr", "kmbk8.hicp.net"]
         response = self.intel_domain.reputation(domain_list=domain_list, provider="crowdstrike", verbose=True, raw=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
@@ -189,6 +190,18 @@ class TestURLIntel(unittest.TestCase):
         )
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertEqual(response.result.data.verdict, "malicious")
+        self.assertIsNone(response.result.data_list)
+
+    def test_url_reputation_bulk(self):
+        url_list = [
+            "http://113.235.101.11:54384",
+            "http://45.14.49.109:54819",
+            "https://chcial.ru/uplcv?utm_term%3Dcost%2Bto%2Brezone%2Bland",
+        ]
+        response = self.intel_url.reputation(url_list=url_list, provider="crowdstrike", verbose=True, raw=True)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertEqual(response.result.data.verdict, "malicious")
+        self.assertEqual(len(response.result.data_list), 3)
 
     def test_url_reputation_default_provider(self):
         response = self.intel_url.reputation(url="http://113.235.101.11:54384", verbose=True, raw=True)
