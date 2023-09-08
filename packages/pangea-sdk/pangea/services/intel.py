@@ -239,17 +239,17 @@ class DomainWhoIsData(PangeaResponseResult):
 
     Attributes:
         domain_name (str): The domain name.
-        created_date (str): The date the domain was created.
-        updated_date (str): The date the domain was last updated.
-        expires_date (str): The date the domain expires.
-        host_names (List[str]): The host names associated with the domain.
-        ips (List[str]): The IP addresses associated with the domain.
-        registrar_name (str): The name of the registrar.
-        contact_email (str): The email address of the contact.
-        estimated_domain_age (int): The estimated age of the domain.
         domain_availability (str): The availability of the domain.
-        registrant_organization (str): The organization of the registrant.
-        registrant_country (str): The country of the registrant.
+        created_date (str, optional): The date the domain was created.
+        updated_date (str, optional): The date the domain was last updated.
+        expires_date (str, optional): The date the domain expires.
+        host_names (List[str], optional): The host names associated with the domain.
+        ips (List[str], optional): The IP addresses associated with the domain.
+        registrar_name (str, optional): The name of the registrar.
+        contact_email (str, optional): The email address of the contact.
+        estimated_domain_age (int, optional): The estimated age of the domain.
+        registrant_organization (str, optional): The organization of the registrant.
+        registrant_country (str, optional): The country of the registrant.
     """
 
     domain_name: str
