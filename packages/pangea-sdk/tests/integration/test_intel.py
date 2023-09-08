@@ -1,14 +1,13 @@
-import time
 import unittest
 
 import pangea.exceptions as pe
 from pangea import PangeaConfig
 from pangea.response import ResponseStatus
-from pangea.services import DomainIntel, FileIntel, FileScan, IpIntel, UrlIntel, UserIntel
+from pangea.services import DomainIntel, FileIntel, IpIntel, UrlIntel, UserIntel
 from pangea.services.intel import HashType
 from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
 
-TEST_ENVIRONMENT = TestEnvironment.LIVE
+TEST_ENVIRONMENT = TestEnvironment.DEVELOP
 
 
 class TestDomainIntel(unittest.TestCase):
@@ -25,6 +24,20 @@ class TestDomainIntel(unittest.TestCase):
         )
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertEqual(response.result.data.verdict, "malicious")
+
+    def test_domain_who_is(self):
+        response = self.intel_domain.who_is(domain="737updatesboeing.com", provider="whoisxml", verbose=True, raw=True)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertIsNotNone(response.result.data)
+        self.assertIsNotNone(response.result.data.domain_name)
+        self.assertIsNotNone(response.result.data.domain_availability)
+
+    def test_domain_who_is_default_provider(self):
+        response = self.intel_domain.who_is(domain="737updatesboeing.com", verbose=True, raw=True)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertIsNotNone(response.result.data)
+        self.assertIsNotNone(response.result.data.domain_name)
+        self.assertIsNotNone(response.result.data.domain_availability)
 
     def test_domain_reputation_with_bad_auth_token(self):
         token = "noarealtoken"
