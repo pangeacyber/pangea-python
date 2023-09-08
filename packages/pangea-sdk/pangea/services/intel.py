@@ -230,7 +230,7 @@ class DomainReputationResult(PangeaResponseResult):
     """
 
     data: DomainReputationData
-    data_list: Optional[Dict[str, DomainReputationDataItem]] = None
+    data_details: Optional[Dict[str, DomainReputationDataItem]] = None
 
 
 class URLCommonRequest(IntelCommonRequest):
@@ -269,7 +269,7 @@ class URLReputationResult(IntelCommonResult):
     """
 
     data: URLReputationData
-    data_list: Optional[Dict[str, URLReputationDataItem]] = None
+    data_details: Optional[Dict[str, URLReputationDataItem]] = None
 
 
 class HashType(str, enum.Enum):
