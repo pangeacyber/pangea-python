@@ -80,13 +80,15 @@ class FileScan(ServiceBase):
 
         Scan a file for malicious content.
 
+        OperationId: file_scan_post_v1_scan
+
         Args:
-            file (io.BufferedReader, optional): file to be scanned (should be opened with read permision and in binary format)
+            file (io.BufferedReader, optional): file to be scanned (should be opened with read permissions and in binary format)
             file_path (str, optional): filepath to be opened and scanned
             verbose (bool, optional): Echo the API parameters in the response
             raw (bool, optional): Include raw data from this provider
-            provider (str, optional): Use reputation data from this provider: "crowdstrike"
-            sync_call (bool, optional): True to wait until server return a result, False to retrieve inmediatly and retrieve result asynchronously
+            provider (str, optional): Scan file using this provider
+            sync_call (bool, optional): True to wait until server returns a result, False to return immediately and retrieve result asynchronously
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -97,7 +99,14 @@ class FileScan(ServiceBase):
                 in our [API Documentation](https://pangea.cloud/docs/api/file-scan).
 
         Examples:
-            response = embargo.ip_check("1.1.1.1")
+            try:
+                with open("./path/to/file.pdf", "rb") as f:
+                    response = client.file_scan(file=f, verbose=True, provider="crowdstrike")
+                    print(f"Response: {response.result}")
+            except pe.PangeaAPIException as e:
+                print(f"Request Error: {e.response.summary}")
+                for err in e.errors:
+                    print(f"\\t{err.detail} \\n")
         """
         input = FileScanRequest(verbose=verbose, raw=raw, provider=provider)
 
