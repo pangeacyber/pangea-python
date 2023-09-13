@@ -201,6 +201,7 @@ class UserInviterOrderBy(enum.Enum):
 class UserInviteListFilter(APIRequestModel):
     callback: Optional[str] = None
     callback__contains: Optional[List[str]] = None
+    callback__in: Optional[List[str]] = None
     created_at: Optional[str] = None
     created_at__gt: Optional[str] = None
     created_at__gte: Optional[str] = None
@@ -208,6 +209,7 @@ class UserInviteListFilter(APIRequestModel):
     created_at__lte: Optional[str] = None
     email: Optional[str] = None
     email__contains: Optional[List[str]] = None
+    email__in: Optional[List[str]] = None
     expire: Optional[str] = None
     expire__gt: Optional[str] = None
     expire__gte: Optional[str] = None
@@ -215,14 +217,18 @@ class UserInviteListFilter(APIRequestModel):
     expire__lte: Optional[str] = None
     id: Optional[str] = None
     id__contains: Optional[List[str]] = None
+    id__in: Optional[List[str]] = None
     invite_org: Optional[str] = None
     invite_org__contains: Optional[List[str]] = None
+    invite_org__in: Optional[List[str]] = None
     inviter: Optional[str] = None
     inviter__contains: Optional[List[str]] = None
+    inviter__in: Optional[List[str]] = None
     is_signup: Optional[bool] = None
     require_mfa: Optional[bool] = None
     state: Optional[str] = None
     state__contains: Optional[List[str]] = None
+    state__in: Optional[List[str]] = None
 
 
 class UserInviteListRequest(APIRequestModel):
@@ -257,8 +263,10 @@ class UserListFilter(APIRequestModel):
     disabled: Optional[bool] = None
     email: Optional[str] = None
     email__contains: Optional[List[str]] = None
+    email__in: Optional[List[str]] = None
     id: Optional[str] = None
     id__contains: Optional[List[str]] = None
+    id__in: Optional[List[str]] = None
     last_login_at: Optional[str] = None
     last_login_at__gt: Optional[str] = None
     last_login_at__gte: Optional[str] = None
@@ -266,10 +274,13 @@ class UserListFilter(APIRequestModel):
     last_login_at__lte: Optional[str] = None
     last_login_ip: Optional[str] = None
     last_login_ip__contains: Optional[List[str]] = None
+    last_login_ip__in: Optional[List[str]] = None
     last_login_city: Optional[str] = None
     last_login_city__contains: Optional[List[str]] = None
+    last_login_city__in: Optional[List[str]] = None
     last_login_country: Optional[str] = None
     last_login_country__contains: Optional[List[str]] = None
+    last_login_country__in: Optional[List[str]] = None
     login_count: Optional[int] = None
     login_count__gt: Optional[int] = None
     login_count__gte: Optional[int] = None
@@ -730,6 +741,7 @@ class ClientSessionInvalidateResult(PangeaResponseResult):
 class SessionListFilter(APIRequestModel):
     active_token_id: Optional[str] = None
     active_token_id__contains: Optional[List[str]] = None
+    active_token_id__in: Optional[List[str]] = None
     created_at: Optional[str] = None
     created_at__gt: Optional[str] = None
     created_at__gte: Optional[str] = None
@@ -737,6 +749,7 @@ class SessionListFilter(APIRequestModel):
     created_at__lte: Optional[str] = None
     email: Optional[str] = None
     email__contains: Optional[List[str]] = None
+    email__in: Optional[List[str]] = None
     expire: Optional[str] = None
     expire__gt: Optional[str] = None
     expire__gte: Optional[str] = None
@@ -744,11 +757,14 @@ class SessionListFilter(APIRequestModel):
     expire__lte: Optional[str] = None
     id: Optional[str] = None
     id__contains: Optional[List[str]] = None
+    id__in: Optional[List[str]] = None
     identity: Optional[str] = None
     identity__contains: Optional[List[str]] = None
+    identity__in: Optional[List[str]] = None
     scopes: Optional[List[str]] = None
     type: Optional[str] = None
     type__contains: Optional[List[str]] = None
+    type__in: Optional[List[str]] = None
 
 
 class ClientSessionListRequest(APIRequestModel):
