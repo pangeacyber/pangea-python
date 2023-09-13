@@ -25,3 +25,4 @@ class TestTools(unittest.TestCase):
 
     def test_hash_ntlm(self):
         hash = hash_ntlm("password")
+        self.assertEqual(hash, "8846f7eaee8fb117ad06bdd830b7586c")
