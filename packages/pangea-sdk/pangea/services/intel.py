@@ -298,7 +298,6 @@ class FileIntel(ServiceBase):
     """
 
     service_name = "file-intel"
-    _support_multi_config = False
 
     def hash_reputation(
         self,
@@ -401,7 +400,6 @@ class DomainIntel(ServiceBase):
     """
 
     service_name = "domain-intel"
-    _support_multi_config = False
 
     def reputation(
         self, domain: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
@@ -461,7 +459,6 @@ class IpIntel(ServiceBase):
     """
 
     service_name = "ip-intel"
-    _support_multi_config = False
 
     def reputation(
         self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
@@ -649,7 +646,6 @@ class UrlIntel(ServiceBase):
     """
 
     service_name = "url-intel"
-    _support_multi_config = False
 
     def reputation(
         self, url: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
@@ -783,7 +779,6 @@ class UserIntel(ServiceBase):
     """
 
     service_name = "user-intel"
-    _support_multi_config = False
 
     def user_breached(
         self,

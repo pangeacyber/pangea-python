@@ -27,6 +27,7 @@ class PangeaConfig:
     """
     Only used for services that support multiconfig (e.g.: Audit service)
 
+    @deprecated("config_id will be deprecated from PangeaConfig. Set it on service inicialization instead")
     """
     config_id: Optional[str] = None
 

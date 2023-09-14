@@ -35,7 +35,6 @@ class AuthN(ServiceBase):
     """
 
     service_name = SERVICE_NAME
-    _support_multi_config = SUPPORT_MULTI_CONFIG
 
     def __init__(
         self,
@@ -52,7 +51,6 @@ class AuthN(ServiceBase):
 
     class Session(ServiceBase):
         service_name = SERVICE_NAME
-        _support_multi_config = SUPPORT_MULTI_CONFIG
 
         def __init__(
             self,
@@ -149,7 +147,6 @@ class AuthN(ServiceBase):
 
     class Client(ServiceBase):
         service_name = SERVICE_NAME
-        _support_multi_config = SUPPORT_MULTI_CONFIG
 
         def __init__(
             self,
@@ -212,7 +209,6 @@ class AuthN(ServiceBase):
 
         class Session(ServiceBase):
             service_name = SERVICE_NAME
-            _support_multi_config = SUPPORT_MULTI_CONFIG
 
             def __init__(
                 self,
@@ -353,7 +349,6 @@ class AuthN(ServiceBase):
 
         class Password(ServiceBase):
             service_name = SERVICE_NAME
-            _support_multi_config = SUPPORT_MULTI_CONFIG
 
             def __init__(
                 self,
@@ -397,7 +392,6 @@ class AuthN(ServiceBase):
 
         class Token(ServiceBase):
             service_name = SERVICE_NAME
-            _support_multi_config = SUPPORT_MULTI_CONFIG
 
             def __init__(
                 self,
@@ -435,7 +429,6 @@ class AuthN(ServiceBase):
 
     class User(ServiceBase):
         service_name = SERVICE_NAME
-        _support_multi_config = SUPPORT_MULTI_CONFIG
 
         def __init__(
             self,
@@ -696,7 +689,6 @@ class AuthN(ServiceBase):
 
         class Password(ServiceBase):
             service_name = SERVICE_NAME
-            _support_multi_config = SUPPORT_MULTI_CONFIG
 
             def __init__(
                 self,
@@ -735,7 +727,6 @@ class AuthN(ServiceBase):
 
         class Login(ServiceBase):
             service_name = SERVICE_NAME
-            _support_multi_config = SUPPORT_MULTI_CONFIG
 
             def __init__(
                 self,
@@ -823,7 +814,6 @@ class AuthN(ServiceBase):
 
         class MFA(ServiceBase):
             service_name = SERVICE_NAME
-            _support_multi_config = SUPPORT_MULTI_CONFIG
 
             def __init__(
                 self,
@@ -965,7 +955,6 @@ class AuthN(ServiceBase):
 
         class Profile(ServiceBase):
             service_name = SERVICE_NAME
-            _support_multi_config = SUPPORT_MULTI_CONFIG
 
             def __init__(
                 self,
@@ -1050,7 +1039,6 @@ class AuthN(ServiceBase):
 
         class Invites(ServiceBase):
             service_name = SERVICE_NAME
-            _support_multi_config = SUPPORT_MULTI_CONFIG
 
             def __init__(
                 self,
@@ -1125,7 +1113,6 @@ class AuthN(ServiceBase):
 
     class Flow(ServiceBase):
         service_name = SERVICE_NAME
-        _support_multi_config = SUPPORT_MULTI_CONFIG
 
         def __init__(
             self,
@@ -1213,7 +1200,6 @@ class AuthN(ServiceBase):
 
         class Reset(ServiceBase):
             service_name = SERVICE_NAME
-            _support_multi_config = SUPPORT_MULTI_CONFIG
 
             def __init__(
                 self,
@@ -1262,7 +1248,6 @@ class AuthN(ServiceBase):
 
         class Enroll(ServiceBase):
             service_name = SERVICE_NAME
-            _support_multi_config = SUPPORT_MULTI_CONFIG
 
             def __init__(
                 self,
@@ -1275,7 +1260,6 @@ class AuthN(ServiceBase):
 
             class MFA(ServiceBase):
                 service_name = SERVICE_NAME
-                _support_multi_config = SUPPORT_MULTI_CONFIG
 
                 def __init__(
                     self,
@@ -1356,7 +1340,6 @@ class AuthN(ServiceBase):
 
         class Signup(ServiceBase):
             service_name = SERVICE_NAME
-            _support_multi_config = SUPPORT_MULTI_CONFIG
 
             def __init__(
                 self,
@@ -1440,7 +1423,6 @@ class AuthN(ServiceBase):
 
         class Verify(ServiceBase):
             service_name = SERVICE_NAME
-            _support_multi_config = SUPPORT_MULTI_CONFIG
 
             def __init__(
                 self,
@@ -1586,7 +1568,6 @@ class AuthN(ServiceBase):
 
             class MFA(ServiceBase):
                 service_name = SERVICE_NAME
-                _support_multi_config = SUPPORT_MULTI_CONFIG
 
                 def __init__(
                     self,
@@ -1665,7 +1646,6 @@ class AuthN(ServiceBase):
 
     class Agreements(ServiceBase):
         service_name = SERVICE_NAME
-        _support_multi_config = SUPPORT_MULTI_CONFIG
 
         def __init__(
             self,
