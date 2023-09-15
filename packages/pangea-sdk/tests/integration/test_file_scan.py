@@ -52,7 +52,8 @@ class TestFileScan(unittest.TestCase):
         except pe.AcceptedRequestException as e:
             exception = e
 
-        for _ in range(6):
+        max_retry = 6
+        for retry in range(max_retry):
             try:
                 # wait some time to get result ready and poll it
                 time.sleep(10)
@@ -61,8 +62,9 @@ class TestFileScan(unittest.TestCase):
                 self.assertEqual(response.status, "Success")
                 self.assertEqual(response.result.data.verdict, "benign")
                 self.assertEqual(response.result.data.score, 0)
-            except pe.PangeaAPIException:
-                pass
+                break
+            except Exception:
+                self.assertLess(retry, max_retry - 1)
 
     def test_scan_file_reversinglabs(self):
         try:
@@ -94,7 +96,8 @@ class TestFileScan(unittest.TestCase):
         except pe.AcceptedRequestException as e:
             exception = e
 
-        for _ in range(6):
+        max_retry = 6
+        for retry in range(max_retry):
             try:
                 # wait some time to get result ready and poll it
                 time.sleep(10)
@@ -105,4 +108,4 @@ class TestFileScan(unittest.TestCase):
                 self.assertEqual(response.result.data.score, 0)
                 break
             except pe.PangeaAPIException:
-                pass
+                self.assertLess(retry, max_retry - 1)
