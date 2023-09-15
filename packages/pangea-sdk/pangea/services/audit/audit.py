@@ -79,7 +79,7 @@ class Audit(ServiceBase):
     ):
         # FIXME: Temporary check to deprecate config_id from PangeaConfig.
         # Delete it when deprecate PangeaConfig.config_id
-        if config_id is None and config is not None and config.config_id is not None:
+        if config_id and config is not None and config.config_id is not None:
             config_id = config.config_id
         super().__init__(token=token, config=config, logger_name=logger_name, config_id=config_id)
 
