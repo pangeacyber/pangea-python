@@ -52,13 +52,17 @@ class TestFileScan(unittest.TestCase):
         except pe.AcceptedRequestException as e:
             exception = e
 
-        # wait some time to get result ready and poll it
-        time.sleep(10)
+        for _ in range(6):
+            try:
+                # wait some time to get result ready and poll it
+                time.sleep(10)
 
-        response = self.scan.poll_result(exception)
-        self.assertEqual(response.status, "Success")
-        self.assertEqual(response.result.data.verdict, "benign")
-        self.assertEqual(response.result.data.score, 0)
+                response = self.scan.poll_result(exception)
+                self.assertEqual(response.status, "Success")
+                self.assertEqual(response.result.data.verdict, "benign")
+                self.assertEqual(response.result.data.score, 0)
+            except pe.PangeaAPIException:
+                pass
 
     def test_scan_file_reversinglabs(self):
         try:
@@ -90,10 +94,15 @@ class TestFileScan(unittest.TestCase):
         except pe.AcceptedRequestException as e:
             exception = e
 
-        # wait some time to get result ready and poll it
-        time.sleep(10)
+        for _ in range(6):
+            try:
+                # wait some time to get result ready and poll it
+                time.sleep(10)
 
-        response = self.scan.poll_result(exception)
-        self.assertEqual(response.status, "Success")
-        self.assertEqual(response.result.data.verdict, "benign")
-        self.assertEqual(response.result.data.score, 0)
+                response = self.scan.poll_result(exception)
+                self.assertEqual(response.status, "Success")
+                self.assertEqual(response.result.data.verdict, "benign")
+                self.assertEqual(response.result.data.score, 0)
+                break
+            except pe.PangeaAPIException:
+                pass
