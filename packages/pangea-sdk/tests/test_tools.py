@@ -1,6 +1,6 @@
 import unittest
 
-from pangea.utils import canonicalize, canonicalize_nested_json
+from pangea.utils import canonicalize, canonicalize_nested_json, hash_ntlm
 
 
 class TestTools(unittest.TestCase):
@@ -22,3 +22,7 @@ class TestTools(unittest.TestCase):
 
         canon = canonicalize(test_data)
         print("canonicalize: ", canon)
+
+    def test_hash_ntlm(self):
+        hash = hash_ntlm("password")
+        self.assertEqual(hash, "8846f7eaee8fb117ad06bdd830b7586c")

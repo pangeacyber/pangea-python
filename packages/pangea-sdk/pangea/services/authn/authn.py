@@ -1,14 +1,14 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 import pangea.services.authn.models as m
 from pangea.response import PangeaResponse
 from pangea.services.base import ServiceBase
 
 SERVICE_NAME = "authn"
-SUPPORT_MULTI_CONFIG = True
+SUPPORT_MULTI_CONFIG = False
 
 
 class AuthN(ServiceBase):
@@ -35,7 +35,6 @@ class AuthN(ServiceBase):
     """
 
     service_name = SERVICE_NAME
-    _support_multi_config = SUPPORT_MULTI_CONFIG
 
     def __init__(
         self,
@@ -52,7 +51,6 @@ class AuthN(ServiceBase):
 
     class Session(ServiceBase):
         service_name = SERVICE_NAME
-        _support_multi_config = SUPPORT_MULTI_CONFIG
 
         def __init__(
             self,
@@ -92,7 +90,7 @@ class AuthN(ServiceBase):
         # - path: authn::/v1/session/list
         def list(
             self,
-            filter: Optional[Dict] = None,
+            filter: Optional[Union[Dict, m.SessionListFilter]] = None,
             last: Optional[str] = None,
             order: Optional[m.ItemOrder] = None,
             order_by: Optional[m.SessionListOrderBy] = None,
@@ -149,7 +147,6 @@ class AuthN(ServiceBase):
 
     class Client(ServiceBase):
         service_name = SERVICE_NAME
-        _support_multi_config = SUPPORT_MULTI_CONFIG
 
         def __init__(
             self,
@@ -212,7 +209,6 @@ class AuthN(ServiceBase):
 
         class Session(ServiceBase):
             service_name = SERVICE_NAME
-            _support_multi_config = SUPPORT_MULTI_CONFIG
 
             def __init__(
                 self,
@@ -255,7 +251,7 @@ class AuthN(ServiceBase):
             def list(
                 self,
                 token: str,
-                filter: Optional[Dict] = None,
+                filter: Optional[Union[Dict, m.SessionListFilter]] = None,
                 last: Optional[str] = None,
                 order: Optional[m.ItemOrder] = None,
                 order_by: Optional[m.SessionListOrderBy] = None,
@@ -353,7 +349,6 @@ class AuthN(ServiceBase):
 
         class Password(ServiceBase):
             service_name = SERVICE_NAME
-            _support_multi_config = SUPPORT_MULTI_CONFIG
 
             def __init__(
                 self,
@@ -397,7 +392,6 @@ class AuthN(ServiceBase):
 
         class Token(ServiceBase):
             service_name = SERVICE_NAME
-            _support_multi_config = SUPPORT_MULTI_CONFIG
 
             def __init__(
                 self,
@@ -435,7 +429,6 @@ class AuthN(ServiceBase):
 
     class User(ServiceBase):
         service_name = SERVICE_NAME
-        _support_multi_config = SUPPORT_MULTI_CONFIG
 
         def __init__(
             self,
@@ -625,7 +618,7 @@ class AuthN(ServiceBase):
         # - path: authn::/v1/user/list
         def list(
             self,
-            filter: Optional[Dict] = None,
+            filter: Optional[Union[Dict, m.UserListFilter]] = None,
             last: Optional[str] = None,
             order: Optional[m.ItemOrder] = None,
             order_by: Optional[m.UserListOrderBy] = None,
@@ -696,7 +689,6 @@ class AuthN(ServiceBase):
 
         class Password(ServiceBase):
             service_name = SERVICE_NAME
-            _support_multi_config = SUPPORT_MULTI_CONFIG
 
             def __init__(
                 self,
@@ -735,7 +727,6 @@ class AuthN(ServiceBase):
 
         class Login(ServiceBase):
             service_name = SERVICE_NAME
-            _support_multi_config = SUPPORT_MULTI_CONFIG
 
             def __init__(
                 self,
@@ -823,7 +814,6 @@ class AuthN(ServiceBase):
 
         class MFA(ServiceBase):
             service_name = SERVICE_NAME
-            _support_multi_config = SUPPORT_MULTI_CONFIG
 
             def __init__(
                 self,
@@ -965,7 +955,6 @@ class AuthN(ServiceBase):
 
         class Profile(ServiceBase):
             service_name = SERVICE_NAME
-            _support_multi_config = SUPPORT_MULTI_CONFIG
 
             def __init__(
                 self,
@@ -1050,7 +1039,6 @@ class AuthN(ServiceBase):
 
         class Invites(ServiceBase):
             service_name = SERVICE_NAME
-            _support_multi_config = SUPPORT_MULTI_CONFIG
 
             def __init__(
                 self,
@@ -1064,7 +1052,7 @@ class AuthN(ServiceBase):
             # - path: authn::/v1/user/invite/list
             def list(
                 self,
-                filter: Optional[Dict] = None,
+                filter: Optional[Union[Dict, m.UserInviteListFilter]] = None,
                 last: Optional[str] = None,
                 order: Optional[m.ItemOrder] = None,
                 order_by: Optional[m.UserInviterOrderBy] = None,
@@ -1125,7 +1113,6 @@ class AuthN(ServiceBase):
 
     class Flow(ServiceBase):
         service_name = SERVICE_NAME
-        _support_multi_config = SUPPORT_MULTI_CONFIG
 
         def __init__(
             self,
@@ -1213,7 +1200,6 @@ class AuthN(ServiceBase):
 
         class Reset(ServiceBase):
             service_name = SERVICE_NAME
-            _support_multi_config = SUPPORT_MULTI_CONFIG
 
             def __init__(
                 self,
@@ -1262,7 +1248,6 @@ class AuthN(ServiceBase):
 
         class Enroll(ServiceBase):
             service_name = SERVICE_NAME
-            _support_multi_config = SUPPORT_MULTI_CONFIG
 
             def __init__(
                 self,
@@ -1275,7 +1260,6 @@ class AuthN(ServiceBase):
 
             class MFA(ServiceBase):
                 service_name = SERVICE_NAME
-                _support_multi_config = SUPPORT_MULTI_CONFIG
 
                 def __init__(
                     self,
@@ -1356,7 +1340,6 @@ class AuthN(ServiceBase):
 
         class Signup(ServiceBase):
             service_name = SERVICE_NAME
-            _support_multi_config = SUPPORT_MULTI_CONFIG
 
             def __init__(
                 self,
@@ -1440,7 +1423,6 @@ class AuthN(ServiceBase):
 
         class Verify(ServiceBase):
             service_name = SERVICE_NAME
-            _support_multi_config = SUPPORT_MULTI_CONFIG
 
             def __init__(
                 self,
@@ -1586,7 +1568,6 @@ class AuthN(ServiceBase):
 
             class MFA(ServiceBase):
                 service_name = SERVICE_NAME
-                _support_multi_config = SUPPORT_MULTI_CONFIG
 
                 def __init__(
                     self,
@@ -1665,7 +1646,6 @@ class AuthN(ServiceBase):
 
     class Agreements(ServiceBase):
         service_name = SERVICE_NAME
-        _support_multi_config = SUPPORT_MULTI_CONFIG
 
         def __init__(
             self,
@@ -1691,7 +1671,7 @@ class AuthN(ServiceBase):
 
         def list(
             self,
-            filter: Optional[Dict] = None,
+            filter: Optional[Union[Dict, m.AgreementListFilter]] = None,
             last: Optional[str] = None,
             order: Optional[m.ItemOrder] = None,
             order_by: Optional[m.AgreementListOrderBy] = None,
