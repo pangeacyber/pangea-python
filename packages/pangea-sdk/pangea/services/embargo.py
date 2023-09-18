@@ -78,7 +78,6 @@ class Embargo(ServiceBase):
     """
 
     service_name = "embargo"
-    _support_multi_config = False
 
     def ip_check(self, ip: str) -> PangeaResponse[EmbargoResult]:
         """
