@@ -4,7 +4,7 @@ import datetime
 import json
 from binascii import hexlify
 from collections import OrderedDict
-from hashlib import sha1, sha256
+from hashlib import new, sha1, sha256, sha512
 
 
 def format_datetime(dt: datetime.datetime) -> str:
@@ -82,6 +82,16 @@ def hash_sha256(data: str) -> str:
 def hash_sha1(data: str) -> str:
     # Return sha1 hash in hex format
     return hexlify(sha1(data.encode("ascii")).digest()).decode("utf8")
+
+
+def hash_sha512(data: str) -> str:
+    # Return sha512 hash in hex format
+    return hexlify(sha512(data.encode("ascii")).digest()).decode("utf8")
+
+
+def hash_ntlm(data: str):
+    # Calculate the NTLM hash
+    return hexlify(new("md4", data.encode("utf-16le")).digest()).decode("utf8")
 
 
 def get_prefix(hash: str, len: int = 5):
