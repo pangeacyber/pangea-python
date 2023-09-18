@@ -66,7 +66,6 @@ class Audit(ServiceBase):
     """
 
     service_name = "audit"
-    _support_multi_config = True
 
     def __init__(
         self,
@@ -76,8 +75,13 @@ class Audit(ServiceBase):
         public_key_info: Dict[str, str] = {},
         tenant_id: Optional[str] = None,
         logger_name="pangea",
+        config_id: Optional[str] = None,
     ):
-        super().__init__(token, config, logger_name)
+        # FIXME: Temporary check to deprecate config_id from PangeaConfig.
+        # Delete it when deprecate PangeaConfig.config_id
+        if config_id and config is not None and config.config_id is not None:
+            config_id = config.config_id
+        super().__init__(token=token, config=config, logger_name=logger_name, config_id=config_id)
 
         self.pub_roots: Dict[int, Root] = {}
         self.buffer_data: Optional[str] = None

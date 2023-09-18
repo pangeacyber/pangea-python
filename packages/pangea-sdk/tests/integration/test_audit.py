@@ -639,8 +639,8 @@ class TestAudit(unittest.TestCase):
 
     def test_multi_config_log_config_1(self):
         config_id = get_config_id(TEST_ENVIRONMENT, "audit", 1)
-        config = PangeaConfig(domain=self.domain, config_id=config_id)
-        audit_multi_config = Audit(self.multi_config_token, config=config)
+        config = PangeaConfig(domain=self.domain)
+        audit_multi_config = Audit(self.multi_config_token, config=config, config_id=config_id)
 
         response: PangeaResponse[LogResult] = audit_multi_config.log(
             message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verbose=True
@@ -651,8 +651,8 @@ class TestAudit(unittest.TestCase):
 
     def test_multi_config_log_config_2(self):
         config_id = get_config_id(TEST_ENVIRONMENT, "audit", 2)
-        config = PangeaConfig(domain=self.domain, config_id=config_id)
-        audit_multi_config = Audit(self.multi_config_token, config=config)
+        config = PangeaConfig(domain=self.domain)
+        audit_multi_config = Audit(self.multi_config_token, config=config, config_id=config_id)
 
         response: PangeaResponse[LogResult] = audit_multi_config.log(
             message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verbose=True

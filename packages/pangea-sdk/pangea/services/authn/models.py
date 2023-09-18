@@ -198,8 +198,41 @@ class UserInviterOrderBy(enum.Enum):
         return self.value
 
 
+class UserInviteListFilter(APIRequestModel):
+    callback: Optional[str] = None
+    callback__contains: Optional[List[str]] = None
+    callback__in: Optional[List[str]] = None
+    created_at: Optional[str] = None
+    created_at__gt: Optional[str] = None
+    created_at__gte: Optional[str] = None
+    created_at__lt: Optional[str] = None
+    created_at__lte: Optional[str] = None
+    email: Optional[str] = None
+    email__contains: Optional[List[str]] = None
+    email__in: Optional[List[str]] = None
+    expire: Optional[str] = None
+    expire__gt: Optional[str] = None
+    expire__gte: Optional[str] = None
+    expire__lt: Optional[str] = None
+    expire__lte: Optional[str] = None
+    id: Optional[str] = None
+    id__contains: Optional[List[str]] = None
+    id__in: Optional[List[str]] = None
+    invite_org: Optional[str] = None
+    invite_org__contains: Optional[List[str]] = None
+    invite_org__in: Optional[List[str]] = None
+    inviter: Optional[str] = None
+    inviter__contains: Optional[List[str]] = None
+    inviter__in: Optional[List[str]] = None
+    is_signup: Optional[bool] = None
+    require_mfa: Optional[bool] = None
+    state: Optional[str] = None
+    state__contains: Optional[List[str]] = None
+    state__in: Optional[List[str]] = None
+
+
 class UserInviteListRequest(APIRequestModel):
-    filter: Optional[Dict] = None
+    filter: Optional[Union[Dict, UserInviteListFilter]] = None
     last: Optional[str] = None
     order: Optional[ItemOrder] = None
     order_by: Optional[UserInviterOrderBy] = None
@@ -218,8 +251,48 @@ class UserInviteDeleteResult(PangeaResponseResult):
     pass
 
 
+class UserListFilter(APIRequestModel):
+    accepted_eula_id: Optional[str] = None
+    accepted_eula_id__contains: Optional[List[str]] = None
+    accepted_eula_id__in: Optional[List[str]] = None
+    created_at: Optional[str] = None
+    created_at__gt: Optional[str] = None
+    created_at__gte: Optional[str] = None
+    created_at__lt: Optional[str] = None
+    created_at__lte: Optional[str] = None
+    disabled: Optional[bool] = None
+    email: Optional[str] = None
+    email__contains: Optional[List[str]] = None
+    email__in: Optional[List[str]] = None
+    id: Optional[str] = None
+    id__contains: Optional[List[str]] = None
+    id__in: Optional[List[str]] = None
+    last_login_at: Optional[str] = None
+    last_login_at__gt: Optional[str] = None
+    last_login_at__gte: Optional[str] = None
+    last_login_at__lt: Optional[str] = None
+    last_login_at__lte: Optional[str] = None
+    last_login_ip: Optional[str] = None
+    last_login_ip__contains: Optional[List[str]] = None
+    last_login_ip__in: Optional[List[str]] = None
+    last_login_city: Optional[str] = None
+    last_login_city__contains: Optional[List[str]] = None
+    last_login_city__in: Optional[List[str]] = None
+    last_login_country: Optional[str] = None
+    last_login_country__contains: Optional[List[str]] = None
+    last_login_country__in: Optional[List[str]] = None
+    login_count: Optional[int] = None
+    login_count__gt: Optional[int] = None
+    login_count__gte: Optional[int] = None
+    login_count__lt: Optional[int] = None
+    login_count__lte: Optional[int] = None
+    require_mfa: Optional[bool] = None
+    scopes: Optional[List[str]] = None
+    verified: Optional[bool] = None
+
+
 class UserListRequest(APIRequestModel):
-    filter: Optional[Dict] = None
+    filter: Optional[Union[Dict, UserListFilter]] = None
     last: Optional[str] = None
     order: Optional[ItemOrder] = None
     order_by: Optional[UserListOrderBy] = None
@@ -665,9 +738,38 @@ class ClientSessionInvalidateResult(PangeaResponseResult):
     pass
 
 
+class SessionListFilter(APIRequestModel):
+    active_token_id: Optional[str] = None
+    active_token_id__contains: Optional[List[str]] = None
+    active_token_id__in: Optional[List[str]] = None
+    created_at: Optional[str] = None
+    created_at__gt: Optional[str] = None
+    created_at__gte: Optional[str] = None
+    created_at__lt: Optional[str] = None
+    created_at__lte: Optional[str] = None
+    email: Optional[str] = None
+    email__contains: Optional[List[str]] = None
+    email__in: Optional[List[str]] = None
+    expire: Optional[str] = None
+    expire__gt: Optional[str] = None
+    expire__gte: Optional[str] = None
+    expire__lt: Optional[str] = None
+    expire__lte: Optional[str] = None
+    id: Optional[str] = None
+    id__contains: Optional[List[str]] = None
+    id__in: Optional[List[str]] = None
+    identity: Optional[str] = None
+    identity__contains: Optional[List[str]] = None
+    identity__in: Optional[List[str]] = None
+    scopes: Optional[List[str]] = None
+    type: Optional[str] = None
+    type__contains: Optional[List[str]] = None
+    type__in: Optional[List[str]] = None
+
+
 class ClientSessionListRequest(APIRequestModel):
     token: str
-    filter: Optional[Dict] = None
+    filter: Optional[Union[Dict, SessionListFilter]] = None
     last: Optional[str] = None
     order: Optional[ItemOrder] = None
     order_by: Optional[SessionListOrderBy] = None
@@ -735,7 +837,7 @@ class SessionInvalidateResult(PangeaResponseResult):
 
 
 class SessionListRequest(APIRequestModel):
-    filter: Optional[Dict] = None
+    filter: Optional[Union[Dict, SessionListFilter]] = None
     last: Optional[str] = None
     order: Optional[ItemOrder] = None
     order_by: Optional[SessionListOrderBy] = None
@@ -805,8 +907,34 @@ class AgreementListOrderBy(enum.Enum):
         return self.value
 
 
+class AgreementListFilter(APIRequestModel):
+    active: Optional[bool] = None
+    created_at: Optional[str] = None
+    created_at__gt: Optional[str] = None
+    created_at__gte: Optional[str] = None
+    created_at__lt: Optional[str] = None
+    created_at__lte: Optional[str] = None
+    published_at: Optional[str] = None
+    published_at__gt: Optional[str] = None
+    published_at__gte: Optional[str] = None
+    published_at__lt: Optional[str] = None
+    published_at__lte: Optional[str] = None
+    type: Optional[str] = None
+    type__contains: Optional[List[str]] = None
+    type__in: Optional[List[str]] = None
+    id: Optional[str] = None
+    id__contains: Optional[List[str]] = None
+    id__in: Optional[List[str]] = None
+    name: Optional[str] = None
+    name__contains: Optional[List[str]] = None
+    name__in: Optional[List[str]] = None
+    text: Optional[str] = None
+    text__contains: Optional[List[str]] = None
+    text__in: Optional[List[str]] = None
+
+
 class AgreementListRequest(APIRequestModel):
-    filter: Optional[Dict] = None
+    filter: Optional[Union[Dict, AgreementListFilter]] = None
     last: Optional[str] = None
     order: Optional[ItemOrder] = None
     order_by: Optional[AgreementListOrderBy] = None
