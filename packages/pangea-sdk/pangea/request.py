@@ -26,11 +26,12 @@ class PangeaRequest(object):
     """
 
     def __init__(
-        self, config: PangeaConfig, token: str, service: str, logger: logging.Logger, check_config_id: bool = False
+        self, config: PangeaConfig, token: str, service: str, logger: logging.Logger, config_id: Optional[str] = None
     ):
         self.config = copy.deepcopy(config)
         self.token = token
         self.service = service
+        self.config_id = config_id
 
         # Queued request retry support flag
         self._queued_retry_enabled = config.queued_retry_enabled
@@ -40,7 +41,6 @@ class PangeaRequest(object):
         self._user_agent = ""
         self.set_custom_user_agent(config.custom_user_agent)
         self.session: requests.Session = self._init_session()
-        self._check_config_id = check_config_id
 
         self.logger = logger
 
@@ -96,8 +96,8 @@ class PangeaRequest(object):
         """
         url = self._url(endpoint)
         # Set config ID if available
-        if self._check_config_id and self.config.config_id and data.pop("config_id", None) is None:
-            data["config_id"] = self.config.config_id
+        if self.config_id and data.pop("config_id", None) is None:
+            data["config_id"] = self.config_id
 
         data_send = json.dumps(data, default=default_encoder) if isinstance(data, dict) else data
         self.logger.debug(
@@ -121,8 +121,7 @@ class PangeaRequest(object):
                 default=default_encoder,
             )
         )
-        self._check_response(pangea_response)
-        return pangea_response
+        return self._check_response(pangea_response)
 
     def _handle_queued_result(self, response: PangeaResponse) -> PangeaResponse:
         if self._queued_retry_enabled and response.raw_response.status_code == 202:
@@ -195,7 +194,7 @@ class PangeaRequest(object):
         if response.status != ResponseStatus.ACCEPTED.value:
             raise exceptions.PangeaException("Response already proccesed")
 
-        self.poll_result_by_id(request_id, response.result_class, check_response=check_response)
+        return self.poll_result_by_id(request_id, response.result_class, check_response=check_response)
 
     def _poll_result_retry(self, response: PangeaResponse) -> PangeaResponse:
         retry_count = 1
@@ -248,7 +247,7 @@ class PangeaRequest(object):
         self._extra_headers.update(headers)
         return self._extra_headers
 
-    def _check_response(self, response: PangeaResponse):
+    def _check_response(self, response: PangeaResponse) -> PangeaResponse:
         status = response.status
         summary = response.summary
 

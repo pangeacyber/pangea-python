@@ -1,14 +1,14 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 import pangea.services.authn.models as m
 from pangea.response import PangeaResponse
 from pangea.services.base import ServiceBase
 
 SERVICE_NAME = "authn"
-SUPPORT_MULTI_CONFIG = True
+SUPPORT_MULTI_CONFIG = False
 
 
 class AuthN(ServiceBase):
@@ -35,7 +35,6 @@ class AuthN(ServiceBase):
     """
 
     service_name = SERVICE_NAME
-    _support_multi_config = SUPPORT_MULTI_CONFIG
 
     def __init__(
         self,
@@ -48,10 +47,10 @@ class AuthN(ServiceBase):
         self.flow = AuthN.Flow(token, config, logger_name=logger_name)
         self.client = AuthN.Client(token, config, logger_name=logger_name)
         self.session = AuthN.Session(token, config, logger_name=logger_name)
+        self.agreements = AuthN.Agreements(token, config, logger_name=logger_name)
 
     class Session(ServiceBase):
         service_name = SERVICE_NAME
-        _support_multi_config = SUPPORT_MULTI_CONFIG
 
         def __init__(
             self,
@@ -91,7 +90,7 @@ class AuthN(ServiceBase):
         # - path: authn::/v1/session/list
         def list(
             self,
-            filter: Optional[Dict] = None,
+            filter: Optional[Union[Dict, m.SessionListFilter]] = None,
             last: Optional[str] = None,
             order: Optional[m.ItemOrder] = None,
             order_by: Optional[m.SessionListOrderBy] = None,
@@ -148,7 +147,6 @@ class AuthN(ServiceBase):
 
     class Client(ServiceBase):
         service_name = SERVICE_NAME
-        _support_multi_config = SUPPORT_MULTI_CONFIG
 
         def __init__(
             self,
@@ -211,7 +209,6 @@ class AuthN(ServiceBase):
 
         class Session(ServiceBase):
             service_name = SERVICE_NAME
-            _support_multi_config = SUPPORT_MULTI_CONFIG
 
             def __init__(
                 self,
@@ -254,7 +251,7 @@ class AuthN(ServiceBase):
             def list(
                 self,
                 token: str,
-                filter: Optional[Dict] = None,
+                filter: Optional[Union[Dict, m.SessionListFilter]] = None,
                 last: Optional[str] = None,
                 order: Optional[m.ItemOrder] = None,
                 order_by: Optional[m.SessionListOrderBy] = None,
@@ -352,7 +349,6 @@ class AuthN(ServiceBase):
 
         class Password(ServiceBase):
             service_name = SERVICE_NAME
-            _support_multi_config = SUPPORT_MULTI_CONFIG
 
             def __init__(
                 self,
@@ -396,7 +392,6 @@ class AuthN(ServiceBase):
 
         class Token(ServiceBase):
             service_name = SERVICE_NAME
-            _support_multi_config = SUPPORT_MULTI_CONFIG
 
             def __init__(
                 self,
@@ -434,7 +429,6 @@ class AuthN(ServiceBase):
 
     class User(ServiceBase):
         service_name = SERVICE_NAME
-        _support_multi_config = SUPPORT_MULTI_CONFIG
 
         def __init__(
             self,
@@ -624,7 +618,7 @@ class AuthN(ServiceBase):
         # - path: authn::/v1/user/list
         def list(
             self,
-            filter: Optional[Dict] = None,
+            filter: Optional[Union[Dict, m.UserListFilter]] = None,
             last: Optional[str] = None,
             order: Optional[m.ItemOrder] = None,
             order_by: Optional[m.UserListOrderBy] = None,
@@ -695,7 +689,6 @@ class AuthN(ServiceBase):
 
         class Password(ServiceBase):
             service_name = SERVICE_NAME
-            _support_multi_config = SUPPORT_MULTI_CONFIG
 
             def __init__(
                 self,
@@ -734,7 +727,6 @@ class AuthN(ServiceBase):
 
         class Login(ServiceBase):
             service_name = SERVICE_NAME
-            _support_multi_config = SUPPORT_MULTI_CONFIG
 
             def __init__(
                 self,
@@ -822,7 +814,6 @@ class AuthN(ServiceBase):
 
         class MFA(ServiceBase):
             service_name = SERVICE_NAME
-            _support_multi_config = SUPPORT_MULTI_CONFIG
 
             def __init__(
                 self,
@@ -964,7 +955,6 @@ class AuthN(ServiceBase):
 
         class Profile(ServiceBase):
             service_name = SERVICE_NAME
-            _support_multi_config = SUPPORT_MULTI_CONFIG
 
             def __init__(
                 self,
@@ -1049,7 +1039,6 @@ class AuthN(ServiceBase):
 
         class Invites(ServiceBase):
             service_name = SERVICE_NAME
-            _support_multi_config = SUPPORT_MULTI_CONFIG
 
             def __init__(
                 self,
@@ -1063,7 +1052,7 @@ class AuthN(ServiceBase):
             # - path: authn::/v1/user/invite/list
             def list(
                 self,
-                filter: Optional[Dict] = None,
+                filter: Optional[Union[Dict, m.UserInviteListFilter]] = None,
                 last: Optional[str] = None,
                 order: Optional[m.ItemOrder] = None,
                 order_by: Optional[m.UserInviterOrderBy] = None,
@@ -1124,7 +1113,6 @@ class AuthN(ServiceBase):
 
     class Flow(ServiceBase):
         service_name = SERVICE_NAME
-        _support_multi_config = SUPPORT_MULTI_CONFIG
 
         def __init__(
             self,
@@ -1212,7 +1200,6 @@ class AuthN(ServiceBase):
 
         class Reset(ServiceBase):
             service_name = SERVICE_NAME
-            _support_multi_config = SUPPORT_MULTI_CONFIG
 
             def __init__(
                 self,
@@ -1261,7 +1248,6 @@ class AuthN(ServiceBase):
 
         class Enroll(ServiceBase):
             service_name = SERVICE_NAME
-            _support_multi_config = SUPPORT_MULTI_CONFIG
 
             def __init__(
                 self,
@@ -1274,7 +1260,6 @@ class AuthN(ServiceBase):
 
             class MFA(ServiceBase):
                 service_name = SERVICE_NAME
-                _support_multi_config = SUPPORT_MULTI_CONFIG
 
                 def __init__(
                     self,
@@ -1355,7 +1340,6 @@ class AuthN(ServiceBase):
 
         class Signup(ServiceBase):
             service_name = SERVICE_NAME
-            _support_multi_config = SUPPORT_MULTI_CONFIG
 
             def __init__(
                 self,
@@ -1439,7 +1423,6 @@ class AuthN(ServiceBase):
 
         class Verify(ServiceBase):
             service_name = SERVICE_NAME
-            _support_multi_config = SUPPORT_MULTI_CONFIG
 
             def __init__(
                 self,
@@ -1585,7 +1568,6 @@ class AuthN(ServiceBase):
 
             class MFA(ServiceBase):
                 service_name = SERVICE_NAME
-                _support_multi_config = SUPPORT_MULTI_CONFIG
 
                 def __init__(
                     self,
@@ -1661,3 +1643,52 @@ class AuthN(ServiceBase):
                     return self.request.post(
                         "v1/flow/verify/mfa/start", m.FlowVerifyMFAStartResult, data=input.dict(exclude_none=True)
                     )
+
+    class Agreements(ServiceBase):
+        service_name = SERVICE_NAME
+
+        def __init__(
+            self,
+            token,
+            config=None,
+            logger_name="pangea",
+        ):
+            super().__init__(token, config, logger_name=logger_name)
+
+        def create(
+            self, type: m.AgreementType, name: str, text: str, active: Optional[bool] = None
+        ) -> PangeaResponse[m.AgreementCreateResult]:
+            input = m.AgreementCreateRequest(type=type, name=name, text=text, active=active)
+            return self.request.post(
+                "v1/agreements/create", m.AgreementCreateResult, data=input.dict(exclude_none=True)
+            )
+
+        def delete(self, type: m.AgreementType, id: str) -> PangeaResponse[m.AgreementDeleteResult]:
+            input = m.AgreementDeleteRequest(type=type, id=id)
+            return self.request.post(
+                "v1/agreements/delete", m.AgreementDeleteResult, data=input.dict(exclude_none=True)
+            )
+
+        def list(
+            self,
+            filter: Optional[Union[Dict, m.AgreementListFilter]] = None,
+            last: Optional[str] = None,
+            order: Optional[m.ItemOrder] = None,
+            order_by: Optional[m.AgreementListOrderBy] = None,
+            size: Optional[int] = None,
+        ) -> PangeaResponse[m.AgreementListResult]:
+            input = m.AgreementListRequest(filter=filter, last=last, order=order, order_by=order_by, size=size)
+            return self.request.post("v1/agreements/list", m.AgreementListResult, data=input.dict(exclude_none=True))
+
+        def update(
+            self,
+            type: m.AgreementType,
+            id: str,
+            name: Optional[str] = None,
+            text: Optional[str] = None,
+            active: Optional[bool] = None,
+        ) -> PangeaResponse[m.AgreementUpdateResult]:
+            input = m.AgreementUpdateRequest(type=type, id=id, name=name, text=text, active=active)
+            return self.request.post(
+                "v1/agreements/update", m.AgreementUpdateResult, data=input.dict(exclude_none=True)
+            )

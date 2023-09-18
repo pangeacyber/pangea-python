@@ -92,7 +92,6 @@ class Vault(ServiceBase):
     """
 
     service_name = "vault"
-    _support_multi_config = False
 
     def __init__(
         self,

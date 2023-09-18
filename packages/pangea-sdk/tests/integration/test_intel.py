@@ -25,6 +25,16 @@ class TestDomainIntel(unittest.TestCase):
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertEqual(response.result.data.verdict, "malicious")
 
+    def test_domain_reputation_not_found(self):
+        response = self.intel_domain.reputation(
+            domain="thisshouldbeafakedomain12312asdasd.com", provider="crowdstrike", verbose=True, raw=True
+        )
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertIsNotNone(response.result.data)
+        self.assertIsNotNone(response.result.data.category)
+        self.assertIsNotNone(response.result.data.verdict)
+        self.assertIsNotNone(response.result.data.score)
+
     def test_domain_reputation_with_bad_auth_token(self):
         token = "noarealtoken"
         domain = get_test_domain(TEST_ENVIRONMENT)
@@ -125,6 +135,14 @@ class TestIPIntel(unittest.TestCase):
         self.assertTrue(response.result.data.domain_found)
         self.assertEqual("rogers.com", response.result.data.domain)
 
+    def test_ip_domain_not_found(self):
+        response = self.intel_ip.get_domain(ip="127.0.0.1", verbose=True, raw=True)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertIsNotNone(response.result.data)
+        self.assertIsNotNone(response.result.parameters)
+        self.assertFalse(response.result.data.domain_found)
+        self.assertIsNone(response.result.data.domain)
+
     def test_ip_vpn(self):
         response = self.intel_ip.is_vpn(ip="2.56.189.74", provider="digitalelement", verbose=True, raw=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
@@ -134,6 +152,12 @@ class TestIPIntel(unittest.TestCase):
         response = self.intel_ip.is_vpn(ip="2.56.189.74", verbose=True, raw=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertTrue(response.result.data.is_vpn)
+
+    def test_ip_vpn_not_found(self):
+        response = self.intel_ip.is_vpn(ip="127.0.0.1", verbose=True, raw=True)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertIsNotNone(response.result.data)
+        self.assertFalse(response.result.data.is_vpn)
 
     def test_ip_proxy(self):
         response = self.intel_ip.is_proxy(ip="34.201.32.172", provider="digitalelement", verbose=True, raw=True)
@@ -145,7 +169,13 @@ class TestIPIntel(unittest.TestCase):
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertTrue(response.result.data.is_proxy)
 
-    def test_ip_reputation(self):
+    def test_ip_proxy_not_found(self):
+        response = self.intel_ip.is_proxy(ip="127.0.0.1", verbose=True, raw=True)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertIsNotNone(response.result.data)
+        self.assertFalse(response.result.data.is_proxy)
+
+    def test_ip_reputation_crowdstrike(self):
         response = self.intel_ip.reputation(ip="93.231.182.110", provider="crowdstrike", verbose=True, raw=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertEqual(response.result.data.verdict, "malicious")
@@ -153,6 +183,22 @@ class TestIPIntel(unittest.TestCase):
     def test_ip_reputation_cymru(self):
         response = self.intel_ip.reputation(ip="93.231.182.110", provider="cymru", verbose=True, raw=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
+
+    def test_ip_reputation_crowdstrike_not_found(self):
+        response = self.intel_ip.reputation(ip="127.0.0.1", provider="crowdstrike", verbose=True, raw=True)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertIsNotNone(response.result.data)
+        self.assertIsNotNone(response.result.data.category)
+        self.assertIsNotNone(response.result.data.verdict)
+        self.assertIsNotNone(response.result.data.score)
+
+    def test_ip_reputation_cymru_not_found(self):
+        response = self.intel_ip.reputation(ip="127.0.0.1", provider="cymru", verbose=True, raw=True)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertIsNotNone(response.result.data)
+        self.assertIsNotNone(response.result.data.category)
+        self.assertIsNotNone(response.result.data.verdict)
+        self.assertIsNotNone(response.result.data.score)
 
     def test_ip_reputation_default_provider(self):
         response = self.intel_ip.reputation(ip="93.231.182.110", verbose=True, raw=True)
@@ -186,6 +232,14 @@ class TestURLIntel(unittest.TestCase):
     def test_url_reputation_default_provider(self):
         response = self.intel_url.reputation(url="http://113.235.101.11:54384", verbose=True, raw=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
+
+    def test_url_reputation_default_provider_not_found(self):
+        response = self.intel_url.reputation(url="http://thisshoulbeafakseurl123123lkj:54384", verbose=True, raw=True)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertIsNotNone(response.result.data)
+        self.assertIsNotNone(response.result.data.category)
+        self.assertIsNotNone(response.result.data.verdict)
+        self.assertIsNotNone(response.result.data.score)
 
     def test_url_reputation_with_bad_auth_token(self):
         token = "noarealtoken"
