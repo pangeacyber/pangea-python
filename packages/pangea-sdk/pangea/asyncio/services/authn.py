@@ -5,12 +5,13 @@ from typing import Dict, List, Optional, Union
 
 import pangea.services.authn.models as m
 from pangea.response import PangeaResponse
-from pangea.services.base import ServiceBase
+
+from .base import ServiceBaseAsync
 
 SERVICE_NAME = "authn"
 
 
-class AuthN(ServiceBase):
+class AuthNAsync(ServiceBaseAsync):
     """AuthN service client.
 
     Provides methods to interact with the [Pangea AuthN Service](https://pangea.cloud/docs/api/authn).
@@ -42,13 +43,13 @@ class AuthN(ServiceBase):
         logger_name="pangea",
     ):
         super().__init__(token, config, logger_name=logger_name)
-        self.user = AuthN.User(token, config, logger_name=logger_name)
-        self.flow = AuthN.Flow(token, config, logger_name=logger_name)
-        self.client = AuthN.Client(token, config, logger_name=logger_name)
-        self.session = AuthN.Session(token, config, logger_name=logger_name)
-        self.agreements = AuthN.Agreements(token, config, logger_name=logger_name)
+        self.user = AuthNAsync.User(token, config, logger_name=logger_name)
+        self.flow = AuthNAsync.Flow(token, config, logger_name=logger_name)
+        self.client = AuthNAsync.Client(token, config, logger_name=logger_name)
+        self.session = AuthNAsync.Session(token, config, logger_name=logger_name)
+        self.agreements = AuthNAsync.Agreements(token, config, logger_name=logger_name)
 
-    class Session(ServiceBase):
+    class Session(ServiceBaseAsync):
         service_name = SERVICE_NAME
 
         def __init__(
@@ -61,7 +62,7 @@ class AuthN(ServiceBase):
 
         # https://pangea.cloud/docs/api/authn#invalidate-session
         # - path: authn::/v1/session/invalidate
-        def invalidate(self, session_id: str) -> PangeaResponse[m.SessionInvalidateResult]:
+        async def invalidate(self, session_id: str) -> PangeaResponse[m.SessionInvalidateResult]:
             """
             Invalidate Session
 
@@ -81,13 +82,13 @@ class AuthN(ServiceBase):
                 )
             """
             input = m.SessionInvalidateRequest(session_id=session_id)
-            return self.request.post(
+            return await self.request.post(
                 "v1/session/invalidate", m.SessionInvalidateResult, data=input.dict(exclude_none=True)
             )
 
         # https://pangea.cloud/docs/api/authn#list-session-service-token
         # - path: authn::/v1/session/list
-        def list(
+        async def list(
             self,
             filter: Optional[Union[Dict, m.SessionListFilter]] = None,
             last: Optional[str] = None,
@@ -115,14 +116,14 @@ class AuthN(ServiceBase):
                     [API Documentation](https://pangea.cloud/docs/api/authn#list-session-service-token).
 
             Examples:
-                response = authn.session.list()
+                response = await authn.session.list()
             """
             input = m.SessionListRequest(filter=filter, last=last, order=order, order_by=order_by, size=size)
-            return self.request.post("v1/session/list", m.SessionListResults, data=input.dict(exclude_none=True))
+            return await self.request.post("v1/session/list", m.SessionListResults, data=input.dict(exclude_none=True))
 
         # https://pangea.cloud/docs/api/authn#log-out-service-token
         # - path: authn::/v1/session/logout
-        def logout(self, user_id: str) -> PangeaResponse[m.SessionLogoutResult]:
+        async def logout(self, user_id: str) -> PangeaResponse[m.SessionLogoutResult]:
             """
             Log out (service token)
 
@@ -142,9 +143,11 @@ class AuthN(ServiceBase):
                 )
             """
             input = m.SessionLogoutRequest(user_id=user_id)
-            return self.request.post("v1/session/logout", m.SessionLogoutResult, data=input.dict(exclude_none=True))
+            return await self.request.post(
+                "v1/session/logout", m.SessionLogoutResult, data=input.dict(exclude_none=True)
+            )
 
-    class Client(ServiceBase):
+    class Client(ServiceBaseAsync):
         service_name = SERVICE_NAME
 
         def __init__(
@@ -154,13 +157,13 @@ class AuthN(ServiceBase):
             logger_name="pangea",
         ):
             super().__init__(token, config, logger_name=logger_name)
-            self.session = AuthN.Client.Session(token, config, logger_name=logger_name)
-            self.password = AuthN.Client.Password(token, config, logger_name=logger_name)
-            self.token_endpoints = AuthN.Client.Token(token, config, logger_name=logger_name)
+            self.session = AuthNAsync.Client.Session(token, config, logger_name=logger_name)
+            self.password = AuthNAsync.Client.Password(token, config, logger_name=logger_name)
+            self.token_endpoints = AuthNAsync.Client.Token(token, config, logger_name=logger_name)
 
         # https://pangea.cloud/docs/api/authn#get-user-client-token
         # - path: authn::/v1/client/userinfo
-        def userinfo(self, code: str) -> PangeaResponse[m.ClientUserinfoResult]:
+        async def userinfo(self, code: str) -> PangeaResponse[m.ClientUserinfoResult]:
             """
             Get User (client token)
 
@@ -177,16 +180,18 @@ class AuthN(ServiceBase):
                     [API Documentation](https://pangea.cloud/docs/api/authn#get-user-client-token).
 
             Examples:
-                response = authn.client.userinfo(
+                response = await authn.client.userinfo(
                     code="pmc_d6chl6qulpn3it34oerwm3cqwsjd6dxw",
                 )
             """
             input = m.ClientUserinfoRequest(code=code)
-            return self.request.post("v1/client/userinfo", m.ClientUserinfoResult, data=input.dict(exclude_none=True))
+            return await self.request.post(
+                "v1/client/userinfo", m.ClientUserinfoResult, data=input.dict(exclude_none=True)
+            )
 
         # https://pangea.cloud/docs/api/authn#get-jwt-verification-keys
         # - path: authn::/v1/client/jwks
-        def jwks(
+        async def jwks(
             self,
         ) -> PangeaResponse[m.ClientJWKSResult]:
             """
@@ -202,11 +207,11 @@ class AuthN(ServiceBase):
                     [API Documentation](https://pangea.cloud/docs/api/authn#get-jwt-verification-keys).
 
             Examples:
-                response = authn.client.jwks()
+                response = await authn.client.jwks()
             """
-            return self.request.post("v1/client/jwks", m.ClientJWKSResult, {})
+            return await self.request.post("v1/client/jwks", m.ClientJWKSResult, {})
 
-        class Session(ServiceBase):
+        class Session(ServiceBaseAsync):
             service_name = SERVICE_NAME
 
             def __init__(
@@ -219,7 +224,7 @@ class AuthN(ServiceBase):
 
             # https://pangea.cloud/docs/api/authn#invalidate-session-client
             # - path: authn::/v1/client/session/invalidate
-            def invalidate(self, token: str, session_id: str) -> PangeaResponse[m.ClientSessionInvalidateResult]:
+            async def invalidate(self, token: str, session_id: str) -> PangeaResponse[m.ClientSessionInvalidateResult]:
                 """
                 Invalidate Session | Client
 
@@ -241,13 +246,13 @@ class AuthN(ServiceBase):
                     )
                 """
                 input = m.ClientSessionInvalidateRequest(token=token, session_id=session_id)
-                return self.request.post(
+                return await self.request.post(
                     "v1/client/session/invalidate", m.ClientSessionInvalidateResult, data=input.dict(exclude_none=True)
                 )
 
             # https://pangea.cloud/docs/api/authn#list-sessions-client-token
             # - path: authn::/v1/client/session/list
-            def list(
+            async def list(
                 self,
                 token: str,
                 filter: Optional[Union[Dict, m.SessionListFilter]] = None,
@@ -277,20 +282,20 @@ class AuthN(ServiceBase):
                         [API Documentation](https://pangea.cloud/docs/api/authn#list-sessions-client-token).
 
                 Examples:
-                    response = authn.client.session.list(
+                    response = await authn.client.session.list(
                         token="ptu_wuk7tvtpswyjtlsx52b7yyi2l7zotv4a",
                     )
                 """
                 input = m.ClientSessionListRequest(
                     token=token, filter=filter, last=last, order=order, order_by=order_by, size=size
                 )
-                return self.request.post(
+                return await self.request.post(
                     "v1/client/session/list", m.ClientSessionListResults, data=input.dict(exclude_none=True)
                 )
 
             # https://pangea.cloud/docs/api/authn#log-out-client-token
             # - path: authn::/v1/client/session/logout
-            def logout(self, token: str) -> PangeaResponse[m.ClientSessionLogoutResult]:
+            async def logout(self, token: str) -> PangeaResponse[m.ClientSessionLogoutResult]:
                 """
                 Log out (client token)
 
@@ -310,13 +315,13 @@ class AuthN(ServiceBase):
                     )
                 """
                 input = m.ClientSessionLogoutRequest(token=token)
-                return self.request.post(
+                return await self.request.post(
                     "v1/client/session/logout", m.ClientSessionLogoutResult, data=input.dict(exclude_none=True)
                 )
 
             # https://pangea.cloud/docs/api/authn#refresh-a-session
             # - path: authn::/v1/client/session/refresh
-            def refresh(
+            async def refresh(
                 self, refresh_token: str, user_token: Optional[str] = None
             ) -> PangeaResponse[m.ClientSessionRefreshResult]:
                 """
@@ -336,17 +341,17 @@ class AuthN(ServiceBase):
                         [API Documentation](https://pangea.cloud/docs/api/authn#refresh-a-session).
 
                 Examples:
-                    response = authn.client.session.refresh(
+                    response = await authn.client.session.refresh(
                         refresh_token="ptr_xpkhwpnz2cmegsws737xbsqnmnuwtbm5",
                         user_token="ptu_wuk7tvtpswyjtlsx52b7yyi2l7zotv4a",
                     )
                 """
                 input = m.ClientSessionRefreshRequest(refresh_token=refresh_token, user_token=user_token)
-                return self.request.post(
+                return await self.request.post(
                     "v1/client/session/refresh", m.ClientSessionRefreshResult, data=input.dict(exclude_none=True)
                 )
 
-        class Password(ServiceBase):
+        class Password(ServiceBaseAsync):
             service_name = SERVICE_NAME
 
             def __init__(
@@ -359,7 +364,7 @@ class AuthN(ServiceBase):
 
             # https://pangea.cloud/docs/api/authn#change-a-users-password
             # - path: authn::/v1/client/password/change
-            def change(
+            async def change(
                 self, token: str, old_password: str, new_password: str
             ) -> PangeaResponse[m.ClientPasswordChangeResult]:
                 """
@@ -385,11 +390,11 @@ class AuthN(ServiceBase):
                     )
                 """
                 input = m.ClientPasswordChangeRequest(token=token, old_password=old_password, new_password=new_password)
-                return self.request.post(
+                return await self.request.post(
                     "v1/client/password/change", m.ClientPasswordChangeResult, data=input.dict(exclude_none=True)
                 )
 
-        class Token(ServiceBase):
+        class Token(ServiceBaseAsync):
             service_name = SERVICE_NAME
 
             def __init__(
@@ -400,7 +405,7 @@ class AuthN(ServiceBase):
             ):
                 super().__init__(token, config, logger_name=logger_name)
 
-            def check(self, token: str) -> PangeaResponse[m.ClientTokenCheckResult]:
+            async def check(self, token: str) -> PangeaResponse[m.ClientTokenCheckResult]:
                 """
                 Check a token
 
@@ -417,16 +422,16 @@ class AuthN(ServiceBase):
                         [API Documentation](https://pangea.cloud/docs/api/authn#check-a-token).
 
                 Examples:
-                    response = authn.client.token_endpoints.check(
+                    response = await authn.client.token_endpoints.check(
                         token="ptu_wuk7tvtpswyjtlsx52b7yyi2l7zotv4a",
                     )
                 """
                 input = m.ClientTokenCheckRequest(token=token)
-                return self.request.post(
+                return await self.request.post(
                     "v1/client/token/check", m.ClientTokenCheckResult, data=input.dict(exclude_none=True)
                 )
 
-    class User(ServiceBase):
+    class User(ServiceBaseAsync):
         service_name = SERVICE_NAME
 
         def __init__(
@@ -436,15 +441,15 @@ class AuthN(ServiceBase):
             logger_name="pangea",
         ):
             super().__init__(token, config, logger_name=logger_name)
-            self.profile = AuthN.User.Profile(token, config, logger_name=logger_name)
-            self.invites = AuthN.User.Invites(token, config, logger_name=logger_name)
-            self.mfa = AuthN.User.MFA(token, config, logger_name=logger_name)
-            self.login = AuthN.User.Login(token, config, logger_name=logger_name)
-            self.password = AuthN.User.Password(token, config, logger_name=logger_name)
+            self.profile = AuthNAsync.User.Profile(token, config, logger_name=logger_name)
+            self.invites = AuthNAsync.User.Invites(token, config, logger_name=logger_name)
+            self.mfa = AuthNAsync.User.MFA(token, config, logger_name=logger_name)
+            self.login = AuthNAsync.User.Login(token, config, logger_name=logger_name)
+            self.password = AuthNAsync.User.Password(token, config, logger_name=logger_name)
 
         # https://pangea.cloud/docs/api/authn#create-user
         # - path: authn::/v1/user/create
-        def create(
+        async def create(
             self,
             email: str,
             authenticator: str,
@@ -476,7 +481,7 @@ class AuthN(ServiceBase):
                     [API Documentation](https://pangea.cloud/docs/api/authn#create-user).
 
             Examples:
-                response = authn.user.create(
+                response = await authn.user.create(
                     email="joe.user@email.com",
                     password="My1s+Password",
                     id_provider=IDProvider.PASSWORD
@@ -491,11 +496,13 @@ class AuthN(ServiceBase):
                 profile=profile,
                 scopes=scopes,
             )
-            return self.request.post("v1/user/create", m.UserCreateResult, data=input.dict(exclude_none=True))
+            return await self.request.post("v1/user/create", m.UserCreateResult, data=input.dict(exclude_none=True))
 
         # https://pangea.cloud/docs/api/authn#delete-user
         # - path: authn::/v1/user/delete
-        def delete(self, email: Optional[str] = None, id: Optional[str] = None) -> PangeaResponse[m.UserDeleteResult]:
+        async def delete(
+            self, email: Optional[str] = None, id: Optional[str] = None
+        ) -> PangeaResponse[m.UserDeleteResult]:
             """
             Delete User
 
@@ -514,11 +521,11 @@ class AuthN(ServiceBase):
                 authn.user.delete(email="example@example.com")
             """
             input = m.UserDeleteRequest(email=email, id=id)
-            return self.request.post("v1/user/delete", m.UserDeleteResult, data=input.dict(exclude_none=True))
+            return await self.request.post("v1/user/delete", m.UserDeleteResult, data=input.dict(exclude_none=True))
 
         # https://pangea.cloud/docs/api/authn#update-users-settings
         # - path: authn::/v1/user/update
-        def update(
+        async def update(
             self,
             id: Optional[str] = None,
             email: Optional[str] = None,
@@ -550,7 +557,7 @@ class AuthN(ServiceBase):
                     [API Documentation](https://pangea.cloud/docs/api/authn#update-users-settings).
 
             Examples:
-                response = authn.user.update(
+                response = await authn.user.update(
                     email="joe.user@email.com",
                     require_mfa=True,
                 )
@@ -564,11 +571,11 @@ class AuthN(ServiceBase):
                 verified=verified,
             )
 
-            return self.request.post("v1/user/update", m.UserUpdateResult, data=input.dict(exclude_none=True))
+            return await self.request.post("v1/user/update", m.UserUpdateResult, data=input.dict(exclude_none=True))
 
         # https://pangea.cloud/docs/api/authn#invite-user
         # - path: authn::/v1/user/invite
-        def invite(
+        async def invite(
             self,
             inviter: str,
             email: str,
@@ -596,7 +603,7 @@ class AuthN(ServiceBase):
                     [API Documentation](https://pangea.cloud/docs/api/authn#invite-user).
 
             Examples:
-                response = authn.user.invite(
+                response = await authn.user.invite(
                     inviter="admin@email.com",
                     email="joe.user@email.com",
                     callback="/callback",
@@ -611,11 +618,11 @@ class AuthN(ServiceBase):
                 state=state,
                 require_mfa=require_mfa,
             )
-            return self.request.post("v1/user/invite", m.UserInviteResult, data=input.dict(exclude_none=True))
+            return await self.request.post("v1/user/invite", m.UserInviteResult, data=input.dict(exclude_none=True))
 
         # https://pangea.cloud/docs/api/authn#list-users
         # - path: authn::/v1/user/list
-        def list(
+        async def list(
             self,
             filter: Optional[Union[Dict, m.UserListFilter]] = None,
             last: Optional[str] = None,
@@ -643,7 +650,7 @@ class AuthN(ServiceBase):
                     [API Documentation](https://pangea.cloud/docs/api/authn#list-users).
 
             Examples:
-                response = authn.user.list()
+                response = await authn.user.list()
             """
             input = m.UserListRequest(
                 filter=filter,
@@ -652,11 +659,11 @@ class AuthN(ServiceBase):
                 order_by=order_by,
                 size=size,
             )
-            return self.request.post("v1/user/list", m.UserListResult, data=input.dict(exclude_none=True))
+            return await self.request.post("v1/user/list", m.UserListResult, data=input.dict(exclude_none=True))
 
         # https://pangea.cloud/docs/api/authn#verify-user
         # - path: authn::/v1/user/verify
-        def verify(
+        async def verify(
             self, id_provider: m.IDProvider, email: str, authenticator: str
         ) -> PangeaResponse[m.UserVerifyResult]:
             """
@@ -677,16 +684,16 @@ class AuthN(ServiceBase):
                     [API Documentation](https://pangea.cloud/docs/api/authn#verify-user).
 
             Examples:
-                response = authn.user.verify(
+                response = await authn.user.verify(
                     id_provider=IDProvider.PASSWORD,
                     email="joe.user@email.com",
                     authenticator="My1s+Password",
                 )
             """
             input = m.UserVerifyRequest(id_provider=id_provider, email=email, authenticator=authenticator)
-            return self.request.post("v1/user/verify", m.UserVerifyResult, data=input.dict(exclude_none=True))
+            return await self.request.post("v1/user/verify", m.UserVerifyResult, data=input.dict(exclude_none=True))
 
-        class Password(ServiceBase):
+        class Password(ServiceBaseAsync):
             service_name = SERVICE_NAME
 
             def __init__(
@@ -699,7 +706,7 @@ class AuthN(ServiceBase):
 
             # https://pangea.cloud/docs/api/authn#user-password-reset
             # - path: authn::/v1/user/password/reset
-            def reset(self, user_id: str, new_password: str) -> PangeaResponse[m.UserPasswordResetResult]:
+            async def reset(self, user_id: str, new_password: str) -> PangeaResponse[m.UserPasswordResetResult]:
                 """
                 User Password Reset
 
@@ -715,16 +722,16 @@ class AuthN(ServiceBase):
                     A PangeaResponse with an empty object in the response.result field.
 
                 Examples:
-                    response = authn.user.password.reset(
+                    response = await authn.user.password.reset(
                       user_id="pui_xpkhwpnz2cmegsws737xbsqnmnuwtvm5",
                     )
                 """
                 input = m.UserPasswordResetRequest(user_id=user_id, new_password=new_password)
-                return self.request.post(
+                return await self.request.post(
                     "v1/user/password/reset", m.UserPasswordResetResult, data=input.dict(exclude_none=True)
                 )
 
-        class Login(ServiceBase):
+        class Login(ServiceBaseAsync):
             service_name = SERVICE_NAME
 
             def __init__(
@@ -737,7 +744,7 @@ class AuthN(ServiceBase):
 
             # https://pangea.cloud/docs/api/authn#login-with-a-password
             # - path: authn::/v1/user/login/password
-            def password(
+            async def password(
                 self, email: str, password: str, extra_profile: Optional[m.Profile] = None
             ) -> PangeaResponse[m.UserLoginResult]:
                 """
@@ -758,7 +765,7 @@ class AuthN(ServiceBase):
                         [API Documentation](https://pangea.cloud/docs/api/authn#login-with-a-password).
 
                 Examples:
-                    response = authn.user.login.password(
+                    response = await authn.user.login.password(
                         email="joe.user@email.com",
                         password="My1s+Password",
                         extra_profile={
@@ -768,13 +775,13 @@ class AuthN(ServiceBase):
                     )
                 """
                 input = m.UserLoginPasswordRequest(email=email, password=password, extra_profile=extra_profile)
-                return self.request.post(
+                return await self.request.post(
                     "v1/user/login/password", m.UserLoginResult, data=input.dict(exclude_none=True)
                 )
 
             # https://pangea.cloud/docs/api/authn#login-with-a-social-provider
             # - path: authn::/v1/user/login/social
-            def social(
+            async def social(
                 self, provider: m.IDProvider, email: str, social_id: str, extra_profile: Optional[m.Profile] = None
             ) -> PangeaResponse[m.UserLoginResult]:
                 """
@@ -796,7 +803,7 @@ class AuthN(ServiceBase):
                         [API Documentation](https://pangea.cloud/docs/api/authn#login-with-a-social-provider).
 
                 Examples:
-                    response = authn.user.login.social(
+                    response = await authn.user.login.social(
                         provider=IDProvider.GOOGLE,
                         email="joe.user@email.com",
                         social_id="My1s+Password",
@@ -809,9 +816,11 @@ class AuthN(ServiceBase):
                 input = m.UserLoginSocialRequest(
                     provider=provider, email=email, social_id=social_id, extra_profile=extra_profile
                 )
-                return self.request.post("v1/user/login/social", m.UserLoginResult, data=input.dict(exclude_none=True))
+                return await self.request.post(
+                    "v1/user/login/social", m.UserLoginResult, data=input.dict(exclude_none=True)
+                )
 
-        class MFA(ServiceBase):
+        class MFA(ServiceBaseAsync):
             service_name = SERVICE_NAME
 
             def __init__(
@@ -824,7 +833,7 @@ class AuthN(ServiceBase):
 
             # https://pangea.cloud/docs/api/authn#delete-mfa-enrollment
             # - path: authn::/v1/user/mfa/delete
-            def delete(self, user_id: str, mfa_provider: m.MFAProvider) -> PangeaResponse[m.UserMFADeleteResult]:
+            async def delete(self, user_id: str, mfa_provider: m.MFAProvider) -> PangeaResponse[m.UserMFADeleteResult]:
                 """
                 Delete MFA Enrollment
 
@@ -846,13 +855,13 @@ class AuthN(ServiceBase):
                     )
                 """
                 input = m.UserMFADeleteRequest(user_id=user_id, mfa_provider=mfa_provider)
-                return self.request.post(
+                return await self.request.post(
                     "v1/user/mfa/delete", m.UserMFADeleteResult, data=input.dict(exclude_none=True)
                 )
 
             # https://pangea.cloud/docs/api/authn#enroll-in-mfa
             # - path: authn::/v1/user/mfa/enroll
-            def enroll(
+            async def enroll(
                 self, user_id: str, mfa_provider: m.MFAProvider, code: str
             ) -> PangeaResponse[m.UserMFAEnrollResult]:
                 """
@@ -878,13 +887,13 @@ class AuthN(ServiceBase):
                     )
                 """
                 input = m.UserMFAEnrollRequest(user_id=user_id, mfa_provider=mfa_provider, code=code)
-                return self.request.post(
+                return await self.request.post(
                     "v1/user/mfa/enroll", m.UserMFAEnrollResult, data=input.dict(exclude_none=True)
                 )
 
             # https://pangea.cloud/docs/api/authn#user-start-mfa-verification
             # - path: authn::/v1/user/mfa/start
-            def start(
+            async def start(
                 self,
                 user_id: str,
                 mfa_provider: m.MFAProvider,
@@ -911,18 +920,20 @@ class AuthN(ServiceBase):
                         [API Documentation](https://pangea.cloud/docs/api/authn#user-start-mfa-verification).
 
                 Examples:
-                    response = authn.user.mfa.start(
+                    response = await authn.user.mfa.start(
                         user_id="pui_zgp532cx6opljeavvllmbi3iwmq72f7f",
                         mfa_provider=MFAProvider.SMS_OTP,
                         phone="1-808-555-0173",
                     )
                 """
                 input = m.UserMFAStartRequest(user_id=user_id, mfa_provider=mfa_provider, enroll=enroll, phone=phone)
-                return self.request.post("v1/user/mfa/start", m.UserMFAStartResult, data=input.dict(exclude_none=True))
+                return await self.request.post(
+                    "v1/user/mfa/start", m.UserMFAStartResult, data=input.dict(exclude_none=True)
+                )
 
             # https://pangea.cloud/docs/api/authn#verify-an-mfa-code
             # - path: authn::/v1/user/mfa/verify
-            def verify(
+            async def verify(
                 self, user_id: str, mfa_provider: m.MFAProvider, code: str
             ) -> PangeaResponse[m.UserMFAVerifyResult]:
                 """
@@ -948,11 +959,11 @@ class AuthN(ServiceBase):
                     )
                 """
                 input = m.UserMFAverifyRequest(user_id=user_id, mfa_provider=mfa_provider, code=code)
-                return self.request.post(
+                return await self.request.post(
                     "v1/user/mfa/verify", m.UserMFAVerifyResult, data=input.dict(exclude_none=True)
                 )
 
-        class Profile(ServiceBase):
+        class Profile(ServiceBaseAsync):
             service_name = SERVICE_NAME
 
             def __init__(
@@ -965,7 +976,7 @@ class AuthN(ServiceBase):
 
             # https://pangea.cloud/docs/api/authn#get-user
             # - path: authn::/v1/user/profile/get
-            def get(
+            async def get(
                 self, id: Optional[str] = None, email: Optional[str] = None
             ) -> PangeaResponse[m.UserProfileGetResult]:
                 """
@@ -985,18 +996,18 @@ class AuthN(ServiceBase):
                         [API Documentation](https://pangea.cloud/docs/api/authn#get-user).
 
                 Examples:
-                    response = authn.user.profile.get(
+                    response = await authn.user.profile.get(
                         email="joe.user@email.com",
                     )
                 """
                 input = m.UserProfileGetRequest(id=id, email=email)
-                return self.request.post(
+                return await self.request.post(
                     "v1/user/profile/get", m.UserProfileGetResult, data=input.dict(exclude_none=True)
                 )
 
             # https://pangea.cloud/docs/api/authn#update-user
             # - path: authn::/v1/user/profile/update
-            def update(
+            async def update(
                 self,
                 profile: m.Profile,
                 id: Optional[str] = None,
@@ -1020,7 +1031,7 @@ class AuthN(ServiceBase):
                         [API Documentation](https://pangea.cloud/docs/api/authn#update-user).
 
                 Examples:
-                    response = authn.user.profile.update(
+                    response = await authn.user.profile.update(
                         profile={
                             "phone": "18085550173",
                         },
@@ -1032,11 +1043,11 @@ class AuthN(ServiceBase):
                     email=email,
                     profile=profile,
                 )
-                return self.request.post(
+                return await self.request.post(
                     "v1/user/profile/update", m.UserProfileUpdateResult, data=input.dict(exclude_none=True)
                 )
 
-        class Invites(ServiceBase):
+        class Invites(ServiceBaseAsync):
             service_name = SERVICE_NAME
 
             def __init__(
@@ -1049,7 +1060,7 @@ class AuthN(ServiceBase):
 
             # https://pangea.cloud/docs/api/authn#list-invites
             # - path: authn::/v1/user/invite/list
-            def list(
+            async def list(
                 self,
                 filter: Optional[Union[Dict, m.UserInviteListFilter]] = None,
                 last: Optional[str] = None,
@@ -1077,16 +1088,16 @@ class AuthN(ServiceBase):
                         [API Documentation](https://pangea.cloud/docs/api/authn#list-invites).
 
                 Examples:
-                    response = authn.user.invites.list()
+                    response = await authn.user.invites.list()
                 """
                 input = m.UserInviteListRequest(filter=filter, last=last, order=order, order_by=order_by, size=size)
-                return self.request.post(
+                return await self.request.post(
                     "v1/user/invite/list", m.UserInviteListResult, data=input.dict(exclude_none=True)
                 )
 
             # https://pangea.cloud/docs/api/authn#delete-invite
             # - path: authn::/v1/user/invite/delete
-            def delete(self, id: str) -> PangeaResponse[m.UserInviteDeleteResult]:
+            async def delete(self, id: str) -> PangeaResponse[m.UserInviteDeleteResult]:
                 """
                 Delete Invite
 
@@ -1106,11 +1117,11 @@ class AuthN(ServiceBase):
                     )
                 """
                 input = m.UserInviteDeleteRequest(id=id)
-                return self.request.post(
+                return await self.request.post(
                     "v1/user/invite/delete", m.UserInviteDeleteResult, data=input.dict(exclude_none=True)
                 )
 
-    class Flow(ServiceBase):
+    class Flow(ServiceBaseAsync):
         service_name = SERVICE_NAME
 
         def __init__(
@@ -1120,14 +1131,14 @@ class AuthN(ServiceBase):
             logger_name="pangea",
         ):
             super().__init__(token, config, logger_name=logger_name)
-            self.enroll = AuthN.Flow.Enroll(token, config, logger_name=logger_name)
-            self.signup = AuthN.Flow.Signup(token, config, logger_name=logger_name)
-            self.verify = AuthN.Flow.Verify(token, config, logger_name=logger_name)
-            self.reset = AuthN.Flow.Reset(token, config, logger_name=logger_name)
+            self.enroll = AuthNAsync.Flow.Enroll(token, config, logger_name=logger_name)
+            self.signup = AuthNAsync.Flow.Signup(token, config, logger_name=logger_name)
+            self.verify = AuthNAsync.Flow.Verify(token, config, logger_name=logger_name)
+            self.reset = AuthNAsync.Flow.Reset(token, config, logger_name=logger_name)
 
         # https://pangea.cloud/docs/api/authn#complete-sign-up-in
         # - path: authn::/v1/flow/complete
-        def complete(self, flow_id: str) -> PangeaResponse[m.FlowCompleteResult]:
+        async def complete(self, flow_id: str) -> PangeaResponse[m.FlowCompleteResult]:
             """
             Complete Sign-up/in
 
@@ -1144,16 +1155,16 @@ class AuthN(ServiceBase):
                     [API Documentation](https://pangea.cloud/docs/api/authn#complete-sign-up-in).
 
             Examples:
-                response = authn.flow.complete(
+                response = await authn.flow.complete(
                     flow_id="pfl_dxiqyuq7ndc5ycjwdgmguwuodizcaqhh",
                 )
             """
             input = m.FlowCompleteRequest(flow_id=flow_id)
-            return self.request.post("v1/flow/complete", m.FlowCompleteResult, data=input.dict(exclude_none=True))
+            return await self.request.post("v1/flow/complete", m.FlowCompleteResult, data=input.dict(exclude_none=True))
 
         # https://pangea.cloud/docs/api/authn#start-a-sign-up-in
         # - path: authn::/v1/flow/start
-        def start(
+        async def start(
             self,
             cb_uri: Optional[str] = None,
             email: Optional[str] = None,
@@ -1182,7 +1193,7 @@ class AuthN(ServiceBase):
                     [API Documentation](https://pangea.cloud/docs/api/authn#start-a-sign-up-in).
 
             Examples:
-                response = authn.flow.start(
+                response = await authn.flow.start(
                     cb_uri="https://www.myserver.com/callback",
                     email="joe.user@email.com",
                     flow_types=[
@@ -1195,9 +1206,9 @@ class AuthN(ServiceBase):
             input = m.FlowStartRequest(
                 cb_uri=cb_uri, email=email, flow_types=flow_types, provider=provider, invitation=invitation
             )
-            return self.request.post("v1/flow/start", m.FlowStartResult, data=input.dict(exclude_none=True))
+            return await self.request.post("v1/flow/start", m.FlowStartResult, data=input.dict(exclude_none=True))
 
-        class Reset(ServiceBase):
+        class Reset(ServiceBaseAsync):
             service_name = SERVICE_NAME
 
             def __init__(
@@ -1210,7 +1221,7 @@ class AuthN(ServiceBase):
 
             # https://pangea.cloud/docs/api/authn#password-reset
             # - path: authn::/v1/flow/reset/password
-            def password(
+            async def password(
                 self,
                 flow_id: str,
                 password: Optional[str] = None,
@@ -1235,17 +1246,17 @@ class AuthN(ServiceBase):
                         [API Documentation](https://pangea.cloud/docs/api/authn#password-reset).
 
                 Examples:
-                    response = authn.flow.reset.password(
+                    response = await authn.flow.reset.password(
                         flow_id="pfl_dxiqyuq7ndc5ycjwdgmguwuodizcaqhh",
                         password="My1s+Password",
                     )
                 """
                 input = m.FlowResetPasswordRequest(flow_id=flow_id, password=password, cancel=cancel)
-                return self.request.post(
+                return await self.request.post(
                     "v1/flow/reset/password", m.FlowResetPasswordResult, data=input.dict(exclude_none=True)
                 )
 
-        class Enroll(ServiceBase):
+        class Enroll(ServiceBaseAsync):
             service_name = SERVICE_NAME
 
             def __init__(
@@ -1255,9 +1266,9 @@ class AuthN(ServiceBase):
                 logger_name="pangea",
             ):
                 super().__init__(token, config, logger_name=logger_name)
-                self.mfa = AuthN.Flow.Enroll.MFA(token, config, logger_name=logger_name)
+                self.mfa = AuthNAsync.Flow.Enroll.MFA(token, config, logger_name=logger_name)
 
-            class MFA(ServiceBase):
+            class MFA(ServiceBaseAsync):
                 service_name = SERVICE_NAME
 
                 def __init__(
@@ -1270,7 +1281,7 @@ class AuthN(ServiceBase):
 
                 # https://pangea.cloud/docs/api/authn#complete-mfa-enrollment
                 # - path: authn::/v1/flow/enroll/mfa/complete
-                def complete(
+                async def complete(
                     self, flow_id: str, code: Optional[str] = None, cancel: Optional[bool] = None
                 ) -> PangeaResponse[m.FlowEnrollMFAcompleteResult]:
                     """
@@ -1292,19 +1303,19 @@ class AuthN(ServiceBase):
                             [API Documentation](https://pangea.cloud/docs/api/authn#complete-mfa-enrollment).
 
                     Examples:
-                        response = authn.flow.enroll.mfa.complete(
+                        response = await authn.flow.enroll.mfa.complete(
                             flow_id="pfl_dxiqyuq7ndc5ycjwdgmguwuodizcaqhh",
                             code="999999",
                         )
                     """
                     input = m.FlowEnrollMFACompleteRequest(flow_id=flow_id, code=code, cancel=cancel)
-                    return self.request.post(
+                    return await self.request.post(
                         "v1/flow/enroll/mfa/complete", m.FlowEnrollMFAcompleteResult, data=input.dict(exclude_none=True)
                     )
 
                 # https://pangea.cloud/docs/api/authn#start-mfa-enrollment
                 # - path: authn::/v1/flow/enroll/mfa/start
-                def start(
+                async def start(
                     self, flow_id: str, mfa_provider: m.MFAProvider, phone: Optional[str] = None
                 ) -> PangeaResponse[m.FlowEnrollMFAStartResult]:
                     """
@@ -1326,18 +1337,18 @@ class AuthN(ServiceBase):
                             [API Documentation](https://pangea.cloud/docs/api/authn#start-mfa-enrollment).
 
                     Examples:
-                        response = authn.flow.enroll.mfa.start(
+                        response = await authn.flow.enroll.mfa.start(
                             flow_id="pfl_dxiqyuq7ndc5ycjwdgmguwuodizcaqhh",
                             mfa_provider=MFAProvider.SMS_OTP,
                             phone="1-808-555-0173",
                         )
                     """
                     input = m.FlowEnrollMFAStartRequest(flow_id=flow_id, mfa_provider=mfa_provider, phone=phone)
-                    return self.request.post(
+                    return await self.request.post(
                         "v1/flow/enroll/mfa/start", m.FlowEnrollMFAStartResult, data=input.dict(exclude_none=True)
                     )
 
-        class Signup(ServiceBase):
+        class Signup(ServiceBaseAsync):
             service_name = SERVICE_NAME
 
             def __init__(
@@ -1350,7 +1361,7 @@ class AuthN(ServiceBase):
 
             # https://pangea.cloud/docs/api/authn#password-sign-up
             # - path: authn::/v1/flow/signup/password
-            def password(
+            async def password(
                 self, flow_id: str, password: str, first_name: str, last_name: str
             ) -> PangeaResponse[m.FlowSignupPasswordResult]:
                 """
@@ -1373,7 +1384,7 @@ class AuthN(ServiceBase):
                         [API Documentation](https://pangea.cloud/docs/api/authn#password-sign-up).
 
                 Examples:
-                    response = authn.flow.signup.password(
+                    response = await authn.flow.signup.password(
                         flow_id="pfl_dxiqyuq7ndc5ycjwdgmguwuodizcaqhh",
                         password="My1s+Password",
                         first_name="Joe",
@@ -1383,13 +1394,15 @@ class AuthN(ServiceBase):
                 input = m.FlowSignupPasswordRequest(
                     flow_id=flow_id, password=password, first_name=first_name, last_name=last_name
                 )
-                return self.request.post(
+                return await self.request.post(
                     "v1/flow/signup/password", m.FlowSignupPasswordResult, data=input.dict(exclude_none=True)
                 )
 
             # https://pangea.cloud/docs/api/authn#social-sign-up
             # - path: authn::/v1/flow/signup/social
-            def social(self, flow_id: str, cb_state: str, cb_code: str) -> PangeaResponse[m.FlowSignupSocialResult]:
+            async def social(
+                self, flow_id: str, cb_state: str, cb_code: str
+            ) -> PangeaResponse[m.FlowSignupSocialResult]:
                 """
                 Social Sign-up
 
@@ -1409,18 +1422,18 @@ class AuthN(ServiceBase):
                         [API Documentation](https://pangea.cloud/docs/api/authn#social-sign-up).
 
                 Examples:
-                    response = authn.flow.signup.social(
+                    response = await authn.flow.signup.social(
                         flow_id="pfl_dxiqyuq7ndc5ycjwdgmguwuodizcaqhh",
                         cb_state="pcb_zurr3lkcwdp5keq73htsfpcii5k4zgm7",
                         cb_code="poc_fwg3ul4db1jpivexru3wyj354u9ej5e2",
                     )
                 """
                 input = m.FlowSignupSocialRequest(flow_id=flow_id, cb_state=cb_state, cb_code=cb_code)
-                return self.request.post(
+                return await self.request.post(
                     "v1/flow/signup/social", m.FlowSignupSocialResult, data=input.dict(exclude_none=True)
                 )
 
-        class Verify(ServiceBase):
+        class Verify(ServiceBaseAsync):
             service_name = SERVICE_NAME
 
             def __init__(
@@ -1430,11 +1443,11 @@ class AuthN(ServiceBase):
                 logger_name="pangea",
             ):
                 super().__init__(token, config, logger_name=logger_name)
-                self.mfa = AuthN.Flow.Verify.MFA(token, config, logger_name=logger_name)
+                self.mfa = AuthNAsync.Flow.Verify.MFA(token, config, logger_name=logger_name)
 
             # https://pangea.cloud/docs/api/authn#verify-captcha
             # - path: authn::/v1/flow/verify/captcha
-            def captcha(self, flow_id: str, code: str) -> PangeaResponse[m.FlowVerifyCaptchaResult]:
+            async def captcha(self, flow_id: str, code: str) -> PangeaResponse[m.FlowVerifyCaptchaResult]:
                 """
                 Verify Captcha
 
@@ -1453,19 +1466,19 @@ class AuthN(ServiceBase):
                         [API Documentation](https://pangea.cloud/docs/api/authn#verify-captcha).
 
                 Examples:
-                    response = authn.flow.verify.captcha(
+                    response = await authn.flow.verify.captcha(
                         flow_id="pfl_dxiqyuq7ndc5ycjwdgmguwuodizcaqhh",
                         code="SOMEREALLYLONGANDOPAQUESTRINGFROMCAPTCHAVERIFICATION",
                     )
                 """
                 input = m.FlowVerifyCaptchaRequest(flow_id=flow_id, code=code)
-                return self.request.post(
+                return await self.request.post(
                     "v1/flow/verify/captcha", m.FlowVerifyCaptchaResult, data=input.dict(exclude_none=True)
                 )
 
             # https://pangea.cloud/docs/api/authn#verify-email-address
             # - path: authn::/v1/flow/verify/email
-            def email(
+            async def email(
                 self, flow_id: str, cb_state: Optional[str] = None, cb_code: Optional[str] = None
             ) -> PangeaResponse[m.FlowVerifyEmailResult]:
                 """
@@ -1487,20 +1500,20 @@ class AuthN(ServiceBase):
                         [API Documentation](https://pangea.cloud/docs/api/authn#verify-email-address).
 
                 Examples:
-                    response = authn.flow.verify.email(
+                    response = await authn.flow.verify.email(
                         flow_id="pfl_dxiqyuq7ndc5ycjwdgmguwuodizcaqhh",
                         cb_state="pcb_zurr3lkcwdp5keq73htsfpcii5k4zgm7",
                         cb_code="poc_fwg3ul4db1jpivexru3wyj354u9ej5e2",
                     )
                 """
                 input = m.FlowVerifyEmailRequest(flow_id=flow_id, cb_state=cb_state, cb_code=cb_code)
-                return self.request.post(
+                return await self.request.post(
                     "v1/flow/verify/email", m.FlowVerifyEmailResult, data=input.dict(exclude_none=True)
                 )
 
             # https://pangea.cloud/docs/api/authn#password-sign-in
             # - path: authn::/v1/flow/verify/password
-            def password(
+            async def password(
                 self, flow_id: str, password: Optional[str] = None, cancel: Optional[bool] = None
             ) -> PangeaResponse[m.FlowVerifyPasswordResult]:
                 """
@@ -1522,19 +1535,21 @@ class AuthN(ServiceBase):
                         [API Documentation](https://pangea.cloud/docs/api/authn#password-sign-in).
 
                 Examples:
-                    response = authn.flow.verify.password(
+                    response = await authn.flow.verify.password(
                         flow_id="pfl_dxiqyuq7ndc5ycjwdgmguwuodizcaqhh",
                         password="My1s+Password",
                     )
                 """
                 input = m.FlowVerifyPasswordRequest(flow_id=flow_id, password=password, cancel=cancel)
-                return self.request.post(
+                return await self.request.post(
                     "v1/flow/verify/password", m.FlowVerifyPasswordResult, data=input.dict(exclude_none=True)
                 )
 
             # https://pangea.cloud/docs/api/authn#social-sign-in
             # - path: authn::/v1/flow/verify/social
-            def social(self, flow_id: str, cb_state: str, cb_code: str) -> PangeaResponse[m.FlowVerifySocialResult]:
+            async def social(
+                self, flow_id: str, cb_state: str, cb_code: str
+            ) -> PangeaResponse[m.FlowVerifySocialResult]:
                 """
                 Social Sign-in
 
@@ -1554,18 +1569,18 @@ class AuthN(ServiceBase):
                         [API Documentation](https://pangea.cloud/docs/api/authn#social-sign-in).
 
                 Examples:
-                    response = authn.flow.verify.social(
+                    response = await authn.flow.verify.social(
                         flow_id="pfl_dxiqyuq7ndc5ycjwdgmguwuodizcaqhh",
                         cb_state="pcb_zurr3lkcwdp5keq73htsfpcii5k4zgm7",
                         cb_code="poc_fwg3ul4db1jpivexru3wyj354u9ej5e2",
                     )
                 """
                 input = m.FlowVerifySocialRequest(flow_id=flow_id, cb_state=cb_state, cb_code=cb_code)
-                return self.request.post(
+                return await self.request.post(
                     "v1/flow/verify/social", m.FlowVerifySocialResult, data=input.dict(exclude_none=True)
                 )
 
-            class MFA(ServiceBase):
+            class MFA(ServiceBaseAsync):
                 service_name = SERVICE_NAME
 
                 def __init__(
@@ -1578,7 +1593,7 @@ class AuthN(ServiceBase):
 
                 # https://pangea.cloud/docs/api/authn#complete-mfa-verification
                 # - path: authn::/v1/flow/verify/mfa/complete
-                def complete(
+                async def complete(
                     self, flow_id: str, code: Optional[str] = None, cancel: Optional[bool] = None
                 ) -> PangeaResponse[m.FlowVerifyMFACompleteResult]:
                     """
@@ -1600,19 +1615,19 @@ class AuthN(ServiceBase):
                             [API Documentation](https://pangea.cloud/docs/api/authn#complete-mfa-verification).
 
                     Examples:
-                        response = authn.flow.verify.mfa.complete(
+                        response = await authn.flow.verify.mfa.complete(
                             flow_id="pfl_dxiqyuq7ndc5ycjwdgmguwuodizcaqhh",
                             code="999999",
                         )
                     """
                     input = m.FlowVerifyMFACompleteRequest(flow_id=flow_id, code=code, cancel=cancel)
-                    return self.request.post(
+                    return await self.request.post(
                         "v1/flow/verify/mfa/complete", m.FlowVerifyMFACompleteResult, data=input.dict(exclude_none=True)
                     )
 
                 # https://pangea.cloud/docs/api/authn#start-mfa-verification
                 # - path: authn::/v1/flow/verify/mfa/start
-                def start(
+                async def start(
                     self, flow_id: str, mfa_provider: m.MFAProvider
                 ) -> PangeaResponse[m.FlowVerifyMFAStartResult]:
                     """
@@ -1633,17 +1648,17 @@ class AuthN(ServiceBase):
                             [API Documentation](https://pangea.cloud/docs/api/authn#start-mfa-verification).
 
                     Examples:
-                        response = authn.flow.verify.mfa.start(
+                        response = await authn.flow.verify.mfa.start(
                             flow_id="pfl_dxiqyuq7ndc5ycjwdgmguwuodizcaqhh",
                             mfa_provider=MFAProvider.TOTP,
                         )
                     """
                     input = m.FlowVerifyMFAStartRequest(flow_id=flow_id, mfa_provider=mfa_provider)
-                    return self.request.post(
+                    return await self.request.post(
                         "v1/flow/verify/mfa/start", m.FlowVerifyMFAStartResult, data=input.dict(exclude_none=True)
                     )
 
-    class Agreements(ServiceBase):
+    class Agreements(ServiceBaseAsync):
         service_name = SERVICE_NAME
 
         def __init__(
@@ -1654,21 +1669,21 @@ class AuthN(ServiceBase):
         ):
             super().__init__(token, config, logger_name=logger_name)
 
-        def create(
+        async def create(
             self, type: m.AgreementType, name: str, text: str, active: Optional[bool] = None
         ) -> PangeaResponse[m.AgreementCreateResult]:
             input = m.AgreementCreateRequest(type=type, name=name, text=text, active=active)
-            return self.request.post(
+            return await self.request.post(
                 "v1/agreements/create", m.AgreementCreateResult, data=input.dict(exclude_none=True)
             )
 
-        def delete(self, type: m.AgreementType, id: str) -> PangeaResponse[m.AgreementDeleteResult]:
+        async def delete(self, type: m.AgreementType, id: str) -> PangeaResponse[m.AgreementDeleteResult]:
             input = m.AgreementDeleteRequest(type=type, id=id)
-            return self.request.post(
+            return await self.request.post(
                 "v1/agreements/delete", m.AgreementDeleteResult, data=input.dict(exclude_none=True)
             )
 
-        def list(
+        async def list(
             self,
             filter: Optional[Union[Dict, m.AgreementListFilter]] = None,
             last: Optional[str] = None,
@@ -1677,9 +1692,11 @@ class AuthN(ServiceBase):
             size: Optional[int] = None,
         ) -> PangeaResponse[m.AgreementListResult]:
             input = m.AgreementListRequest(filter=filter, last=last, order=order, order_by=order_by, size=size)
-            return self.request.post("v1/agreements/list", m.AgreementListResult, data=input.dict(exclude_none=True))
+            return await self.request.post(
+                "v1/agreements/list", m.AgreementListResult, data=input.dict(exclude_none=True)
+            )
 
-        def update(
+        async def update(
             self,
             type: m.AgreementType,
             id: str,
@@ -1688,6 +1705,6 @@ class AuthN(ServiceBase):
             active: Optional[bool] = None,
         ) -> PangeaResponse[m.AgreementUpdateResult]:
             input = m.AgreementUpdateRequest(type=type, id=id, name=name, text=text, active=active)
-            return self.request.post(
+            return await self.request.post(
                 "v1/agreements/update", m.AgreementUpdateResult, data=input.dict(exclude_none=True)
             )

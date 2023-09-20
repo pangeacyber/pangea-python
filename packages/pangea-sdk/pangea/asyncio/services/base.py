@@ -43,3 +43,7 @@ class ServiceBaseAsync(ServiceBase):
 
     async def close(self):
         await self.request.session.close()
+        # Loop over all attributes to check if they are derived from ServiceBaseAsync and close them
+        for _, value in self.__dict__.items():
+            if issubclass(type(value), ServiceBaseAsync):
+                await value.close()

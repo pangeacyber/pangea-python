@@ -25,10 +25,6 @@ class PangeaRequestAsync(PangeaRequestBase):
     be set in PangeaConfig.
     """
 
-    def __del__(self):
-        if type(self.session) == requests.Session:
-            self.session.close()
-
     async def post(
         self,
         endpoint: str,
