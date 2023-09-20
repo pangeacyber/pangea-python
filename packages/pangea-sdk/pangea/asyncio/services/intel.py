@@ -1,6 +1,5 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
-import enum
 import hashlib
 from typing import Optional
 
@@ -113,7 +112,7 @@ class FileIntelAsync(ServiceBaseAsync):
         return await self.request.post("v1/reputation", m.FileReputationResult, data=input.dict(exclude_none=True))
 
 
-class DomainIntel(ServiceBaseAsync):
+class DomainIntelAsync(ServiceBaseAsync):
     """Domain Intel service client
 
     Provides methods to interact with [Pangea Domain Intel Service](https://pangea.cloud/docs/api/domain-intel)
@@ -172,7 +171,7 @@ class DomainIntel(ServiceBaseAsync):
         return await self.request.post("v1/reputation", m.DomainReputationResult, data=input.dict(exclude_none=True))
 
 
-class IpIntel(ServiceBaseAsync):
+class IpIntelAsync(ServiceBaseAsync):
     """IP Intel service client
 
     Provides methods to interact with [Pangea IP Intel Service](/docs/api/ip-intel)
@@ -359,7 +358,7 @@ class IpIntel(ServiceBaseAsync):
         return await self.request.post("v1/proxy", m.IPProxyResult, data=input.dict(exclude_none=True))
 
 
-class UrlIntel(ServiceBaseAsync):
+class UrlIntelAsync(ServiceBaseAsync):
     """URL Intel service client.
 
     Provides methods to interact with [Pangea URL Intel Service](/docs/api/url-intel)
@@ -419,7 +418,7 @@ class UrlIntel(ServiceBaseAsync):
         return await self.request.post("v1/reputation", m.URLReputationResult, data=input.dict(exclude_none=True))
 
 
-class UserIntel(ServiceBaseAsync):
+class UserIntelAsync(ServiceBaseAsync):
     """User Intel service client.
 
     Provides methods to interact with [Pangea User Intel Service](/docs/api/user-intel)
@@ -548,25 +547,22 @@ class UserIntel(ServiceBaseAsync):
             "v1/password/breached", m.UserPasswordBreachedResult, data=input.dict(exclude_none=True)
         )
 
-    class PasswordStatus(enum.Enum):
-        BREACHED = 0
-        UNBREACHED = 1
-        INCONCLUSIVE = 2
-
     @staticmethod
-    async def is_password_breached(response: PangeaResponse[m.UserBreachedResult], hash: str) -> PasswordStatus:
+    async def is_password_breached(
+        response: PangeaResponse[m.UserBreachedResult], hash: str
+    ) -> m.UserIntel.PasswordStatus:
         if response.result.raw_data is None:
             raise PangeaException("Need raw data to check if hash is breached. Send request with raw=true")
 
         hash_data = response.result.raw_data.pop(hash, None)
         if hash_data is not None:
             # If hash is present in raw data, it's because it was breached
-            return UserIntel.PasswordStatus.BREACHED
+            return m.UserIntel.PasswordStatus.BREACHED
         else:
             # If it's not present, should check if I have all breached hash
             # Server will return a maximum of 1000 hash, so if breached count is greater than that,
             # I can't conclude is password is or is not breached
             if len(response.result.raw_data.keys()) >= 1000:
-                return UserIntel.PasswordStatus.INCONCLUSIVE
+                return m.UserIntel.PasswordStatus.INCONCLUSIVE
             else:
-                return UserIntel.PasswordStatus.UNBREACHED
+                return m.UserIntel.PasswordStatus.UNBREACHED
