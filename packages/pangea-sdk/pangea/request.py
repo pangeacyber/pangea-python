@@ -7,6 +7,7 @@ import logging
 import time
 from typing import Dict, List, Optional, Tuple, Type, Union
 
+import aiohttp
 import pangea
 import requests
 from pangea import exceptions
@@ -16,15 +17,7 @@ from pangea.utils import default_encoder
 from requests.adapters import HTTPAdapter, Retry
 
 
-class PangeaRequest(object):
-    """An object that makes direct calls to Pangea Service APIs.
-
-    Wraps Get/Post calls to support both API requests. If `queued_retry_enabled`
-    is enabled, the progress of long running Post requests will queried until
-    completion or until the `poll_result_timeout` is reached. Both values can
-    be set in PangeaConfig.
-    """
-
+class PangeaRequestBase(object):
     def __init__(
         self, config: PangeaConfig, token: str, service: str, logger: logging.Logger, config_id: Optional[str] = None
     ):
@@ -40,12 +33,16 @@ class PangeaRequest(object):
         self._extra_headers = {}
         self._user_agent = ""
         self.set_custom_user_agent(config.custom_user_agent)
-        self.session: requests.Session = self._init_session()
+        self._session: Optional[Union[requests.Session, aiohttp.ClientSession]] = None
 
         self.logger = logger
 
-    def __del__(self):
-        self.session.close()
+    @property
+    def session(self):
+        if not self._session:
+            self._session = self._init_session()
+
+        return self._session
 
     def set_extra_headers(self, headers: dict):
         """Sets any additional headers in the request.
@@ -75,6 +72,110 @@ class PangeaRequest(object):
         self._queued_retry_enabled = value
 
         return self._queued_retry_enabled
+
+    def _get_delay(self, retry_count, start):
+        delay = retry_count * retry_count
+        now = time.time()
+        # if with this delay exceed timeout, reduce delay
+        if now - start + delay >= self.config.poll_result_timeout:
+            delay = start + self.config.poll_result_timeout - now
+
+        return delay
+
+    def _reach_timeout(self, start):
+        return time.time() - start >= self.config.poll_result_timeout
+
+    def _get_poll_path(self, request_id: str):
+        return f"request/{request_id}"
+
+    def _url(self, path: str) -> str:
+        if self.config.domain.startswith("http://") or self.config.domain.startswith("https://"):
+            # it's URL
+            url = f"{self.config.domain}/{path}"
+        else:
+            schema = "http://" if self.config.insecure else "https://"
+            domain = (
+                self.config.domain if self.config.environment == "local" else f"{self.service}.{self.config.domain}"
+            )
+            url = f"{schema}{domain}/{path}"
+        return url
+
+    def _headers(self) -> dict:
+        headers = {
+            "User-Agent": self._user_agent,
+            "Authorization": f"Bearer {self.token}",
+        }
+
+        # We want to ignore previous headers if user tryed to set them, so we will overwrite them.
+        self._extra_headers.update(headers)
+        return self._extra_headers
+
+    def _check_response(self, response: PangeaResponse) -> PangeaResponse:
+        status = response.status
+        summary = response.summary
+
+        if status == ResponseStatus.SUCCESS.value:
+            return response
+
+        self.logger.error(
+            json.dumps(
+                {
+                    "service": self.service,
+                    "action": "api_error",
+                    "url": response.url,
+                    "summary": summary,
+                    "request_id": response.request_id,
+                    "result": response.raw_result,
+                }
+            )
+        )
+
+        if status == ResponseStatus.VALIDATION_ERR.value:
+            raise exceptions.ValidationException(summary, response)
+        elif status == ResponseStatus.TOO_MANY_REQUESTS.value:
+            raise exceptions.RateLimitException(summary, response)
+        elif status == ResponseStatus.NO_CREDIT.value:
+            raise exceptions.NoCreditException(summary, response)
+        elif status == ResponseStatus.UNAUTHORIZED.value:
+            raise exceptions.UnauthorizedException(self.service, response)
+        elif status == ResponseStatus.SERVICE_NOT_ENABLED.value:
+            raise exceptions.ServiceNotEnabledException(self.service, response)
+        elif status == ResponseStatus.PROVIDER_ERR.value:
+            raise exceptions.ProviderErrorException(summary, response)
+        elif status in (ResponseStatus.MISSING_CONFIG_ID_SCOPE.value, ResponseStatus.MISSING_CONFIG_ID.value):
+            raise exceptions.MissingConfigID(self.service, response)
+        elif status == ResponseStatus.SERVICE_NOT_AVAILABLE.value:
+            raise exceptions.ServiceNotAvailableException(summary, response)
+        elif status == ResponseStatus.TREE_NOT_FOUND.value:
+            raise exceptions.TreeNotFoundException(summary, response)
+        elif status == ResponseStatus.IP_NOT_FOUND.value:
+            raise exceptions.IPNotFoundException(summary)
+        elif status == ResponseStatus.BAD_OFFSET.value:
+            raise exceptions.BadOffsetException(summary, response)
+        elif status == ResponseStatus.FORBIDDEN_VAULT_OPERATION.value:
+            raise exceptions.ForbiddenVaultOperation(summary, response)
+        elif status == ResponseStatus.VAULT_ITEM_NOT_FOUND.value:
+            raise exceptions.VaultItemNotFound(summary, response)
+        elif status == ResponseStatus.NOT_FOUND.value:
+            raise exceptions.NotFound(response.raw_response.url if response.raw_response is not None else "", response)
+        elif status == ResponseStatus.INTERNAL_SERVER_ERROR.value:
+            raise exceptions.InternalServerError(response)
+        elif status == ResponseStatus.ACCEPTED.value:
+            raise exceptions.AcceptedRequestException(response)
+        raise exceptions.PangeaAPIException(f"{summary} ", response)
+
+
+class PangeaRequest(PangeaRequestBase):
+    """An object that makes direct calls to Pangea Service APIs.
+
+    Wraps Get/Post calls to support both API requests. If `queued_retry_enabled`
+    is enabled, the progress of long running Post requests will queried until
+    completion or until the `poll_result_timeout` is reached. Both values can
+    be set in PangeaConfig.
+    """
+
+    def __del__(self):
+        self.session.close()
 
     def post(
         self,
@@ -111,7 +212,7 @@ class PangeaRequest(object):
             data_send = None
 
         requests_response = self.session.post(url, headers=self._headers(), data=data_send, files=files)
-        pangea_response = PangeaResponse(requests_response, result_class=result_class)
+        pangea_response = PangeaResponse(requests_response, result_class=result_class, json=requests_response.json())
         if poll_result:
             pangea_response = self._handle_queued_result(pangea_response)
 
@@ -164,21 +265,6 @@ class PangeaRequest(object):
 
         return self._check_response(pangea_response)
 
-    def _get_delay(self, retry_count, start):
-        delay = retry_count * retry_count
-        now = time.time()
-        # if with this delay exceed timeout, reduce delay
-        if now - start + delay >= self.config.poll_result_timeout:
-            delay = start + self.config.poll_result_timeout - now
-
-        return delay
-
-    def _reach_timeout(self, start):
-        return time.time() - start >= self.config.poll_result_timeout
-
-    def _get_poll_path(self, request_id: str):
-        return f"request/{request_id}"
-
     def poll_result_by_id(
         self, request_id: str, result_class: Union[Type[PangeaResponseResult], dict], check_response: bool = True
     ):
@@ -224,79 +310,3 @@ class PangeaRequest(object):
             session.mount("https://", adapter)
 
         return session
-
-    def _url(self, path: str) -> str:
-        if self.config.domain.startswith("http://") or self.config.domain.startswith("https://"):
-            # it's URL
-            url = f"{self.config.domain}/{path}"
-        else:
-            schema = "http://" if self.config.insecure else "https://"
-            domain = (
-                self.config.domain if self.config.environment == "local" else f"{self.service}.{self.config.domain}"
-            )
-            url = f"{schema}{domain}/{path}"
-        return url
-
-    def _headers(self) -> dict:
-        headers = {
-            "User-Agent": self._user_agent,
-            "Authorization": f"Bearer {self.token}",
-        }
-
-        # We want to ignore previous headers if user tryed to set them, so we will overwrite them.
-        self._extra_headers.update(headers)
-        return self._extra_headers
-
-    def _check_response(self, response: PangeaResponse) -> PangeaResponse:
-        status = response.status
-        summary = response.summary
-
-        if status == ResponseStatus.SUCCESS.value:
-            return response
-
-        self.logger.error(
-            json.dumps(
-                {
-                    "service": self.service,
-                    "action": "api_error",
-                    "url": response.raw_response.url,
-                    "summary": summary,
-                    "request_id": response.request_id,
-                    "result": response.raw_result,
-                }
-            )
-        )
-
-        if status == ResponseStatus.VALIDATION_ERR.value:
-            raise exceptions.ValidationException(summary, response)
-        elif status == ResponseStatus.TOO_MANY_REQUESTS.value:
-            raise exceptions.RateLimitException(summary, response)
-        elif status == ResponseStatus.NO_CREDIT.value:
-            raise exceptions.NoCreditException(summary, response)
-        elif status == ResponseStatus.UNAUTHORIZED.value:
-            raise exceptions.UnauthorizedException(self.service, response)
-        elif status == ResponseStatus.SERVICE_NOT_ENABLED.value:
-            raise exceptions.ServiceNotEnabledException(self.service, response)
-        elif status == ResponseStatus.PROVIDER_ERR.value:
-            raise exceptions.ProviderErrorException(summary, response)
-        elif status in (ResponseStatus.MISSING_CONFIG_ID_SCOPE.value, ResponseStatus.MISSING_CONFIG_ID.value):
-            raise exceptions.MissingConfigID(self.service, response)
-        elif status == ResponseStatus.SERVICE_NOT_AVAILABLE.value:
-            raise exceptions.ServiceNotAvailableException(summary, response)
-        elif status == ResponseStatus.TREE_NOT_FOUND.value:
-            raise exceptions.TreeNotFoundException(summary, response)
-        elif status == ResponseStatus.IP_NOT_FOUND.value:
-            raise exceptions.IPNotFoundException(summary)
-        elif status == ResponseStatus.BAD_OFFSET.value:
-            raise exceptions.BadOffsetException(summary, response)
-        elif status == ResponseStatus.FORBIDDEN_VAULT_OPERATION.value:
-            raise exceptions.ForbiddenVaultOperation(summary, response)
-        elif status == ResponseStatus.VAULT_ITEM_NOT_FOUND.value:
-            raise exceptions.VaultItemNotFound(summary, response)
-        elif status == ResponseStatus.NOT_FOUND.value:
-            raise exceptions.NotFound(response.raw_response.url if response.raw_response is not None else "", response)
-        elif status == ResponseStatus.INTERNAL_SERVER_ERROR.value:
-            raise exceptions.InternalServerError(response)
-        elif status == ResponseStatus.ACCEPTED.value:
-            raise exceptions.AcceptedRequestException(response)
-        raise exceptions.PangeaAPIException(f"{summary} ", response)

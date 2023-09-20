@@ -3,8 +3,9 @@
 
 import copy
 import logging
-from typing import Optional
+from typing import Optional, Union
 
+from pangea.asyncio.request import PangeaRequestAsync
 from pangea.config import PangeaConfig
 from pangea.exceptions import AcceptedRequestException
 from pangea.request import PangeaRequest
@@ -22,27 +23,32 @@ class ServiceBase(object):
 
         self.config = config if copy.deepcopy(config) else PangeaConfig()
         self.logger = logging.getLogger(logger_name)
-
+        self._token = token
         self.config_id: Optional[None] = config_id
-
-        self.request = PangeaRequest(
-            config=self.config,
-            token=token,
-            service=self.service_name,
-            logger=self.logger,
-            config_id=self.config_id,
-        )
-
+        self._request: Union[PangeaRequest, PangeaRequestAsync] = None
         extra_headers = {}
         self.request.set_extra_headers(extra_headers)
 
     @property
     def token(self):
-        return self.request.token
+        return self._token
 
     @token.setter
     def token(self, value):
-        self.request.token = value
+        self._token = value
+
+    @property
+    def request(self):
+        if not self._request:
+            self._request = PangeaRequest(
+                config=self.config,
+                token=self.token,
+                service=self.service_name,
+                logger=self.logger,
+                config_id=self.config_id,
+            )
+
+        return self._request
 
     def poll_result(self, exception: AcceptedRequestException) -> PangeaResponse:
         """
