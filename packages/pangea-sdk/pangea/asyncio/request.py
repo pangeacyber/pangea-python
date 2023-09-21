@@ -7,7 +7,7 @@ import time
 from typing import Dict, List, Optional, Tuple, Type, Union
 
 import aiohttp
-import requests
+from aiohttp import FormData
 from pangea import exceptions
 
 # from requests.adapters import HTTPAdapter, Retry
@@ -54,11 +54,14 @@ class PangeaRequestAsync(PangeaRequestBase):
         )
 
         # FIXME: use FormData to send multipart request
-        # if files:
-        #     multi = [("request", (None, data_send, "application/json"))]
-        #     multi.extend(files)
-        #     files = multi
-        #     data_send = None
+        if files:
+            form = FormData()
+            form.add_field("request", data_send, content_type="application/json")
+            for name, value in files:
+                # [("upload", ("filename.exe", file, "application/octet-stream"))]
+                form.add_field(name, value[1], filename=value[0], content_type=value[2])
+
+            data_send = form
 
         async with self.session.post(url, headers=self._headers(), data=data_send) as requests_response:
             pangea_response = PangeaResponse(
