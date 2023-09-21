@@ -101,6 +101,8 @@ class TestAuditAsync(unittest.IsolatedAsyncioTestCase):
         event = Event(**response.result.envelope.event)
         self.assertEqual("mytenantid", event.tenant_id)
 
+        await audit.close()
+
     async def test_log_with_timestamp(self):
         response: PangeaResponse[LogResult] = await self.audit_general.log(
             message=MSG_NO_SIGNED,
@@ -266,6 +268,8 @@ class TestAuditAsync(unittest.IsolatedAsyncioTestCase):
         )
         event = Event(**response.result.envelope.event)
         self.assertEqual("mytenantid", event.tenant_id)
+
+        await audit.close()
 
     async def test_log_json_sign_local_and_verify(self):
         new = {"customtag3": "mycustommsg3", "ct4": "cm4"}
@@ -634,6 +638,8 @@ class TestAuditAsync(unittest.IsolatedAsyncioTestCase):
                 message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verbose=True
             )
 
+        await audit_multi_config.close()
+
     async def test_multi_config_log_config_1(self):
         config_id = get_config_id(TEST_ENVIRONMENT, "audit", 1)
         config = PangeaConfig(domain=self.domain)
@@ -646,6 +652,8 @@ class TestAuditAsync(unittest.IsolatedAsyncioTestCase):
         self.assertIsNotNone(response.result.hash)
         self.assertIsNotNone(response.result.envelope)
 
+        await audit_multi_config.close()
+
     async def test_multi_config_log_config_2(self):
         config_id = get_config_id(TEST_ENVIRONMENT, "audit", 2)
         config = PangeaConfig(domain=self.domain)
@@ -657,3 +665,5 @@ class TestAuditAsync(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertIsNotNone(response.result.hash)
         self.assertIsNotNone(response.result.envelope)
+
+        await audit_multi_config.close()

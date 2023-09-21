@@ -60,10 +60,11 @@ class PangeaRequestAsync(PangeaRequestBase):
         #     files = multi
         #     data_send = None
 
-        requests_response = await self.session.post(url, headers=self._headers(), data=data_send)
-        pangea_response = PangeaResponse(
-            requests_response, result_class=result_class, json=await requests_response.json()
-        )
+        async with self.session.post(url, headers=self._headers(), data=data_send) as requests_response:
+            pangea_response = PangeaResponse(
+                requests_response, result_class=result_class, json=await requests_response.json()
+            )
+
         if poll_result:
             pangea_response = await self._handle_queued_result(pangea_response)
 
@@ -103,10 +104,11 @@ class PangeaRequestAsync(PangeaRequestBase):
 
         url = self._url(path)
         self.logger.debug(json.dumps({"service": self.service, "action": "get", "url": url}))
-        requests_response = await self.session.get(url, headers=self._headers())
-        pangea_response = PangeaResponse(
-            requests_response, result_class=result_class, json=await requests_response.json()
-        )
+
+        async with self.session.get(url, headers=self._headers()) as requests_response:
+            pangea_response = PangeaResponse(
+                requests_response, result_class=result_class, json=await requests_response.json()
+            )
 
         self.logger.debug(
             json.dumps(
