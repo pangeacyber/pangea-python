@@ -219,9 +219,9 @@ class ItemData(PangeaResponseResult):
 
 
 class InheritedSettings(PangeaResponseResult):
-    rotation_frequency: bool
-    rotation_state: bool
-    rotation_grace_period: bool
+    rotation_frequency: Optional[str] = None
+    rotation_state: Optional[str] = None
+    rotation_grace_period: Optional[str] = None
 
 
 class GetResult(ItemData):
