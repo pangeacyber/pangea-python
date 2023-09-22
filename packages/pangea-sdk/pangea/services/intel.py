@@ -217,7 +217,7 @@ class DomainReputationData(PangeaResponseResult):
     verdict: str
 
 
-class DomainReputationResult(PangeaResponseResult):
+class DomainReputationResult(IntelCommonResult):
     """
     Domain reputation result
     """
