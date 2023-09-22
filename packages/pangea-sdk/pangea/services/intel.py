@@ -55,7 +55,7 @@ class FileReputationData(PangeaResponseResult):
     verdict: str
 
 
-class FileReputationResult(PangeaResponseResult):
+class FileReputationResult(IntelCommonResult):
     """
     File reputation result information
     """
