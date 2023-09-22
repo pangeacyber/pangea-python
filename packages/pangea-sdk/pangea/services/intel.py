@@ -91,7 +91,7 @@ class IPReputationData(PangeaResponseResult):
     verdict: str
 
 
-class IPReputationResult(PangeaResponseResult):
+class IPReputationResult(IntelCommonResult):
     """
     IP reputation result
     """
