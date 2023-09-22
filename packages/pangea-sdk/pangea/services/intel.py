@@ -33,7 +33,7 @@ class IntelCommonResult(PangeaResponseResult):
     raw_data: Optional[Dict] = None
 
 
-class FileReputationRequest(APIRequestModel):
+class FileReputationRequest(IntelCommonRequest):
     """
     File reputation request data
 
