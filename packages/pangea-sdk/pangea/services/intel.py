@@ -491,7 +491,7 @@ class DomainIntel(ServiceBase):
 
         Retrieve who is for a domain from a provider, including an optional detailed report.
 
-        OperationId: domain_intel_post_v1_who_is
+        OperationId: domain_intel_post_v1_whois
 
         Args:
             domain (str): The domain to query.
