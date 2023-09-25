@@ -489,13 +489,13 @@ class DomainIntel(ServiceBase):
         """
         WhoIs
 
-        Retrieve who is for a domain from a provider, including an optional detailed report..
+        Retrieve who is for a domain from a provider, including an optional detailed report.
 
         OperationId: domain_intel_post_v1_who_is
 
         Args:
-            domain (str): The domain to be looked up
-            provider (str, optional): Use reputation data from these providers: "domaintools" or "crowdstrike"
+            domain (str): The domain to query.
+            provider (str, optional): Use whois data from this provider "whoisxml"
             verbose (bool, optional): Echo the API parameters in the response
             raw (bool, optional): Include raw data from this provider
 
@@ -508,7 +508,7 @@ class DomainIntel(ServiceBase):
 
         Examples:
             response = domain_intel.who_is(
-                domain="737updatesboeing.com",
+                domain="google.com",
                 provider="whoisxml",
             )
         """
