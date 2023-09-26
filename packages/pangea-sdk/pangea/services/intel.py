@@ -33,7 +33,7 @@ class IntelCommonResult(PangeaResponseResult):
     raw_data: Optional[Dict] = None
 
 
-class FileReputationRequest(APIRequestModel):
+class FileReputationRequest(IntelCommonRequest):
     """
     File reputation request data
 
@@ -55,7 +55,7 @@ class FileReputationData(PangeaResponseResult):
     verdict: str
 
 
-class FileReputationResult(PangeaResponseResult):
+class FileReputationResult(IntelCommonResult):
     """
     File reputation result information
     """
@@ -91,7 +91,7 @@ class IPReputationData(PangeaResponseResult):
     verdict: str
 
 
-class IPReputationResult(PangeaResponseResult):
+class IPReputationResult(IntelCommonResult):
     """
     IP reputation result
     """
@@ -217,7 +217,7 @@ class DomainReputationData(PangeaResponseResult):
     verdict: str
 
 
-class DomainReputationResult(PangeaResponseResult):
+class DomainReputationResult(IntelCommonResult):
     """
     Domain reputation result
     """
