@@ -111,6 +111,18 @@ def _parse_operation_id(docstring):
 
     return None
 
+def _parse_description(description):
+    """
+    Takes the long description and returns only the description part.
+
+    This is because we've added our own custom OperationId doc tag,
+    so we need to grab the description without the OperationId tag.
+    """
+    if description:
+        return description.split("OperationId")[0]
+    
+    return None
+
 
 def _parse_function(function, function_cache=set()) -> t.Optional[dict]:
     if function in function_cache:
@@ -121,7 +133,7 @@ def _parse_function(function, function_cache=set()) -> t.Optional[dict]:
     ret = {
         "name": function.__name__,
         "summary": parsed_doc.short_description,
-        "description": parsed_doc.long_description,
+        "description": _parse_description(parsed_doc.long_description),
         "examples": [ex.description for ex in parsed_doc.examples],
         "parameters": [],
         "returns": None,
