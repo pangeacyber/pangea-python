@@ -64,7 +64,7 @@ class FileIntelAsync(ServiceBaseAsync):
                 response.result field.  Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/file-intel).
 
         Examples:
-            response = file_intel.hashReputation(hash="142b638c6a60b60c7f9928da4fb85a5a8e1422a9ffdc9ee49e17e56ccca9cf6e", hash_type="sha256", provider="reversinglabs")
+            response = await file_intel.hashReputation(hash="142b638c6a60b60c7f9928da4fb85a5a8e1422a9ffdc9ee49e17e56ccca9cf6e", hash_type="sha256", provider="reversinglabs")
 
         """
         input = m.FileReputationRequest(hash=hash, hash_type=hash_type, verbose=verbose, raw=raw, provider=provider)
@@ -99,7 +99,7 @@ class FileIntelAsync(ServiceBaseAsync):
                 response.result field.  Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/file-intel).
 
         Examples:
-            response = file_intel.filepathReputation(
+            response = await file_intel.filepathReputation(
                 filepath="./myfile.exe",
                 provider="reversinglabs",
             )
@@ -162,13 +162,45 @@ class DomainIntelAsync(ServiceBaseAsync):
                 response.result field.  Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/domain-intel).
 
         Examples:
-            response = domain_intel.lookup(
+            response = await domain_intel.reputation(
                 domain="737updatesboeing.com",
                 provider="domaintools",
             )
         """
         input = m.DomainReputationRequest(domain=domain, verbose=verbose, provider=provider, raw=raw)
         return await self.request.post("v1/reputation", m.DomainReputationResult, data=input.dict(exclude_none=True))
+
+    async def who_is(
+        self, domain: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
+    ) -> PangeaResponse[m.DomainWhoIsResult]:
+        """
+        WhoIs
+
+        Retrieve who is for a domain from a provider, including an optional detailed report.
+
+        OperationId: domain_intel_post_v1_whois
+
+        Args:
+            domain (str): The domain to query.
+            provider (str, optional): Use whois data from this provider "whoisxml"
+            verbose (bool, optional): Echo the API parameters in the response
+            raw (bool, optional): Include raw data from this provider
+
+        Raises:
+            PangeaAPIException: If an API Error happens
+
+        Returns:
+            A PangeaResponse where the sanctioned source(s) are in the
+                response.result field.  Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/domain-intel).
+
+        Examples:
+            response = await domain_intel.who_is(
+                domain="google.com",
+                provider="whoisxml",
+            )
+        """
+        input = m.DomainWhoIsRequest(domain=domain, verbose=verbose, provider=provider, raw=raw)
+        return await self.request.post("v1/whois", m.DomainWhoIsResult, data=input.dict(exclude_none=True))
 
 
 class IpIntelAsync(ServiceBaseAsync):
@@ -221,7 +253,7 @@ class IpIntelAsync(ServiceBaseAsync):
                 response.result field.  Available response fields can be found in our [API documentation](/docs/api/ip-intel)
 
         Examples:
-            response = ip_intel.reputation(
+            response = await ip_intel.reputation(
                 ip="93.231.182.110",
                 provider="crowdstrike",
             )
@@ -253,7 +285,7 @@ class IpIntelAsync(ServiceBaseAsync):
                 response.result field.  Available response fields can be found in our [API documentation](/docs/api/ip-intel)
 
         Examples:
-            response = ip_intel.geolocate(
+            response = await ip_intel.geolocate(
                 ip="93.231.182.110",
                 provider="digitalelement",
             )
@@ -285,7 +317,7 @@ class IpIntelAsync(ServiceBaseAsync):
                 response.result field.  Available response fields can be found in our [API documentation](/docs/api/ip-intel)
 
         Examples:
-            response = ip_intel.get_domain(
+            response = await ip_intel.get_domain(
                 ip="93.231.182.110",
                 provider="digitalelement",
             )
@@ -317,7 +349,7 @@ class IpIntelAsync(ServiceBaseAsync):
                 response.result field.  Available response fields can be found in our [API documentation](/docs/api/ip-intel)
 
         Examples:
-            response = ip_intel.is_vpn(
+            response = await ip_intel.is_vpn(
                 ip="93.231.182.110",
                 provider="digitalelement",
             )
@@ -349,7 +381,7 @@ class IpIntelAsync(ServiceBaseAsync):
                 response.result field.  Available response fields can be found in our [API documentation](/docs/api/ip-intel)
 
         Examples:
-            response = ip_intel.is_proxy(
+            response = await ip_intel.is_proxy(
                 ip="93.231.182.110",
                 provider="digitalelement",
             )
@@ -408,7 +440,7 @@ class UrlIntelAsync(ServiceBaseAsync):
                 response.result field.  Available response fields can be found in our [API documentation](/docs/api/url-intel)
 
         Examples:
-            response = url_intel.reputation(
+            response = await url_intel.reputation(
                 url="http://113.235.101.11:54384",
                 provider="crowdstrike",
             )
@@ -482,7 +514,7 @@ class UserIntelAsync(ServiceBaseAsync):
                 response.result field.  Available response fields can be found in our [API documentation](/docs/api/url-intel)
 
         Examples:
-            response = user_intel.user_breached(
+            response = await user_intel.user_breached(
                 phone_number="8005550123",
                 provider="spycloud",
                 verbose=True,
@@ -533,7 +565,7 @@ class UserIntelAsync(ServiceBaseAsync):
                 response.result field.  Available response fields can be found in our [API documentation](/docs/api/url-intel)
 
         Examples:
-            response = user_intel.password_breached(
+            response = await user_intel.password_breached(
                 hash_prefix="5baa6",
                 hash_type=HashType.SHA256,
                 provider="spycloud",

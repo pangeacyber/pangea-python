@@ -38,6 +38,22 @@ class TestDomainIntel(unittest.IsolatedAsyncioTestCase):
         self.assertIsNotNone(response.result.data.verdict)
         self.assertIsNotNone(response.result.data.score)
 
+    async def test_domain_who_is(self):
+        response = await self.intel_domain.who_is(
+            domain="737updatesboeing.com", provider="whoisxml", verbose=True, raw=True
+        )
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertIsNotNone(response.result.data)
+        self.assertIsNotNone(response.result.data.domain_name)
+        self.assertIsNotNone(response.result.data.domain_availability)
+
+    async def test_domain_who_is_default_provider(self):
+        response = await self.intel_domain.who_is(domain="737updatesboeing.com", verbose=True, raw=True)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertIsNotNone(response.result.data)
+        self.assertIsNotNone(response.result.data.domain_name)
+        self.assertIsNotNone(response.result.data.domain_availability)
+
     async def test_domain_reputation_with_bad_auth_token(self):
         token = "noarealtoken"
         domain = get_test_domain(TEST_ENVIRONMENT)
@@ -46,6 +62,8 @@ class TestDomainIntel(unittest.IsolatedAsyncioTestCase):
 
         with self.assertRaises(pe.UnauthorizedException):
             await badintel_domain.reputation(domain="737updatesboeing.com", provider="domaintools")
+
+        await badintel_domain.close()
 
 
 class TestFileIntel(unittest.IsolatedAsyncioTestCase):
