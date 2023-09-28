@@ -578,23 +578,3 @@ class UserIntelAsync(ServiceBaseAsync):
         return await self.request.post(
             "v1/password/breached", m.UserPasswordBreachedResult, data=input.dict(exclude_none=True)
         )
-
-    @staticmethod
-    async def is_password_breached(
-        response: PangeaResponse[m.UserBreachedResult], hash: str
-    ) -> m.UserIntel.PasswordStatus:
-        if response.result.raw_data is None:
-            raise PangeaException("Need raw data to check if hash is breached. Send request with raw=true")
-
-        hash_data = response.result.raw_data.pop(hash, None)
-        if hash_data is not None:
-            # If hash is present in raw data, it's because it was breached
-            return m.UserIntel.PasswordStatus.BREACHED
-        else:
-            # If it's not present, should check if I have all breached hash
-            # Server will return a maximum of 1000 hash, so if breached count is greater than that,
-            # I can't conclude is password is or is not breached
-            if len(response.result.raw_data.keys()) >= 1000:
-                return m.UserIntel.PasswordStatus.INCONCLUSIVE
-            else:
-                return m.UserIntel.PasswordStatus.UNBREACHED
