@@ -8,7 +8,6 @@ from pangea.response import PangeaResponse
 from pangea.services.base import ServiceBase
 
 SERVICE_NAME = "authn"
-SUPPORT_MULTI_CONFIG = False
 
 
 class AuthN(ServiceBase):
