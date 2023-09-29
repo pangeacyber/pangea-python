@@ -31,6 +31,14 @@ poetry add pangea-sdk
 
 For samples apps look at [/examples](https://github.com/pangeacyber/pangea-python/tree/main/examples) folder in this repository. There you will find basic samples apps for each services supported on this SDK. Each service folder has a README.md with intructions to install, setup and run.
 
+
+## Asyncio support
+
+We have added support to asyncio library using aiohttp in order to support async/await calls to all our services.
+Async services classes are inside [pangea/asyncio](https://github.com/pangeacyber/pangea-python/tree/main/packages/pangea-sdk/pangea/asyncio) folder, and examples about how to use them are in [/examples/asyncio](https://github.com/pangeacyber/pangea-python/tree/main/examples).
+If you want to learn more about asyncio usage we recommend to read [this page](https://realpython.com/async-io-python/)
+
+
 ### Secure Audit Service - Integrity Tools
 
 Python Pangea SDK include also some extra features to validate Audit Service log's integrity. Here we explain how to run them.
