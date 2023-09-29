@@ -35,7 +35,7 @@ For samples apps look at [/examples](https://github.com/pangeacyber/pangea-pytho
 ## Asyncio support
 
 We have added support to asyncio library using aiohttp in order to support async/await calls to all our services.
-Async services classes are inside [pangea/asyncio](https://github.com/pangeacyber/pangea-python/tree/main/packages/pangea-sdk/pangea/asyncio) folder, and examples about how to use them are in [/examples/asyncio](https://github.com/pangeacyber/pangea-python/tree/main/examples).
+Async services classes are inside [pangea/asyncio](https://github.com/pangeacyber/pangea-python/tree/main/packages/pangea-sdk/pangea/asyncio) folder, and examples about how to use them are in [/examples/asyncio](https://github.com/pangeacyber/pangea-python/tree/main/examples/asyncio).
 
 
 ### Secure Audit Service - Integrity Tools
