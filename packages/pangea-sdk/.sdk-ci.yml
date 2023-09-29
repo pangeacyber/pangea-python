@@ -59,5 +59,3 @@ building:
   script:
     - poetry build
     - poetry publish --username __token__ --password $PYPI_SDK_TOKEN
-    - poetry config repositories.artifactory "https://builder.scranton.dev.pangea.cloud/artifactory/api/pypi/pypi"
-    - poetry publish --repository artifactory -u poetry -p "${ARTIFACTORY_PUBLISH_TOKEN}"
