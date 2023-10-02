@@ -33,6 +33,20 @@ class TestDomainIntel(unittest.TestCase):
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertEqual(len(response.result.data), 3)
 
+    def test_domain_who_is(self):
+        response = self.intel_domain.who_is(domain="737updatesboeing.com", provider="whoisxml", verbose=True, raw=True)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertIsNotNone(response.result.data)
+        self.assertIsNotNone(response.result.data.domain_name)
+        self.assertIsNotNone(response.result.data.domain_availability)
+
+    def test_domain_who_is_default_provider(self):
+        response = self.intel_domain.who_is(domain="737updatesboeing.com", verbose=True, raw=True)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertIsNotNone(response.result.data)
+        self.assertIsNotNone(response.result.data.domain_name)
+        self.assertIsNotNone(response.result.data.domain_availability)
+
     def test_domain_reputation_not_found(self):
         response = self.intel_domain.reputation(
             domain="thisshouldbeafakedomain12312asdasd.com", provider="crowdstrike", verbose=True, raw=True
