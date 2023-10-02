@@ -7,7 +7,7 @@ from pangea.services import DomainIntel, FileIntel, IpIntel, UrlIntel, UserIntel
 from pangea.services.intel import HashType
 from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
 
-TEST_ENVIRONMENT = TestEnvironment.LIVE
+TEST_ENVIRONMENT = TestEnvironment.DEVELOP
 
 
 class TestDomainIntel(unittest.TestCase):
@@ -24,14 +24,14 @@ class TestDomainIntel(unittest.TestCase):
         )
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertEqual(response.result.data.verdict, "malicious")
-        self.assertIsNone(response.result.data_details)
 
     def test_domain_reputation_bulk(self):
         domain_list = ["pemewizubidob.cafij.co.za", "redbomb.com.tr", "kmbk8.hicp.net"]
-        response = self.intel_domain.reputation(domain_list=domain_list, provider="crowdstrike", verbose=True, raw=True)
+        response = self.intel_domain.reputation_bulk(
+            domains=domain_list, provider="crowdstrike", verbose=True, raw=True
+        )
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
-        self.assertEqual(response.result.data.verdict, "malicious")
-        self.assertEqual(len(response.result.data_details), 3)
+        self.assertEqual(len(response.result.data), 3)
 
     def test_domain_reputation_not_found(self):
         response = self.intel_domain.reputation(
@@ -71,6 +71,21 @@ class TestFileIntel(unittest.TestCase):
         )
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertEqual(response.result.data.verdict, "malicious")
+
+    def test_file_reputation_bulk(self):
+        hash_list = [
+            "142b638c6a60b60c7f9928da4fb85a5a8e1422a9ffdc9ee49e17e56ccca9cf6e",
+            "179e2b8a4162372cd9344b81793cbf74a9513a002eda3324e6331243f3137a63",
+        ]
+        response = self.intel_file.hash_reputation_bulk(
+            hashes=hash_list,
+            hash_type="sha256",
+            provider="reversinglabs",
+            verbose=True,
+            raw=True,
+        )
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertEqual(len(response.result.data), 2)
 
     def test_file_reputation_default_provider(self):
         response = self.intel_file.hash_reputation(
@@ -212,6 +227,12 @@ class TestIPIntel(unittest.TestCase):
         response = self.intel_ip.reputation(ip="93.231.182.110", verbose=True, raw=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
 
+    def test_ip_reputation_bulk(self):
+        ip_list = ["93.231.182.110", "190.28.74.251"]
+        response = self.intel_ip.reputation_bulk(ips=ip_list, provider="crowdstrike", verbose=True, raw=True)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertEqual(len(response.result.data), 2)
+
     def test_ip_reputation_with_bad_auth_token(self):
         token = "noarealtoken"
         domain = get_test_domain(TEST_ENVIRONMENT)
@@ -236,7 +257,6 @@ class TestURLIntel(unittest.TestCase):
         )
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertEqual(response.result.data.verdict, "malicious")
-        self.assertIsNone(response.result.data_details)
 
     def test_url_reputation_bulk(self):
         url_list = [
@@ -244,10 +264,9 @@ class TestURLIntel(unittest.TestCase):
             "http://45.14.49.109:54819",
             "https://chcial.ru/uplcv?utm_term%3Dcost%2Bto%2Brezone%2Bland",
         ]
-        response = self.intel_url.reputation(url_list=url_list, provider="crowdstrike", verbose=True, raw=True)
+        response = self.intel_url.reputation_bulk(urls=url_list, provider="crowdstrike", verbose=True, raw=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
-        self.assertEqual(response.result.data.verdict, "malicious")
-        self.assertEqual(len(response.result.data_details), 3)
+        self.assertEqual(len(response.result.data), 3)
 
     def test_url_reputation_default_provider(self):
         response = self.intel_url.reputation(url="http://113.235.101.11:54384", verbose=True, raw=True)

@@ -39,19 +39,27 @@ class IntelReputationData(PangeaResponseResult):
     verdict: str
 
 
-class IntelReputationDataItem(IntelReputationData):
-    indicator: str
-
-
 class FileReputationRequest(APIRequestModel):
     """
     File reputation request data
 
-    file_hash (str): Hash of the file to be looked up
+    hash (str): Hash of the file to be looked up
     hash_type (str): Type of hash, can be "sha256", "sha" or "md5"
     """
 
     hash: str
+    hash_type: str
+
+
+class FileReputationBulkRequest(APIRequestModel):
+    """
+    File reputation request data
+
+    hashes (List[str]): Hashes of each file to be looked up
+    hash_type (str): Type of hash, can be "sha256", "sha" or "md5"
+    """
+
+    hashes: List[str]
     hash_type: str
 
 
@@ -63,12 +71,20 @@ class FileReputationData(IntelReputationData):
     pass
 
 
-class FileReputationResult(PangeaResponseResult):
+class FileReputationResult(IntelCommonResult):
     """
     File reputation result information
     """
 
     data: FileReputationData
+
+
+class FileReputationBulkResult(IntelCommonResult):
+    """
+    File reputation bulk result information
+    """
+
+    data: Dict[str, FileReputationData]
 
 
 class IPCommonRequest(IntelCommonRequest):
@@ -80,9 +96,27 @@ class IPCommonRequest(IntelCommonRequest):
     ip: str
 
 
+class IPCommonBulkRequest(IntelCommonRequest):
+    """
+    IP common request data
+    ips (List[str]): IP addresses to search for reputation information
+    """
+
+    ips: List[str]
+
+
 class IPRepurationRequest(IPCommonRequest):
     """
     IP reputation request data
+
+    """
+
+    pass
+
+
+class IPRepurationBulkRequest(IPCommonBulkRequest):
+    """
+    IP reputation bulk request data
 
     """
 
@@ -97,12 +131,20 @@ class IPReputationData(IntelReputationData):
     pass
 
 
-class IPReputationResult(PangeaResponseResult):
+class IPReputationResult(IntelCommonResult):
     """
     IP reputation result
     """
 
     data: IPReputationData
+
+
+class IPReputationBulkResult(IntelCommonResult):
+    """
+    IP reputation result
+    """
+
+    data: Dict[str, IPReputationData]
 
 
 class IPGeolocateRequest(IPCommonRequest):
@@ -199,19 +241,27 @@ class DomainCommonRequest(IntelCommonRequest):
     """
     Domain lookup request data
 
-    domain (str): Domain address to be analyzed
     """
-
-    domain: Optional[str] = None
-    domain_list: Optional[List[str]] = None
 
 
 class DomainReputationRequest(DomainCommonRequest):
     """
     Domain reputation request data
+
+    domain (str): Domain address to be analyzed
     """
 
-    pass
+    domain: str
+
+
+class DomainReputationBulkRequest(DomainCommonRequest):
+    """
+    Domain bulk reputation request data
+
+    domain (List[str]): Domain addresses to be analyzed
+    """
+
+    domains: List[str]
 
 
 class DomainReputationData(IntelReputationData):
@@ -220,35 +270,40 @@ class DomainReputationData(IntelReputationData):
     """
 
 
-class DomainReputationDataItem(IntelReputationDataItem):
-    pass
-
-
-class DomainReputationResult(PangeaResponseResult):
+class DomainReputationResult(IntelCommonResult):
     """
     Domain reputation result
     """
 
     data: DomainReputationData
-    data_details: Optional[Dict[str, DomainReputationDataItem]] = None
 
 
-class URLCommonRequest(IntelCommonRequest):
+class DomainReputationBulkResult(IntelCommonResult):
     """
-    URL common request data
+    Domain reputation bulk result
+    """
+
+    data: Dict[str, DomainReputationData]
+
+
+class URLReputationRequest(IntelCommonRequest):
+    """
+    URL reputation request data
 
     url (str): URL address to be analyzed
     """
 
-    url: Optional[str] = None
+    url: str
 
 
-class URLReputationRequest(URLCommonRequest):
+class URLReputationBulkRequest(IntelCommonRequest):
     """
     URL reputation request data
+
+    urls (List[str]): URL addresses to be analyzed
     """
 
-    url_list: Optional[List[str]] = None
+    urls: List[str]
 
 
 class URLReputationData(IntelReputationData):
@@ -259,17 +314,20 @@ class URLReputationData(IntelReputationData):
     pass
 
 
-class URLReputationDataItem(IntelReputationDataItem):
-    pass
-
-
 class URLReputationResult(IntelCommonResult):
     """
     URL Reputation result
     """
 
     data: URLReputationData
-    data_details: Optional[Dict[str, URLReputationDataItem]] = None
+
+
+class URLReputationBulkResult(IntelCommonResult):
+    """
+    URL Reputation Bulk result
+    """
+
+    data: Dict[str, URLReputationData]
 
 
 class HashType(str, enum.Enum):
@@ -345,6 +403,42 @@ class FileIntel(ServiceBase):
         input = FileReputationRequest(hash=hash, hash_type=hash_type, verbose=verbose, raw=raw, provider=provider)
         return self.request.post("v1/reputation", FileReputationResult, data=input.dict(exclude_none=True))
 
+    def hash_reputation_bulk(
+        self,
+        hashes: List[str],
+        hash_type: str,
+        provider: Optional[str] = None,
+        verbose: Optional[bool] = None,
+        raw: Optional[bool] = None,
+    ) -> PangeaResponse[FileReputationResult]:
+        """
+        Reputation check
+
+        Retrieve hash-based file reputation from a provider, including an optional detailed report.
+
+        Args:
+            hashes (List[str]): The hash of each file to be looked up
+            hash_type (str): One of "sha256", "sha", "md5"
+            provider (str, optional): Use reputation data from these providers: "reversinglabs" or "crowdstrike"
+            verbose (bool, optional): Echo the API parameters in the response
+            raw (bool, optional): Include raw data from this provider
+
+        Raises:
+            PangeaAPIException: If an API Error happens
+
+        Returns:
+            A PangeaResponse where the sanctioned source(s) are in the
+                response.result field.  Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/file-intel).
+
+        Examples:
+            FIXME:
+
+        """
+        input = FileReputationBulkRequest(
+            hashes=hashes, hash_type=hash_type, verbose=verbose, raw=raw, provider=provider
+        )
+        return self.request.post("v2/reputation", FileReputationBulkResult, data=input.dict(exclude_none=True))
+
     def filepath_reputation(
         self,
         filepath: str,
@@ -415,8 +509,7 @@ class DomainIntel(ServiceBase):
 
     def reputation(
         self,
-        domain: Optional[str] = None,
-        domain_list: Optional[List[str]] = None,
+        domain: str,
         verbose: Optional[bool] = None,
         raw: Optional[bool] = None,
         provider: Optional[str] = None,
@@ -447,10 +540,41 @@ class DomainIntel(ServiceBase):
                 provider="domaintools",
             )
         """
-        input = DomainReputationRequest(
-            domain=domain, domain_list=domain_list, verbose=verbose, provider=provider, raw=raw
-        )
+        input = DomainReputationRequest(domain=domain, verbose=verbose, provider=provider, raw=raw)
         return self.request.post("v1/reputation", DomainReputationResult, data=input.dict(exclude_none=True))
+
+    def reputation_bulk(
+        self,
+        domains: List[str],
+        verbose: Optional[bool] = None,
+        raw: Optional[bool] = None,
+        provider: Optional[str] = None,
+    ) -> PangeaResponse[DomainReputationResult]:
+        """
+        Reputation
+
+        Retrieve reputation for a domain from a provider, including an optional detailed report.
+
+        OperationId: FIXME:
+
+        Args:
+            domains (List[str]): The domain list to be looked up
+            provider (str, optional): Use reputation data from these providers: "domaintools" or "crowdstrike"
+            verbose (bool, optional): Echo the API parameters in the response
+            raw (bool, optional): Include raw data from this provider
+
+        Raises:
+            PangeaAPIException: If an API Error happens
+
+        Returns:
+            A PangeaResponse where the sanctioned source(s) are in the
+                response.result field.  Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/domain-intel).
+
+        Examples:
+            FIXME:
+        """
+        input = DomainReputationBulkRequest(domains=domains, verbose=verbose, provider=provider, raw=raw)
+        return self.request.post("v2/reputation", DomainReputationBulkResult, data=input.dict(exclude_none=True))
 
 
 class IpIntel(ServiceBase):
@@ -510,6 +634,35 @@ class IpIntel(ServiceBase):
         """
         input = IPRepurationRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
         return self.request.post("v1/reputation", IPReputationResult, data=input.dict(exclude_none=True))
+
+    def reputation_bulk(
+        self, ips: List[str], verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
+    ) -> PangeaResponse[IPReputationResult]:
+        """
+        Reputation
+
+        Retrieve a reputation score for an IP address from a provider, including an optional detailed report.
+
+        OperationId: FIXME:
+
+        Args:
+            ips (List[str]): The IP list to be looked up
+            verbose (bool, optional): Echo the API parameters in the response
+            raw (bool, optional): Include raw data from this provider
+            provider (str, optional): Use reputation data from this provider: "crowdstrike"
+
+        Raises:
+            PangeaAPIException: If an API Error happens
+
+        Returns:
+            A PangeaResponse where the sanctioned source(s) are in the
+                response.result field.  Available response fields can be found in our [API documentation](/docs/api/ip-intel)
+
+        Examples:
+            FIXME:
+        """
+        input = IPRepurationBulkRequest(ips=ips, verbose=verbose, raw=raw, provider=provider)
+        return self.request.post("v2/reputation", IPReputationBulkResult, data=input.dict(exclude_none=True))
 
     def geolocate(
         self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
@@ -668,8 +821,7 @@ class UrlIntel(ServiceBase):
 
     def reputation(
         self,
-        url: Optional[str] = None,
-        url_list: Optional[List[str]] = None,
+        url: str,
         verbose: Optional[bool] = None,
         raw: Optional[bool] = None,
         provider: Optional[str] = None,
@@ -701,8 +853,42 @@ class UrlIntel(ServiceBase):
             )
         """
 
-        input = URLReputationRequest(url=url, url_list=url_list, provider=provider, verbose=verbose, raw=raw)
+        input = URLReputationRequest(url=url, provider=provider, verbose=verbose, raw=raw)
         return self.request.post("v1/reputation", URLReputationResult, data=input.dict(exclude_none=True))
+
+    def reputation_bulk(
+        self,
+        urls: List[str],
+        verbose: Optional[bool] = None,
+        raw: Optional[bool] = None,
+        provider: Optional[str] = None,
+    ) -> PangeaResponse[URLReputationResult]:
+        """
+        Reputation
+
+        Retrieve URL address reputation from a provider.
+
+        OperationId: FIXME:
+
+        Args:
+            urls (List[str]): The URL list to be looked up
+            verbose (bool, optional): Echo the API parameters in the response
+            raw (bool, optional): Include raw data from this provider
+            provider (str, optional): Use reputation data from this provider: "crowdstrike"
+
+        Raises:
+            PangeaAPIException: If an API Error happens
+
+        Returns:
+            A PangeaResponse where the sanctioned source(s) are in the
+                response.result field.  Available response fields can be found in our [API documentation](/docs/api/url-intel)
+
+        Examples:
+            FIXME:
+        """
+
+        input = URLReputationBulkRequest(urls=urls, provider=provider, verbose=verbose, raw=raw)
+        return self.request.post("v2/reputation", URLReputationBulkResult, data=input.dict(exclude_none=True))
 
 
 class UserBreachedRequest(IntelCommonRequest):
