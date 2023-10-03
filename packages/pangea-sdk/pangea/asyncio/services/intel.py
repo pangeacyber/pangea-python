@@ -1,10 +1,9 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 import hashlib
-from typing import Optional
+from typing import List, Optional
 
 import pangea.services.intel as m
-from pangea.exceptions import PangeaException
 from pangea.response import PangeaResponse
 
 from .base import ServiceBaseAsync
@@ -69,6 +68,42 @@ class FileIntelAsync(ServiceBaseAsync):
         """
         input = m.FileReputationRequest(hash=hash, hash_type=hash_type, verbose=verbose, raw=raw, provider=provider)
         return await self.request.post("v1/reputation", m.FileReputationResult, data=input.dict(exclude_none=True))
+
+    async def hash_reputation_bulk(
+        self,
+        hashes: List[str],
+        hash_type: str,
+        provider: Optional[str] = None,
+        verbose: Optional[bool] = None,
+        raw: Optional[bool] = None,
+    ) -> PangeaResponse[m.FileReputationResult]:
+        """
+        Reputation check
+
+        Retrieve hash-based file reputation from a provider, including an optional detailed report.
+
+        Args:
+            hashes (List[str]): The hash of each file to be looked up
+            hash_type (str): One of "sha256", "sha", "md5"
+            provider (str, optional): Use reputation data from these providers: "reversinglabs" or "crowdstrike"
+            verbose (bool, optional): Echo the API parameters in the response
+            raw (bool, optional): Include raw data from this provider
+
+        Raises:
+            PangeaAPIException: If an API Error happens
+
+        Returns:
+            A PangeaResponse where the sanctioned source(s) are in the
+                response.result field.  Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/file-intel).
+
+        Examples:
+            FIXME:
+
+        """
+        input = m.FileReputationBulkRequest(
+            hashes=hashes, hash_type=hash_type, verbose=verbose, raw=raw, provider=provider
+        )
+        return await self.request.post("v2/reputation", m.FileReputationBulkResult, data=input.dict(exclude_none=True))
 
     async def filepath_reputation(
         self,
@@ -170,6 +205,41 @@ class DomainIntelAsync(ServiceBaseAsync):
         input = m.DomainReputationRequest(domain=domain, verbose=verbose, provider=provider, raw=raw)
         return await self.request.post("v1/reputation", m.DomainReputationResult, data=input.dict(exclude_none=True))
 
+    async def reputation_bulk(
+        self,
+        domains: List[str],
+        verbose: Optional[bool] = None,
+        raw: Optional[bool] = None,
+        provider: Optional[str] = None,
+    ) -> PangeaResponse[m.DomainReputationResult]:
+        """
+        Reputation
+
+        Retrieve reputation for a domain from a provider, including an optional detailed report.
+
+        OperationId: FIXME:
+
+        Args:
+            domains (List[str]): The domain list to be looked up
+            provider (str, optional): Use reputation data from these providers: "domaintools" or "crowdstrike"
+            verbose (bool, optional): Echo the API parameters in the response
+            raw (bool, optional): Include raw data from this provider
+
+        Raises:
+            PangeaAPIException: If an API Error happens
+
+        Returns:
+            A PangeaResponse where the sanctioned source(s) are in the
+                response.result field.  Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/domain-intel).
+
+        Examples:
+            FIXME:
+        """
+        input = m.DomainReputationBulkRequest(domains=domains, verbose=verbose, provider=provider, raw=raw)
+        return await self.request.post(
+            "v2/reputation", m.DomainReputationBulkResult, data=input.dict(exclude_none=True)
+        )
+
     async def who_is(
         self, domain: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
     ) -> PangeaResponse[m.DomainWhoIsResult]:
@@ -260,6 +330,35 @@ class IpIntelAsync(ServiceBaseAsync):
         """
         input = m.IPRepurationRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
         return await self.request.post("v1/reputation", m.IPReputationResult, data=input.dict(exclude_none=True))
+
+    async def reputation_bulk(
+        self, ips: List[str], verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
+    ) -> PangeaResponse[m.IPReputationResult]:
+        """
+        Reputation
+
+        Retrieve a reputation score for an IP address from a provider, including an optional detailed report.
+
+        OperationId: FIXME:
+
+        Args:
+            ips (List[str]): The IP list to be looked up
+            verbose (bool, optional): Echo the API parameters in the response
+            raw (bool, optional): Include raw data from this provider
+            provider (str, optional): Use reputation data from this provider: "crowdstrike"
+
+        Raises:
+            PangeaAPIException: If an API Error happens
+
+        Returns:
+            A PangeaResponse where the sanctioned source(s) are in the
+                response.result field.  Available response fields can be found in our [API documentation](/docs/api/ip-intel)
+
+        Examples:
+            FIXME:
+        """
+        input = m.IPRepurationBulkRequest(ips=ips, verbose=verbose, raw=raw, provider=provider)
+        return await self.request.post("v2/reputation", m.IPReputationBulkResult, data=input.dict(exclude_none=True))
 
     async def geolocate(
         self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
@@ -448,6 +547,40 @@ class UrlIntelAsync(ServiceBaseAsync):
 
         input = m.URLReputationRequest(url=url, provider=provider, verbose=verbose, raw=raw)
         return await self.request.post("v1/reputation", m.URLReputationResult, data=input.dict(exclude_none=True))
+
+    async def reputation_bulk(
+        self,
+        urls: List[str],
+        verbose: Optional[bool] = None,
+        raw: Optional[bool] = None,
+        provider: Optional[str] = None,
+    ) -> PangeaResponse[m.URLReputationResult]:
+        """
+        Reputation
+
+        Retrieve URL address reputation from a provider.
+
+        OperationId: FIXME:
+
+        Args:
+            urls (List[str]): The URL list to be looked up
+            verbose (bool, optional): Echo the API parameters in the response
+            raw (bool, optional): Include raw data from this provider
+            provider (str, optional): Use reputation data from this provider: "crowdstrike"
+
+        Raises:
+            PangeaAPIException: If an API Error happens
+
+        Returns:
+            A PangeaResponse where the sanctioned source(s) are in the
+                response.result field.  Available response fields can be found in our [API documentation](/docs/api/url-intel)
+
+        Examples:
+            FIXME:
+        """
+
+        input = m.URLReputationBulkRequest(urls=urls, provider=provider, verbose=verbose, raw=raw)
+        return await self.request.post("v2/reputation", m.URLReputationBulkResult, data=input.dict(exclude_none=True))
 
 
 class UserIntelAsync(ServiceBaseAsync):

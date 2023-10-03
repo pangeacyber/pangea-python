@@ -7,7 +7,7 @@ from pangea.response import ResponseStatus
 from pangea.services.intel import HashType
 from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
 
-TEST_ENVIRONMENT = TestEnvironment.LIVE
+TEST_ENVIRONMENT = TestEnvironment.DEVELOP
 
 
 class TestDomainIntel(unittest.IsolatedAsyncioTestCase):
@@ -27,6 +27,14 @@ class TestDomainIntel(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertEqual(response.result.data.verdict, "malicious")
+
+    async def test_domain_reputation_bulk(self):
+        domain_list = ["pemewizubidob.cafij.co.za", "redbomb.com.tr", "kmbk8.hicp.net"]
+        response = await self.intel_domain.reputation_bulk(
+            domains=domain_list, provider="crowdstrike", verbose=True, raw=True
+        )
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertEqual(len(response.result.data), 3)
 
     async def test_domain_reputation_not_found(self):
         response = await self.intel_domain.reputation(
@@ -87,6 +95,21 @@ class TestFileIntel(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertEqual(response.result.data.verdict, "malicious")
+
+    async def test_file_reputation_bulk(self):
+        hash_list = [
+            "142b638c6a60b60c7f9928da4fb85a5a8e1422a9ffdc9ee49e17e56ccca9cf6e",
+            "179e2b8a4162372cd9344b81793cbf74a9513a002eda3324e6331243f3137a63",
+        ]
+        response = await self.intel_file.hash_reputation_bulk(
+            hashes=hash_list,
+            hash_type="sha256",
+            provider="reversinglabs",
+            verbose=True,
+            raw=True,
+        )
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertEqual(len(response.result.data), 2)
 
     async def test_file_reputation_default_provider(self):
         response = await self.intel_file.hash_reputation(
@@ -211,6 +234,12 @@ class TestIPIntel(unittest.IsolatedAsyncioTestCase):
         response = await self.intel_ip.reputation(ip="93.231.182.110", provider="cymru", verbose=True, raw=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
 
+    async def test_ip_reputation_bulk(self):
+        ip_list = ["93.231.182.110", "190.28.74.251"]
+        response = await self.intel_ip.reputation_bulk(ips=ip_list, provider="crowdstrike", verbose=True, raw=True)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertEqual(len(response.result.data), 2)
+
     async def test_ip_reputation_crowdstrike_not_found(self):
         response = await self.intel_ip.reputation(ip="127.0.0.1", provider="crowdstrike", verbose=True, raw=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
@@ -258,6 +287,16 @@ class TestURLIntel(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertEqual(response.result.data.verdict, "malicious")
+
+    async def test_url_reputation_bulk(self):
+        url_list = [
+            "http://113.235.101.11:54384",
+            "http://45.14.49.109:54819",
+            "https://chcial.ru/uplcv?utm_term%3Dcost%2Bto%2Brezone%2Bland",
+        ]
+        response = await self.intel_url.reputation_bulk(urls=url_list, provider="crowdstrike", verbose=True, raw=True)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertEqual(len(response.result.data), 3)
 
     async def test_url_reputation_default_provider(self):
         response = await self.intel_url.reputation(url="http://113.235.101.11:54384", verbose=True, raw=True)
