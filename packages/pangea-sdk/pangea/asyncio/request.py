@@ -53,7 +53,6 @@ class PangeaRequestAsync(PangeaRequestBase):
             json.dumps({"service": self.service, "action": "post", "url": url, "data": data}, default=default_encoder)
         )
 
-        # FIXME: use FormData to send multipart request
         if files:
             form = FormData()
             form.add_field("request", data_send, content_type="application/json")
@@ -64,6 +63,7 @@ class PangeaRequestAsync(PangeaRequestBase):
             data_send = form
 
         async with self.session.post(url, headers=self._headers(), data=data_send) as requests_response:
+            await self._check_http_errors(requests_response)
             pangea_response = PangeaResponse(
                 requests_response, result_class=result_class, json=await requests_response.json()
             )
@@ -109,6 +109,7 @@ class PangeaRequestAsync(PangeaRequestBase):
         self.logger.debug(json.dumps({"service": self.service, "action": "get", "url": url}))
 
         async with self.session.get(url, headers=self._headers()) as requests_response:
+            await self._check_http_errors(requests_response)
             pangea_response = PangeaResponse(
                 requests_response, result_class=result_class, json=await requests_response.json()
             )
@@ -124,6 +125,10 @@ class PangeaRequestAsync(PangeaRequestBase):
             return pangea_response
 
         return self._check_response(pangea_response)
+
+    async def _check_http_errors(self, resp: aiohttp.ClientResponse):
+        if resp.status == 503:
+            raise exceptions.ServiceTemporarilyUnavailable(await resp.json())
 
     async def poll_result_by_id(
         self, request_id: str, result_class: Union[Type[PangeaResponseResult], dict], check_response: bool = True

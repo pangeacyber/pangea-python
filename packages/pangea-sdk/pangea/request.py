@@ -212,6 +212,7 @@ class PangeaRequest(PangeaRequestBase):
             data_send = None
 
         requests_response = self.session.post(url, headers=self._headers(), data=data_send, files=files)
+        self._check_http_errors(requests_response)
         pangea_response = PangeaResponse(requests_response, result_class=result_class, json=requests_response.json())
         if poll_result:
             pangea_response = self._handle_queued_result(pangea_response)
@@ -223,6 +224,10 @@ class PangeaRequest(PangeaRequestBase):
             )
         )
         return self._check_response(pangea_response)
+
+    def _check_http_errors(self, resp: requests.Response):
+        if resp.status_code == 503:
+            raise exceptions.ServiceTemporarilyUnavailable(resp.json())
 
     def _handle_queued_result(self, response: PangeaResponse) -> PangeaResponse:
         if self._queued_retry_enabled and response.raw_response.status_code == 202:
@@ -251,6 +256,7 @@ class PangeaRequest(PangeaRequestBase):
         url = self._url(path)
         self.logger.debug(json.dumps({"service": self.service, "action": "get", "url": url}))
         requests_response = self.session.get(url, headers=self._headers())
+        self._check_http_errors(requests_response)
         pangea_response = PangeaResponse(requests_response, result_class=result_class)
 
         self.logger.debug(
