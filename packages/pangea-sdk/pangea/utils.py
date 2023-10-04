@@ -1,6 +1,8 @@
 import base64
+import binascii
 import copy
 import datetime
+import io
 import json
 from binascii import hexlify
 from collections import OrderedDict
@@ -22,7 +24,6 @@ def default_encoder(obj) -> str:
     if isinstance(obj, datetime.date):
         return str(obj)
     if isinstance(obj, dict):
-        print("encoder canonicalize obj")
         return canonicalize(obj)
     else:
         return str(obj)
@@ -96,3 +97,48 @@ def hash_ntlm(data: str):
 
 def get_prefix(hash: str, len: int = 5):
     return hash[0:len]
+
+
+def file_sha256_hex(file: io.BufferedReader) -> str:
+    """
+    Return file sha256 hash in hex format
+    """
+    if "b" not in file.mode:
+        raise AttributeError("File need to be open in binary mode")
+
+    sha256_hash = sha256()
+    file.seek(0)
+
+    # Read the file in chunks of 4096 bytes at a time
+    for byte_block in iter(lambda: file.read(4096), b""):
+        sha256_hash.update(byte_block)
+
+    file.seek(0)
+    return sha256_hash.hexdigest()
+
+
+def file_crc32c_b64(file: io.BufferedReader) -> str:
+    """
+    Return file CRC32C base 64 encoded
+    """
+    if "b" not in file.mode:
+        raise AttributeError("File need to be open in binary mode")
+
+    file.seek(0)  # restart reading
+    crc32_value = 0
+
+    for line in file:
+        crc32_value = binascii.crc32(line, crc32_value)
+
+    file.seek(0)  # restart reading
+    return base64.b64encode(crc32_value & 0xFFFFFFFF).decode("ascii")
+
+
+def file_size(file: io.BufferedReader) -> int:
+    """
+    Return file size in bytes
+    """
+    file.read()
+    file_size_bytes = file.tell()
+    file.seek(0)
+    return file_size_bytes

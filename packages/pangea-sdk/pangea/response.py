@@ -59,6 +59,15 @@ class ErrorField(APIResponseModel):
         return self.__repr__()
 
 
+class AcceptedStatus(APIResponseModel):
+    upload_url: str = ""
+    upload_details: Dict[str, Any] = {}
+
+
+class AcceptedResult(PangeaResponseResult):
+    accepted_status: AcceptedStatus
+
+
 class PangeaError(PangeaResponseResult):
     errors: List[ErrorField] = []
 
@@ -109,6 +118,7 @@ class PangeaResponse(Generic[T], ResponseHeader):
     raw_response: Optional[Union[requests.Response, aiohttp.ClientResponse]] = None
     result: Optional[T] = None
     pangea_error: Optional[PangeaError] = None
+    accepted_result: Optional[AcceptedResult] = None
     result_class: Type[PangeaResponseResult] = PangeaResponseResult
     _json: Any
 
@@ -120,12 +130,10 @@ class PangeaResponse(Generic[T], ResponseHeader):
         self.result_class = result_class
         self.result = (
             self.result_class(**self.raw_result)
-            if self.raw_result is not None
-            and issubclass(self.result_class, PangeaResponseResult)
-            and self.status == ResponseStatus.SUCCESS.value
+            if self.raw_result is not None and issubclass(self.result_class, PangeaResponseResult) and self.success
             else None
         )
-        if not self.success:
+        if not self.success and self.http_status != 202:
             self.pangea_error = PangeaError(**self.raw_result) if self.raw_result is not None else None
 
     @property

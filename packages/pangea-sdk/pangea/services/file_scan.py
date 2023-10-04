@@ -4,6 +4,7 @@ import io
 from typing import Dict, List, Optional
 
 from pangea.response import APIRequestModel, PangeaResponse, PangeaResponseResult
+from pangea.utils import file_crc32c_b64, file_sha256_hex, file_size
 
 from .base import ServiceBase
 
@@ -20,6 +21,10 @@ class FileScanRequest(APIRequestModel):
     verbose: Optional[bool] = None
     raw: Optional[bool] = None
     provider: Optional[str] = None
+    size: int
+    crc32c: str
+    sha256_hex: str
+    transfer_method: str = "direct"
 
 
 class FileScanData(PangeaResponseResult):
@@ -108,14 +113,22 @@ class FileScan(ServiceBase):
                 for err in e.errors:
                     print(f"\\t{err.detail} \\n")
         """
-        input = FileScanRequest(verbose=verbose, raw=raw, provider=provider)
 
         if file or file_path:
             if file_path:
                 file = open(file_path, "rb")
+
+            # TODO: Do all this 3 things in same function
+            crc32c = file_crc32c_b64(file)
+            sha256_hex = file_sha256_hex(file)
+            size = file_size(file)
+
             files = [("upload", ("filename.exe", file, "application/octet-stream"))]
         else:
             raise ValueError("Need to set file_path or file arguments")
 
+        input = FileScanRequest(
+            verbose=verbose, raw=raw, provider=provider, crc32c=crc32c, sha256_hex=sha256_hex, size=size
+        )
         data = input.dict(exclude_none=True)
         return self.request.post("v1/scan", FileScanResult, data=data, files=files, poll_result=sync_call)
