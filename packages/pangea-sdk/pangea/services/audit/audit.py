@@ -2,7 +2,7 @@
 # Author: Pangea Cyber Corporation
 import datetime
 import json
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 from pangea.response import PangeaResponse
 from pangea.services.audit.exceptions import AuditException, EventCorruption
@@ -10,6 +10,9 @@ from pangea.services.audit.models import (
     Event,
     EventEnvelope,
     EventVerification,
+    LogBulkRequest,
+    LogBulkResult,
+    LogEvent,
     LogRequest,
     LogResult,
     PublishedRoot,
@@ -56,7 +59,30 @@ class AuditBase:
         self.prev_unpublished_root_hash: Optional[str] = None
         self.tenant_id = tenant_id
 
-    def _pre_log_process(self, event: dict, sign_local: bool, verify: bool, verbose: bool) -> LogRequest:
+    def _get_log_request(
+        self, events: Union[dict, List[dict]], sign_local: bool, verify: bool, verbose: Optional[bool]
+    ) -> Union[LogRequest, LogBulkResult]:
+        if isinstance(events, list):
+            request_events: List[LogEvent] = []
+            for e in events:
+                request_events.append(self._process_log(e, sign_local=sign_local, verify=verify, verbose=verbose))
+
+            input = LogBulkRequest(events=request_events)
+
+        elif isinstance(events, dict):
+            log = self._process_log(events, sign_local=sign_local, verify=verify, verbose=verbose)
+            input = LogRequest(log.event, signature=log.signature, public_key=log.public_key)
+        else:
+            raise AttributeError(f"events should be a dict or a list[dict] and it is {type(events)}")
+
+        if verify:
+            input.verbose = True
+            if self.prev_unpublished_root_hash:
+                input.prev_root = self.prev_unpublished_root_hash
+
+        return input
+
+    def _process_log(self, event: dict, sign_local: bool, verify: bool, verbose: bool) -> LogEvent:
         if event.get("tenant_id", None) is None and self.tenant_id:
             event["tenant_id"] = self.tenant_id
 
@@ -66,70 +92,60 @@ class AuditBase:
         if sign_local is True and self.signer is None:
             raise AuditException("Error: the `signing` parameter set, but `signer` is not configured")
 
-        input = LogRequest(event=event, verbose=verbose)
-
+        signature = None
+        pki = None
         if sign_local is True:
             data2sign = canonicalize_event(event)
             signature = self.signer.sign(data2sign)
-            if signature is not None:
-                input.signature = signature
-            else:
+            if signature is None:
                 raise AuditException("Error: failure signing message")
 
             # Add public key value to public key info and serialize
-            self._set_public_key(input, self.signer, self.public_key_info)
+            pki = self._set_public_key(self.signer, self.public_key_info)
+
+        return LogEvent(event=event, signature=signature, public_key=pki)
+
+    def _process_log_result(self, result: LogResult, verify: bool):
+        new_unpublished_root_hash = result.unpublished_root
 
         if verify:
-            input.verbose = True
-            if self.prev_unpublished_root_hash:
-                input.prev_root = self.prev_unpublished_root_hash
-
-        return input
-
-    def handle_log_response(self, response: PangeaResponse, verify: bool) -> PangeaResponse[LogResult]:
-        if not response.success:
-            return response
-
-        new_unpublished_root_hash = response.result.unpublished_root
-
-        if verify:
-            if response.result.envelope:
+            if result.envelope:
                 # verify event hash
-                if response.result.hash and not verify_envelope_hash(response.result.envelope, response.result.hash):
+                if result.hash and not verify_envelope_hash(result.envelope, result.hash):
                     # it's a extreme case, it's OK to raise an exception
-                    raise EventCorruption("Error: Event hash failed.", response.result.envelope)
+                    raise EventCorruption("Error: Event hash failed.", result.envelope)
 
-                response.result.signature_verification = self.verify_signature(response.result.envelope)
+                result.signature_verification = self.verify_signature(result.envelope)
 
             if new_unpublished_root_hash:
-                if response.result.membership_proof is not None:
+                if result.membership_proof is not None:
                     # verify membership proofs
-                    membership_proof = decode_membership_proof(response.result.membership_proof)
+                    membership_proof = decode_membership_proof(result.membership_proof)
                     if verify_membership_proof(
-                        node_hash=decode_hash(response.result.hash),
+                        node_hash=decode_hash(result.hash),
                         root_hash=decode_hash(new_unpublished_root_hash),
                         proof=membership_proof,
                     ):
-                        response.result.membership_verification = EventVerification.PASS
+                        result.membership_verification = EventVerification.PASS
                     else:
-                        response.result.membership_verification = EventVerification.FAIL
+                        result.membership_verification = EventVerification.FAIL
 
                 # verify consistency proofs (following events)
-                if response.result.consistency_proof is not None and self.prev_unpublished_root_hash:
-                    consistency_proof = decode_consistency_proof(response.result.consistency_proof)
+                if result.consistency_proof is not None and self.prev_unpublished_root_hash:
+                    consistency_proof = decode_consistency_proof(result.consistency_proof)
                     if verify_consistency_proof(
                         new_root=decode_hash(new_unpublished_root_hash),
                         prev_root=decode_hash(self.prev_unpublished_root_hash),
                         proof=consistency_proof,
                     ):
-                        response.result.consistency_verification = EventVerification.PASS
+                        result.consistency_verification = EventVerification.PASS
                     else:
-                        response.result.consistency_verification = EventVerification.FAIL
+                        result.consistency_verification = EventVerification.FAIL
 
         # Update prev unpublished root
         if new_unpublished_root_hash:
             self.prev_unpublished_root_hash = new_unpublished_root_hash
-        return response
+        return
 
     def handle_results_response(
         self, response: PangeaResponse[SearchResultOutput], verify_consistency: bool = False, verify_events: bool = True
@@ -348,12 +364,10 @@ class AuditBase:
         else:
             return EventVerification.NONE
 
-    def _set_public_key(self, input: LogRequest, signer: Signer, public_key_info: Dict[str, str]):
+    def _get_public_key_info(self, signer: Signer, public_key_info: Dict[str, str]):
         public_key_info["key"] = signer.get_public_key_PEM()
         public_key_info["algorithm"] = signer.get_algorithm()
-        input.public_key = json.dumps(
-            public_key_info, ensure_ascii=False, allow_nan=False, separators=(",", ":"), sort_keys=True
-        )
+        return json.dumps(public_key_info, ensure_ascii=False, allow_nan=False, separators=(",", ":"), sort_keys=True)
 
 
 class Audit(ServiceBase, AuditBase):
@@ -505,9 +519,47 @@ class Audit(ServiceBase, AuditBase):
                     print(f"\\t{err.detail} \\n")
         """
 
-        input = self._pre_log_process(event, sign_local=sign_local, verify=verify, verbose=verbose)
+        input = self._get_log_request(event, sign_local=sign_local, verify=verify, verbose=verbose)
         response = self.request.post("v1/log", LogResult, data=input.dict(exclude_none=True))
-        return self.handle_log_response(response, verify=verify)
+        if response.success:
+            self._process_log_result(response.result, verify=verify)
+        return response
+
+    def log_bulk(
+        self,
+        events: List[Dict[str, Any]],
+        verify: bool = False,
+        sign_local: bool = False,
+        verbose: Optional[bool] = None,
+    ) -> PangeaResponse[LogResult]:
+        """
+        Log an entry
+
+        Create a log entry in the Secure Audit Log.
+        Args:
+            events (List[dict[str, Any]]): events to be logged
+            verify (bool, optional): True to verify logs consistency after response.
+            sign_local (bool, optional): True to sign event with local key.
+            verbose (bool, optional): True to get a more verbose response.
+        Raises:
+            AuditException: If an audit based api exception happens
+            PangeaAPIException: If an API Error happens
+
+        Returns:
+            A PangeaResponse where the hash of event data and optional verbose
+                results are returned in the response.result field.
+                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/audit#log-an-entry).
+
+        Examples:
+            FIXME:
+        """
+
+        input = self._get_log_request(events, sign_local=sign_local, verify=verify, verbose=verbose)
+        response = self.request.post("v2/log", LogBulkResult, data=input.dict(exclude_none=True))
+        if response.success:
+            for result in response.result.results:
+                self._process_log_result(result, verify=verify)
+        return response
 
     def search(
         self,
