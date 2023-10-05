@@ -33,7 +33,7 @@ class IntelCommonResult(PangeaResponseResult):
     raw_data: Optional[Dict] = None
 
 
-class FileReputationRequest(APIRequestModel):
+class FileReputationRequest(IntelCommonRequest):
     """
     File reputation request data
 
@@ -55,7 +55,7 @@ class FileReputationData(PangeaResponseResult):
     verdict: str
 
 
-class FileReputationResult(PangeaResponseResult):
+class FileReputationResult(IntelCommonResult):
     """
     File reputation result information
     """
@@ -91,7 +91,7 @@ class IPReputationData(PangeaResponseResult):
     verdict: str
 
 
-class IPReputationResult(PangeaResponseResult):
+class IPReputationResult(IntelCommonResult):
     """
     IP reputation result
     """
@@ -217,12 +217,61 @@ class DomainReputationData(PangeaResponseResult):
     verdict: str
 
 
-class DomainReputationResult(PangeaResponseResult):
+class DomainReputationResult(IntelCommonResult):
     """
     Domain reputation result
     """
 
     data: DomainReputationData
+
+
+class DomainWhoIsRequest(DomainCommonRequest):
+    """
+    Domain whois request data
+    """
+
+    pass
+
+
+class DomainWhoIsData(PangeaResponseResult):
+    """
+    Represents information about a domain.
+
+    Attributes:
+        domain_name (str): The domain name.
+        domain_availability (str): The availability of the domain.
+        created_date (str, optional): The date the domain was created.
+        updated_date (str, optional): The date the domain was last updated.
+        expires_date (str, optional): The date the domain expires.
+        host_names (List[str], optional): The host names associated with the domain.
+        ips (List[str], optional): The IP addresses associated with the domain.
+        registrar_name (str, optional): The name of the registrar.
+        contact_email (str, optional): The email address of the contact.
+        estimated_domain_age (int, optional): The estimated age of the domain.
+        registrant_organization (str, optional): The organization of the registrant.
+        registrant_country (str, optional): The country of the registrant.
+    """
+
+    domain_name: str
+    domain_availability: str
+    created_date: Optional[str] = None
+    updated_date: Optional[str] = None
+    expires_date: Optional[str] = None
+    host_names: Optional[List[str]] = None
+    ips: Optional[List[str]] = None
+    registrar_name: Optional[str] = None
+    contact_email: Optional[str] = None
+    estimated_domain_age: Optional[int] = None
+    registrant_organization: Optional[str] = None
+    registrant_country: Optional[str] = None
+
+
+class DomainWhoIsResult(IntelCommonResult):
+    """
+    Domain whois result
+    """
+
+    data: DomainWhoIsData
 
 
 class URLCommonRequest(IntelCommonRequest):
@@ -426,13 +475,45 @@ class DomainIntel(ServiceBase):
                 response.result field.  Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/domain-intel).
 
         Examples:
-            response = domain_intel.lookup(
+            response = domain_intel.reputation(
                 domain="737updatesboeing.com",
                 provider="domaintools",
             )
         """
         input = DomainReputationRequest(domain=domain, verbose=verbose, provider=provider, raw=raw)
         return self.request.post("v1/reputation", DomainReputationResult, data=input.dict(exclude_none=True))
+
+    def who_is(
+        self, domain: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
+    ) -> PangeaResponse[DomainWhoIsResult]:
+        """
+        WhoIs
+
+        Retrieve who is for a domain from a provider, including an optional detailed report.
+
+        OperationId: domain_intel_post_v1_whois
+
+        Args:
+            domain (str): The domain to query.
+            provider (str, optional): Use whois data from this provider "whoisxml"
+            verbose (bool, optional): Echo the API parameters in the response
+            raw (bool, optional): Include raw data from this provider
+
+        Raises:
+            PangeaAPIException: If an API Error happens
+
+        Returns:
+            A PangeaResponse where the sanctioned source(s) are in the
+                response.result field.  Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/domain-intel).
+
+        Examples:
+            response = domain_intel.who_is(
+                domain="google.com",
+                provider="whoisxml",
+            )
+        """
+        input = DomainWhoIsRequest(domain=domain, verbose=verbose, provider=provider, raw=raw)
+        return self.request.post("v1/whois", DomainWhoIsResult, data=input.dict(exclude_none=True))
 
 
 class IpIntel(ServiceBase):

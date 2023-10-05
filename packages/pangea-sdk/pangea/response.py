@@ -2,8 +2,9 @@
 # Author: Pangea Cyber Corporation
 import datetime
 import enum
-from typing import Any, Dict, Generic, List, Optional, Type, TypeVar
+from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
 
+import aiohttp
 import requests
 from pangea.utils import format_datetime
 from pydantic import BaseModel
@@ -105,16 +106,15 @@ class ResponseHeader(APIResponseModel):
 
 class PangeaResponse(Generic[T], ResponseHeader):
     raw_result: Optional[Dict[str, Any]] = None
-    raw_response: Optional[requests.Response] = None
+    raw_response: Optional[Union[requests.Response, aiohttp.ClientResponse]] = None
     result: Optional[T] = None
     pangea_error: Optional[PangeaError] = None
     result_class: Type[PangeaResponseResult] = PangeaResponseResult
     _json: Any
 
-    def __init__(self, response: requests.Response, result_class: Type[PangeaResponseResult]):
-        _json = response.json()
-        super(PangeaResponse, self).__init__(**_json)
-        self._json = _json
+    def __init__(self, response: requests.Response, result_class: Type[PangeaResponseResult], json: dict):
+        super(PangeaResponse, self).__init__(**json)
+        self._json = json
         self.raw_response = response
         self.raw_result = self._json["result"]
         self.result_class = result_class
@@ -139,3 +139,15 @@ class PangeaResponse(Generic[T], ResponseHeader):
     @property
     def json(self) -> Any:
         return self._json
+
+    @property
+    def http_status(self) -> int:
+        if self.raw_response:
+            if type(self.raw_response) == aiohttp.ClientResponse:
+                return self.raw_response.status
+            else:
+                return self.raw_response.status_code
+
+    @property
+    def url(self) -> str:
+        return str(self.raw_response.url)

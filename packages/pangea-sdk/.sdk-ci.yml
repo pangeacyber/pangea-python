@@ -47,11 +47,15 @@ integration:
   script:
     - poetry run python -m unittest tests.integration
 
+asyncio-integration:
+  extends: .pangea-sdk-base
+  stage: asyncio_tests
+  script:
+    - poetry run python -m unittest tests.integration.asyncio
+
 building:
   extends: .pangea-sdk-publish
   stage: build
   script:
     - poetry build
     - poetry publish --username __token__ --password $PYPI_SDK_TOKEN
-    - poetry config repositories.artifactory "https://builder.scranton.dev.pangea.cloud/artifactory/api/pypi/pypi"
-    - poetry publish --repository artifactory -u poetry -p "${ARTIFACTORY_PUBLISH_TOKEN}"
