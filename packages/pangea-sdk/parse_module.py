@@ -1,12 +1,9 @@
-import logging
-
-import typing as t
-import types
-import json
-
-import re
-
 import inspect
+import json
+import logging
+import re
+import types
+import typing as t
 from inspect import _empty
 
 import docstring_parser
@@ -111,6 +108,7 @@ def _parse_operation_id(docstring):
 
     return None
 
+
 def _parse_description(description):
     """
     Takes the long description and returns only the description part.
@@ -120,7 +118,7 @@ def _parse_description(description):
     """
     if description:
         return description.split("OperationId")[0]
-    
+
     return None
 
 
@@ -145,12 +143,14 @@ def _parse_function(function, function_cache=set()) -> t.Optional[dict]:
         ret["operation_id"] = parsed_operation_id
 
     for parameter in parsed_doc.params:
-        ret["parameters"].append({
-            "name": parameter.arg_name,
-            "type": parameter.type_name,
-            "optional": parameter.is_optional,
-            "description": parameter.description,
-        })
+        ret["parameters"].append(
+            {
+                "name": parameter.arg_name,
+                "type": parameter.type_name,
+                "optional": parameter.is_optional,
+                "description": parameter.description,
+            }
+        )
 
     returns = parsed_doc.returns
     if returns:

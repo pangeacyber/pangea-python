@@ -123,7 +123,6 @@ class UserListOrderBy(enum.Enum):
         return self.value
 
 
-# https://pangea.cloud/docs/api/authn#create-user
 class UserCreateRequest(APIRequestModel):
     email: str
     authenticator: str
@@ -152,102 +151,6 @@ class UserDeleteRequest(APIRequestModel):
 
 
 class UserDeleteResult(PangeaResponseResult):
-    # https://pangea.cloud/docs/api/authn#delete-user
-    pass
-
-
-class UserInviteRequest(APIRequestModel):
-    inviter: str
-    email: str
-    callback: str
-    state: str
-    require_mfa: Optional[bool] = None
-
-
-class UserInvite(APIResponseModel):
-    id: str
-    inviter: str
-    invite_org: str
-    email: str
-    callback: str
-    state: str
-    require_mfa: bool
-    created_at: str
-    expire: str
-
-
-class UserInviteResult(PangeaResponseResult, UserInvite):
-    pass
-
-
-class UserInviterOrderBy(enum.Enum):
-    ID = "id"
-    CREATED_AT = "created_at"
-    EMAIL = "email"
-    TYPE = "type"
-    EXPIRE = "expire"
-    CALLBACK = "callback"
-    STATE = "state"
-    INVITER = "inviter"
-    INVITE_ORG = "invite_org"
-
-    def __str__(self):
-        return self.value
-
-    def __repr__(self):
-        return self.value
-
-
-class UserInviteListFilter(APIRequestModel):
-    callback: Optional[str] = None
-    callback__contains: Optional[List[str]] = None
-    callback__in: Optional[List[str]] = None
-    created_at: Optional[str] = None
-    created_at__gt: Optional[str] = None
-    created_at__gte: Optional[str] = None
-    created_at__lt: Optional[str] = None
-    created_at__lte: Optional[str] = None
-    email: Optional[str] = None
-    email__contains: Optional[List[str]] = None
-    email__in: Optional[List[str]] = None
-    expire: Optional[str] = None
-    expire__gt: Optional[str] = None
-    expire__gte: Optional[str] = None
-    expire__lt: Optional[str] = None
-    expire__lte: Optional[str] = None
-    id: Optional[str] = None
-    id__contains: Optional[List[str]] = None
-    id__in: Optional[List[str]] = None
-    invite_org: Optional[str] = None
-    invite_org__contains: Optional[List[str]] = None
-    invite_org__in: Optional[List[str]] = None
-    inviter: Optional[str] = None
-    inviter__contains: Optional[List[str]] = None
-    inviter__in: Optional[List[str]] = None
-    is_signup: Optional[bool] = None
-    require_mfa: Optional[bool] = None
-    state: Optional[str] = None
-    state__contains: Optional[List[str]] = None
-    state__in: Optional[List[str]] = None
-
-
-class UserInviteListRequest(APIRequestModel):
-    filter: Optional[Union[Dict, UserInviteListFilter]] = None
-    last: Optional[str] = None
-    order: Optional[ItemOrder] = None
-    order_by: Optional[UserInviterOrderBy] = None
-    size: Optional[int] = None
-
-
-class UserInviteListResult(PangeaResponseResult):
-    invites: List[UserInvite]
-
-
-class UserInviteDeleteRequest(APIRequestModel):
-    id: str
-
-
-class UserInviteDeleteResult(PangeaResponseResult):
     pass
 
 
@@ -319,12 +222,6 @@ class UserListResult(PangeaResponseResult):
     count: int
 
 
-class UserLoginPasswordRequest(APIRequestModel):
-    email: str
-    password: str
-    extra_profile: Optional[Profile] = None
-
-
 class LoginToken(APIResponseModel):
     token: str
     id: str
@@ -336,29 +233,6 @@ class LoginToken(APIResponseModel):
     scopes: Optional[Scopes] = None
     profile: Profile
     created_at: str
-
-
-# {'token': 'ptr_mjl7snb74cnxjtu7lypouafrayyydlfu',
-# 'id': 'pmt_557qjw27bokucj2ccxyqnbo2vxq6dci2',
-# 'type': 'session',
-# 'life': 172799,
-# 'expire': '2023-02-11T20:16:52.750157Z',
-# 'id': 'pui_a5dhmqsmpayxcohb2intdidwttkxxza2',
-# 'email': 'andres.tournour+test2591827@pangea.cloud',
-# 'profile': {},
-# 'created_at': '2023-02-09T20:16:52.753810Z'}
-
-
-class UserLoginResult(PangeaResponseResult):
-    refresh_token: LoginToken
-    active_token: Optional[LoginToken] = None
-
-
-class UserLoginSocialRequest(APIRequestModel):
-    provider: IDProvider
-    email: str
-    social_id: str
-    extra_profile: Optional[Profile] = None
 
 
 class UserProfileGetRequest(APIRequestModel):
@@ -434,8 +308,33 @@ class ClientJWKSResult(PangeaResponseResult):
     keys: List[Union[JWKec, JWKrsa, JWK]]
 
 
-# - path: authn::/v1/flow/complete
-# https://pangea.cloud/docs/api/authn#complete-sign-up-in
+class UserAuthenticatorsDeleteRequest(APIRequestModel):
+    user_id: str
+    mfa_provider: MFAProvider
+
+
+class UserAuthenticatorsDeleteResult(PangeaResponseResult):
+    pass
+
+
+class UserAuthenticatorsListRequest(APIRequestModel):
+    email: Optional[str] = None
+    id: Optional[str] = None
+
+
+class Authenticator(APIResponseModel):
+    id: str
+    type: str
+    enable: bool
+    provider: Optional[str] = None
+    rpid: Optional[str] = None
+    phase: Optional[str] = None
+
+
+class UserAuthenticatorsListResult(PangeaResponseResult):
+    authenticators: List[Authenticator]
+
+
 class FlowCompleteRequest(APIRequestModel):
     flow_id: str
 
@@ -445,138 +344,65 @@ class FlowCompleteResult(PangeaResponseResult):
     login_token: LoginToken
 
 
-# - path: authn::/v1/flow/enroll/mfa/complete
-# https://pangea.cloud/docs/api/authn#complete-mfa-enrollment
-class FlowEnrollMFACompleteRequest(APIRequestModel):
-    flow_id: str
-    code: str
-    cancel: Optional[bool] = None
-
-
-class EnrollMFAStart:
-    mfa_providers: List[str]
-
-
-class TOTPsecret:
-    qr_image: str
-    secret: str
-
-
-class EnrollMFAComplete:
-    totp_secret: TOTPsecret
-
-
-class SocialSignup:
-    redirect_uri: str
-
-
-class PasswordSignup:
-    password_chars_min: int
-    password_chars_max: int
-    password_lower_min: int
-    passwrod_upper_min: int
-    password_punct_min: int
-
-
-class VerifyCaptcha:
-    site_key: str
-
-
-class VerifyMFAStart:
-    mfa_providers: List[str]
-
-
-class VerifyPassword:
-    password_chars_min: int
-    password_chars_max: int
-    password_lower_min: int
-    passwrod_upper_min: int
-    password_punct_min: int
-
-
-class Signup:
-    social_signup: SocialSignup
-    password_signup: PasswordSignup
-
-
-class VerifySocial:
-    redirect_uri: str
+class FlowChoices(APIResponseModel):
+    choice: str
+    data: Dict = {}
 
 
 class CommonFlowResult(PangeaResponseResult):
     flow_id: str
-    next_step: str
-    error: Optional[str] = None
-    complete: Optional[dict] = None
-    enroll_mfa_start: Optional[EnrollMFAStart] = None
-    enroll_mfa_complete: Optional[EnrollMFAComplete] = None
-    signup: Optional[Signup] = None
-    verify_captcha: Optional[VerifyCaptcha] = None
-    verify_email: Optional[dict] = None
-    verify_mfa_start: Optional[VerifyMFAStart] = None
-    verify_mfa_complete: Optional[dict] = None
-    verify_password: Optional[VerifyPassword] = None
-    verify_social: Optional[VerifySocial] = None
+    flow_type: List[str] = []
+    email: str
+    disclaimer: Optional[str] = None
+    flow_phase: str
+    flow_choices: List[FlowChoices] = []
 
 
-class FlowResetPasswordRequest(APIRequestModel):
+class FlowChoice(enum.Enum):
+    AGREEMENTS = "agreements"
+    CAPTCHA = "captcha"
+    EMAIL_OTP = "email_otp"
+    MAGICLINK = "magiclink"
+    PASSKEY = "passkey"
+    PASSWORD = "password"
+    PROFILE = "profile"
+    PROVISIONAL_ENROLLMENT = "provisional_enrollment"
+    RESET_PASSWORD = "reset_password"
+    SET_EMAIL = "set_mail"
+    SET_PASSWORD = "set_password"
+    SMS_OTP = "sms_otp"
+    SOCIAL = "social"
+    TOTP = "totp"
+    VERIFY_EMAIL = "verify_email"
+
+    def __str__(self):
+        return self.value
+
+    def __repr__(self):
+        return self.value
+
+
+class FlowRestartDataSMSOTP(APIRequestModel):
+    phone: str
+
+
+FlowRestartData = Union[Dict, FlowRestartDataSMSOTP]
+
+
+class FlowRestartRequest(APIRequestModel):
     flow_id: str
-    password: str
-    cancel: Optional[bool] = None
+    choice: FlowChoice
+    data: FlowRestartData
 
 
-class FlowResetPasswordResult(CommonFlowResult):
+class FlowRestartResult(CommonFlowResult):
     pass
 
 
-class FlowEnrollMFAcompleteResult(CommonFlowResult):
-    pass
-
-
-# - path: authn::/v1/flow/enroll/mfa/start
-# https://pangea.cloud/docs/api/authn#start-mfa-enrollment
-class FlowEnrollMFAStartRequest(APIRequestModel):
-    flow_id: str
-    mfa_provider: MFAProvider
-    phone: Optional[str] = None
-
-
-class FlowEnrollMFAStartResult(CommonFlowResult):
-    pass
-
-
-# - path: authn::/v1/flow/signup/password
-# https://pangea.cloud/docs/api/authn#password-sign-up
-class FlowSignupPasswordRequest(APIRequestModel):
-    flow_id: str
-    password: str
-    first_name: str
-    last_name: str
-
-
-class FlowSignupPasswordResult(CommonFlowResult):
-    pass
-
-
-# - path: authn::/v1/flow/signup/social
-# https://pangea.cloud/docs/api/authn#social-sign-up
-class FlowSignupSocialRequest(APIRequestModel):
-    flow_id: str
-    cb_state: str
-    cb_code: str
-
-
-class FlowSignupSocialResult(CommonFlowResult):
-    pass
-
-
-# - path: authn::/v1/flow/start
-# https://pangea.cloud/docs/api/authn#start-a-sign-up-in
 class FlowStartRequest(APIRequestModel):
     cb_uri: Optional[str] = None
     email: Optional[str] = None
     flow_types: Optional[List[FlowType]] = None
-    provider: Optional[IDProvider] = None
     invitation: Optional[str] = None
 
 
@@ -584,131 +410,103 @@ class FlowStartResult(CommonFlowResult):
     pass
 
 
-# - path: authn::/v1/flow/verify/captcha
-# https://pangea.cloud/docs/api/authn#verify-captcha
-class FlowVerifyCaptchaRequest(APIRequestModel):
-    flow_id: str
+class FlowUpdateDataAgreements(APIRequestModel):
+    agreed: List[str]
+
+
+class FlowUpdateDataCaptcha(APIRequestModel):
     code: str
 
 
-class FlowVerifyCaptchaResult(CommonFlowResult):
-    pass
-
-
-# - path: authn::/v1/flow/verify/email
-# https://pangea.cloud/docs/api/authn#verify-email-address
-class FlowVerifyEmailRequest(APIRequestModel):
-    flow_id: str
-    cb_state: Optional[str] = None
-    cb_code: Optional[str] = None
-
-
-class FlowVerifyEmailResult(CommonFlowResult):
-    pass
-
-
-# - path: authn::/v1/flow/verify/mfa/complete
-# https://pangea.cloud/docs/api/authn#complete-mfa-verification
-class FlowVerifyMFACompleteRequest(APIRequestModel):
-    flow_id: str
-    code: Optional[str] = None
-    cancel: Optional[bool] = None
-
-
-class FlowVerifyMFACompleteResult(CommonFlowResult):
-    pass
-
-
-# - path: authn::/v1/flow/verify/mfa/start
-# https://pangea.cloud/docs/api/authn#start-mfa-verification
-class FlowVerifyMFAStartRequest(APIRequestModel):
-    flow_id: str
-    mfa_provider: MFAProvider
-
-
-class FlowVerifyMFAStartResult(CommonFlowResult):
-    pass
-
-
-# - path: authn::/v1/flow/verify/password
-# https://pangea.cloud/docs/api/authn#password-sign-in
-class FlowVerifyPasswordRequest(APIRequestModel):
-    flow_id: str
-    password: Optional[str] = None
-    cancel: Optional[bool] = None
-
-
-class FlowVerifyPasswordResult(CommonFlowResult):
-    pass
-
-
-# - path: authn::/v1/flow/verify/social
-# https://pangea.cloud/docs/api/authn#social-sign-in
-class FlowVerifySocialRequest(APIRequestModel):
-    flow_id: str
-    cb_state: str
-    cb_code: str
-
-
-class FlowVerifySocialResult(CommonFlowResult):
-    pass
-
-
-# - path: authn::/v1/user/mfa/delete
-# https://pangea.cloud/docs/api/authn#delete-mfa-enrollment
-class UserMFADeleteRequest(APIRequestModel):
-    user_id: str
-    mfa_provider: MFAProvider
-
-
-class UserMFADeleteResult(PangeaResponseResult):
-    pass
-
-
-# - path: authn::/v1/user/mfa/enroll
-# https://pangea.cloud/docs/api/authn#enroll-in-mfa
-class UserMFAEnrollRequest(APIRequestModel):
-    user_id: str
-    mfa_provider: MFAProvider
+class FlowUpdateDataEmailOTP(APIResponseModel):
     code: str
 
 
-class UserMFAEnrollResult(PangeaResponseResult):
-    pass
-
-
-# - path: authn::/v1/user/mfa/start
-# https://pangea.cloud/docs/api/authn#start-mfa-verification
-class UserMFAStartRequest(APIRequestModel):
-    user_id: str
-    mfa_provider: MFAProvider
-    enroll: Optional[bool] = None
-    phone: Optional[str] = None
-
-
-class UserMFAStartTOTPSecret:
-    qr_image: str
-    secret: str
-
-
-class UserMFAStartResult(PangeaResponseResult):
-    totp_secret: Optional[UserMFAStartTOTPSecret] = None
-
-
-# - path: authn::/v1/user/mfa/verify
-# https://pangea.cloud/docs/api/authn#verify-an-mfa-code
-class UserMFAverifyRequest(APIRequestModel):
-    user_id: str
-    mfa_provider: MFAProvider
+class FlowUpdateDataMagiclink(APIRequestModel):
+    state: str
     code: str
 
 
-class UserMFAVerifyResult(PangeaResponseResult):
+class FlowUpdateDataPasskey(APIRequestModel):
+    # FIXME: is empty?
     pass
 
 
-# - path: authn::/v1/user/verify
-# https://pangea.cloud/docs/api/authn#verify-user
+class FlowUpdateDataPassword(APIRequestModel):
+    password: str
+
+
+class FlowUpdateDataProfile(APIRequestModel):
+    profile: Profile
+
+
+class FlowUpdateDataProvisionalEnrollment(APIRequestModel):
+    state: str
+    code: str
+
+
+class FlowUpdateDataResetPassword(APIRequestModel):
+    # FIXME: review
+    state: str
+    code: str
+
+
+class FlowUpdateDataSetEmail(APIRequestModel):
+    email: str
+
+
+class FlowUpdateDataSetPassword(APIRequestModel):
+    password: str
+
+
+class FlowUpdateDataSMSOTP(APIRequestModel):
+    code: str
+
+
+class FlowUpdateDataSocialProvider(APIRequestModel):
+    social_provider: str
+    uri: str
+
+
+class FlowUpdateDataTOTP(APIRequestModel):
+    code: str
+
+
+class FlowUpdateDataVerifyEmail(APIRequestModel):
+    state: str
+    code: str
+
+
+FlowUpdateData = Union[
+    Dict,
+    FlowUpdateDataAgreements,
+    FlowUpdateDataCaptcha,
+    FlowUpdateDataEmailOTP,
+    FlowUpdateDataMagiclink,
+    FlowUpdateDataPasskey,
+    FlowUpdateDataPassword,
+    FlowUpdateDataProfile,
+    FlowUpdateDataProvisionalEnrollment,
+    FlowUpdateDataResetPassword,
+    FlowUpdateDataSetEmail,
+    FlowUpdateDataSetPassword,
+    FlowUpdateDataSMSOTP,
+    FlowUpdateDataSocialProvider,
+    FlowUpdateDataTOTP,
+    FlowUpdateDataVerifyEmail,
+]
+
+
+class FlowUpdateRequest(APIRequestModel):
+    flow_id: str
+    choice: FlowChoice
+    data: FlowUpdateData
+
+
+class FlowUpdateResult(CommonFlowResult):
+    pass
+
+
 class UserVerifyRequest(APIRequestModel):
     id_provider: IDProvider
     email: str

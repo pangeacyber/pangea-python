@@ -17,8 +17,6 @@ TIME = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 RANDOM_VALUE = random.randint(0, 10000000)
 EMAIL_TEST = f"user.email+test{RANDOM_VALUE}@pangea.cloud"
 EMAIL_DELETE = f"user.email+delete{RANDOM_VALUE}@pangea.cloud"
-EMAIL_INVITE_DELETE = f"user.email+invite_del{RANDOM_VALUE}@pangea.cloud"
-EMAIL_INVITE_KEEP = f"user.email+invite_keep{RANDOM_VALUE}@pangea.cloud"
 PASSWORD_OLD = "My1s+Password"
 PASSWORD_NEW = "My1s+Password_new"
 PROFILE_OLD = {"name": "User name", "country": "Argentina"}
@@ -71,12 +69,6 @@ class TestAuthN(unittest.TestCase):
             self.assertIsNotNone(response_login.result)
             self.assertIsNotNone(response_login.result.active_token)
             self.assertIsNotNone(response_login.result.refresh_token)
-
-            # verify
-            response_verify = self.authn.user.verify(
-                id_provider=IDProvider.PASSWORD, email=EMAIL_TEST, authenticator=PASSWORD_OLD
-            )
-            self.assertEqual(response_verify.status, "Success")
 
             # password change
             response_change = self.authn.client.password.change(
@@ -141,37 +133,6 @@ class TestAuthN(unittest.TestCase):
         self.assertEqual(EMAIL_TEST, response.result.email)
         self.assertEqual(False, response.result.require_mfa)
         self.assertEqual(False, response.result.disabled)
-
-    def test_authn_b1_user_invite(self):
-        # This could (should) fail if test_authn_user_create_with_password failed
-        response = self.authn.user.invite(
-            inviter=EMAIL_TEST,
-            email=EMAIL_INVITE_KEEP,
-            callback="https://someurl.com/callbacklink",
-            state="whatshoulditbe",
-        )
-        self.assertEqual(response.status, "Success")
-        self.assertIsNotNone(response.result)
-
-        response = self.authn.user.invite(
-            inviter=EMAIL_TEST,
-            email=EMAIL_INVITE_DELETE,
-            callback="https://someurl.com/callbacklink",
-            state="whatshoulditbe",
-        )
-        self.assertEqual(response.status, "Success")
-        self.assertIsNotNone(response.result)
-
-        # Delete invite
-        response_delete = self.authn.user.invites.delete(response.result.id)
-        self.assertEqual(response.status, "Success")
-        self.assertIsNone(response_delete.result)
-
-    def test_authn_b2_user_invite_list(self):
-        response = self.authn.user.invites.list()
-        self.assertEqual(response.status, "Success")
-        self.assertIsNotNone(response.result)
-        self.assertGreater(len(response.result.invites), 0)
 
     def test_authn_c1_login_n_some_validations(self):
         # This could (should) fail if test_authn_a1_user_create_with_password failed
