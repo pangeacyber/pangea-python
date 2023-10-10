@@ -16,15 +16,6 @@ class Profile(Dict[str, str]):
     phone: Optional[str] = None
 
 
-class UserPasswordResetRequest(APIRequestModel):
-    user_id: str
-    new_password: str
-
-
-class UserPasswordResetResult(PangeaResponseResult):
-    pass
-
-
 class ClientPasswordChangeRequest(APIRequestModel):
     token: str
     old_password: str
@@ -484,26 +475,6 @@ class FlowUpdateRequest(APIRequestModel):
 
 class FlowUpdateResult(CommonFlowResult):
     pass
-
-
-class UserVerifyRequest(APIRequestModel):
-    id_provider: IDProvider
-    email: str
-    authenticator: str
-
-
-class UserVerifyResult(PangeaResponseResult):
-    id: str
-    email: str
-    profile: Profile
-    scopes: Optional[Scopes] = None
-    id_providers: Optional[List[str]] = None
-    mfa_providers: List[str]
-    require_mfa: bool
-    verified: bool
-    disabled: bool
-    last_login_at: Optional[str] = None
-    created_at: str
 
 
 class ClientSessionInvalidateRequest(APIRequestModel):
