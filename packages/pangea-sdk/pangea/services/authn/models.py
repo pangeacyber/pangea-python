@@ -8,7 +8,12 @@ from pangea.response import APIRequestModel, APIResponseModel, PangeaResponseRes
 from pangea.services.vault.models.common import JWK, JWKec, JWKrsa
 
 Scopes = NewType("Scopes", List[str])
-Profile = NewType("Profile", Dict[str, str])
+
+
+class Profile(Dict[str, str]):
+    first_name: str
+    last_name: str
+    phone: Optional[str] = None
 
 
 class UserPasswordResetRequest(APIRequestModel):
@@ -125,24 +130,22 @@ class UserListOrderBy(enum.Enum):
 
 class UserCreateRequest(APIRequestModel):
     email: str
-    authenticator: str
-    id_provider: IDProvider
-    verified: Optional[bool] = None
-    require_mfa: Optional[bool] = None
-    profile: Optional[Profile] = None
-    scopes: Optional[Scopes] = None
+    profile: Profile
 
 
 class UserCreateResult(PangeaResponseResult):
     id: str
     email: str
     profile: Profile
+    scopes: Optional[Scopes] = None
     id_providers: Optional[List[str]] = None
-    require_mfa: bool
-    verified: bool
-    last_login_at: Optional[str]
-    disabled: Optional[bool] = None
     mfa_providers: Optional[List[str]] = None
+    require_mfa: Optional[bool] = None
+    verified: bool
+    disable: bool
+    accepted_eula_id: Optional[str] = None
+    last_login_at: Optional[str] = None
+    created_at: str
 
 
 class UserDeleteRequest(APIRequestModel):
@@ -202,16 +205,14 @@ class UserListRequest(APIRequestModel):
     size: Optional[int] = None
 
 
-class User(APIRequestModel):
+class User(PangeaResponseResult):
     id: str
     email: str
     profile: Profile
-    scopes: Optional[Scopes] = None
-    id_providers: List[str] = []
-    mfa_providers: List[str] = []
-    require_mfa: bool
     verified: bool
     disabled: bool
+    accepted_eula_id: Optional[str]
+    accepted_privacy_policy_id: Optional[str]
     last_login_at: Optional[str] = None
     created_at: str
 
@@ -222,7 +223,7 @@ class UserListResult(PangeaResponseResult):
     count: int
 
 
-class LoginToken(APIResponseModel):
+class LoginToken(PangeaResponseResult):
     token: str
     id: str
     type: str
@@ -240,17 +241,8 @@ class UserProfileGetRequest(APIRequestModel):
     email: Optional[str] = None
 
 
-class UserProfileGetResult(PangeaResponseResult):
-    id: str
-    email: str
-    profile: Profile
-    id_providers: Optional[List[str]] = None
-    mfa_providers: List[str]
-    require_mfa: bool
-    verified: bool
-    disabled: Optional[bool] = None
-    last_login_at: Optional[str] = None
-    created_at: str
+class UserProfileGetResult(User):
+    pass
 
 
 class UserProfileUpdateRequest(APIRequestModel):
@@ -264,8 +256,8 @@ class UserProfileUpdateResult(PangeaResponseResult):
     email: str
     profile: Profile
     id_providers: Optional[List[str]] = None
-    mfa_providers: List[str]
-    require_mfa: bool
+    mfa_providers: List[str] = []
+    require_mfa: Optional[bool] = None
     verified: bool
     last_login_at: Optional[str] = None
     disabled: Optional[bool] = None
@@ -275,24 +267,11 @@ class UserProfileUpdateResult(PangeaResponseResult):
 class UserUpdateRequest(APIRequestModel):
     id: Optional[str] = None
     email: Optional[str] = None
-    authenticator: Optional[str] = None
-    disabled: Optional[bool] = None
-    require_mfa: Optional[bool] = None
-    verified: Optional[bool] = None
-
-
-class UserUpdateResult(PangeaResponseResult):
-    id: str
-    email: str
-    profile: Profile
-    scopes: Optional[Scopes] = None
-    id_providers: Optional[List[str]] = None
-    mfa_providers: Optional[List[str]] = None
-    require_mfa: bool
-    verified: bool
     disabled: bool
-    last_login_at: Optional[str] = None
-    created_at: str
+
+
+class UserUpdateResult(User):
+    pass
 
 
 class ClientUserinfoResult(PangeaResponseResult):
@@ -341,7 +320,7 @@ class FlowCompleteRequest(APIRequestModel):
 
 class FlowCompleteResult(PangeaResponseResult):
     refresh_token: LoginToken
-    login_token: LoginToken
+    active_token: LoginToken
 
 
 class FlowChoices(APIResponseModel):

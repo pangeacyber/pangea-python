@@ -212,16 +212,17 @@ class PangeaRequest(PangeaRequestBase):
             data_send = None
 
         requests_response = self.session.post(url, headers=self._headers(), data=data_send, files=files)
+        self.logger.debug(
+            json.dumps(
+                {"service": self.service, "action": "post", "url": url, "response": requests_response.json()},
+                default=default_encoder,
+            )
+        )
+
         pangea_response = PangeaResponse(requests_response, result_class=result_class, json=requests_response.json())
         if poll_result:
             pangea_response = self._handle_queued_result(pangea_response)
 
-        self.logger.debug(
-            json.dumps(
-                {"service": self.service, "action": "post", "url": url, "response": pangea_response.json},
-                default=default_encoder,
-            )
-        )
         return self._check_response(pangea_response)
 
     def _handle_queued_result(self, response: PangeaResponse) -> PangeaResponse:

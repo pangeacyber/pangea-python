@@ -422,12 +422,7 @@ class AuthN(ServiceBase):
         def create(
             self,
             email: str,
-            authenticator: str,
-            id_provider: m.IDProvider,
-            verified: Optional[bool] = None,
-            require_mfa: Optional[bool] = None,
-            profile: Optional[m.Profile] = None,
-            scopes: Optional[m.Scopes] = None,
+            profile: m.Profile,
         ) -> PangeaResponse[m.UserCreateResult]:
             """
             Create User
@@ -438,12 +433,7 @@ class AuthN(ServiceBase):
 
             Args:
                 email (str): An email address
-                authenticator (str): A provider-specific authenticator, such as a password or a social identity.
-                id_provider (m.IDProvider, optional): Mechanism for authenticating a user's identity
-                verified (bool, optional): True if the user's email has been verified
-                require_mfa (bool, optional): True if the user must use MFA during authentication
                 profile (m.Profile, optional): A user profile as a collection of string properties
-                scopes (m.Scopes, optional): A list of scopes
 
             Returns:
                 A PangeaResponse with a user and its information in the response.result field.
@@ -453,18 +443,12 @@ class AuthN(ServiceBase):
             Examples:
                 response = authn.user.create(
                     email="joe.user@email.com",
-                    password="My1s+Password",
-                    id_provider=IDProvider.PASSWORD
+                    # FIXME:
                 )
             """
             input = m.UserCreateRequest(
                 email=email,
-                authenticator=authenticator,
-                id_provider=id_provider,
-                verified=verified,
-                require_mfa=require_mfa,
                 profile=profile,
-                scopes=scopes,
             )
             return self.request.post("v2/user/create", m.UserCreateResult, data=input.dict(exclude_none=True))
 
@@ -491,12 +475,9 @@ class AuthN(ServiceBase):
 
         def update(
             self,
+            disabled: bool,
             id: Optional[str] = None,
             email: Optional[str] = None,
-            authenticator: Optional[str] = None,
-            disabled: Optional[bool] = None,
-            require_mfa: Optional[bool] = None,
-            verified: Optional[bool] = None,
         ) -> PangeaResponse[m.UserUpdateResult]:
             """
             Update user's settings
@@ -506,14 +487,10 @@ class AuthN(ServiceBase):
             OperationId: authn_post_v1_user_update
 
             Args:
+                disabled (bool): New disabled value.
+                    Disabling a user account will prevent them from logging in.
                 id (str, optional): The identity of a user or a service
                 email (str, optional): An email address
-                authenticator (str, optional): A provider-specific authenticator,
-                    such as a password or a social identity.
-                disabled (bool, optional): New disabled value.
-                    Disabling a user account will prevent them from logging in.
-                require_mfa (bool, optional): True if the user must use MFA during authentication
-                verified (bool, optional): True if the user's email has been verified
 
             Returns:
                 A PangeaResponse with a user and its information in the response.result field.
@@ -523,16 +500,13 @@ class AuthN(ServiceBase):
             Examples:
                 response = authn.user.update(
                     email="joe.user@email.com",
-                    require_mfa=True,
+                    disabled=True,
                 )
             """
             input = m.UserUpdateRequest(
                 id=id,
                 email=email,
-                authenticator=authenticator,
                 disabled=disabled,
-                require_mfa=require_mfa,
-                verified=verified,
             )
 
             return self.request.post("v2/user/update", m.UserUpdateResult, data=input.dict(exclude_none=True))
@@ -803,7 +777,7 @@ class AuthN(ServiceBase):
         def delete(self, type: m.AgreementType, id: str) -> PangeaResponse[m.AgreementDeleteResult]:
             input = m.AgreementDeleteRequest(type=type, id=id)
             return self.request.post(
-                "21/agreements/delete", m.AgreementDeleteResult, data=input.dict(exclude_none=True)
+                "v2/agreements/delete", m.AgreementDeleteResult, data=input.dict(exclude_none=True)
             )
 
         def list(

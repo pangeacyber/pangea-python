@@ -67,7 +67,7 @@ class NotFound(PangeaAPIException):
     """Resource not found"""
 
     def __init__(self, url: str, response: PangeaResponse):
-        message = f"Resource {url} not found"
+        message = f"Resource url:'{url}' not found"
         super(NotFound, self).__init__(message, response)
 
 
