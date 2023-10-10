@@ -58,15 +58,16 @@ class TestAuthN(unittest.TestCase):
         )
         data = m.FlowUpdateDataProfile(profile=PROFILE_OLD)
         response = self.authn.flow.update(flow_id=start_resp.result.flow_id, choice=m.FlowChoice.PROFILE, data=data)
-        for flow_choice in response.result.flow_choices:
-            agreed = []
-            if flow_choice.choice == m.FlowChoice.AGREEMENTS.value:
-                agreements = dict(**flow_choice.data["agreements"])
-                for k, v in agreements.items():
-                    agreed.append(v["id"])
+        if response.result.flow_phase == "phase_agreements":
+            for flow_choice in response.result.flow_choices:
+                agreed = []
+                if flow_choice.choice == m.FlowChoice.AGREEMENTS.value:
+                    agreements = dict(**flow_choice.data["agreements"])
+                    for k, v in agreements.items():
+                        agreed.append(v["id"])
 
-            data = m.FlowUpdateDataAgreements(agreed=agreed)
-            self.authn.flow.update(flow_id=start_resp.result.flow_id, choice=m.FlowChoice.AGREEMENTS, data=data)
+                data = m.FlowUpdateDataAgreements(agreed=agreed)
+                self.authn.flow.update(flow_id=start_resp.result.flow_id, choice=m.FlowChoice.AGREEMENTS, data=data)
         return self.authn.flow.complete(flow_id=start_resp.result.flow_id)
 
     def login(self, email, password):

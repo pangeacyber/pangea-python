@@ -2,16 +2,17 @@ import os
 import random
 
 import pangea.exceptions as pe
+import pangea.services.authn.models as m
 from pangea.config import PangeaConfig
 from pangea.services.authn.authn import AuthN
-from pangea.services.authn.models import IDProvider
 
 RANDOM_VALUE = random.randint(0, 10000000)
 USER_EMAIL = f"user.email+test{RANDOM_VALUE}@pangea.cloud"  # Email to create user
 PASSWORD_INITIAL = "My1s+Password"  # First password to be set to user created
 PASSWORD_UPDATE = "My1s+Password_new"  # Password used to update user password
-PROFILE_INITIAL = {"name": "User Name", "country": "Argentina"}  # Inicial user profile
-PROFILE_UPDATE = {"age": "18"}  # Additional info to update user profile
+PROFILE_INITIAL = {"first_name": "Name", "last_name": "User"}  # Inicial user profile
+PROFILE_UPDATE = {"first_name": "NameUpdate"}  # Additional info to update user profile
+CB_URI = "https://www.usgs.gov/faqs/what-was-pangea"  # Need to setup callbacks in PUC AuthN settings
 
 
 def main():
@@ -22,18 +23,40 @@ def main():
 
     try:
         print("Creating user...")
-        response = authn.user.create(
-            email=USER_EMAIL, authenticator=PASSWORD_INITIAL, id_provider=IDProvider.PASSWORD, profile=PROFILE_INITIAL
+        print("Start flow with signup and signin")
+        start_resp = authn.flow.start(
+            email=USER_EMAIL, flow_types=[m.FlowType.SIGNUP, m.FlowType.SIGNIN], cb_uri=CB_URI
         )
-        # Save user id for future use
-        user_id = response.result.id
-        print("User creation success. Result: ", response.result)
 
-        print("\n\nUser login...")
-        response = authn.user.login.password(email=USER_EMAIL, password=PASSWORD_INITIAL)
-        # Save user token to change password
-        user_token = response.result.active_token.token
-        print("User login success. Result: ", response.result)
+        print("Update flow with password")
+        authn.flow.update(
+            flow_id=start_resp.result.flow_id,
+            choice=m.FlowChoice.PASSWORD,
+            data=m.FlowUpdateDataPassword(password=PASSWORD_INITIAL),
+        )
+
+        print("Update flow with profile")
+        data = m.FlowUpdateDataProfile(profile=PROFILE_INITIAL)
+        response = authn.flow.update(flow_id=start_resp.result.flow_id, choice=m.FlowChoice.PROFILE, data=data)
+
+        print("Update flow with agreements if needed")
+        if response.result.flow_phase == "phase_agreements":
+            for flow_choice in response.result.flow_choices:
+                agreed = []
+                if flow_choice.choice == m.FlowChoice.AGREEMENTS.value:
+                    agreements = dict(**flow_choice.data["agreements"])
+                    for k, v in agreements.items():
+                        agreed.append(v["id"])
+
+            data = m.FlowUpdateDataAgreements(agreed=agreed)
+            authn.flow.update(flow_id=start_resp.result.flow_id, choice=m.FlowChoice.AGREEMENTS, data=data)
+
+        print("Complete signup/signin flow")
+        complete_resp = authn.flow.complete(flow_id=start_resp.result.flow_id)
+        print("Update flow is completed")
+
+        user_token = complete_resp.result.active_token.token
+        print("User login success. Result: ", complete_resp.result)
 
         print("\n\nUser password change...")
         response = authn.client.password.change(
@@ -45,6 +68,7 @@ def main():
         response = authn.user.profile.get(email=USER_EMAIL)
         print("User get profile success. Result: ", response.result)
         print("Current profile: ", response.result.profile)
+        user_id = response.result.id
 
         print("\n\nGetting user profile by id...")
         response = authn.user.profile.get(id=user_id)
@@ -56,7 +80,7 @@ def main():
         print("Update success. Current profile: ", response.result.profile)
 
         print("\n\nUpdating user info...")
-        response = authn.user.update(email=USER_EMAIL, disabled=False, require_mfa=False)
+        response = authn.user.update(email=USER_EMAIL, disabled=False)
         print("Update user info success. Result: ", response.result)
 
         print("\n\nListing users...")
@@ -67,6 +91,11 @@ def main():
         print("\n\nDeleting user...")
         response = authn.user.delete(email=USER_EMAIL)
         print("Delete user success")
+
+        print("\n\nListing users...")
+        response = authn.user.list()
+        print(f"List users success. {response.result.count} users on this project")
+        print(f"List users success. {len(response.result.users)} users listed")
 
     except pe.PangeaAPIException as e:
         print(f"AuthN Request Error: {e.response.summary}")
