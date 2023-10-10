@@ -44,8 +44,9 @@ def main():
             for flow_choice in response.result.flow_choices:
                 agreed = []
                 if flow_choice.choice == m.FlowChoice.AGREEMENTS.value:
+                    # Iterate over all the agreements and add its id too agreed list in order to accept them
                     agreements = dict(**flow_choice.data["agreements"])
-                    for k, v in agreements.items():
+                    for _, v in agreements.items():
                         agreed.append(v["id"])
 
             data = m.FlowUpdateDataAgreements(agreed=agreed)
