@@ -119,24 +119,29 @@ class UserListOrderBy(enum.Enum):
         return self.value
 
 
+class User(PangeaResponseResult):
+    id: str
+    email: str
+    profile: Profile
+    verified: bool
+    disabled: bool
+    accepted_eula_id: Optional[str] = None
+    accepted_privacy_policy_id: Optional[str] = None
+    last_login_at: Optional[str] = None
+    created_at: str
+    login_count: int
+    last_login_ip: Optional[str] = None
+    last_login_city: Optional[str] = None
+    last_login_country: Optional[str] = None
+
+
 class UserCreateRequest(APIRequestModel):
     email: str
     profile: Profile
 
 
-class UserCreateResult(PangeaResponseResult):
-    id: str
-    email: str
-    profile: Profile
-    scopes: Optional[Scopes] = None
-    id_providers: Optional[List[str]] = None
-    mfa_providers: Optional[List[str]] = None
-    require_mfa: Optional[bool] = None
-    verified: bool
-    disable: bool
-    accepted_eula_id: Optional[str] = None
-    last_login_at: Optional[str] = None
-    created_at: str
+class UserCreateResult(User):
+    pass
 
 
 class UserDeleteRequest(APIRequestModel):
@@ -194,18 +199,6 @@ class UserListRequest(APIRequestModel):
     order: Optional[ItemOrder] = None
     order_by: Optional[UserListOrderBy] = None
     size: Optional[int] = None
-
-
-class User(PangeaResponseResult):
-    id: str
-    email: str
-    profile: Profile
-    verified: bool
-    disabled: bool
-    accepted_eula_id: Optional[str]
-    accepted_privacy_policy_id: Optional[str]
-    last_login_at: Optional[str] = None
-    created_at: str
 
 
 class UserListResult(PangeaResponseResult):
@@ -341,8 +334,6 @@ class UserProfileUpdateResult(PangeaResponseResult):
     email: str
     profile: Profile
     id_providers: Optional[List[str]] = None
-    mfa_providers: List[str] = []
-    require_mfa: Optional[bool] = None
     verified: bool
     last_login_at: Optional[str] = None
     disabled: Optional[bool] = None
