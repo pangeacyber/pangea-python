@@ -227,6 +227,100 @@ class LoginToken(PangeaResponseResult):
     created_at: str
 
 
+class UserInviteRequest(APIRequestModel):
+    inviter: str
+    email: str
+    callback: str
+    state: str
+
+
+class UserInvite(APIResponseModel):
+    id: str
+    inviter: str
+    invite_org: str
+    email: str
+    callback: str
+    state: str
+    require_mfa: bool
+    created_at: str
+    expire: str
+
+
+class UserInviteResult(PangeaResponseResult, UserInvite):
+    pass
+
+
+class UserInviterOrderBy(enum.Enum):
+    ID = "id"
+    CREATED_AT = "created_at"
+    EMAIL = "email"
+    TYPE = "type"
+    EXPIRE = "expire"
+    CALLBACK = "callback"
+    STATE = "state"
+    INVITER = "inviter"
+    INVITE_ORG = "invite_org"
+
+    def __str__(self):
+        return self.value
+
+    def __repr__(self):
+        return self.value
+
+
+class UserInviteListFilter(APIRequestModel):
+    callback: Optional[str] = None
+    callback__contains: Optional[List[str]] = None
+    callback__in: Optional[List[str]] = None
+    created_at: Optional[str] = None
+    created_at__gt: Optional[str] = None
+    created_at__gte: Optional[str] = None
+    created_at__lt: Optional[str] = None
+    created_at__lte: Optional[str] = None
+    email: Optional[str] = None
+    email__contains: Optional[List[str]] = None
+    email__in: Optional[List[str]] = None
+    expire: Optional[str] = None
+    expire__gt: Optional[str] = None
+    expire__gte: Optional[str] = None
+    expire__lt: Optional[str] = None
+    expire__lte: Optional[str] = None
+    id: Optional[str] = None
+    id__contains: Optional[List[str]] = None
+    id__in: Optional[List[str]] = None
+    invite_org: Optional[str] = None
+    invite_org__contains: Optional[List[str]] = None
+    invite_org__in: Optional[List[str]] = None
+    inviter: Optional[str] = None
+    inviter__contains: Optional[List[str]] = None
+    inviter__in: Optional[List[str]] = None
+    is_signup: Optional[bool] = None
+    require_mfa: Optional[bool] = None
+    state: Optional[str] = None
+    state__contains: Optional[List[str]] = None
+    state__in: Optional[List[str]] = None
+
+
+class UserInviteListRequest(APIRequestModel):
+    filter: Optional[Union[Dict, UserInviteListFilter]] = None
+    last: Optional[str] = None
+    order: Optional[ItemOrder] = None
+    order_by: Optional[UserInviterOrderBy] = None
+    size: Optional[int] = None
+
+
+class UserInviteListResult(PangeaResponseResult):
+    invites: List[UserInvite]
+
+
+class UserInviteDeleteRequest(APIRequestModel):
+    id: str
+
+
+class UserInviteDeleteResult(PangeaResponseResult):
+    pass
+
+
 class UserProfileGetRequest(APIRequestModel):
     id: Optional[str] = None
     email: Optional[str] = None
@@ -280,7 +374,7 @@ class ClientJWKSResult(PangeaResponseResult):
 
 class UserAuthenticatorsDeleteRequest(APIRequestModel):
     user_id: str
-    mfa_provider: MFAProvider
+    authenticator_id: str
 
 
 class UserAuthenticatorsDeleteResult(PangeaResponseResult):
@@ -314,7 +408,7 @@ class FlowCompleteResult(PangeaResponseResult):
     active_token: LoginToken
 
 
-class FlowChoices(APIResponseModel):
+class FlowChoiceItem(APIResponseModel):
     choice: str
     data: Dict = {}
 
@@ -322,10 +416,10 @@ class FlowChoices(APIResponseModel):
 class CommonFlowResult(PangeaResponseResult):
     flow_id: str
     flow_type: List[str] = []
-    email: str
+    email: Optional[str] = None
     disclaimer: Optional[str] = None
     flow_phase: str
-    flow_choices: List[FlowChoices] = []
+    flow_choices: List[FlowChoiceItem] = []
 
 
 class FlowChoice(enum.Enum):
@@ -333,7 +427,6 @@ class FlowChoice(enum.Enum):
     CAPTCHA = "captcha"
     EMAIL_OTP = "email_otp"
     MAGICLINK = "magiclink"
-    PASSKEY = "passkey"
     PASSWORD = "password"
     PROFILE = "profile"
     PROVISIONAL_ENROLLMENT = "provisional_enrollment"
@@ -397,11 +490,6 @@ class FlowUpdateDataMagiclink(APIRequestModel):
     code: str
 
 
-class FlowUpdateDataPasskey(APIRequestModel):
-    # FIXME: is empty?
-    pass
-
-
 class FlowUpdateDataPassword(APIRequestModel):
     password: str
 
@@ -416,7 +504,6 @@ class FlowUpdateDataProvisionalEnrollment(APIRequestModel):
 
 
 class FlowUpdateDataResetPassword(APIRequestModel):
-    # FIXME: review
     state: str
     code: str
 
@@ -453,7 +540,6 @@ FlowUpdateData = Union[
     FlowUpdateDataCaptcha,
     FlowUpdateDataEmailOTP,
     FlowUpdateDataMagiclink,
-    FlowUpdateDataPasskey,
     FlowUpdateDataPassword,
     FlowUpdateDataProfile,
     FlowUpdateDataProvisionalEnrollment,

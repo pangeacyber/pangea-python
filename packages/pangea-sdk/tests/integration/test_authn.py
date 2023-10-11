@@ -19,6 +19,8 @@ PASSWORD_OLD = "My1s+Password"
 PASSWORD_NEW = "My1s+Password_new"
 PROFILE_OLD = {"first_name": "Name", "last_name": "Last"}
 PROFILE_NEW = {"first_name": "NameUpdate"}
+EMAIL_INVITE_DELETE = f"user.email+invite_del{TIME}@pangea.cloud"
+EMAIL_INVITE_KEEP = f"user.email+invite_keep{TIME}@pangea.cloud"
 USER_ID = None  # Will be set once user is created
 CB_URI = "https://www.usgs.gov/faqs/what-was-pangea"
 
@@ -36,8 +38,8 @@ class TestAuthN(unittest.TestCase):
 
     def test_authn_a1_user_create_with_password(self):
         try:
-            response = self.create_n_login(EMAIL_TEST, PASSWORD_OLD)
-            response = self.create_n_login(EMAIL_DELETE, PASSWORD_OLD)
+            self.create_n_login(EMAIL_TEST, PASSWORD_OLD)
+            self.create_n_login(EMAIL_DELETE, PASSWORD_OLD)
         except pexc.PangeaAPIException as e:
             print(e)
             self.assertTrue(False)
@@ -47,28 +49,50 @@ class TestAuthN(unittest.TestCase):
         self.assertEqual(response.status, "Success")
         self.assertIsNone(response.result)
 
-    def create_n_login(self, email, password) -> PangeaResponse[m.FlowCompleteResult]:
-        start_resp = self.authn.flow.start(
-            email=email, flow_types=[m.FlowType.SIGNUP, m.FlowType.SIGNIN], cb_uri=CB_URI
-        )
-        self.authn.flow.update(
-            flow_id=start_resp.result.flow_id,
+    def flow_handle_password_phase(self, flow_id, password):
+        return self.authn.flow.update(
+            flow_id=flow_id,
             choice=m.FlowChoice.PASSWORD,
             data=m.FlowUpdateDataPassword(password=password),
         )
-        data = m.FlowUpdateDataProfile(profile=PROFILE_OLD)
-        response = self.authn.flow.update(flow_id=start_resp.result.flow_id, choice=m.FlowChoice.PROFILE, data=data)
-        if response.result.flow_phase == "phase_agreements":
-            for flow_choice in response.result.flow_choices:
-                agreed = []
-                if flow_choice.choice == m.FlowChoice.AGREEMENTS.value:
-                    agreements = dict(**flow_choice.data["agreements"])
-                    for k, v in agreements.items():
-                        agreed.append(v["id"])
 
-                data = m.FlowUpdateDataAgreements(agreed=agreed)
-                self.authn.flow.update(flow_id=start_resp.result.flow_id, choice=m.FlowChoice.AGREEMENTS, data=data)
-        return self.authn.flow.complete(flow_id=start_resp.result.flow_id)
+    def flow_handle_profile_phase(self, flow_id):
+        data = m.FlowUpdateDataProfile(profile=PROFILE_OLD)
+        return self.authn.flow.update(flow_id=flow_id, choice=m.FlowChoice.PROFILE, data=data)
+
+    def flow_handle_agreements_phase(self, flow_id, response):
+        for flow_choice in response.result.flow_choices:
+            agreed = []
+            if flow_choice.choice == m.FlowChoice.AGREEMENTS.value:
+                agreements = dict(**flow_choice.data["agreements"])
+                for _, v in agreements.items():
+                    agreed.append(v["id"])
+
+        data = m.FlowUpdateDataAgreements(agreed=agreed)
+        return self.authn.flow.update(flow_id=flow_id, choice=m.FlowChoice.AGREEMENTS, data=data)
+
+    def choice_is_available(self, response, choice):
+        for c in response.result.flow_choices:
+            if c.choice == choice:
+                return True
+        return False
+
+    def create_n_login(self, email, password) -> PangeaResponse[m.FlowCompleteResult]:
+        response = self.authn.flow.start(email=email, flow_types=[m.FlowType.SIGNUP, m.FlowType.SIGNIN], cb_uri=CB_URI)
+        flow_id = response.result.flow_id
+
+        while response.result.flow_phase != "phase_completed":
+            if self.choice_is_available(response, m.FlowChoice.PASSWORD.value):
+                response = self.flow_handle_password_phase(flow_id=flow_id, password=password)
+            elif self.choice_is_available(response, m.FlowChoice.PROFILE.value):
+                response = self.flow_handle_profile_phase(flow_id=flow_id)
+            elif self.choice_is_available(response, m.FlowChoice.AGREEMENTS.value):
+                response = self.flow_handle_agreements_phase(flow_id=flow_id, response=response)
+            else:
+                print(f"Phase {response.result.flow_choices} not handled")
+                break
+
+        return self.authn.flow.complete(flow_id=flow_id)
 
     def login(self, email, password):
         start_resp = self.authn.flow.start(email=email, flow_types=[m.FlowType.SIGNIN], cb_uri=CB_URI)
@@ -133,6 +157,37 @@ class TestAuthN(unittest.TestCase):
         self.assertEqual(USER_ID, response.result.id)
         self.assertEqual(EMAIL_TEST, response.result.email)
         self.assertEqual(False, response.result.disabled)
+
+    def test_authn_b1_user_invite(self):
+        # This could (should) fail if test_authn_user_create_with_password failed
+        response = self.authn.user.invite(
+            inviter=EMAIL_TEST,
+            email=EMAIL_INVITE_KEEP,
+            callback=CB_URI,
+            state="whatshoulditbe",
+        )
+        self.assertEqual(response.status, "Success")
+        self.assertIsNotNone(response.result)
+
+        response = self.authn.user.invite(
+            inviter=EMAIL_TEST,
+            email=EMAIL_INVITE_DELETE,
+            callback=CB_URI,
+            state="whatshoulditbe",
+        )
+        self.assertEqual(response.status, "Success")
+        self.assertIsNotNone(response.result)
+
+        # Delete invite
+        response_delete = self.authn.user.invites.delete(response.result.id)
+        self.assertEqual(response.status, "Success")
+        self.assertIsNone(response_delete.result)
+
+    def test_authn_b2_user_invite_list(self):
+        response = self.authn.user.invites.list()
+        self.assertEqual(response.status, "Success")
+        self.assertIsNotNone(response.result)
+        self.assertGreater(len(response.result.invites), 0)
 
     def test_authn_c1_login_n_some_validations(self):
         # This could (should) fail if test_authn_a1_user_create_with_password failed

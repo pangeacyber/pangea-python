@@ -15,6 +15,41 @@ PROFILE_UPDATE = {"first_name": "NameUpdate"}  # Additional info to update user 
 CB_URI = "https://www.usgs.gov/faqs/what-was-pangea"  # Need to setup callbacks in PUC AuthN settings
 
 
+def flow_handle_password_phase(authn, flow_id, password):
+    print("Update flow with password")
+    return authn.flow.update(
+        flow_id=flow_id,
+        choice=m.FlowChoice.PASSWORD,
+        data=m.FlowUpdateDataPassword(password=password),
+    )
+
+
+def flow_handle_profile_phase(authn, flow_id):
+    print("Update flow with profile")
+    data = m.FlowUpdateDataProfile(profile=PROFILE_INITIAL)
+    return authn.flow.update(flow_id=flow_id, choice=m.FlowChoice.PROFILE, data=data)
+
+
+def flow_handle_agreements_phase(authn, flow_id, response):
+    print("Update flow with agreements if needed")
+    for flow_choice in response.result.flow_choices:
+        agreed = []
+        if flow_choice.choice == m.FlowChoice.AGREEMENTS.value:
+            agreements = dict(**flow_choice.data["agreements"])
+            for _, v in agreements.items():
+                agreed.append(v["id"])
+
+    data = m.FlowUpdateDataAgreements(agreed=agreed)
+    return authn.flow.update(flow_id=flow_id, choice=m.FlowChoice.AGREEMENTS, data=data)
+
+
+def choice_is_available(response, choice):
+    for c in response.result.flow_choices:
+        if c.choice == choice:
+            return True
+    return False
+
+
 def main():
     token = os.getenv("PANGEA_AUTHN_TOKEN")
     domain = os.getenv("PANGEA_DOMAIN")
@@ -24,36 +59,22 @@ def main():
     try:
         print("Creating user...")
         print("Start flow with signup and signin")
-        start_resp = authn.flow.start(
-            email=USER_EMAIL, flow_types=[m.FlowType.SIGNUP, m.FlowType.SIGNIN], cb_uri=CB_URI
-        )
+        response = authn.flow.start(email=USER_EMAIL, flow_types=[m.FlowType.SIGNUP, m.FlowType.SIGNIN], cb_uri=CB_URI)
+        flow_id = response.result.flow_id
 
-        print("Update flow with password")
-        authn.flow.update(
-            flow_id=start_resp.result.flow_id,
-            choice=m.FlowChoice.PASSWORD,
-            data=m.FlowUpdateDataPassword(password=PASSWORD_INITIAL),
-        )
-
-        print("Update flow with profile")
-        data = m.FlowUpdateDataProfile(profile=PROFILE_INITIAL)
-        response = authn.flow.update(flow_id=start_resp.result.flow_id, choice=m.FlowChoice.PROFILE, data=data)
-
-        print("Update flow with agreements if needed")
-        if response.result.flow_phase == "phase_agreements":
-            for flow_choice in response.result.flow_choices:
-                agreed = []
-                if flow_choice.choice == m.FlowChoice.AGREEMENTS.value:
-                    # Iterate over all the agreements and add its id too agreed list in order to accept them
-                    agreements = dict(**flow_choice.data["agreements"])
-                    for _, v in agreements.items():
-                        agreed.append(v["id"])
-
-            data = m.FlowUpdateDataAgreements(agreed=agreed)
-            authn.flow.update(flow_id=start_resp.result.flow_id, choice=m.FlowChoice.AGREEMENTS, data=data)
+        while response.result.flow_phase != "phase_completed":
+            if choice_is_available(response, m.FlowChoice.PASSWORD.value):
+                response = flow_handle_password_phase(authn, flow_id=flow_id, password=PASSWORD_INITIAL)
+            elif choice_is_available(response, m.FlowChoice.PROFILE.value):
+                response = flow_handle_profile_phase(authn, flow_id=flow_id)
+            elif choice_is_available(response, m.FlowChoice.AGREEMENTS.value):
+                response = flow_handle_agreements_phase(authn, flow_id=flow_id, response=response)
+            else:
+                print(f"Phase {response.result.flow_choices} not handled")
+                break
 
         print("Complete signup/signin flow")
-        complete_resp = authn.flow.complete(flow_id=start_resp.result.flow_id)
+        complete_resp = authn.flow.complete(flow_id=flow_id)
         print("Update flow is completed")
 
         user_token = complete_resp.result.active_token.token

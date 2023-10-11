@@ -418,6 +418,7 @@ class AuthN(ServiceBase):
             super().__init__(token, config, logger_name=logger_name)
             self.profile = AuthN.User.Profile(token, config, logger_name=logger_name)
             self.authenticators = AuthN.User.Authenticators(token, config, logger_name=logger_name)
+            self.invites = AuthN.User.Invites(token, config, logger_name=logger_name)
 
         def create(
             self,
@@ -433,7 +434,7 @@ class AuthN(ServiceBase):
 
             Args:
                 email (str): An email address
-                profile (m.Profile, optional): A user profile as a collection of string properties
+                profile (m.Profile): A user profile as a collection of string properties
 
             Returns:
                 A PangeaResponse with a user and its information in the response.result field.
@@ -472,6 +473,47 @@ class AuthN(ServiceBase):
             """
             input = m.UserDeleteRequest(email=email, id=id)
             return self.request.post("v2/user/delete", m.UserDeleteResult, data=input.dict(exclude_none=True))
+
+        def invite(
+            self,
+            inviter: str,
+            email: str,
+            callback: str,
+            state: str,
+        ) -> PangeaResponse[m.UserInviteResult]:
+            """
+            Invite User
+
+            Send an invitation to a user.
+
+            OperationId: authn_post_v1_user_invite
+
+            Args:
+                inviter (str): An email address
+                email (str): An email address
+                callback (str): A login callback URI
+                state (str): State tracking string for login callbacks
+
+            Returns:
+                A PangeaResponse with a pending user invitation in the response.result field.
+                    Available response fields can be found in our
+                    [API Documentation](https://pangea.cloud/docs/api/authn#invite-user).
+
+            Examples:
+                response = authn.user.invite(
+                    inviter="admin@email.com",
+                    email="joe.user@email.com",
+                    callback="/callback",
+                    state="pcb_zurr3lkcwdp5keq73htsfpcii5k4zgm7"
+                )
+            """
+            input = m.UserInviteRequest(
+                inviter=inviter,
+                email=email,
+                callback=callback,
+                state=state,
+            )
+            return self.request.post("v2/user/invite", m.UserInviteResult, data=input.dict(exclude_none=True))
 
         def update(
             self,
@@ -550,6 +592,76 @@ class AuthN(ServiceBase):
             )
             return self.request.post("v2/user/list", m.UserListResult, data=input.dict(exclude_none=True))
 
+        class Invites(ServiceBase):
+            service_name = SERVICE_NAME
+
+            def __init__(
+                self,
+                token,
+                config=None,
+                logger_name="pangea",
+            ):
+                super().__init__(token, config, logger_name=logger_name)
+
+            def list(
+                self,
+                filter: Optional[Union[Dict, m.UserInviteListFilter]] = None,
+                last: Optional[str] = None,
+                order: Optional[m.ItemOrder] = None,
+                order_by: Optional[m.UserInviterOrderBy] = None,
+                size: Optional[int] = None,
+            ) -> PangeaResponse[m.UserInviteListResult]:
+                """
+                List Invites
+
+                Look up active invites for the userpool.
+
+                OperationId: authn_post_v1_user_invite_list
+
+                Args:
+                    filter (dict, optional):
+                    last (str, optional): Reflected value from a previous response to obtain the next page of results.
+                    order (m.ItemOrder, optional): Order results asc(ending) or desc(ending).
+                    order_by (m.UserInviterOrderBy, optional): Which field to order results by.
+                    size (int, optional): Maximum results to include in the response. Minimum: 1.
+
+                Returns:
+                    A PangeaResponse with a list of pending user invitations in the response.result field.
+                        Available response fields can be found in our
+                        [API Documentation](https://pangea.cloud/docs/api/authn#list-invites).
+
+                Examples:
+                    response = authn.user.invites.list()
+                """
+                input = m.UserInviteListRequest(filter=filter, last=last, order=order, order_by=order_by, size=size)
+                return self.request.post(
+                    "v2/user/invite/list", m.UserInviteListResult, data=input.dict(exclude_none=True)
+                )
+
+            def delete(self, id: str) -> PangeaResponse[m.UserInviteDeleteResult]:
+                """
+                Delete Invite
+
+                Delete a user invitation.
+
+                OperationId: authn_post_v1_user_invite_delete
+
+                Args:
+                    id (str): A one-time ticket
+
+                Returns:
+                    A PangeaResponse with an empty object in the response.result field.
+
+                Examples:
+                    authn.user.invites.delete(
+                        id="pmc_wuk7tvtpswyjtlsx52b7yyi2l7zotv4a",
+                    )
+                """
+                input = m.UserInviteDeleteRequest(id=id)
+                return self.request.post(
+                    "v2/user/invite/delete", m.UserInviteDeleteResult, data=input.dict(exclude_none=True)
+                )
+
         class Authenticators(ServiceBase):
             service_name = SERVICE_NAME
 
@@ -561,13 +673,11 @@ class AuthN(ServiceBase):
             ):
                 super().__init__(token, config, logger_name=logger_name)
 
-            def delete(
-                self, user_id: str, mfa_provider: m.MFAProvider
-            ) -> PangeaResponse[m.UserAuthenticatorsDeleteResult]:
+            def delete(self, user_id: str, authenticator_id: str) -> PangeaResponse[m.UserAuthenticatorsDeleteResult]:
                 """
                 TODO: Docs
                 """
-                input = m.UserAuthenticatorsDeleteRequest(user_id=user_id, mfa_provider=mfa_provider)
+                input = m.UserAuthenticatorsDeleteRequest(user_id=user_id, authenticator_id=authenticator_id)
                 return self.request.post(
                     "v2/user/authenticators/delete",
                     m.UserAuthenticatorsDeleteResult,
