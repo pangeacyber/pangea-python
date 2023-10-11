@@ -373,7 +373,8 @@ class ClientJWKSResult(PangeaResponseResult):
 
 
 class UserAuthenticatorsDeleteRequest(APIRequestModel):
-    user_id: str
+    id: Optional[str] = None
+    email: Optional[str] = None
     authenticator_id: str
 
 

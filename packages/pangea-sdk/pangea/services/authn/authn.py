@@ -673,11 +673,13 @@ class AuthN(ServiceBase):
             ):
                 super().__init__(token, config, logger_name=logger_name)
 
-            def delete(self, user_id: str, authenticator_id: str) -> PangeaResponse[m.UserAuthenticatorsDeleteResult]:
+            def delete(
+                self, authenticator_id: str, id: Optional[str] = None, email: Optional[str] = None
+            ) -> PangeaResponse[m.UserAuthenticatorsDeleteResult]:
                 """
                 TODO: Docs
                 """
-                input = m.UserAuthenticatorsDeleteRequest(user_id=user_id, authenticator_id=authenticator_id)
+                input = m.UserAuthenticatorsDeleteRequest(authenticator_id=authenticator_id, email=email, id=id)
                 return self.request.post(
                     "v2/user/authenticators/delete",
                     m.UserAuthenticatorsDeleteResult,
