@@ -329,15 +329,8 @@ class UserProfileUpdateRequest(APIRequestModel):
     email: Optional[str] = None
 
 
-class UserProfileUpdateResult(PangeaResponseResult):
-    id: str
-    email: str
-    profile: Profile
-    id_providers: Optional[List[str]] = None
-    verified: bool
-    last_login_at: Optional[str] = None
-    disabled: Optional[bool] = None
-    created_at: str
+class UserProfileUpdateResult(User):
+    pass
 
 
 class UserUpdateRequest(APIRequestModel):
