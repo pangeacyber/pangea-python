@@ -22,7 +22,7 @@ PROFILE_NEW = {"first_name": "NameUpdate"}
 EMAIL_INVITE_DELETE = f"user.email+invite_del{TIME}@pangea.cloud"
 EMAIL_INVITE_KEEP = f"user.email+invite_keep{TIME}@pangea.cloud"
 USER_ID = None  # Will be set once user is created
-CB_URI = "https://www.usgs.gov/faqs/what-was-pangea"
+CB_URI = "https://someurl.com/callbacklink"
 
 # tests that should be run in order are named with <letter><number>.
 # Letter to make tests groups and number to order them inside that group
