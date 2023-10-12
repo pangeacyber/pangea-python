@@ -65,7 +65,7 @@ class AuthN(ServiceBase):
 
             Invalidate a session by session ID.
 
-            OperationId: authn_post_v1_session_invalidate
+            OperationId: authn_post_v2_session_invalidate
 
             Args:
                 session_id (str): An ID for a session
@@ -96,7 +96,7 @@ class AuthN(ServiceBase):
 
             List sessions.
 
-            OperationId: authn_post_v1_session_list
+            OperationId: authn_post_v2_session_list
 
             Args:
                 filter (dict, optional):
@@ -108,7 +108,7 @@ class AuthN(ServiceBase):
             Returns:
                 A PangeaResponse with a list of sessions in the response.result field.
                     Available response fields can be found in our
-                    [API Documentation](https://pangea.cloud/docs/api/authn#list-session-service-token).
+                    [API Documentation](https://pangea.cloud/docs/api/authn/session#/v2/session/list).
 
             Examples:
                 response = authn.session.list()
@@ -122,7 +122,7 @@ class AuthN(ServiceBase):
 
             Invalidate all sessions belonging to a user.
 
-            OperationId: authn_post_v1_session_logout
+            OperationId: authn_post_v2_session_logout
 
             Args:
                 user_id (str): The id of a user.
@@ -158,15 +158,15 @@ class AuthN(ServiceBase):
 
             Retrieve the logged in user's token and information.
 
-            OperationId: authn_post_v1_client_userinfo
+            OperationId: authn_post_v2_client_userinfo
 
             Args:
-                code (str): A one-time ticket
+                code (str): Login code returned by the login callback
 
             Returns:
                 A PangeaResponse with credentials for a login session in the response.result field.
                     Available response fields can be found in our
-                    [API Documentation](https://pangea.cloud/docs/api/authn#get-user-client-token).
+                    [API Documentation](https://pangea.cloud/docs/api/authn/user#/v2/client/userinfo).
 
             Examples:
                 response = authn.client.userinfo(
@@ -184,12 +184,12 @@ class AuthN(ServiceBase):
 
             Get JWT verification keys.
 
-            OperationId: authn_post_v1_client_jwks
+            OperationId: authn_post_v2_client_jwks
 
             Returns:
                 A PangeaResponse with jwt verification keys in the response.result field.
                     Available response fields can be found in our
-                    [API Documentation](https://pangea.cloud/docs/api/authn#get-jwt-verification-keys).
+                    [API Documentation](https://pangea.cloud/docs/api/authn/jwt#/v2/client/jwks).
 
             Examples:
                 response = authn.client.jwks()
@@ -213,7 +213,7 @@ class AuthN(ServiceBase):
 
                 Invalidate a session by session ID using a client token.
 
-                OperationId: authn_post_v1_client_session_invalidate
+                OperationId: authn_post_v2_client_session_invalidate
 
                 Args:
                     token (str): A user token value
@@ -247,7 +247,7 @@ class AuthN(ServiceBase):
 
                 List sessions using a client token.
 
-                OperationId: authn_post_v1_client_session_list
+                OperationId: authn_post_v2_client_session_list
 
                 Args:
                     token (str): A user token value
@@ -260,7 +260,7 @@ class AuthN(ServiceBase):
                 Returns:
                     A PangeaResponse with a list of sessions in the response.result field.
                         Available response fields can be found in our
-                        [API Documentation](https://pangea.cloud/docs/api/authn#list-sessions-client-token).
+                        [API Documentation](https://pangea.cloud/docs/api/authn/session#/v2/client/session/list).
 
                 Examples:
                     response = authn.client.session.list(
@@ -280,7 +280,7 @@ class AuthN(ServiceBase):
 
                 Log out the current user's session.
 
-                OperationId: authn_post_v1_client_session_logout
+                OperationId: authn_post_v2_client_session_logout
 
                 Args:
                     token (str): A user token value
@@ -306,7 +306,7 @@ class AuthN(ServiceBase):
 
                 Refresh a session token.
 
-                OperationId: authn_post_v1_client_session_refresh
+                OperationId: authn_post_v2_client_session_refresh
 
                 Args:
                     refresh_token (str): A refresh token value
@@ -315,7 +315,7 @@ class AuthN(ServiceBase):
                 Returns:
                     A PangeaResponse with credentials for a login session in the response.result field.
                         Available response fields can be found in our
-                        [API Documentation](https://pangea.cloud/docs/api/authn#refresh-a-session).
+                        [API Documentation](https://pangea.cloud/docs/api/authn/session#/v2/client/session/refresh).
 
                 Examples:
                     response = authn.client.session.refresh(
@@ -347,7 +347,7 @@ class AuthN(ServiceBase):
 
                 Change a user's password given the current password.
 
-                OperationId: authn_post_v1_client_password_change
+                OperationId: authn_post_v2_client_password_change
 
                 Args:
                     token (str): A user token value
@@ -386,7 +386,7 @@ class AuthN(ServiceBase):
 
                 Look up a token and return its contents.
 
-                OperationId: authn_post_v1_client_token_check
+                OperationId: authn_post_v2_client_token_check
 
                 Args:
                     token (str): A token value
@@ -394,7 +394,7 @@ class AuthN(ServiceBase):
                 Returns:
                     A PangeaResponse with a token and its information in the response.result field.
                         Available response fields can be found in our
-                        [API Documentation](https://pangea.cloud/docs/api/authn#check-a-token).
+                        [API Documentation](https://pangea.cloud/docs/api/authn/flow#/v2/client/token/check).
 
                 Examples:
                     response = authn.client.token_endpoints.check(
@@ -430,7 +430,7 @@ class AuthN(ServiceBase):
 
             Create a user.
 
-            OperationId: authn_post_v1_user_create
+            OperationId: authn_post_v2_user_create
 
             Args:
                 email (str): An email address
@@ -439,12 +439,15 @@ class AuthN(ServiceBase):
             Returns:
                 A PangeaResponse with a user and its information in the response.result field.
                     Available response fields can be found in our
-                    [API Documentation](https://pangea.cloud/docs/api/authn#create-user).
+                    [API Documentation](https://pangea.cloud/docs/api/authn/user#/v2/user/create).
 
             Examples:
                 response = authn.user.create(
                     email="joe.user@email.com",
-                    # FIXME:
+                    profile={
+                        "first_name": "Joe",
+                        "last_name": "User",
+                    }
                 )
             """
             input = m.UserCreateRequest(
@@ -459,7 +462,7 @@ class AuthN(ServiceBase):
 
             Delete a user.
 
-            OperationId: authn_post_v1_user_delete
+            OperationId: authn_post_v2_user_delete
 
             Args:
                 email (str, optional): An email address
@@ -486,7 +489,7 @@ class AuthN(ServiceBase):
 
             Send an invitation to a user.
 
-            OperationId: authn_post_v1_user_invite
+            OperationId: authn_post_v2_user_invite
 
             Args:
                 inviter (str): An email address
@@ -497,7 +500,7 @@ class AuthN(ServiceBase):
             Returns:
                 A PangeaResponse with a pending user invitation in the response.result field.
                     Available response fields can be found in our
-                    [API Documentation](https://pangea.cloud/docs/api/authn#invite-user).
+                    [API Documentation](https://pangea.cloud/docs/api/authn/invite#/v2/user/invite).
 
             Examples:
                 response = authn.user.invite(
@@ -526,7 +529,7 @@ class AuthN(ServiceBase):
 
             Update user's settings.
 
-            OperationId: authn_post_v1_user_update
+            OperationId: authn_post_v2_user_update
 
             Args:
                 disabled (bool): New disabled value.
@@ -537,7 +540,7 @@ class AuthN(ServiceBase):
             Returns:
                 A PangeaResponse with a user and its information in the response.result field.
                     Available response fields can be found in our
-                    [API Documentation](https://pangea.cloud/docs/api/authn#update-users-settings).
+                    [API Documentation](https://pangea.cloud/docs/api/authn/user#/v2/user/update).
 
             Examples:
                 response = authn.user.update(
@@ -566,7 +569,7 @@ class AuthN(ServiceBase):
 
             Look up users by scopes.
 
-            OperationId: authn_post_v1_user_list
+            OperationId: authn_post_v2_user_list
 
             Args:
                 filter (dict, optional):
@@ -578,7 +581,7 @@ class AuthN(ServiceBase):
             Returns:
                 A PangeaResponse with a list of users in the response.result field.
                     Available response fields can be found in our
-                    [API Documentation](https://pangea.cloud/docs/api/authn#list-users).
+                    [API Documentation](https://pangea.cloud/docs/api/authn/user#/v2/user/list).
 
             Examples:
                 response = authn.user.list()
@@ -616,7 +619,7 @@ class AuthN(ServiceBase):
 
                 Look up active invites for the userpool.
 
-                OperationId: authn_post_v1_user_invite_list
+                OperationId: authn_post_v2_user_invite_list
 
                 Args:
                     filter (dict, optional):
@@ -628,8 +631,7 @@ class AuthN(ServiceBase):
                 Returns:
                     A PangeaResponse with a list of pending user invitations in the response.result field.
                         Available response fields can be found in our
-                        [API Documentation](https://pangea.cloud/docs/api/authn#list-invites).
-
+                        [API Documentation](https://pangea.cloud/docs/api/authn/invite#/v2/user/invite/list).
                 Examples:
                     response = authn.user.invites.list()
                 """
@@ -644,7 +646,7 @@ class AuthN(ServiceBase):
 
                 Delete a user invitation.
 
-                OperationId: authn_post_v1_user_invite_delete
+                OperationId: authn_post_v2_user_invite_delete
 
                 Args:
                     id (str): A one-time ticket
@@ -677,7 +679,25 @@ class AuthN(ServiceBase):
                 self, authenticator_id: str, id: Optional[str] = None, email: Optional[str] = None
             ) -> PangeaResponse[m.UserAuthenticatorsDeleteResult]:
                 """
-                TODO: Docs
+                Delete user authenticator
+
+                Delete a user's authenticator.
+
+                OperationId: authn_post_v2_user_authenticators_delete
+
+                Args:
+                    authenticator_id (str): An ID for an authenticator
+                    id (str, optional): The identity of a user or a service
+                    email (str, optional): An email address
+
+                Returns:
+                    A PangeaResponse with an empty object in the response.result field.
+
+                Examples:
+                    authn.user.authenticators.delete(
+                        authenticator_id="pau_wuk7tvtpswyjtlsx52b7yyi2l7zotv4a",
+                        id="pui_xpkhwpnz2cmegsws737xbsqnmnuwtbm5",
+                    )
                 """
                 input = m.UserAuthenticatorsDeleteRequest(authenticator_id=authenticator_id, email=email, id=id)
                 return self.request.post(
@@ -690,7 +710,25 @@ class AuthN(ServiceBase):
                 self, email: Optional[str] = None, id: Optional[str] = None
             ) -> PangeaResponse[m.UserAuthenticatorsListResult]:
                 """
-                TODO: Docs
+                Get user authenticators
+
+                Get user's authenticators by identity or email.
+
+                OperationId: authn_post_v2_user_authenticators_list
+
+                Args:
+                    email (str, optional): An email address
+                    id (str, optional): The identity of a user or a service
+
+                Returns:
+                    A PangeaResponse with a list of authenticators in the response.result field.
+                        Available response fields can be found in our
+                        [API Documentation](https://pangea.cloud/docs/api/authn/user#/v2/user/authenticators/list).
+
+                Examples:
+                    response = authn.user.authenticators.list(
+                        id="pui_xpkhwpnz2cmegsws737xbsqnmnuwtbm5",
+                    )
                 """
                 input = m.UserAuthenticatorsListRequest(email=email, id=id)
                 return self.request.post(
@@ -716,7 +754,7 @@ class AuthN(ServiceBase):
 
                 Get user's information by identity or email.
 
-                OperationId: authn_post_v1_user_profile_get
+                OperationId: authn_post_v2_user_profile_get
 
                 Args:
                     id (str, optional): The identity of a user or a service
@@ -725,7 +763,7 @@ class AuthN(ServiceBase):
                 Returns:
                     A PangeaResponse with a user and its information in the response.result field.
                         Available response fields can be found in our
-                        [API Documentation](https://pangea.cloud/docs/api/authn#get-user).
+                        [API Documentation](https://pangea.cloud/docs/api/authn/user#/v2/user/profile/get).
 
                 Examples:
                     response = authn.user.profile.get(
@@ -748,7 +786,7 @@ class AuthN(ServiceBase):
 
                 Update user's information by identity or email.
 
-                OperationId: authn_post_v1_user_profile_update
+                OperationId: authn_post_v2_user_profile_update
 
                 Args:
                     profile (m.Profile): Updates to a user profile
@@ -758,7 +796,7 @@ class AuthN(ServiceBase):
                 Returns:
                     A PangeaResponse with a user and its information in the response.result field.
                         Available response fields can be found in our
-                        [API Documentation](https://pangea.cloud/docs/api/authn#update-user).
+                        [API Documentation](https://pangea.cloud/docs/api/authn/user#/v2/user/profile/update).
 
                 Examples:
                     response = authn.user.profile.update(
@@ -790,11 +828,11 @@ class AuthN(ServiceBase):
 
         def complete(self, flow_id: str) -> PangeaResponse[m.FlowCompleteResult]:
             """
-            Complete Sign-up/in
+            Complete sign-up/sign-in
 
-            Complete a login or signup flow.
+            Complete a login or sign-up flow.
 
-            OperationId: authn_post_v1_flow_complete
+            OperationId: authn_post_v2_flow_complete
 
             Args:
                 flow_id (str): An ID for a login or signup flow
@@ -802,7 +840,7 @@ class AuthN(ServiceBase):
             Returns:
                 A PangeaResponse with credentials for a login session in the response.result field.
                     Available response fields can be found in our
-                    [API Documentation](https://pangea.cloud/docs/api/authn#complete-sign-up-in).
+                    [API Documentation](https://pangea.cloud/docs/api/authn/flow#/v2/flow/complete).
 
             Examples:
                 response = authn.flow.complete(
@@ -828,11 +866,11 @@ class AuthN(ServiceBase):
             invitation: Optional[str] = None,
         ) -> PangeaResponse[m.FlowStartResult]:
             """
-            Start a sign-up/in
+            Start a sign-up/sign-in flow
 
             Start a new signup or signin flow.
 
-            OperationId: authn_post_v1_flow_start
+            OperationId: authn_post_v2_flow_start
 
             Args:
                 cb_uri (str, optional): A login callback URI
@@ -844,7 +882,7 @@ class AuthN(ServiceBase):
                 A PangeaResponse with information about next steps needed
                     to complete a flow in the response.result field.
                     Available response fields can be found in our
-                    [API Documentation](https://pangea.cloud/docs/api/authn#start-a-sign-up-in).
+                    [API Documentation](https://pangea.cloud/docs/api/authn/flow#/v2/flow/start).
 
             Examples:
                 response = authn.flow.start(
@@ -862,7 +900,33 @@ class AuthN(ServiceBase):
         def update(
             self, flow_id: str, choice: m.FlowChoice, data: m.FlowUpdateData = {}
         ) -> PangeaResponse[m.FlowUpdateResult]:
-            # TODO: docs
+            """
+            Update a sign-up/sign-in flow
+
+            Update a sign-up/sign-in flow.
+
+            OperationId: authn_post_v2_flow_update
+
+            Args:
+                flow_id (str): An ID for a login or signup flow
+                choice (m.FlowChoice): Flow choice
+                data (dict):
+
+            Returns:
+                A PangeaResponse with information about next steps needed
+                    to complete a flow in the response.result field.
+                    Available response fields can be found in our
+                    [API Documentation](https://pangea.cloud/docs/api/authn/flow#/v2/flow/update).
+
+            Examples:
+                response = authn.flow.update(
+                    flow_id="pfl_dxiqyuq7ndc5ycjwdgmguwuodizcaqhh",
+                    choice=FlowChoice.PASSWORD,
+                    data={
+                        "password": "someNewPasswordHere",
+                    },
+                )
+            """
 
             input = m.FlowUpdateRequest(flow_id=flow_id, choice=choice, data=data)
             return self.request.post("v2/flow/update", m.FlowUpdateResult, data=input.dict(exclude_none=True))
@@ -881,12 +945,59 @@ class AuthN(ServiceBase):
         def create(
             self, type: m.AgreementType, name: str, text: str, active: Optional[bool] = None
         ) -> PangeaResponse[m.AgreementCreateResult]:
+            """
+            Create an agreement
+
+            Create an agreement.
+
+            OperationId: authn_post_v2_agreements_create
+
+            Args:
+                type (m.AgreementType): An agreement type
+                name (str): A name to describe the agreement.
+                text (str): The body of the agreement.
+                active (bool, optional): A flag to that marks which of the agreements is currently active.
+
+            Returns:
+                A PangeaResponse with a EULA object in the response.result field.
+                    Available response fields can be found in our
+                    [API Documentation](https://pangea.cloud/docs/api/authn/agreements#/v2/agreements/create).
+
+            Examples:
+                response = authn.agreements.create(
+                    type=AgreementType.EULA,
+                    name="EULA_V1",
+                    text="You agree to behave yourself while logged in.",
+                )
+            """
+
             input = m.AgreementCreateRequest(type=type, name=name, text=text, active=active)
             return self.request.post(
                 "v2/agreements/create", m.AgreementCreateResult, data=input.dict(exclude_none=True)
             )
 
         def delete(self, type: m.AgreementType, id: str) -> PangeaResponse[m.AgreementDeleteResult]:
+            """
+            Delete an agreement
+
+            Delete an agreement.
+
+            OperationId: authn_post_v2_agreements_delete
+
+            Args:
+                type (m.AgreementType): An agreement type
+                id (str): An ID for an agreement
+
+            Returns:
+                A PangeaResponse with an empty object in the response.result field.
+
+            Examples:
+                authn.agreements.delete(
+                    type=AgreementType.EULA,
+                    id="peu_wuk7tvtpswyjtlsx52b7yyi2l7zotv4a",
+                )
+            """
+
             input = m.AgreementDeleteRequest(type=type, id=id)
             return self.request.post(
                 "v2/agreements/delete", m.AgreementDeleteResult, data=input.dict(exclude_none=True)
@@ -900,6 +1011,29 @@ class AuthN(ServiceBase):
             order_by: Optional[m.AgreementListOrderBy] = None,
             size: Optional[int] = None,
         ) -> PangeaResponse[m.AgreementListResult]:
+            """
+            List agreements
+
+            List agreements.
+
+            OperationId: authn_post_v2_agreements_list
+
+            Args:
+                filter (dict, optional):
+                last (str, optional): Reflected value from a previous response to obtain the next page of results.
+                order (str, optional): Order results asc(ending) or desc(ending).
+                order_by (str, optional): Which field to order results by.
+                size (int, optional): Maximum results to include in the response. Minimum: 1.
+
+            Returns:
+                A PangeaResponse with a list of EULA objects in the response.result field.
+                    Available response fields can be found in our
+                    [API Documentation](https://pangea.cloud/docs/api/authn/agreements#/v2/agreements/list).
+
+            Examples:
+                response = authn.agreements.list()
+            """
+
             input = m.AgreementListRequest(filter=filter, last=last, order=order, order_by=order_by, size=size)
             return self.request.post("v2/agreements/list", m.AgreementListResult, data=input.dict(exclude_none=True))
 
@@ -911,6 +1045,26 @@ class AuthN(ServiceBase):
             text: Optional[str] = None,
             active: Optional[bool] = None,
         ) -> PangeaResponse[m.AgreementUpdateResult]:
+            """
+            Update agreement
+
+            Update agreement.
+
+            OperationId: authn_post_v2_agreements_update
+
+            Args:
+                type (m.AgreementType): An agreement type
+                id (str): An ID for an agreement
+                name (str, optional): The name of the agreement.
+                text (str, optional): The body of the agreement.
+                active (bool, optional): A flag to that marks which of the agreements is currently active.
+
+            Returns:
+                A PangeaResponse with the updated EULA object in the response.result field.
+                    Available response fields can be found in our
+                    [API Documentation](https://pangea.cloud/docs/api/authn/agreements#/v2/agreements/update).
+            """
+
             input = m.AgreementUpdateRequest(type=type, id=id, name=name, text=text, active=active)
             return self.request.post(
                 "v2/agreements/update", m.AgreementUpdateResult, data=input.dict(exclude_none=True)
