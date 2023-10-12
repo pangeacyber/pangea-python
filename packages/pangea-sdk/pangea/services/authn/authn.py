@@ -853,7 +853,31 @@ class AuthN(ServiceBase):
         def restart(
             self, flow_id: str, choice: m.FlowChoice, data: m.FlowRestartData = {}
         ) -> PangeaResponse[m.FlowRestartResult]:
-            # TODO: docs
+            """
+            Restart a sign-up/sign-in flow
+
+            Restart a signup-up/in flow choice.
+
+            OperationId: authn_post_v2_flow_restart
+
+            Args:
+                flow_id (str): An ID for a login or signup flow
+                choice (m.FlowChoice): Flow choice
+                data (m.FlowRestartData):
+
+            Returns:
+                A PangeaResponse with information about next steps needed
+                    to complete a flow in the response.result field.
+                    Available response fields can be found in our
+                    [API Documentation](https://pangea.cloud/docs/api/authn/flow#/v2/flow/restart).
+
+            Examples:
+                response = authn.flow.restart(
+                    flow_id="pfl_dxiqyuq7ndc5ycjwdgmguwuodizcaqhh",
+                    choice=FlowChoice.PASSWORD,
+                    data: {},
+                )
+            """
 
             input = m.FlowRestartRequest(flow_id=flow_id, choice=choice, data=data)
             return self.request.post("v2/flow/restart", m.FlowRestartResult, data=input.dict(exclude_none=True))
