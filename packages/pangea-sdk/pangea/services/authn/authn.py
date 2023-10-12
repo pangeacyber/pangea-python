@@ -1063,6 +1063,14 @@ class AuthN(ServiceBase):
                 A PangeaResponse with the updated EULA object in the response.result field.
                     Available response fields can be found in our
                     [API Documentation](https://pangea.cloud/docs/api/authn/agreements#/v2/agreements/update).
+
+            Examples:
+                response = authn.agreements.update(
+                    type=AgreementType.EULA,
+                    id="peu_wuk7tvtpswyjtlsx52b7yyi2l7zotv4a",
+                    text="You agree to behave yourself while logged in. Don't be evil.",
+                    active=True,
+                )
             """
 
             input = m.AgreementUpdateRequest(type=type, id=id, name=name, text=text, active=active)
