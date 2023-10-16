@@ -261,24 +261,17 @@ def parse_and_flatten_authn():
     # manually parse authn docs for now because we don't
     # know how else to parse nested classes nicely
     authn_classes = [
-        ["authn.user", _parse_module(pangea.services.AuthN.User)],
-        ["authn.user.profile", _parse_module(pangea.services.AuthN.User.Profile)],
-        ["authn.user.invites", _parse_module(pangea.services.AuthN.User.Invites)],
-        ["authn.user.mfa", _parse_module(pangea.services.AuthN.User.MFA)],
-        ["authn.user.password", _parse_module(pangea.services.AuthN.User.Password)],
-        ["authn.user.login", _parse_module(pangea.services.AuthN.User.Login)],
         ["authn.session", _parse_module(pangea.services.AuthN.Session)],
-        ["authn.flow", _parse_module(pangea.services.AuthN.Flow)],
-        ["authn.flow.reset", _parse_module(pangea.services.AuthN.Flow.Reset)],
-        ["authn.flow.enroll", _parse_module(pangea.services.AuthN.Flow.Enroll)],
-        ["authn.flow.enroll.mfa", _parse_module(pangea.services.AuthN.Flow.Enroll.MFA)],
-        ["authn.flow.signup", _parse_module(pangea.services.AuthN.Flow.Signup)],
-        ["authn.flow.verify", _parse_module(pangea.services.AuthN.Flow.Verify)],
-        ["authn.flow.verify.mfa", _parse_module(pangea.services.AuthN.Flow.Verify.MFA)],
         ["authn.client", _parse_module(pangea.services.AuthN.Client)],
         ["authn.client.session", _parse_module(pangea.services.AuthN.Client.Session)],
         ["authn.client.password", _parse_module(pangea.services.AuthN.Client.Password)],
         ["authn.client.token_endpoints", _parse_module(pangea.services.AuthN.Client.Token)],
+        ["authn.user", _parse_module(pangea.services.AuthN.User)],
+        ["authn.user.profile", _parse_module(pangea.services.AuthN.User.Profile)],
+        ["authn.user.authenticators", _parse_module(pangea.services.AuthN.User.Authenticators)],
+        ["authn.user.invites", _parse_module(pangea.services.AuthN.User.Invites)],
+        ["authn.flow", _parse_module(pangea.services.AuthN.Flow)],
+        ["authn.agreements", _parse_module(pangea.services.AuthN.Agreements)],
     ]
 
     for authn_class in authn_classes:
