@@ -10,7 +10,7 @@ from pangea import PangeaConfig, PangeaResponse
 from pangea.services.authn.authn import AuthN
 from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
 
-TEST_ENVIRONMENT = TestEnvironment.DEVELOP
+TEST_ENVIRONMENT = TestEnvironment.LIVE
 
 TIME = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 EMAIL_TEST = f"user.email+test{TIME}@pangea.cloud"
