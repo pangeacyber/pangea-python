@@ -4,6 +4,7 @@
 import enum
 from typing import Dict, List, NewType, Optional, Union
 
+import pangea.services.intel as im
 from pangea.response import APIRequestModel, APIResponseModel, PangeaResponseResult
 from pangea.services.vault.models.common import JWK, JWKec, JWKrsa
 
@@ -30,7 +31,27 @@ class ClientTokenCheckRequest(APIRequestModel):
     token: str
 
 
-class ClientTokenCheckResult(PangeaResponseResult):
+class IPIntelligence(PangeaResponseResult):
+    is_bad: bool
+    is_vpn: bool
+    is_proxy: bool
+    reputation: im.IPReputationData
+    geolocation: im.IPGeolocateData
+
+
+class DomainIntelligence(PangeaResponseResult):
+    is_bad: bool
+    reputation: im.DomainReputationData
+
+
+class Intelligence(PangeaResponseResult):
+    embargo: bool
+    ip_intel: IPIntelligence
+    domain_intel: DomainIntelligence
+    user_intel: bool
+
+
+class SessionToken(APIResponseModel):
     id: str
     type: str
     life: int
@@ -40,6 +61,15 @@ class ClientTokenCheckResult(PangeaResponseResult):
     scopes: Optional[Scopes] = None
     profile: Profile
     created_at: str
+    intelligence: Optional[Intelligence] = None
+
+
+class LoginToken(SessionToken):
+    token: str
+
+
+class ClientTokenCheckResult(LoginToken):
+    pass
 
 
 class IDProvider(str, enum.Enum):
@@ -215,19 +245,6 @@ class UserListResult(PangeaResponseResult):
     users: List[User]
     last: Optional[str] = None
     count: int
-
-
-class LoginToken(PangeaResponseResult):
-    token: str
-    id: str
-    type: str
-    life: int
-    expire: str
-    identity: str
-    email: str
-    scopes: Optional[Scopes] = None
-    profile: Profile
-    created_at: str
 
 
 class UserInviteRequest(APIRequestModel):
@@ -594,18 +611,6 @@ class ClientSessionListRequest(APIRequestModel):
     order: Optional[ItemOrder] = None
     order_by: Optional[SessionListOrderBy] = None
     size: Optional[int] = None
-
-
-class SessionToken(APIResponseModel):
-    id: str
-    type: str
-    life: int
-    expire: str
-    identity: str
-    email: str
-    scopes: Optional[Scopes] = None
-    profile: Profile
-    created_at: str
 
 
 class SessionItem(APIResponseModel):
