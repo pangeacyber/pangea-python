@@ -119,6 +119,15 @@ class UserListOrderBy(enum.Enum):
         return self.value
 
 
+class Authenticator(APIResponseModel):
+    id: str
+    type: str
+    enable: bool
+    provider: Optional[str] = None
+    rpid: Optional[str] = None
+    phase: Optional[str] = None
+
+
 class User(PangeaResponseResult):
     id: str
     email: str
@@ -133,6 +142,7 @@ class User(PangeaResponseResult):
     last_login_ip: Optional[str] = None
     last_login_city: Optional[str] = None
     last_login_country: Optional[str] = None
+    authenticators: List[Authenticator] = []
 
 
 class UserCreateRequest(APIRequestModel):
@@ -369,15 +379,6 @@ class UserAuthenticatorsDeleteResult(PangeaResponseResult):
 class UserAuthenticatorsListRequest(APIRequestModel):
     email: Optional[str] = None
     id: Optional[str] = None
-
-
-class Authenticator(APIResponseModel):
-    id: str
-    type: str
-    enable: bool
-    provider: Optional[str] = None
-    rpid: Optional[str] = None
-    phase: Optional[str] = None
 
 
 class UserAuthenticatorsListResult(PangeaResponseResult):
