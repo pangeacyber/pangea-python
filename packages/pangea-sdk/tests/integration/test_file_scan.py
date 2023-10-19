@@ -1,12 +1,14 @@
+import logging
 import time
 import unittest
+from http.client import HTTPConnection
 
 import pangea.exceptions as pe
 from pangea import PangeaConfig
 from pangea.services import FileScan
 from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
 
-TEST_ENVIRONMENT = TestEnvironment.LIVE
+TEST_ENVIRONMENT = TestEnvironment.DEVELOP
 PDF_FILEPATH = "./tests/testdata/testfile.pdf"
 
 
@@ -14,8 +16,20 @@ def get_test_file():
     return open(PDF_FILEPATH, "rb")
 
 
+def debug_requests_on():
+    """Switches on logging of the requests module."""
+    HTTPConnection.debuglevel = 1
+
+    logging.basicConfig()
+    logging.getLogger().setLevel(logging.DEBUG)
+    requests_log = logging.getLogger("requests.packages.urllib3")
+    requests_log.setLevel(logging.DEBUG)
+    requests_log.propagate = True
+
+
 class TestFileScan(unittest.TestCase):
     def setUp(self):
+        # debug_requests_on()
         token = get_test_token(TEST_ENVIRONMENT)
         domain = get_test_domain(TEST_ENVIRONMENT)
         config = PangeaConfig(domain=domain, custom_user_agent="sdk-test", poll_result_timeout=120)

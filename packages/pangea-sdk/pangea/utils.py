@@ -1,5 +1,4 @@
 import base64
-import binascii
 import copy
 import datetime
 import io
@@ -7,6 +6,8 @@ import json
 from binascii import hexlify
 from collections import OrderedDict
 from hashlib import new, sha1, sha256, sha512
+
+from google_crc32c import Checksum as CRC32C
 
 
 def format_datetime(dt: datetime.datetime) -> str:
@@ -99,46 +100,22 @@ def get_prefix(hash: str, len: int = 5):
     return hash[0:len]
 
 
-def file_sha256_hex(file: io.BufferedReader) -> str:
-    """
-    Return file sha256 hash in hex format
-    """
-    if "b" not in file.mode:
-        raise AttributeError("File need to be open in binary mode")
-
-    sha256_hash = sha256()
-    file.seek(0)
-
-    # Read the file in chunks of 4096 bytes at a time
-    for byte_block in iter(lambda: file.read(4096), b""):
-        sha256_hash.update(byte_block)
-
-    file.seek(0)
-    return sha256_hash.hexdigest()
-
-
-def file_crc32c_b64(file: io.BufferedReader) -> str:
-    """
-    Return file CRC32C base 64 encoded
-    """
+def get_presigned_url_upload_params(file: io.BufferedReader):
     if "b" not in file.mode:
         raise AttributeError("File need to be open in binary mode")
 
     file.seek(0)  # restart reading
-    crc32_value = 0
+    crc = CRC32C()
+    size = 0
+    sha = sha256()
 
-    for line in file:
-        crc32_value = binascii.crc32(line, crc32_value)
+    while True:
+        chunk = file.read(1024 * 1024)
+        if not chunk:
+            break
+        crc.update(chunk)
+        sha.update(chunk)
+        size += len(chunk)
 
     file.seek(0)  # restart reading
-    return base64.b64encode(crc32_value & 0xFFFFFFFF).decode("ascii")
-
-
-def file_size(file: io.BufferedReader) -> int:
-    """
-    Return file size in bytes
-    """
-    file.read()
-    file_size_bytes = file.tell()
-    file.seek(0)
-    return file_size_bytes
+    return crc.hexdigest(), sha.hexdigest(), size, file

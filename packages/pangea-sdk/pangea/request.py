@@ -200,10 +200,16 @@ class PangeaRequest(PangeaRequestBase):
             url = self._url(endpoint)
 
         # Set config ID if available
-        if self.config_id and data.pop("config_id", None) is None:
+        if self.config_id and data.get("config_id", None) is None:
             data["config_id"] = self.config_id
 
-        requests_response = self._http_post(url, headers=self._headers(), data=data, files=files)
+        if files is not None and type(data) is dict and data.get("transfer_method", None) == "direct":
+            requests_response = self._post_presigned_url(endpoint, result_class=result_class, data=data, files=files)
+        else:
+            requests_response = self._http_post(
+                url, headers=self._headers(), data=data, files=files, multipart_post=True
+            )
+
         pangea_response = PangeaResponse(requests_response, result_class=result_class, json=requests_response.json())
         if poll_result:
             pangea_response = self._handle_queued_result(pangea_response)
@@ -216,31 +222,56 @@ class PangeaRequest(PangeaRequestBase):
         )
         return self._check_response(pangea_response)
 
+    def _http_post_process(
+        self, data: Union[str, Dict] = {}, files: Optional[List[Tuple]] = None, multipart_post: bool = True
+    ):
+        if files:
+            if multipart_post is True:
+                data_send = json.dumps(data, default=default_encoder) if isinstance(data, dict) else data
+                multi = [("request", (None, data_send, "application/json"))]
+                multi.extend(files)
+                files = multi
+                return None, files
+            else:
+                # Post to presigned url as form
+                data_send = []
+                for k, v in data.items():
+                    data_send.append((k, v))
+                # When posting to presigned url, file key should be 'file'
+                files = {
+                    "file": files[0][1],
+                }
+                return data_send, files
+        else:
+            data_send = json.dumps(data, default=default_encoder) if isinstance(data, dict) else data
+            return data_send, None
+
+        return data, files
+
     def _http_post(
-        self, url: str, headers: Dict = {}, data: Union[str, Dict] = {}, files: Optional[List[Tuple]] = None
+        self,
+        url: str,
+        headers: Dict = {},
+        data: Union[str, Dict] = {},
+        files: Optional[List[Tuple]] = None,
+        multipart_post: bool = True,
     ) -> requests.Response:
-        data_send = json.dumps(data, default=default_encoder) if isinstance(data, dict) else data
         self.logger.debug(
             json.dumps(
                 {"service": self.service, "action": "http_post", "url": url, "data": data}, default=default_encoder
             )
         )
 
-        if files:
-            multi = [("request", (None, data_send, "application/json"))]
-            multi.extend(files)
-            files = multi
-            data_send = None
+        data_send, files = self._http_post_process(data=data, files=files, multipart_post=multipart_post)
 
         return self.session.post(url, headers=headers, data=data_send, files=files)
 
-    def post_presigned_url(
+    def _post_presigned_url(
         self,
         endpoint: str,
         result_class: Type[PangeaResponseResult],
         data: Union[str, Dict] = {},
         files: Optional[List[Tuple]] = None,
-        poll_result: bool = True,
     ):
         if len(files) == 0:
             raise AttributeError("files attribute should have at least 1 file")
@@ -249,7 +280,6 @@ class PangeaRequest(PangeaRequestBase):
         try:
             # This should return 202 (AcceptedRequestException)
             resp = self.post(endpoint=endpoint, result_class=result_class, data=data, poll_result=False)
-            # If does not raise a 202 should raise a error here?
             raise pe.PresignedURLException("Should return 202", resp)
 
         except pe.AcceptedRequestException as e:
@@ -263,15 +293,11 @@ class PangeaRequest(PangeaRequestBase):
         presigned_url = result.accepted_status.upload_url
 
         # Send multipart request with file and upload_details as body
-        resp = self._http_post(url=presigned_url, data=data_to_presigned, files=[files[0]])
+        resp = self._http_post(url=presigned_url, data=data_to_presigned, files=files, multipart_post=False)
         if resp.status_code < 200 or resp.status_code >= 300:
             raise pe.PresignedUploadError(f"presigned POST failure: {resp.status_code}", resp.text)
 
-        # if poll_result poll it, if not, return 202?
-        if poll_result is False:
-            raise accepted_exception
-
-        return self._handle_queued_result(accepted_exception.response)
+        return accepted_exception.response.raw_response
 
     def _handle_queued_result(self, response: PangeaResponse) -> PangeaResponse:
         if self._queued_retry_enabled and response.raw_response.status_code == 202:
@@ -344,7 +370,7 @@ class PangeaRequest(PangeaRequestBase):
         return self._check_response(response)
 
     def _poll_presigned_url(self, initial_exc: pe.AcceptedRequestException) -> AcceptedResult:
-        if type(initial_exc) == pe.AcceptedRequestException:
+        if type(initial_exc) is not pe.AcceptedRequestException:
             raise AttributeError("Exception should be of type AcceptedRequestException")
 
         if initial_exc.accepted_result.accepted_status.upload_url:
