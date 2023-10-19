@@ -300,7 +300,7 @@ class PangeaRequest(PangeaRequestBase):
         url = self._url(path)
         self.logger.debug(json.dumps({"service": self.service, "action": "get", "url": url}))
         requests_response = self.session.get(url, headers=self._headers())
-        pangea_response = PangeaResponse(requests_response, result_class=result_class)
+        pangea_response = PangeaResponse(requests_response, result_class=result_class, json=requests_response.json())
 
         self.logger.debug(
             json.dumps(
