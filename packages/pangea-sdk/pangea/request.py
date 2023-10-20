@@ -381,7 +381,11 @@ class PangeaRequest(PangeaRequestBase):
         start = time.time()
         loop_exc = initial_exc
 
-        while not loop_exc.accepted_result.accepted_status.upload_url and not self._reach_timeout(start):
+        while (
+            loop_exc.accepted_result is not None
+            and not loop_exc.accepted_result.accepted_status.upload_url
+            and not self._reach_timeout(start)
+        ):
             time.sleep(self._get_delay(retry_count, start))
             try:
                 self.poll_result_once(initial_exc.response, check_response=False)
@@ -404,7 +408,11 @@ class PangeaRequest(PangeaRequestBase):
                 raise pe.PresignedURLException("Failed to pull Presigned URL", loop_exc.response, e)
 
         self.logger.debug(json.dumps({"service": self.service, "action": "poll_presigned_url", "step": "exit"}))
-        return loop_exc.accepted_result
+
+        if loop_exc.accepted_result is not None and not loop_exc.accepted_result.accepted_status.upload_url:
+            return loop_exc.accepted_result
+        else:
+            raise loop_exc
 
     def _init_session(self) -> requests.Session:
         retry_config = Retry(
