@@ -8,7 +8,7 @@ packages = [{include = "authn_examples"}]
 
 [tool.poetry.dependencies]
 python = "^3.7.2"
-pangea-sdk = "^2.4.0"
+pangea-sdk = "^3.0.0"
 
 [build-system]
 requires = ["poetry-core"]
