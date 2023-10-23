@@ -9,11 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 # Added 
 
-AuthN v2 support 
+- AuthN v2 support 
 
 # Removed
 
-AuthN v1 support
+- AuthN v1 support
 
 
 ## [2.4.0] - 2023-09-29
