@@ -12,7 +12,7 @@ import pangea
 import pangea.exceptions as pe
 import requests
 from pangea.config import PangeaConfig
-from pangea.response import AcceptedResult, PangeaResponse, PangeaResponseResult, ResponseStatus
+from pangea.response import AcceptedResult, PangeaResponse, PangeaResponseResult, ResponseStatus, TransferMethod
 from pangea.utils import default_encoder
 from requests.adapters import HTTPAdapter, Retry
 
@@ -203,7 +203,11 @@ class PangeaRequest(PangeaRequestBase):
         if self.config_id and data.get("config_id", None) is None:
             data["config_id"] = self.config_id
 
-        if files is not None and type(data) is dict and data.get("transfer_method", None) == "direct":
+        if (
+            files is not None
+            and type(data) is dict
+            and data.get("transfer_method", None) == TransferMethod.DIRECT.value
+        ):
             requests_response = self._post_presigned_url(endpoint, result_class=result_class, data=data, files=files)
         else:
             requests_response = self._http_post(

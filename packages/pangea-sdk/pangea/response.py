@@ -12,6 +12,17 @@ from pydantic import BaseModel
 T = TypeVar("T")
 
 
+class TransferMethod(str, enum.Enum):
+    DIRECT = "direct"
+    MULTIPART = "multipart"
+
+    def __str__(self):
+        return str(self.value)
+
+    def __repr__(self):
+        return str(self.value)
+
+
 # API response should accept arbitrary fields to make them accept possible new parameters
 class APIResponseModel(BaseModel):
     class Config:

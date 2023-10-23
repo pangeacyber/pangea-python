@@ -3,7 +3,7 @@
 import io
 from typing import Dict, List, Optional
 
-from pangea.response import APIRequestModel, PangeaResponse, PangeaResponseResult
+from pangea.response import APIRequestModel, PangeaResponse, PangeaResponseResult, TransferMethod
 from pangea.utils import get_presigned_url_upload_params
 
 from .base import ServiceBase
@@ -24,7 +24,7 @@ class FileScanRequest(APIRequestModel):
     transfer_size: int
     transfer_crc32c: str
     transfer_sha256: str
-    transfer_method: str = "direct"
+    transfer_method: TransferMethod = TransferMethod.DIRECT
 
 
 class FileScanData(PangeaResponseResult):
