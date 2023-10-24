@@ -152,7 +152,7 @@ class UserListOrderBy(enum.Enum):
 class Authenticator(APIResponseModel):
     id: str
     type: str
-    enable: bool
+    enabled: bool
     provider: Optional[str] = None
     rpid: Optional[str] = None
     phase: Optional[str] = None
@@ -399,7 +399,7 @@ class UserAuthenticatorsListRequest(APIRequestModel):
 
 
 class UserAuthenticatorsListResult(PangeaResponseResult):
-    authenticators: List[Authenticator]
+    authenticators: List[Authenticator] = []
 
 
 class FlowCompleteRequest(APIRequestModel):
