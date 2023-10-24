@@ -298,6 +298,13 @@ class PangeaRequest(PangeaRequestBase):
 
         # Send multipart request with file and upload_details as body
         resp = self._http_post(url=presigned_url, data=data_to_presigned, files=files, multipart_post=False)
+        self.logger.debug(
+            json.dumps(
+                {"service": self.service, "action": "post presigned", "url": presigned_url, "response": resp.text},
+                default=default_encoder,
+            )
+        )
+
         if resp.status_code < 200 or resp.status_code >= 300:
             raise pe.PresignedUploadError(f"presigned POST failure: {resp.status_code}", resp.text)
 
