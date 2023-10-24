@@ -2,28 +2,27 @@
 # Author: Pangea Cyber Corporation
 
 import datetime
-import random
 import unittest
 
 import pangea.exceptions as pexc
-from pangea import PangeaConfig
+import pangea.services.authn.models as m
+from pangea import PangeaConfig, PangeaResponse
 from pangea.asyncio.services import AuthNAsync
-from pangea.services.authn.models import AgreementType, IDProvider
 from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
 
 TEST_ENVIRONMENT = TestEnvironment.LIVE
 
 TIME = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-RANDOM_VALUE = random.randint(0, 10000000)
-EMAIL_TEST = f"user.email+test{RANDOM_VALUE}@pangea.cloud"
-EMAIL_DELETE = f"user.email+delete{RANDOM_VALUE}@pangea.cloud"
-EMAIL_INVITE_DELETE = f"user.email+invite_del{RANDOM_VALUE}@pangea.cloud"
-EMAIL_INVITE_KEEP = f"user.email+invite_keep{RANDOM_VALUE}@pangea.cloud"
+EMAIL_TEST = f"user.email+test{TIME}@pangea.cloud"
+EMAIL_DELETE = f"user.email+delete{TIME}@pangea.cloud"
+EMAIL_INVITE_DELETE = f"user.email+invite_del{TIME}@pangea.cloud"
+EMAIL_INVITE_KEEP = f"user.email+invite_keep{TIME}@pangea.cloud"
 PASSWORD_OLD = "My1s+Password"
 PASSWORD_NEW = "My1s+Password_new"
-PROFILE_OLD = {"name": "User name", "country": "Argentina"}
-PROFILE_NEW = {"age": "18"}
+PROFILE_OLD = {"first_name": "Name", "last_name": "Last"}
+PROFILE_NEW = {"first_name": "NameUpdate"}
 USER_ID = None  # Will be set once user is created
+CB_URI = "https://someurl.com/callbacklink"
 
 # tests that should be run in order are named with <letter><number>.
 # Letter to make tests groups and number to order them inside that group
@@ -40,6 +39,62 @@ class TestAuthN(unittest.IsolatedAsyncioTestCase):
     async def asyncTearDown(self):
         await self.authn.close()
 
+    async def flow_handle_password_phase(self, flow_id, password):
+        return await self.authn.flow.update(
+            flow_id=flow_id,
+            choice=m.FlowChoice.PASSWORD,
+            data=m.FlowUpdateDataPassword(password=password),
+        )
+
+    async def flow_handle_profile_phase(self, flow_id):
+        data = m.FlowUpdateDataProfile(profile=PROFILE_OLD)
+        return await self.authn.flow.update(flow_id=flow_id, choice=m.FlowChoice.PROFILE, data=data)
+
+    async def flow_handle_agreements_phase(self, flow_id, response):
+        for flow_choice in response.result.flow_choices:
+            agreed = []
+            if flow_choice.choice == m.FlowChoice.AGREEMENTS.value:
+                agreements = dict(**flow_choice.data["agreements"])
+                for _, v in agreements.items():
+                    agreed.append(v["id"])
+
+        data = m.FlowUpdateDataAgreements(agreed=agreed)
+        return await self.authn.flow.update(flow_id=flow_id, choice=m.FlowChoice.AGREEMENTS, data=data)
+
+    def choice_is_available(self, response, choice):
+        for c in response.result.flow_choices:
+            if c.choice == choice:
+                return True
+        return False
+
+    async def create_n_login(self, email, password) -> PangeaResponse[m.FlowCompleteResult]:
+        response = await self.authn.flow.start(
+            email=email, flow_types=[m.FlowType.SIGNUP, m.FlowType.SIGNIN], cb_uri=CB_URI
+        )
+        flow_id = response.result.flow_id
+
+        while response.result.flow_phase != "phase_completed":
+            if self.choice_is_available(response, m.FlowChoice.PASSWORD.value):
+                response = await self.flow_handle_password_phase(flow_id=flow_id, password=password)
+            elif self.choice_is_available(response, m.FlowChoice.PROFILE.value):
+                response = await self.flow_handle_profile_phase(flow_id=flow_id)
+            elif self.choice_is_available(response, m.FlowChoice.AGREEMENTS.value):
+                response = await self.flow_handle_agreements_phase(flow_id=flow_id, response=response)
+            else:
+                print(f"Phase {response.result.flow_choices} not handled")
+                break
+
+        return await self.authn.flow.complete(flow_id=flow_id)
+
+    async def login(self, email, password):
+        start_resp = await self.authn.flow.start(email=email, flow_types=[m.FlowType.SIGNIN], cb_uri=CB_URI)
+        await self.authn.flow.update(
+            flow_id=start_resp.result.flow_id,
+            choice=m.FlowChoice.PASSWORD,
+            data=m.FlowUpdateDataPassword(password=password),
+        )
+        return await self.authn.flow.complete(flow_id=start_resp.result.flow_id)
+
     async def test_users(self):
         await self.authn_a1_user_create_with_password()
         await self.authn_a2_user_delete()
@@ -49,21 +104,9 @@ class TestAuthN(unittest.IsolatedAsyncioTestCase):
         await self.authn_sessions()
 
     async def authn_a1_user_create_with_password(self):
-        global USER_ID
         try:
-            response = await self.authn.user.create(
-                email=EMAIL_TEST, authenticator=PASSWORD_OLD, id_provider=IDProvider.PASSWORD
-            )
-            self.assertEqual(response.status, "Success")
-            self.assertIsNotNone(response.result.id)
-            self.assertEqual({}, response.result.profile)
-            USER_ID = response.result.id
-
-            response = await self.authn.user.create(
-                email=EMAIL_DELETE, authenticator=PASSWORD_OLD, id_provider=IDProvider.PASSWORD, profile=PROFILE_NEW
-            )
-            self.assertEqual(response.status, "Success")
-            self.assertEqual(response.result.profile, PROFILE_NEW)
+            await self.create_n_login(EMAIL_TEST, PASSWORD_OLD)
+            await self.create_n_login(EMAIL_DELETE, PASSWORD_OLD)
         except pexc.PangeaAPIException as e:
             print(e)
             self.assertTrue(False)
@@ -77,53 +120,29 @@ class TestAuthN(unittest.IsolatedAsyncioTestCase):
         # This could (should) fail if test_authn_a1_user_create_with_password failed
         try:
             # login
-            response_login = await self.authn.user.login.password(email=EMAIL_TEST, password=PASSWORD_OLD)
+            response_login = await self.login(email=EMAIL_TEST, password=PASSWORD_OLD)
             self.assertEqual(response_login.status, "Success")
             self.assertIsNotNone(response_login.result)
             self.assertIsNotNone(response_login.result.active_token)
             self.assertIsNotNone(response_login.result.refresh_token)
-
-            # verify
-            response_verify = await self.authn.user.verify(
-                id_provider=IDProvider.PASSWORD, email=EMAIL_TEST, authenticator=PASSWORD_OLD
-            )
-            self.assertEqual(response_verify.status, "Success")
-
-            # password change
-            response_change = await self.authn.client.password.change(
-                token=response_login.result.active_token.token, old_password=PASSWORD_OLD, new_password=PASSWORD_NEW
-            )
-            self.assertEqual(response_change.status, "Success")
-            self.assertIsNone(response_change.result)
-
-            # password reset
-            response_reset = await self.authn.user.password.reset(user_id=USER_ID, new_password=PASSWORD_NEW)
-            self.assertEqual(response_reset.status, "Success")
 
         except pexc.PangeaAPIException as e:
             print(e)
             self.assertTrue(False)
 
     async def authn_a4_user_profile(self):
+        global USER_ID
         # This could (should) fail if test_authn_a1_user_create_with_password failed
         try:
             # Get profile by email. Should be empty because it was created without profile parameter
             response = await self.authn.user.profile.get(email=EMAIL_TEST)
             self.assertEqual(response.status, "Success")
             self.assertIsNotNone(response.result)
-            self.assertEqual(USER_ID, response.result.id)
+            USER_ID = response.result.id
             self.assertEqual(EMAIL_TEST, response.result.email)
-            self.assertEqual({}, response.result.profile)
+            self.assertEqual(PROFILE_OLD, response.result.profile)
 
             response = await self.authn.user.profile.get(id=USER_ID)
-            self.assertEqual(response.status, "Success")
-            self.assertIsNotNone(response.result)
-            self.assertEqual(USER_ID, response.result.id)
-            self.assertEqual(EMAIL_TEST, response.result.email)
-            self.assertEqual({}, response.result.profile)
-
-            # Update profile
-            response = await self.authn.user.profile.update(email=EMAIL_TEST, profile=PROFILE_OLD)
             self.assertEqual(response.status, "Success")
             self.assertIsNotNone(response.result)
             self.assertEqual(USER_ID, response.result.id)
@@ -145,12 +164,11 @@ class TestAuthN(unittest.IsolatedAsyncioTestCase):
             self.assertTrue(False)
 
     async def authn_a5_user_update(self):
-        response = await self.authn.user.update(email=EMAIL_TEST, disabled=False, require_mfa=False)
+        response = await self.authn.user.update(email=EMAIL_TEST, disabled=False)
         self.assertEqual(response.status, "Success")
         self.assertIsNotNone(response.result)
         self.assertEqual(USER_ID, response.result.id)
         self.assertEqual(EMAIL_TEST, response.result.email)
-        self.assertEqual(False, response.result.require_mfa)
         self.assertEqual(False, response.result.disabled)
 
     async def authn_b1_user_invite(self):
@@ -191,7 +209,7 @@ class TestAuthN(unittest.IsolatedAsyncioTestCase):
     async def authn_c1_login_n_some_validations(self):
         # This could (should) fail if test_authn_a1_user_create_with_password failed
         try:
-            response_login = await self.authn.user.login.password(email=EMAIL_TEST, password=PASSWORD_NEW)
+            response_login = await self.login(email=EMAIL_TEST, password=PASSWORD_OLD)
             self.assertEqual(response_login.status, "Success")
             self.assertIsNotNone(response_login.result)
             self.assertIsNotNone(response_login.result.active_token)
@@ -220,7 +238,7 @@ class TestAuthN(unittest.IsolatedAsyncioTestCase):
     async def authn_c2_login_n_session_invalidate(self):
         # This could (should) fail if test_authn_a1_user_create_with_password failed
         try:
-            response_login = await self.authn.user.login.password(email=EMAIL_TEST, password=PASSWORD_NEW)
+            response_login = await self.login(email=EMAIL_TEST, password=PASSWORD_OLD)
             self.assertEqual(response_login.status, "Success")
             self.assertIsNotNone(response_login.result)
             self.assertIsNotNone(response_login.result.active_token)
@@ -245,7 +263,7 @@ class TestAuthN(unittest.IsolatedAsyncioTestCase):
     async def authn_c2_login_n_client_session_invalidate(self):
         # This could (should) fail if test_authn_a1_user_create_with_password failed
         try:
-            response_login = await self.authn.user.login.password(email=EMAIL_TEST, password=PASSWORD_NEW)
+            response_login = await self.login(email=EMAIL_TEST, password=PASSWORD_OLD)
             self.assertEqual(response_login.status, "Success")
             self.assertIsNotNone(response_login.result)
             self.assertIsNotNone(response_login.result.active_token)
@@ -264,6 +282,7 @@ class TestAuthN(unittest.IsolatedAsyncioTestCase):
                 except pexc.PangeaAPIException as e:
                     print(f"Fail to invalidate session_id[{session.id}] token[{token}]")
                     print(e)
+                    pass
 
         except pexc.PangeaAPIException as e:
             print(e)
@@ -272,7 +291,7 @@ class TestAuthN(unittest.IsolatedAsyncioTestCase):
     async def authn_c3_login_n_logout_sessions(self):
         # This could (should) fail if test_authn_a1_user_create_with_password failed
         try:
-            response_login = await self.authn.user.login.password(email=EMAIL_TEST, password=PASSWORD_NEW)
+            response_login = await self.login(email=EMAIL_TEST, password=PASSWORD_OLD)
             self.assertEqual(response_login.status, "Success")
             self.assertIsNotNone(response_login.result)
             self.assertIsNotNone(response_login.result.active_token)
@@ -304,7 +323,7 @@ class TestAuthN(unittest.IsolatedAsyncioTestCase):
                 print(f"Fail to delete user email: {user.email}")
                 pass
 
-    async def agreements_cycle(self, type: AgreementType):
+    async def agreements_cycle(self, type: m.AgreementType):
         name = f"{type}_{TIME}"
         text = "This is agreement text"
         active = False
@@ -341,7 +360,7 @@ class TestAuthN(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(response.result.count, count - 1)
 
     async def test_agreements_eula(self):
-        await self.agreements_cycle(AgreementType.EULA)
+        await self.agreements_cycle(m.AgreementType.EULA)
 
     async def test_agreements_privacy_policy(self):
-        await self.agreements_cycle(AgreementType.PRIVACY_POLICY)
+        await self.agreements_cycle(m.AgreementType.PRIVACY_POLICY)

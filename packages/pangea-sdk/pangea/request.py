@@ -218,12 +218,6 @@ class PangeaRequest(PangeaRequestBase):
         if poll_result:
             pangea_response = self._handle_queued_result(pangea_response)
 
-        self.logger.debug(
-            json.dumps(
-                {"service": self.service, "action": "post", "url": url, "response": pangea_response.json},
-                default=default_encoder,
-            )
-        )
         return self._check_response(pangea_response)
 
     def _http_post_process(

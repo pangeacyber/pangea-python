@@ -3,16 +3,52 @@ import os
 import random
 
 import pangea.exceptions as pe
+import pangea.services.authn.models as m
 from pangea.asyncio.services import AuthNAsync
 from pangea.config import PangeaConfig
-from pangea.services.authn.models import IDProvider
 
 RANDOM_VALUE = random.randint(0, 10000000)
 USER_EMAIL = f"user.email+test{RANDOM_VALUE}@pangea.cloud"  # Email to create user
 PASSWORD_INITIAL = "My1s+Password"  # First password to be set to user created
 PASSWORD_UPDATE = "My1s+Password_new"  # Password used to update user password
-PROFILE_INITIAL = {"name": "User Name", "country": "Argentina"}  # Inicial user profile
-PROFILE_UPDATE = {"age": "18"}  # Additional info to update user profile
+PROFILE_INITIAL = {"first_name": "Name", "last_name": "User"}  # Inicial user profile
+PROFILE_UPDATE = {"first_name": "NameUpdate"}  # Additional info to update user profile
+CB_URI = "https://www.usgs.gov/faqs/what-was-pangea"  # Need to setup callbacks in PUC AuthN settings
+
+
+async def flow_handle_password_phase(authn, flow_id, password):
+    print("Update flow with password")
+    return await authn.flow.update(
+        flow_id=flow_id,
+        choice=m.FlowChoice.PASSWORD,
+        data=m.FlowUpdateDataPassword(password=password),
+    )
+
+
+async def flow_handle_profile_phase(authn, flow_id):
+    print("Update flow with profile")
+    data = m.FlowUpdateDataProfile(profile=PROFILE_INITIAL)
+    return await authn.flow.update(flow_id=flow_id, choice=m.FlowChoice.PROFILE, data=data)
+
+
+async def flow_handle_agreements_phase(authn, flow_id, response):
+    print("Update flow with agreements if needed")
+    for flow_choice in response.result.flow_choices:
+        agreed = []
+        if flow_choice.choice == m.FlowChoice.AGREEMENTS.value:
+            agreements = dict(**flow_choice.data["agreements"])
+            for _, v in agreements.items():
+                agreed.append(v["id"])
+
+    data = m.FlowUpdateDataAgreements(agreed=agreed)
+    return await authn.flow.update(flow_id=flow_id, choice=m.FlowChoice.AGREEMENTS, data=data)
+
+
+def choice_is_available(response, choice):
+    for c in response.result.flow_choices:
+        if c.choice == choice:
+            return True
+    return False
 
 
 async def main():
@@ -23,18 +59,29 @@ async def main():
 
     try:
         print("Creating user...")
-        response = await authn.user.create(
-            email=USER_EMAIL, authenticator=PASSWORD_INITIAL, id_provider=IDProvider.PASSWORD, profile=PROFILE_INITIAL
+        print("Start flow with signup and signin")
+        response = await authn.flow.start(
+            email=USER_EMAIL, flow_types=[m.FlowType.SIGNUP, m.FlowType.SIGNIN], cb_uri=CB_URI
         )
-        # Save user id for future use
-        user_id = response.result.id
-        print("User creation success. Result: ", response.result)
+        flow_id = response.result.flow_id
 
-        print("\n\nUser login...")
-        response = await authn.user.login.password(email=USER_EMAIL, password=PASSWORD_INITIAL)
-        # Save user token to change password
-        user_token = response.result.active_token.token
-        print("User login success. Result: ", response.result)
+        while response.result.flow_phase != "phase_completed":
+            if choice_is_available(response, m.FlowChoice.PASSWORD.value):
+                response = await flow_handle_password_phase(authn, flow_id=flow_id, password=PASSWORD_INITIAL)
+            elif choice_is_available(response, m.FlowChoice.PROFILE.value):
+                response = await flow_handle_profile_phase(authn, flow_id=flow_id)
+            elif choice_is_available(response, m.FlowChoice.AGREEMENTS.value):
+                response = await flow_handle_agreements_phase(authn, flow_id=flow_id, response=response)
+            else:
+                print(f"Phase {response.result.flow_choices} not handled")
+                break
+
+        print("Complete signup/signin flow")
+        complete_resp = await authn.flow.complete(flow_id=flow_id)
+        print("Update flow is completed")
+
+        user_token = complete_resp.result.active_token.token
+        print("User login success. Result: ", complete_resp.result)
 
         print("\n\nUser password change...")
         response = await authn.client.password.change(
@@ -46,6 +93,7 @@ async def main():
         response = await authn.user.profile.get(email=USER_EMAIL)
         print("User get profile success. Result: ", response.result)
         print("Current profile: ", response.result.profile)
+        user_id = response.result.id
 
         print("\n\nGetting user profile by id...")
         response = await authn.user.profile.get(id=user_id)
@@ -57,7 +105,7 @@ async def main():
         print("Update success. Current profile: ", response.result.profile)
 
         print("\n\nUpdating user info...")
-        response = await authn.user.update(email=USER_EMAIL, disabled=False, require_mfa=False)
+        response = await authn.user.update(email=USER_EMAIL, disabled=False)
         print("Update user info success. Result: ", response.result)
 
         print("\n\nListing users...")
