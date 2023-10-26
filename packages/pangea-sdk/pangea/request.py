@@ -220,6 +220,23 @@ class PangeaRequest(PangeaRequestBase):
 
         return self._check_response(pangea_response)
 
+    def _http_post(
+        self,
+        url: str,
+        headers: Dict = {},
+        data: Union[str, Dict] = {},
+        files: Optional[List[Tuple]] = None,
+        multipart_post: bool = True,
+    ) -> requests.Response:
+        self.logger.debug(
+            json.dumps(
+                {"service": self.service, "action": "http_post", "url": url, "data": data}, default=default_encoder
+            )
+        )
+
+        data_send, files = self._http_post_process(data=data, files=files, multipart_post=multipart_post)
+        return self.session.post(url, headers=headers, data=data_send, files=files)
+
     def _http_post_process(
         self, data: Union[str, Dict] = {}, files: Optional[List[Tuple]] = None, multipart_post: bool = True
     ):
@@ -245,24 +262,6 @@ class PangeaRequest(PangeaRequestBase):
             return data_send, None
 
         return data, files
-
-    def _http_post(
-        self,
-        url: str,
-        headers: Dict = {},
-        data: Union[str, Dict] = {},
-        files: Optional[List[Tuple]] = None,
-        multipart_post: bool = True,
-    ) -> requests.Response:
-        self.logger.debug(
-            json.dumps(
-                {"service": self.service, "action": "http_post", "url": url, "data": data}, default=default_encoder
-            )
-        )
-
-        data_send, files = self._http_post_process(data=data, files=files, multipart_post=multipart_post)
-
-        return self.session.post(url, headers=headers, data=data_send, files=files)
 
     def _post_presigned_url(
         self,
