@@ -1,11 +1,11 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 import enum
-import hashlib
 from typing import Dict, List, Optional
 
 from pangea.exceptions import PangeaException
 from pangea.response import APIRequestModel, PangeaResponse, PangeaResponseResult
+from pangea.utils import hash_256_filepath
 
 from .base import ServiceBase
 
@@ -459,7 +459,7 @@ class FileIntel(ServiceBase):
         provider: Optional[str] = None,
         verbose: Optional[bool] = None,
         raw: Optional[bool] = None,
-    ) -> PangeaResponse[FileReputationResult]:
+    ) -> PangeaResponse[FileReputationBulkResult]:
         """
         Reputation check
 
@@ -523,11 +523,46 @@ class FileIntel(ServiceBase):
             )
         """
 
-        data = open(filepath, "rb")
-        hash = hashlib.sha256(data.read()).hexdigest()
+        hash = hash_256_filepath(filepath)
+        return self.hash_reputation(hash=hash, hash_type="sha256", verbose=verbose, raw=raw, provider=provider)
 
-        input = FileReputationRequest(hash=hash, hash_type="sha256", verbose=verbose, raw=raw, provider=provider)
-        return self.request.post("v1/reputation", FileReputationResult, data=input.dict(exclude_none=True))
+    def filepath_reputation_bulk(
+        self,
+        filepaths: List[str],
+        provider: Optional[str] = None,
+        verbose: Optional[bool] = None,
+        raw: Optional[bool] = None,
+    ) -> PangeaResponse[FileReputationBulkResult]:
+        """
+        Reputation, from filepath
+
+        Retrieve hash-based file reputation from a provider, including an optional detailed report.
+        This function take care of calculate filepath hash and make the request to service
+
+        OperationId: file_intel_post_v1_reputation
+
+        Args:
+            filepaths (List[str]): The path list to the files to be looked up
+            provider (str, optional): Use reputation data from these providers: "reversinglabs" or "crowdstrike"
+            verbose (bool, optional): Echo the API parameters in the response
+            raw (bool, optional): Include raw data from this provider
+
+        Raises:
+            PangeaAPIException: If an API Error happens
+
+        Returns:
+            A PangeaResponse where the sanctioned source(s) are in the
+                response.result field.  Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/file-intel).
+
+        Examples:
+            FIXME:
+        """
+        hashes = []
+        for filepath in filepaths:
+            hash = hash_256_filepath(filepath)
+            hashes = hashes.append(hash)
+
+        return self.hash_reputation_bulk(hashes=hashes, hash_type="sha256", verbose=verbose, raw=raw, provider=provider)
 
 
 class DomainIntel(ServiceBase):

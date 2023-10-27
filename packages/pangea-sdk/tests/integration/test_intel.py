@@ -1,13 +1,24 @@
 import unittest
+from typing import Dict
 
 import pangea.exceptions as pe
 from pangea import PangeaConfig
 from pangea.response import ResponseStatus
 from pangea.services import DomainIntel, FileIntel, IpIntel, UrlIntel, UserIntel
-from pangea.services.intel import HashType
+from pangea.services.intel import HashType, IntelReputationData
 from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
 
 TEST_ENVIRONMENT = TestEnvironment.DEVELOP
+
+
+def check_bulk_data(self: unittest.TestCase, data: Dict[str, IntelReputationData]):
+    for item in data.values():
+        self.assertIsNotNone(item.verdict)
+        self.assertNotEqual("", item.verdict)
+        self.assertIsNotNone(item.category)
+        self.assertNotEqual([], item.category)
+        self.assertIsNotNone(item.score)
+        self.assertNotEqual(0, item.score)
 
 
 class TestDomainIntel(unittest.TestCase):
@@ -100,6 +111,7 @@ class TestFileIntel(unittest.TestCase):
         )
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertEqual(len(response.result.data), 2)
+        check_bulk_data(self, response.result.data)
 
     def test_file_reputation_default_provider(self):
         response = self.intel_file.hash_reputation(
@@ -246,6 +258,7 @@ class TestIPIntel(unittest.TestCase):
         response = self.intel_ip.reputation_bulk(ips=ip_list, provider="crowdstrike", verbose=True, raw=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertEqual(len(response.result.data), 2)
+        check_bulk_data(self, response.result.data)
 
     def test_ip_reputation_with_bad_auth_token(self):
         token = "noarealtoken"
@@ -281,6 +294,7 @@ class TestURLIntel(unittest.TestCase):
         response = self.intel_url.reputation_bulk(urls=url_list, provider="crowdstrike", verbose=True, raw=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertEqual(len(response.result.data), 3)
+        check_bulk_data(self, response.result.data)
 
     def test_url_reputation_default_provider(self):
         response = self.intel_url.reputation(url="http://113.235.101.11:54384", verbose=True, raw=True)
