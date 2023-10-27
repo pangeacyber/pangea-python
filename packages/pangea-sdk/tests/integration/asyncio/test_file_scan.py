@@ -6,7 +6,7 @@ from pangea import PangeaConfig
 from pangea.asyncio.services import FileScanAsync
 from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
 
-TEST_ENVIRONMENT = TestEnvironment.STAGING
+TEST_ENVIRONMENT = TestEnvironment.LIVE
 PDF_FILEPATH = "./tests/testdata/testfile.pdf"
 
 
