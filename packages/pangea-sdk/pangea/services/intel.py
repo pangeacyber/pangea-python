@@ -1106,7 +1106,7 @@ class UserIntel(ServiceBase):
 
         Returns:
             A PangeaResponse where the sanctioned source(s) are in the
-                response.result field.  Available response fields can be found in our [API documentation](/docs/api/url-intel)
+                response.result field.  Available response fields can be found in our [API documentation](/docs/api/user-intel)
 
         Examples:
             response = user_intel.user_breached(
@@ -1157,7 +1157,7 @@ class UserIntel(ServiceBase):
 
         Returns:
             A PangeaResponse where the sanctioned source(s) are in the
-                response.result field.  Available response fields can be found in our [API documentation](/docs/api/url-intel)
+                response.result field.  Available response fields can be found in our [API documentation](/docs/api/user-intel)
 
         Examples:
             response = user_intel.password_breached(

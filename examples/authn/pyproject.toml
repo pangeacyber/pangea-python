@@ -1,14 +1,14 @@
 [tool.poetry]
 name = "authn-examples"
-version = "2.0.0"
-description = "This is a set of examples about how to use python SDK to communicate with Vault service"
+version = "3.0.0"
+description = "This is a set of examples about how to use python SDK to communicate with AuthN service"
 authors = ["H. Andres Tournour <andres.tournour@pangea.cloud>"]
 readme = "README.md"
 packages = [{include = "authn_examples"}]
 
 [tool.poetry.dependencies]
 python = "^3.7.2"
-pangea-sdk = "^2.0.0"
+pangea-sdk = "^3.0.0"
 
 [build-system]
 requires = ["poetry-core"]
