@@ -5,6 +5,7 @@ from typing import List, Optional
 
 import pangea.services.intel as m
 from pangea.response import PangeaResponse
+from pangea.utils import hash_256_filepath
 
 from .base import ServiceBaseAsync
 
@@ -145,6 +146,46 @@ class FileIntelAsync(ServiceBaseAsync):
 
         input = m.FileReputationRequest(hash=hash, hash_type="sha256", verbose=verbose, raw=raw, provider=provider)
         return await self.request.post("v1/reputation", m.FileReputationResult, data=input.dict(exclude_none=True))
+
+    async def filepath_reputation_bulk(
+        self,
+        filepaths: List[str],
+        provider: Optional[str] = None,
+        verbose: Optional[bool] = None,
+        raw: Optional[bool] = None,
+    ) -> PangeaResponse[m.FileReputationBulkResult]:
+        """
+        Reputation, from filepath
+
+        Retrieve hash-based file reputation from a provider, including an optional detailed report.
+        This function take care of calculate filepath hash and make the request to service
+
+        OperationId: file_intel_post_v1_reputation
+
+        Args:
+            filepaths (List[str]): The path list to the files to be looked up
+            provider (str, optional): Use reputation data from these providers: "reversinglabs" or "crowdstrike"
+            verbose (bool, optional): Echo the API parameters in the response
+            raw (bool, optional): Include raw data from this provider
+
+        Raises:
+            PangeaAPIException: If an API Error happens
+
+        Returns:
+            A PangeaResponse where the sanctioned source(s) are in the
+                response.result field.  Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/file-intel).
+
+        Examples:
+            FIXME:
+        """
+        hashes = []
+        for filepath in filepaths:
+            hash = hash_256_filepath(filepath)
+            hashes.append(hash)
+
+        return await self.hash_reputation_bulk(
+            hashes=hashes, hash_type="sha256", verbose=verbose, raw=raw, provider=provider
+        )
 
 
 class DomainIntelAsync(ServiceBaseAsync):
@@ -453,6 +494,35 @@ class IpIntelAsync(ServiceBaseAsync):
         input = m.IPDomainRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
         return await self.request.post("v1/domain", m.IPDomainResult, data=input.dict(exclude_none=True))
 
+    async def get_domain_bulk(
+        self, ips: List[str], verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
+    ) -> PangeaResponse[m.IPDomainBulkResult]:
+        """
+        Domain
+
+        Retrieve the domain name associated with an IP address.
+
+        OperationId: FIXME:
+
+        Args:
+            ips (List[str]): The IP to be looked up
+            provider (str, optional): Use geolocation data from this provider ("digitalelement"). Default provider defined by the configuration.
+            verbose (bool, optional): Echo the API parameters in the response
+            raw (bool, optional): Include raw data from this provider
+
+        Raises:
+            PangeaAPIException: If an API Error happens
+
+        Returns:
+            A PangeaResponse where the IP information is in the
+                response.result field.  Available response fields can be found in our [API documentation](/docs/api/ip-intel)
+
+        Examples:
+            FIXME:
+        """
+        input = m.IPDomainBulkRequest(ips=ips, verbose=verbose, raw=raw, provider=provider)
+        return await self.request.post("v2/domain", m.IPDomainBulkResult, data=input.dict(exclude_none=True))
+
     async def is_vpn(
         self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
     ) -> PangeaResponse[m.IPVPNResult]:
@@ -485,6 +555,35 @@ class IpIntelAsync(ServiceBaseAsync):
         input = m.IPVPNRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
         return await self.request.post("v1/vpn", m.IPVPNResult, data=input.dict(exclude_none=True))
 
+    async def is_vpn_bulk(
+        self, ips: List[str], verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
+    ) -> PangeaResponse[m.IPVPNBulkResult]:
+        """
+        VPN
+
+        Determine if an IP address is provided by a VPN service.
+
+        OperationId: FIXME:
+
+        Args:
+            ips (List[str]): The IP's list to be looked up
+            provider (str, optional): Use geolocation data from this provider ("digitalelement"). Default provider defined by the configuration.
+            verbose (bool, optional): Echo the API parameters in the response
+            raw (bool, optional): Include raw data from this provider
+
+        Raises:
+            PangeaAPIException: If an API Error happens
+
+        Returns:
+            A PangeaResponse where the IP information is in the
+                response.result field.  Available response fields can be found in our [API documentation](/docs/api/ip-intel)
+
+        Examples:
+            FIXME:
+        """
+        input = m.IPVPNBulkRequest(ips=ips, verbose=verbose, raw=raw, provider=provider)
+        return await self.request.post("v2/vpn", m.IPVPNBulkResult, data=input.dict(exclude_none=True))
+
     async def is_proxy(
         self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
     ) -> PangeaResponse[m.IPProxyResult]:
@@ -516,6 +615,35 @@ class IpIntelAsync(ServiceBaseAsync):
         """
         input = m.IPProxyRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
         return await self.request.post("v1/proxy", m.IPProxyResult, data=input.dict(exclude_none=True))
+
+    async def is_proxy_bulk(
+        self, ips: List[str], verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
+    ) -> PangeaResponse[m.IPProxyBulkResult]:
+        """
+        Proxy
+
+        Determine if an IP address is provided by a proxy service.
+
+        OperationId: FIXME:
+
+        Args:
+            ips (List[str]): The IP's list to be looked up
+            provider (str, optional): Use geolocation data from this provider ("digitalelement"). Default provider defined by the configuration.
+            verbose (bool, optional): Echo the API parameters in the response
+            raw (bool, optional): Include raw data from this provider
+
+        Raises:
+            PangeaAPIException: If an API Error happens
+
+        Returns:
+            A PangeaResponse where the IP information is in the
+                response.result field.  Available response fields can be found in our [API documentation](/docs/api/ip-intel)
+
+        Examples:
+            FIXME:
+        """
+        input = m.IPProxyBulkRequest(ips=ips, verbose=verbose, raw=raw, provider=provider)
+        return await self.request.post("v2/proxy", m.IPProxyBulkResult, data=input.dict(exclude_none=True))
 
 
 class UrlIntelAsync(ServiceBaseAsync):
@@ -583,7 +711,7 @@ class UrlIntelAsync(ServiceBaseAsync):
         verbose: Optional[bool] = None,
         raw: Optional[bool] = None,
         provider: Optional[str] = None,
-    ) -> PangeaResponse[m.URLReputationResult]:
+    ) -> PangeaResponse[m.URLReputationBulkResult]:
         """
         Reputation
 
@@ -697,6 +825,60 @@ class UserIntelAsync(ServiceBaseAsync):
         )
         return await self.request.post("v1/user/breached", m.UserBreachedResult, data=input.dict(exclude_none=True))
 
+    async def user_breached_bulk(
+        self,
+        emails: Optional[List[str]] = None,
+        usernames: Optional[List[str]] = None,
+        ips: Optional[List[str]] = None,
+        phone_numbers: Optional[List[str]] = None,
+        start: Optional[str] = None,
+        end: Optional[str] = None,
+        verbose: Optional[bool] = None,
+        raw: Optional[bool] = None,
+        provider: Optional[str] = None,
+    ) -> PangeaResponse[m.UserBreachedBulkResult]:
+        """
+        Look up breached users
+
+        Find out if an email address, username, phone number, or IP address was exposed in a security breach.
+
+        OperationId: FIXME:
+
+        Args:
+            emails (List[str]): An email address' list to search for
+            usernames (List[str]): An username's list to search for
+            ips (List[str]): An ip's list to search for
+            phone_numbers (List[str]): A phone number's list to search for. minLength: 7, maxLength: 15.
+            start (str): Earliest date for search
+            end (str): Latest date for search
+            verbose (bool, optional): Echo the API parameters in the response
+            raw (bool, optional): Include raw data from this provider
+            provider (str, optional): Use reputation data from this provider: "crowdstrike"
+
+        Raises:
+            PangeaAPIException: If an API Error happens
+
+        Returns:
+            A PangeaResponse where the sanctioned source(s) are in the
+                response.result field.  Available response fields can be found in our [API documentation](/docs/api/url-intel)
+
+        Examples:
+            FIXME:
+        """
+
+        input = m.UserBreachedBulkRequest(
+            emails=emails,
+            phone_numbers=phone_numbers,
+            usernames=usernames,
+            ips=ips,
+            provider=provider,
+            start=start,
+            end=end,
+            verbose=verbose,
+            raw=raw,
+        )
+        return await self.request.post("v2/user/breached", m.UserBreachedBulkResult, data=input.dict(exclude_none=True))
+
     async def password_breached(
         self,
         hash_type: m.HashType,
@@ -739,4 +921,44 @@ class UserIntelAsync(ServiceBaseAsync):
         )
         return await self.request.post(
             "v1/password/breached", m.UserPasswordBreachedResult, data=input.dict(exclude_none=True)
+        )
+
+    async def password_breached_bulk(
+        self,
+        hash_type: m.HashType,
+        hash_prefixes: List[str],
+        verbose: Optional[bool] = None,
+        raw: Optional[bool] = True,
+        provider: Optional[str] = None,
+    ) -> PangeaResponse[m.UserPasswordBreachedBulkResult]:
+        """
+        Look up breached passwords
+
+        Find out if a password has been exposed in security breaches by providing a 5 character prefix of the password hash.
+
+        OperationId: FIXME:
+
+        Args:
+            hash_type (str): Hash type to be looked up
+            hash_prefixes (List[str]): The list of prefixes of the hash to be looked up.
+            verbose (bool, optional): Echo the API parameters in the response
+            raw (bool, optional): Include raw data from this provider
+            provider (str, optional): Use reputation data from this provider: "crowdstrike"
+
+        Raises:
+            PangeaAPIException: If an API Error happens
+
+        Returns:
+            A PangeaResponse where the sanctioned source(s) are in the
+                response.result field.  Available response fields can be found in our [API documentation](/docs/api/url-intel)
+
+        Examples:
+            FIXME:
+        """
+
+        input = m.UserPasswordBreachedBulkRequest(
+            hash_type=hash_type, hash_prefixes=hash_prefixes, provider=provider, verbose=verbose, raw=raw
+        )
+        return await self.request.post(
+            "v2/password/breached", m.UserPasswordBreachedBulkResult, data=input.dict(exclude_none=True)
         )

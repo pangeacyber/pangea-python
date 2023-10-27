@@ -129,6 +129,16 @@ class TestFileIntel(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
 
+    async def test_file_reputation_from_filepath_bulk(self):
+        response = await self.intel_file.filepath_reputation_bulk(
+            filepaths=["./README.md", "./CONTRIBUTING.md"],
+            provider="reversinglabs",
+            verbose=True,
+            raw=True,
+        )
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertEqual(len(response.result.data), 2)
+
     async def test_file_reputation_with_bad_auth_token(self):
         token = "noarealtoken"
         domain = get_test_domain(TEST_ENVIRONMENT)
@@ -173,11 +183,23 @@ class TestIPIntel(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(response.result.data.city, "unna")
         self.assertEqual(response.result.data.postal_code, "59423")
 
+    async def test_ip_geolocate_default_provider_bulk(self):
+        response = await self.intel_ip.geolocate_bulk(ips=["93.231.182.110", "24.235.114.61"], verbose=True, raw=True)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertEqual(len(response.result.data), 2)
+
     async def test_ip_domain(self):
         response = await self.intel_ip.get_domain(ip="24.235.114.61", provider="digitalelement", verbose=True, raw=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertTrue(response.result.data.domain_found)
         self.assertEqual("rogers.com", response.result.data.domain)
+
+    async def test_ip_domain_bulk(self):
+        response = await self.intel_ip.get_domain_bulk(
+            ips=["24.235.114.61", "93.231.182.110"], provider="digitalelement", verbose=True, raw=True
+        )
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertEqual(len(response.result.data), 2)
 
     async def test_ip_domain_default_provider(self):
         response = await self.intel_ip.get_domain(ip="24.235.114.61", verbose=True, raw=True)
@@ -198,6 +220,13 @@ class TestIPIntel(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertTrue(response.result.data.is_vpn)
 
+    async def test_ip_vpn_bulk(self):
+        response = await self.intel_ip.is_vpn_bulk(
+            ips=["2.56.189.74", "24.235.114.61"], provider="digitalelement", verbose=True, raw=True
+        )
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertEqual(len(response.result.data), 2)
+
     async def test_ip_vpn_default_provider(self):
         response = await self.intel_ip.is_vpn(ip="2.56.189.74", verbose=True, raw=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
@@ -213,6 +242,13 @@ class TestIPIntel(unittest.IsolatedAsyncioTestCase):
         response = await self.intel_ip.is_proxy(ip="34.201.32.172", provider="digitalelement", verbose=True, raw=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertTrue(response.result.data.is_proxy)
+
+    async def test_ip_proxy_bulk(self):
+        response = await self.intel_ip.is_proxy_bulk(
+            ips=["34.201.32.172", "2.56.189.74"], provider="digitalelement", verbose=True, raw=True
+        )
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertEqual(len(response.result.data), 2)
 
     async def test_ip_proxy_default_provider(self):
         response = await self.intel_ip.is_proxy(ip="34.201.32.172", verbose=True, raw=True)
@@ -341,6 +377,13 @@ class TestUserIntel(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(response.result.data.found_in_breach)
         self.assertGreater(response.result.data.breach_count, 0)
 
+    async def test_user_breached_phone_bulk(self):
+        response = await self.intel_user.user_breached_bulk(
+            phone_numbers=["8005550123", "8005550124"], provider="spycloud", verbose=True, raw=True
+        )
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertEqual(len(response.result.data), 2)
+
     async def test_user_breached_email(self):
         response = await self.intel_user.user_breached(
             email="test@example.com", provider="spycloud", verbose=True, raw=True
@@ -348,6 +391,13 @@ class TestUserIntel(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertTrue(response.result.data.found_in_breach)
         self.assertGreater(response.result.data.breach_count, 0)
+
+    async def test_user_breached_email_bulk(self):
+        response = await self.intel_user.user_breached_bulk(
+            emails=["test@example.com", "noreply@example.com"], provider="spycloud", verbose=True, raw=True
+        )
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertEqual(len(response.result.data), 2)
 
     async def test_user_breached_username(self):
         response = await self.intel_user.user_breached(
@@ -357,11 +407,25 @@ class TestUserIntel(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(response.result.data.found_in_breach)
         self.assertGreater(response.result.data.breach_count, 0)
 
+    async def test_user_breached_username_bulk(self):
+        response = await self.intel_user.user_breached_bulk(
+            usernames=["shortpatrick", "user1"], provider="spycloud", verbose=True, raw=True
+        )
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertEqual(len(response.result.data), 2)
+
     async def test_user_breached_ip(self):
         response = await self.intel_user.user_breached(ip="192.168.140.37", provider="spycloud", verbose=True, raw=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertTrue(response.result.data.found_in_breach)
         self.assertGreater(response.result.data.breach_count, 0)
+
+    async def test_user_breached_ip_bulk(self):
+        response = await self.intel_user.user_breached_bulk(
+            ips=["192.168.140.37", "1.1.1.1"], provider="spycloud", verbose=True, raw=True
+        )
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertEqual(len(response.result.data), 2)
 
     async def test_user_breached_default_provider(self):
         response = await self.intel_user.user_breached(phone_number="8005550123", verbose=True, raw=True)
@@ -374,6 +438,13 @@ class TestUserIntel(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertTrue(response.result.data.found_in_breach)
         self.assertGreater(response.result.data.breach_count, 0)
+
+    async def test_password_breached_bulk(self):
+        response = await self.intel_user.password_breached_bulk(
+            hash_prefixes=["5baa6", "5baa7"], hash_type=HashType.SHA256, provider="spycloud"
+        )
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertEqual(len(response.result.data), 2)
 
     async def test_password_breached_default_provider(self):
         response = await self.intel_user.password_breached(hash_prefix="5baa6", hash_type=HashType.SHA256)
