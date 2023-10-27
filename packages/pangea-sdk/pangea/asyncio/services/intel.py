@@ -328,7 +328,7 @@ class IpIntelAsync(ServiceBaseAsync):
                 provider="crowdstrike",
             )
         """
-        input = m.IPRepurationRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
+        input = m.IPReputationRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
         return await self.request.post("v1/reputation", m.IPReputationResult, data=input.dict(exclude_none=True))
 
     async def reputation_bulk(
@@ -357,7 +357,7 @@ class IpIntelAsync(ServiceBaseAsync):
         Examples:
             FIXME:
         """
-        input = m.IPRepurationBulkRequest(ips=ips, verbose=verbose, raw=raw, provider=provider)
+        input = m.IPReputationBulkRequest(ips=ips, verbose=verbose, raw=raw, provider=provider)
         return await self.request.post("v2/reputation", m.IPReputationBulkResult, data=input.dict(exclude_none=True))
 
     async def geolocate(
@@ -371,7 +371,7 @@ class IpIntelAsync(ServiceBaseAsync):
         OperationId: ip_intel_post_v1_geolocate
 
         Args:
-            ip (str): IP address to be geolocated
+            ips (List[str]): IP address' list to be geolocated
             provider (str, optional): Use geolocation data from this provider ("digitalelement"). Default provider defined by the configuration.
             verbose (bool, optional): Echo the API parameters in the response
             raw (bool, optional): Include raw data from this provider
@@ -391,6 +391,35 @@ class IpIntelAsync(ServiceBaseAsync):
         """
         input = m.IPGeolocateRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
         return await self.request.post("v1/geolocate", m.IPGeolocateResult, data=input.dict(exclude_none=True))
+
+    async def geolocate_bulk(
+        self, ips: List[str], verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
+    ) -> PangeaResponse[m.IPGeolocateBulkResult]:
+        """
+        Geolocate
+
+        Retrieve information about the location of an IP address.
+
+        OperationId: FIXME:
+
+        Args:
+            ips (List[str]): IP addresses list to be geolocated
+            provider (str, optional): Use geolocation data from this provider ("digitalelement"). Default provider defined by the configuration.
+            verbose (bool, optional): Echo the API parameters in the response
+            raw (bool, optional): Include raw data from this provider
+
+        Raises:
+            PangeaAPIException: If an API Error happens
+
+        Returns:
+            A PangeaResponse where the IP information is in the
+                response.result field.  Available response fields can be found in our [API documentation](/docs/api/ip-intel)
+
+        Examples:
+            FIXME:
+        """
+        input = m.IPGeolocateBulkRequest(ips=ips, verbose=verbose, raw=raw, provider=provider)
+        return await self.request.post("v2/geolocate", m.IPGeolocateBulkResult, data=input.dict(exclude_none=True))
 
     async def get_domain(
         self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
