@@ -118,4 +118,4 @@ def get_presigned_url_upload_params(file: io.BufferedReader):
         size += len(chunk)
 
     file.seek(0)  # restart reading
-    return crc.hexdigest(), sha.hexdigest(), size, file
+    return crc.hexdigest().decode("utf-8"), sha.hexdigest(), size, file
