@@ -1,9 +1,9 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 
-from typing import List
+from typing import List, Optional
 
-from pangea.response import ErrorField, PangeaResponse
+from pangea.response import AcceptedResult, ErrorField, PangeaResponse
 
 
 class PangeaException(Exception):
@@ -12,6 +12,14 @@ class PangeaException(Exception):
     def __init__(self, message: str):
         super(Exception, self).__init__(message)
         self.message = message
+
+
+class PresignedUploadError(PangeaException):
+    body: str
+
+    def __init__(self, message: str, body: str):
+        super().__init__(message)
+        self.body = body
 
 
 class PangeaAPIException(PangeaException):
@@ -41,6 +49,14 @@ class PangeaAPIException(PangeaException):
 
     def __str__(self) -> str:
         return self.__repr__()
+
+
+class PresignedURLException(PangeaAPIException):
+    cause: Optional[Exception] = None
+
+    def __init__(self, message: str, response: PangeaResponse, cause: Optional[Exception] = None):
+        super().__init__(message, response)
+        self.cause = cause
 
 
 class ValidationException(PangeaAPIException):
@@ -103,11 +119,13 @@ class AcceptedRequestException(PangeaAPIException):
     """Accepted request exception. Async response"""
 
     request_id: str
+    accepted_result: Optional[AcceptedResult]
 
     def __init__(self, response: PangeaResponse):
         message = f"summary: {response.summary}. request_id: {response.request_id}."
         super().__init__(message, response)
         self.request_id = response.request_id
+        self.accepted_result = AcceptedResult(**response.raw_result) if response.raw_result is not None else None
 
 
 class ServiceNotAvailableException(PangeaAPIException):

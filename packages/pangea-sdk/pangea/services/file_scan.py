@@ -3,7 +3,8 @@
 import io
 from typing import Dict, List, Optional
 
-from pangea.response import APIRequestModel, PangeaResponse, PangeaResponseResult
+from pangea.response import APIRequestModel, PangeaResponse, PangeaResponseResult, TransferMethod
+from pangea.utils import get_presigned_url_upload_params
 
 from .base import ServiceBase
 
@@ -20,6 +21,10 @@ class FileScanRequest(APIRequestModel):
     verbose: Optional[bool] = None
     raw: Optional[bool] = None
     provider: Optional[str] = None
+    transfer_size: int
+    transfer_crc32c: str
+    transfer_sha256: str
+    transfer_method: TransferMethod = TransferMethod.DIRECT
 
 
 class FileScanData(PangeaResponseResult):
@@ -108,14 +113,17 @@ class FileScan(ServiceBase):
                 for err in e.errors:
                     print(f"\\t{err.detail} \\n")
         """
-        input = FileScanRequest(verbose=verbose, raw=raw, provider=provider)
 
         if file or file_path:
             if file_path:
                 file = open(file_path, "rb")
-            files = [("upload", ("filename.exe", file, "application/octet-stream"))]
+            crc, sha, size, _ = get_presigned_url_upload_params(file)
+            files = [("upload", ("filename", file, "application/octet-stream"))]
         else:
             raise ValueError("Need to set file_path or file arguments")
 
+        input = FileScanRequest(
+            verbose=verbose, raw=raw, provider=provider, transfer_crc32c=crc, transfer_sha256=sha, transfer_size=size
+        )
         data = input.dict(exclude_none=True)
         return self.request.post("v1/scan", FileScanResult, data=data, files=files, poll_result=sync_call)
