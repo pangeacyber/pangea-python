@@ -33,7 +33,7 @@ STATUS_NO_SIGNED = "no-signed"
 STATUS_SIGNED = "signed"
 LONG_FIELD = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed lacinia, orci eget commodo commodo non."
 
-TEST_ENVIRONMENT = TestEnvironment.LIVE
+TEST_ENVIRONMENT = TestEnvironment.DEVELOP
 
 custom_schema_event = {
     "message": MSG_CUSTOM_SCHEMA_NO_SIGNED,
@@ -202,7 +202,7 @@ class TestAuditAsync(unittest.IsolatedAsyncioTestCase):
     async def test_sign_without_signer(self):
         with self.assertRaises(AuditException):
             # This should fail because there is no signed configured
-            response: PangeaResponse[LogResult] = await self.audit_general.log(
+            await self.audit_general.log(
                 message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verbose=False, sign_local=True
             )
 
@@ -634,9 +634,7 @@ class TestAuditAsync(unittest.IsolatedAsyncioTestCase):
 
         with self.assertRaises(pexc.PangeaAPIException):
             # This should fail because this token has multi config but we didn't set up a config id
-            response: PangeaResponse[LogResult] = await audit_multi_config.log(
-                message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verbose=True
-            )
+            await audit_multi_config.log(message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verbose=True)
 
         await audit_multi_config.close()
 
@@ -667,3 +665,69 @@ class TestAuditAsync(unittest.IsolatedAsyncioTestCase):
         self.assertIsNotNone(response.result.envelope)
 
         await audit_multi_config.close()
+
+    async def test_log_bulk(self):
+        event = Event(message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED)
+
+        events = [event, event]
+        response = await self.audit_general.log_bulk(events=events, verify=False, verbose=True)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        for result in response.result.results:
+            self.assertIsNotNone(result.envelope)
+            self.assertIsNotNone(result.envelope.event)
+            self.assertEqual(result.envelope.event["message"], MSG_NO_SIGNED)
+            self.assertIsNone(result.consistency_proof)
+            self.assertEqual(result.consistency_verification, EventVerification.NONE)
+            self.assertEqual(result.membership_verification, EventVerification.NONE)
+            self.assertEqual(result.signature_verification, EventVerification.NONE)
+
+    async def test_log_bulk_async(self):
+        event = Event(message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED)
+
+        events = [event, event]
+        response = await self.audit_general.log_bulk_async(events=events, verify=False, verbose=True)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        for result in response.result.results:
+            self.assertIsNotNone(result.envelope)
+            self.assertIsNotNone(result.envelope.event)
+            self.assertEqual(result.envelope.event["message"], MSG_NO_SIGNED)
+            self.assertIsNone(result.consistency_proof)
+            self.assertEqual(result.consistency_verification, EventVerification.NONE)
+            self.assertEqual(result.membership_verification, EventVerification.NONE)
+            self.assertEqual(result.signature_verification, EventVerification.NONE)
+
+    async def test_log_event_async(self):
+        event = Event(message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED)
+
+        response = await self.audit_general.log_event_async(event=event, verify=False, verbose=True)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        result = response.result
+        self.assertIsNotNone(result.envelope)
+        self.assertIsNotNone(result.envelope.event)
+        self.assertEqual(result.envelope.event["message"], MSG_NO_SIGNED)
+        self.assertIsNone(result.consistency_proof)
+        self.assertEqual(result.consistency_verification, EventVerification.NONE)
+        self.assertEqual(result.membership_verification, EventVerification.NONE)
+        self.assertEqual(result.signature_verification, EventVerification.NONE)
+
+    async def test_log_event_async_no_queue(self):
+        self.config = PangeaConfig(domain=self.domain, queued_retry_enabled=False)
+        audit_no_queue = AuditAsync(self.general_token, config=self.config, logger_name="pangea")
+        event = Event(message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED)
+
+        with self.assertRaises(pexc.AcceptedRequestException):
+            await audit_no_queue.log_event_async(event=event, verify=False, verbose=True)
+
+        await audit_no_queue.close()
+
+    async def test_log_bulk_async_no_queue(self):
+        self.config = PangeaConfig(domain=self.domain, queued_retry_enabled=False)
+        audit_no_queue = AuditAsync(self.general_token, config=self.config, logger_name="pangea")
+        event = Event(message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED)
+
+        events = [event, event]
+
+        with self.assertRaises(pexc.AcceptedRequestException):
+            await audit_no_queue.log_bulk_async(events=events, verify=False, verbose=True)
+
+        await audit_no_queue.close()

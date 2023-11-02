@@ -76,7 +76,7 @@ class AcceptedStatus(APIResponseModel):
 
 
 class AcceptedResult(PangeaResponseResult):
-    accepted_status: AcceptedStatus
+    accepted_status: Optional[AcceptedStatus] = None
 
 
 class PangeaError(PangeaResponseResult):

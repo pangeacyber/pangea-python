@@ -179,6 +179,47 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
             self._process_log_result(response.result, verify=verify)
         return response
 
+    async def log_event_async(
+        self,
+        event: Dict[str, Any],
+        verify: bool = False,
+        sign_local: bool = False,
+        verbose: Optional[bool] = None,
+    ) -> PangeaResponse[LogResult]:
+        """
+        Log an entry
+
+        Create a log entry in the Secure Audit Log.
+        Args:
+            event (dict[str, Any]): event to be logged
+            verify (bool, optional): True to verify logs consistency after response.
+            sign_local (bool, optional): True to sign event with local key.
+            verbose (bool, optional): True to get a more verbose response.
+        Raises:
+            AuditException: If an audit based api exception happens
+            PangeaAPIException: If an API Error happens
+
+        Returns:
+            A PangeaResponse where the hash of event data and optional verbose
+                results are returned in the response.result field.
+                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/audit#log-an-entry).
+
+        Examples:
+            try:
+                log_response = audit.log({"message"="Hello world"}, verbose=False)
+                print(f"Response. Hash: {log_response.result.hash}")
+            except pe.PangeaAPIException as e:
+                print(f"Request Error: {e.response.summary}")
+                for err in e.errors:
+                    print(f"\\t{err.detail} \\n")
+        """
+
+        input = self._get_log_request(event, sign_local=sign_local, verify=verify, verbose=verbose)
+        response = await self.request.post("v1/log_async", LogResult, data=input.dict(exclude_none=True))
+        if response.success:
+            self._process_log_result(response.result, verify=verify)
+        return response
+
     async def log_bulk(
         self,
         events: List[Dict[str, Any]],
@@ -210,6 +251,42 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
 
         input = self._get_log_request(events, sign_local=sign_local, verify=verify, verbose=verbose)
         response = await self.request.post("v2/log", LogBulkResult, data=input.dict(exclude_none=True))
+        if response.success:
+            for result in response.result.results:
+                self._process_log_result(result, verify=verify)
+        return response
+
+    async def log_bulk_async(
+        self,
+        events: List[Dict[str, Any]],
+        verify: bool = False,
+        sign_local: bool = False,
+        verbose: Optional[bool] = None,
+    ) -> PangeaResponse[LogBulkResult]:
+        """
+        Log an entry
+
+        Create a log entry in the Secure Audit Log.
+        Args:
+            events (List[dict[str, Any]]): events to be logged
+            verify (bool, optional): True to verify logs consistency after response.
+            sign_local (bool, optional): True to sign event with local key.
+            verbose (bool, optional): True to get a more verbose response.
+        Raises:
+            AuditException: If an audit based api exception happens
+            PangeaAPIException: If an API Error happens
+
+        Returns:
+            A PangeaResponse where the hash of event data and optional verbose
+                results are returned in the response.result field.
+                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/audit#log-an-entry).
+
+        Examples:
+            FIXME:
+        """
+
+        input = self._get_log_request(events, sign_local=sign_local, verify=verify, verbose=verbose)
+        response = await self.request.post("v2/log_async", LogBulkResult, data=input.dict(exclude_none=True))
         if response.success:
             for result in response.result.results:
                 self._process_log_result(result, verify=verify)
