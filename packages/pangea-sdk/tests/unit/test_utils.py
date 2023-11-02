@@ -1,5 +1,6 @@
 import unittest
 
+from google_crc32c import Checksum as CRC32C
 from pangea.services.audit.util import b64decode, b64decode_ascii, b64encode, b64encode_ascii
 from pangea.utils import default_encoder, get_prefix, hash_sha1, hash_sha256, str2str_b64
 
@@ -30,3 +31,8 @@ class TestUtils(unittest.TestCase):
         hash = "123456789"
         self.assertEqual("12345", get_prefix(hash))
         self.assertEqual("123", get_prefix(hash, 3))
+
+    def test_crc32c(self):
+        crc = CRC32C()
+        crc.update("ABCDEF".encode("ascii"))
+        self.assertEqual(crc.hexdigest().decode("utf-8"), "a4b7ce68")
