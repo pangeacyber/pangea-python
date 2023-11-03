@@ -102,7 +102,7 @@ class AuditBase:
                 raise AuditException("Error: failure signing message")
 
             # Add public key value to public key info and serialize
-            pki = self._set_public_key(self.signer, self.public_key_info)
+            pki = self._get_public_key_info(self.signer, self.public_key_info)
 
         return LogEvent(event=event, signature=signature, public_key=pki)
 
