@@ -18,7 +18,7 @@ class TestFileScan(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         token = get_test_token(TEST_ENVIRONMENT)
         domain = get_test_domain(TEST_ENVIRONMENT)
-        config = PangeaConfig(domain=domain, custom_user_agent="sdk-test", poll_result_timeout=120)
+        config = PangeaConfig(domain=domain, custom_user_agent="sdk-test", poll_result_timeout=240)
         self.scan = FileScanAsync(token, config=config)
         logger_set_pangea_config(logger_name=self.scan.logger.name)
 
@@ -55,10 +55,16 @@ class TestFileScan(unittest.IsolatedAsyncioTestCase):
         except pe.AcceptedRequestException as e:
             exception = e
 
-        # wait some time to get result ready and poll it
-        time.sleep(10)
+        max_retry = 24
+        for retry in range(max_retry):
+            try:
+                # wait some time to get result ready and poll it
+                time.sleep(10)
 
-        response = await self.scan.poll_result(exception)
-        self.assertEqual(response.status, "Success")
-        self.assertEqual(response.result.data.verdict, "benign")
-        self.assertEqual(response.result.data.score, 0)
+                response = await self.scan.poll_result(exception)
+                self.assertEqual(response.status, "Success")
+                self.assertEqual(response.result.data.verdict, "benign")
+                self.assertEqual(response.result.data.score, 0)
+                break
+            except pe.PangeaAPIException:
+                self.assertLess(retry, max_retry - 1)

@@ -1,10 +1,13 @@
 import base64
 import copy
 import datetime
+import io
 import json
 from binascii import hexlify
 from collections import OrderedDict
 from hashlib import new, sha1, sha256, sha512
+
+from google_crc32c import Checksum as CRC32C
 
 
 def format_datetime(dt: datetime.datetime) -> str:
@@ -22,7 +25,6 @@ def default_encoder(obj) -> str:
     if isinstance(obj, datetime.date):
         return str(obj)
     if isinstance(obj, dict):
-        print("encoder canonicalize obj")
         return canonicalize(obj)
     else:
         return str(obj)
@@ -96,3 +98,24 @@ def hash_ntlm(data: str):
 
 def get_prefix(hash: str, len: int = 5):
     return hash[0:len]
+
+
+def get_presigned_url_upload_params(file: io.BufferedReader):
+    if "b" not in file.mode:
+        raise AttributeError("File need to be open in binary mode")
+
+    file.seek(0)  # restart reading
+    crc = CRC32C()
+    size = 0
+    sha = sha256()
+
+    while True:
+        chunk = file.read(1024 * 1024)
+        if not chunk:
+            break
+        crc.update(chunk)
+        sha.update(chunk)
+        size += len(chunk)
+
+    file.seek(0)  # restart reading
+    return crc.hexdigest().decode("utf-8"), sha.hexdigest(), size, file

@@ -1,5 +1,7 @@
+import logging
 import time
 import unittest
+from http.client import HTTPConnection
 
 import pangea.exceptions as pe
 from pangea import PangeaConfig
@@ -14,11 +16,23 @@ def get_test_file():
     return open(PDF_FILEPATH, "rb")
 
 
+def debug_requests_on():
+    """Switches on logging of the requests module."""
+    HTTPConnection.debuglevel = 1
+
+    logging.basicConfig()
+    logging.getLogger().setLevel(logging.DEBUG)
+    requests_log = logging.getLogger("requests.packages.urllib3")
+    requests_log.setLevel(logging.DEBUG)
+    requests_log.propagate = True
+
+
 class TestFileScan(unittest.TestCase):
     def setUp(self):
+        # debug_requests_on()
         token = get_test_token(TEST_ENVIRONMENT)
         domain = get_test_domain(TEST_ENVIRONMENT)
-        config = PangeaConfig(domain=domain, custom_user_agent="sdk-test", poll_result_timeout=120)
+        config = PangeaConfig(domain=domain, custom_user_agent="sdk-test", poll_result_timeout=240)
         self.scan = FileScan(token, config=config)
         logger_set_pangea_config(logger_name=self.scan.logger.name)
 
@@ -52,7 +66,7 @@ class TestFileScan(unittest.TestCase):
         except pe.AcceptedRequestException as e:
             exception = e
 
-        max_retry = 6
+        max_retry = 12
         for retry in range(max_retry):
             try:
                 # wait some time to get result ready and poll it
@@ -96,7 +110,7 @@ class TestFileScan(unittest.TestCase):
         except pe.AcceptedRequestException as e:
             exception = e
 
-        max_retry = 6
+        max_retry = 24
         for retry in range(max_retry):
             try:
                 # wait some time to get result ready and poll it

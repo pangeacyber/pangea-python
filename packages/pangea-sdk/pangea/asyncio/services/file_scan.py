@@ -5,6 +5,7 @@ from typing import Optional
 
 import pangea.services.file_scan as m
 from pangea.response import PangeaResponse
+from pangea.utils import get_presigned_url_upload_params
 
 from .base import ServiceBaseAsync
 
@@ -79,14 +80,17 @@ class FileScanAsync(ServiceBaseAsync):
                 for err in e.errors:
                     print(f"\\t{err.detail} \\n")
         """
-        input = m.FileScanRequest(verbose=verbose, raw=raw, provider=provider)
 
         if file or file_path:
             if file_path:
                 file = open(file_path, "rb")
-            files = [("upload", ("filename.exe", file, "application/octet-stream"))]
+            crc, sha, size, _ = get_presigned_url_upload_params(file)
+            files = [("upload", ("filename", file, "application/octet-stream"))]
         else:
             raise ValueError("Need to set file_path or file arguments")
 
+        input = m.FileScanRequest(
+            verbose=verbose, raw=raw, provider=provider, transfer_crc32c=crc, transfer_sha256=sha, transfer_size=size
+        )
         data = input.dict(exclude_none=True)
         return await self.request.post("v1/scan", m.FileScanResult, data=data, files=files, poll_result=sync_call)
