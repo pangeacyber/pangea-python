@@ -8,7 +8,7 @@ packages = [{include = "intel_examples"}]
 
 [tool.poetry.dependencies]
 python = "^3.7.2"
-pangea-sdk = "^2.3.0"
+pangea-sdk = "^3.1.0"
 
 [build-system]
 requires = ["poetry-core"]

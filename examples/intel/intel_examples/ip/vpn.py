@@ -1,6 +1,7 @@
 import os
 
 import pangea.exceptions as pe
+from intel_examples.ip.utils import print_ip_vpn_data
 from pangea.config import PangeaConfig
 from pangea.services import IpIntel
 
@@ -14,11 +15,11 @@ def main():
     print("Checking IP's a VPN...")
 
     try:
+        ip = "2.56.189.74"
         response = intel.is_vpn(ip="2.56.189.74", provider="digitalelement", verbose=True, raw=True)
-        if response.result.data.is_vpn:
-            print("IP is a VPN")
-        else:
-            print("IP is not a VPN")
+        print("Result:")
+        print_ip_vpn_data(ip, response.result.data)
+
     except pe.PangeaAPIException as e:
         print(f"Request Error: {e.response.summary}")
         print(e)

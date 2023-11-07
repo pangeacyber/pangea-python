@@ -1,7 +1,7 @@
 import os
 
 import pangea.exceptions as pe
-from intel_examples.ip.utils import print_ip_domain_data
+from intel_examples.utils import print_reputation_bulk_data
 from pangea.config import PangeaConfig
 from pangea.services import IpIntel
 
@@ -12,12 +12,13 @@ intel = IpIntel(token, config=config)
 
 
 def main():
-    print("Get IP's Domain...")
+    print("Checking IPs...")
 
     try:
-        ip = "24.235.114.61"
-        response = intel.get_domain(ip=ip, provider="digitalelement", verbose=True, raw=True)
-        print_ip_domain_data(ip, response.result.data)
+        ip_list = ["93.231.182.110", "190.28.74.251"]
+        response = intel.reputation_bulk(ips=ip_list, provider="crowdstrike", verbose=True, raw=True)
+        print("Result:")
+        print_reputation_bulk_data(response.result.data)
     except pe.PangeaAPIException as e:
         print(e)
 

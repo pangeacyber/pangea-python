@@ -1,6 +1,7 @@
 import os
 
 import pangea.exceptions as pe
+from intel_examples.utils import print_reputation_data
 from pangea.config import PangeaConfig
 from pangea.services import FileIntel
 from pangea.tools import logger_set_pangea_config
@@ -13,7 +14,7 @@ logger_set_pangea_config(logger_name=intel.logger.name)
 
 
 def main():
-    print(f"Checking file...")
+    print("Checking file...")
 
     try:
         response = intel.filepath_reputation(
@@ -22,7 +23,8 @@ def main():
             verbose=True,
             raw=True,
         )
-        print(f"Response: {response.result}")
+        print("Result:")
+        print_reputation_data("hash", response.result.data)
     except pe.PangeaAPIException as e:
         print(e)
 

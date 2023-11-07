@@ -704,7 +704,7 @@ class DomainIntel(ServiceBase):
         verbose: Optional[bool] = None,
         raw: Optional[bool] = None,
         provider: Optional[str] = None,
-    ) -> PangeaResponse[DomainReputationResult]:
+    ) -> PangeaResponse[DomainReputationBulkResult]:
         """
         Reputation
 
