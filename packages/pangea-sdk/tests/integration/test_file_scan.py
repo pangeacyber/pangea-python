@@ -5,6 +5,7 @@ from http.client import HTTPConnection
 
 import pangea.exceptions as pe
 from pangea import PangeaConfig
+from pangea.response import TransferMethod
 from pangea.services import FileScan
 from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
 
@@ -40,6 +41,18 @@ class TestFileScan(unittest.TestCase):
         try:
             with get_test_file() as f:
                 response = self.scan.file_scan(file=f, verbose=True, provider="crowdstrike")
+                self.assertEqual(response.status, "Success")
+                self.assertEqual(response.result.data.verdict, "benign")
+                self.assertEqual(response.result.data.score, 0)
+        except pe.PangeaAPIException as e:
+            print(e)
+            print(type(e))
+            self.assertTrue(False)
+
+    def test_scan_file_multipart(self):
+        try:
+            with get_test_file() as f:
+                response = self.scan.file_scan(file=f, verbose=True, transfer_method=TransferMethod.MULTIPART)
                 self.assertEqual(response.status, "Success")
                 self.assertEqual(response.result.data.verdict, "benign")
                 self.assertEqual(response.result.data.score, 0)

@@ -21,9 +21,9 @@ class FileScanRequest(APIRequestModel):
     verbose: Optional[bool] = None
     raw: Optional[bool] = None
     provider: Optional[str] = None
-    transfer_size: int
-    transfer_crc32c: str
-    transfer_sha256: str
+    transfer_size: Optional[int] = None
+    transfer_crc32c: Optional[str] = None
+    transfer_sha256: Optional[str] = None
     transfer_method: TransferMethod = TransferMethod.DIRECT
 
 
@@ -79,6 +79,7 @@ class FileScan(ServiceBase):
         raw: Optional[bool] = None,
         provider: Optional[str] = None,
         sync_call: bool = True,
+        transfer_method: TransferMethod = TransferMethod.DIRECT,
     ) -> PangeaResponse[FileScanResult]:
         """
         Scan
@@ -117,13 +118,22 @@ class FileScan(ServiceBase):
         if file or file_path:
             if file_path:
                 file = open(file_path, "rb")
-            crc, sha, size, _ = get_presigned_url_upload_params(file)
+            if transfer_method == TransferMethod.DIRECT:
+                crc, sha, size, _ = get_presigned_url_upload_params(file)
+            else:
+                crc, sha, size = None, None, None
             files = [("upload", ("filename", file, "application/octet-stream"))]
         else:
             raise ValueError("Need to set file_path or file arguments")
 
         input = FileScanRequest(
-            verbose=verbose, raw=raw, provider=provider, transfer_crc32c=crc, transfer_sha256=sha, transfer_size=size
+            verbose=verbose,
+            raw=raw,
+            provider=provider,
+            transfer_crc32c=crc,
+            transfer_sha256=sha,
+            transfer_size=size,
+            transfer_method=transfer_method,
         )
         data = input.dict(exclude_none=True)
         return self.request.post("v1/scan", FileScanResult, data=data, files=files, poll_result=sync_call)
