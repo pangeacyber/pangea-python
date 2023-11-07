@@ -9,10 +9,10 @@ from typing import Dict, List, Optional, Tuple, Type, Union
 
 import aiohttp
 import pangea
+import pangea.exceptions as pe
 import requests
-from pangea import exceptions
 from pangea.config import PangeaConfig
-from pangea.response import PangeaResponse, PangeaResponseResult, ResponseStatus
+from pangea.response import AcceptedResult, PangeaResponse, PangeaResponseResult, ResponseStatus, TransferMethod
 from pangea.utils import default_encoder
 from requests.adapters import HTTPAdapter, Retry
 
@@ -131,38 +131,38 @@ class PangeaRequestBase(object):
         )
 
         if status == ResponseStatus.VALIDATION_ERR.value:
-            raise exceptions.ValidationException(summary, response)
+            raise pe.ValidationException(summary, response)
         elif status == ResponseStatus.TOO_MANY_REQUESTS.value:
-            raise exceptions.RateLimitException(summary, response)
+            raise pe.RateLimitException(summary, response)
         elif status == ResponseStatus.NO_CREDIT.value:
-            raise exceptions.NoCreditException(summary, response)
+            raise pe.NoCreditException(summary, response)
         elif status == ResponseStatus.UNAUTHORIZED.value:
-            raise exceptions.UnauthorizedException(self.service, response)
+            raise pe.UnauthorizedException(self.service, response)
         elif status == ResponseStatus.SERVICE_NOT_ENABLED.value:
-            raise exceptions.ServiceNotEnabledException(self.service, response)
+            raise pe.ServiceNotEnabledException(self.service, response)
         elif status == ResponseStatus.PROVIDER_ERR.value:
-            raise exceptions.ProviderErrorException(summary, response)
+            raise pe.ProviderErrorException(summary, response)
         elif status in (ResponseStatus.MISSING_CONFIG_ID_SCOPE.value, ResponseStatus.MISSING_CONFIG_ID.value):
-            raise exceptions.MissingConfigID(self.service, response)
+            raise pe.MissingConfigID(self.service, response)
         elif status == ResponseStatus.SERVICE_NOT_AVAILABLE.value:
-            raise exceptions.ServiceNotAvailableException(summary, response)
+            raise pe.ServiceNotAvailableException(summary, response)
         elif status == ResponseStatus.TREE_NOT_FOUND.value:
-            raise exceptions.TreeNotFoundException(summary, response)
+            raise pe.TreeNotFoundException(summary, response)
         elif status == ResponseStatus.IP_NOT_FOUND.value:
-            raise exceptions.IPNotFoundException(summary)
+            raise pe.IPNotFoundException(summary)
         elif status == ResponseStatus.BAD_OFFSET.value:
-            raise exceptions.BadOffsetException(summary, response)
+            raise pe.BadOffsetException(summary, response)
         elif status == ResponseStatus.FORBIDDEN_VAULT_OPERATION.value:
-            raise exceptions.ForbiddenVaultOperation(summary, response)
+            raise pe.ForbiddenVaultOperation(summary, response)
         elif status == ResponseStatus.VAULT_ITEM_NOT_FOUND.value:
-            raise exceptions.VaultItemNotFound(summary, response)
+            raise pe.VaultItemNotFound(summary, response)
         elif status == ResponseStatus.NOT_FOUND.value:
-            raise exceptions.NotFound(response.raw_response.url if response.raw_response is not None else "", response)
+            raise pe.NotFound(response.raw_response.url if response.raw_response is not None else "", response)
         elif status == ResponseStatus.INTERNAL_SERVER_ERROR.value:
-            raise exceptions.InternalServerError(response)
+            raise pe.InternalServerError(response)
         elif status == ResponseStatus.ACCEPTED.value:
-            raise exceptions.AcceptedRequestException(response)
-        raise exceptions.PangeaAPIException(f"{summary} ", response)
+            raise pe.AcceptedRequestException(response)
+        raise pe.PangeaAPIException(f"{summary} ", response)
 
 
 class PangeaRequest(PangeaRequestBase):
@@ -184,6 +184,7 @@ class PangeaRequest(PangeaRequestBase):
         data: Union[str, Dict] = {},
         files: Optional[List[Tuple]] = None,
         poll_result: bool = True,
+        url: Optional[str] = None,
     ) -> PangeaResponse:
         """Makes the POST call to a Pangea Service endpoint.
 
@@ -195,23 +196,28 @@ class PangeaRequest(PangeaRequestBase):
             PangeaResponse which contains the response in its entirety and
                various properties to retrieve individual fields
         """
-        url = self._url(endpoint)
+        if url is None:
+            url = self._url(endpoint)
+
         # Set config ID if available
-        if self.config_id and data.pop("config_id", None) is None:
+        if self.config_id and data.get("config_id", None) is None:
             data["config_id"] = self.config_id
 
-        data_send = json.dumps(data, default=default_encoder) if isinstance(data, dict) else data
         self.logger.debug(
             json.dumps({"service": self.service, "action": "post", "url": url, "data": data}, default=default_encoder)
         )
 
-        if files:
-            multi = [("request", (None, data_send, "application/json"))]
-            multi.extend(files)
-            files = multi
-            data_send = None
+        if (
+            files is not None
+            and type(data) is dict
+            and data.get("transfer_method", None) == TransferMethod.DIRECT.value
+        ):
+            requests_response = self._post_presigned_url(endpoint, result_class=result_class, data=data, files=files)
+        else:
+            requests_response = self._http_post(
+                url, headers=self._headers(), data=data, files=files, multipart_post=True
+            )
 
-        requests_response = self.session.post(url, headers=self._headers(), data=data_send, files=files)
         self._check_http_errors(requests_response)
         self.logger.debug(
             json.dumps(
@@ -228,7 +234,90 @@ class PangeaRequest(PangeaRequestBase):
 
     def _check_http_errors(self, resp: requests.Response):
         if resp.status_code == 503:
-            raise exceptions.ServiceTemporarilyUnavailable(resp.json())
+            raise pe.ServiceTemporarilyUnavailable(resp.json())
+
+    def _http_post(
+        self,
+        url: str,
+        headers: Dict = {},
+        data: Union[str, Dict] = {},
+        files: Optional[List[Tuple]] = None,
+        multipart_post: bool = True,
+    ) -> requests.Response:
+        self.logger.debug(
+            json.dumps(
+                {"service": self.service, "action": "http_post", "url": url, "data": data}, default=default_encoder
+            )
+        )
+
+        data_send, files = self._http_post_process(data=data, files=files, multipart_post=multipart_post)
+        return self.session.post(url, headers=headers, data=data_send, files=files)
+
+    def _http_post_process(
+        self, data: Union[str, Dict] = {}, files: Optional[List[Tuple]] = None, multipart_post: bool = True
+    ):
+        if files:
+            if multipart_post is True:
+                data_send = json.dumps(data, default=default_encoder) if isinstance(data, dict) else data
+                multi = [("request", (None, data_send, "application/json"))]
+                multi.extend(files)
+                files = multi
+                return None, files
+            else:
+                # Post to presigned url as form
+                data_send = []
+                for k, v in data.items():
+                    data_send.append((k, v))
+                # When posting to presigned url, file key should be 'file'
+                files = {
+                    "file": files[0][1],
+                }
+                return data_send, files
+        else:
+            data_send = json.dumps(data, default=default_encoder) if isinstance(data, dict) else data
+            return data_send, None
+
+        return data, files
+
+    def _post_presigned_url(
+        self,
+        endpoint: str,
+        result_class: Type[PangeaResponseResult],
+        data: Union[str, Dict] = {},
+        files: Optional[List[Tuple]] = None,
+    ):
+        if len(files) == 0:
+            raise AttributeError("files attribute should have at least 1 file")
+
+        # Send request
+        try:
+            # This should return 202 (AcceptedRequestException)
+            resp = self.post(endpoint=endpoint, result_class=result_class, data=data, poll_result=False)
+            raise pe.PresignedURLException("Should return 202", resp)
+
+        except pe.AcceptedRequestException as e:
+            accepted_exception = e
+        except Exception as e:
+            raise e
+
+        # Receive 202 with accepted_status
+        result = self._poll_presigned_url(accepted_exception)
+        data_to_presigned = result.accepted_status.upload_details
+        presigned_url = result.accepted_status.upload_url
+
+        # Send multipart request with file and upload_details as body
+        resp = self._http_post(url=presigned_url, data=data_to_presigned, files=files, multipart_post=False)
+        self.logger.debug(
+            json.dumps(
+                {"service": self.service, "action": "post presigned", "url": presigned_url, "response": resp.text},
+                default=default_encoder,
+            )
+        )
+
+        if resp.status_code < 200 or resp.status_code >= 300:
+            raise pe.PresignedUploadError(f"presigned POST failure: {resp.status_code}", resp.text)
+
+        return accepted_exception.response.raw_response
 
     def _handle_queued_result(self, response: PangeaResponse) -> PangeaResponse:
         if self._queued_retry_enabled and response.raw_response.status_code == 202:
@@ -282,10 +371,10 @@ class PangeaRequest(PangeaRequestBase):
     def poll_result_once(self, response: PangeaResponse, check_response: bool = True):
         request_id = response.request_id
         if not request_id:
-            raise exceptions.PangeaException("Poll result error error: response did not include a 'request_id'")
+            raise pe.PangeaException("Poll result error: response did not include a 'request_id'")
 
         if response.status != ResponseStatus.ACCEPTED.value:
-            raise exceptions.PangeaException("Response already proccesed")
+            raise pe.PangeaException("Response already proccesed")
 
         return self.poll_result_by_id(request_id, response.result_class, check_response=check_response)
 
@@ -300,6 +389,51 @@ class PangeaRequest(PangeaRequestBase):
 
         self.logger.debug(json.dumps({"service": self.service, "action": "poll_result_retry", "step": "exit"}))
         return self._check_response(response)
+
+    def _poll_presigned_url(self, initial_exc: pe.AcceptedRequestException) -> AcceptedResult:
+        if type(initial_exc) is not pe.AcceptedRequestException:
+            raise AttributeError("Exception should be of type AcceptedRequestException")
+
+        if initial_exc.accepted_result.accepted_status.upload_url:
+            return initial_exc.accepted_result
+
+        self.logger.debug(json.dumps({"service": self.service, "action": "poll_presigned_url", "step": "start"}))
+        retry_count = 1
+        start = time.time()
+        loop_exc = initial_exc
+
+        while (
+            loop_exc.accepted_result is not None
+            and not loop_exc.accepted_result.accepted_status.upload_url
+            and not self._reach_timeout(start)
+        ):
+            time.sleep(self._get_delay(retry_count, start))
+            try:
+                self.poll_result_once(initial_exc.response, check_response=False)
+                msg = "Polling presigned url return 200 instead of 202"
+                self.logger.debug(
+                    json.dumps(
+                        {"service": self.service, "action": "poll_presigned_url", "step": "exit", "cause": {msg}}
+                    )
+                )
+                raise pe.PangeaException(msg)
+            except pe.AcceptedRequestException as e:
+                retry_count += 1
+                loop_exc = e
+            except Exception as e:
+                self.logger.debug(
+                    json.dumps(
+                        {"service": self.service, "action": "poll_presigned_url", "step": "exit", "cause": {str(e)}}
+                    )
+                )
+                raise pe.PresignedURLException("Failed to pull Presigned URL", loop_exc.response, e)
+
+        self.logger.debug(json.dumps({"service": self.service, "action": "poll_presigned_url", "step": "exit"}))
+
+        if loop_exc.accepted_result is not None and not loop_exc.accepted_result.accepted_status.upload_url:
+            return loop_exc.accepted_result
+        else:
+            raise loop_exc
 
     def _init_session(self) -> requests.Session:
         retry_config = Retry(
