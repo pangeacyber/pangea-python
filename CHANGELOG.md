@@ -269,7 +269,8 @@ Asyncio support. New Async Service classes are in /asyncio folder.
 - Domain Intel client
 - Redact client
 
-[unreleased]: https://github.com/pangeacyber/pangea-python/compare/v3.0.0...main
+[unreleased]: https://github.com/pangeacyber/pangea-python/compare/v3.1.0...main
+[3.1.0]: https://github.com/pangeacyber/pangea-python/compare/v3.1.0...v3.0.0
 [3.0.0]: https://github.com/pangeacyber/pangea-python/compare/v3.0.0...v2.4.0
 [2.4.0]: https://github.com/pangeacyber/pangea-python/compare/v2.4.0...v2.3.0
 [2.3.0]: https://github.com/pangeacyber/pangea-python/compare/v2.3.0...v2.2.1
