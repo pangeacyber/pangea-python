@@ -129,6 +129,7 @@ class ItemVersionState(str, enum.Enum):
     SUSPENDED = "suspended"
     COMPROMISED = "compromised"
     DESTROYED = "destroyed"
+    INHERITED = "inherited"
 
     def __str__(self):
         return str(self.value)
@@ -217,9 +218,16 @@ class ItemData(PangeaResponseResult):
     purpose: Optional[str] = None
 
 
+class InheritedSettings(PangeaResponseResult):
+    rotation_frequency: Optional[str] = None
+    rotation_state: Optional[str] = None
+    rotation_grace_period: Optional[str] = None
+
+
 class GetResult(ItemData):
     versions: List[ItemVersionData] = []
     rotation_grace_period: Optional[str] = None
+    inherited_settings: Optional[InheritedSettings] = None
 
 
 class ListItemData(ItemData):
@@ -360,6 +368,9 @@ class FolderCreateRequest(APIRequestModel):
     folder: str
     metadata: Optional[Metadata] = None
     tags: Optional[Tags] = None
+    rotation_frequency: Optional[str] = None
+    rotation_state: Optional[ItemVersionState] = None
+    rotation_grace_period: Optional[str] = None
 
 
 class FolderCreateResult(PangeaResponseResult):
