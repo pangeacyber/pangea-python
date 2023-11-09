@@ -556,7 +556,7 @@ class Audit(ServiceBase, AuditBase):
         """
 
         input = self._get_log_request(event, sign_local=sign_local, verify=verify, verbose=verbose)
-        response = self.request.post("v1/log_async", LogResult, data=input.dict(exclude_none=True))
+        response = self.request.post("v1/log_async", LogResult, data=input.dict(exclude_none=True), poll_result=False)
         if response.success:
             self._process_log_result(response.result, verify=verify)
         return response
@@ -627,7 +627,9 @@ class Audit(ServiceBase, AuditBase):
         """
 
         input = self._get_log_request(events, sign_local=sign_local, verify=verify, verbose=verbose)
-        response = self.request.post("v2/log_async", LogBulkResult, data=input.dict(exclude_none=True))
+        response = self.request.post(
+            "v2/log_async", LogBulkResult, data=input.dict(exclude_none=True), poll_result=False
+        )
         if response.success:
             for result in response.result.results:
                 self._process_log_result(result, verify=verify)
