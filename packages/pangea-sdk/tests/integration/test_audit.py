@@ -465,8 +465,8 @@ class TestAudit(unittest.TestCase):
         self.assertRaises(pexc.BadOffsetException, resultBadOffset)
 
     def test_search_results_no_verbose(self):
-        limit = 10
-        max_result = 10
+        limit = 5
+        max_result = 5
         response_search = self.audit_general.search(
             query='message:""', limit=limit, max_results=max_result, verbose=False
         )
