@@ -253,7 +253,7 @@ class TestAuthN(unittest.IsolatedAsyncioTestCase):
                 try:
                     await self.authn.session.invalidate(session_id=session.id)
                 except pe.PangeaAPIException:
-                    print(f"Fail to invalidate session_id: {session.id}")
+                    print(f"Failed to invalidate session_id: {session.id}")
                     pass
 
         except pe.PangeaAPIException as e:
@@ -280,7 +280,7 @@ class TestAuthN(unittest.IsolatedAsyncioTestCase):
                 try:
                     await self.authn.client.session.invalidate(token=token, session_id=session.id)
                 except pe.PangeaAPIException as e:
-                    print(f"Fail to invalidate session_id[{session.id}] token[{token}]")
+                    print(f"Failed to invalidate session_id[{session.id}] token[{token}]")
                     print(e)
                     pass
 
@@ -320,7 +320,7 @@ class TestAuthN(unittest.IsolatedAsyncioTestCase):
             try:
                 await self.authn.user.delete(email=user.email)
             except pe.PangeaAPIException:
-                print(f"Fail to delete user email: {user.email}")
+                print(f"Failed to delete user email: {user.email}")
                 pass
 
     async def agreements_cycle(self, type: m.AgreementType):
