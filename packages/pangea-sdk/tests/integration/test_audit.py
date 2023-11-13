@@ -665,7 +665,7 @@ class TestAudit(unittest.TestCase):
         event = Event(message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED)
         events = [event, event]
 
-        response = self.audit_general.log_bulk(events=events, verify=False, verbose=True)
+        response = self.audit_general.log_bulk(events=events, verbose=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         for result in response.result.results:
             self.assertIsNotNone(result.envelope)
