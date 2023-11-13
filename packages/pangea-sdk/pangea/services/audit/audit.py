@@ -67,8 +67,7 @@ class AuditBase:
             for e in events:
                 request_events.append(self._process_log(e, sign_local=sign_local, verify=verify, verbose=verbose))
 
-            input = LogBulkRequest(events=request_events)
-            input.verbose = True if verify else verbose
+            input = LogBulkRequest(events=request_events, verbose=verbose)
 
         elif isinstance(events, dict):
             log = self._process_log(events, sign_local=sign_local, verify=verify, verbose=verbose)
@@ -528,7 +527,6 @@ class Audit(ServiceBase, AuditBase):
     def log_bulk(
         self,
         events: List[Dict[str, Any]],
-        verify: bool = False,
         sign_local: bool = False,
         verbose: Optional[bool] = None,
     ) -> PangeaResponse[LogBulkResult]:
@@ -554,17 +552,16 @@ class Audit(ServiceBase, AuditBase):
             TODO:
         """
 
-        input = self._get_log_request(events, sign_local=sign_local, verify=verify, verbose=verbose)
+        input = self._get_log_request(events, sign_local=sign_local, verify=False, verbose=verbose)
         response = self.request.post("v2/log", LogBulkResult, data=input.dict(exclude_none=True))
         if response.success:
             for result in response.result.results:
-                self._process_log_result(result, verify=verify)
+                self._process_log_result(result, verify=False)
         return response
 
     def log_bulk_async(
         self,
         events: List[Dict[str, Any]],
-        verify: bool = False,
         sign_local: bool = False,
         verbose: Optional[bool] = None,
     ) -> PangeaResponse[LogBulkResult]:
@@ -590,13 +587,13 @@ class Audit(ServiceBase, AuditBase):
             TODO:
         """
 
-        input = self._get_log_request(events, sign_local=sign_local, verify=verify, verbose=verbose)
+        input = self._get_log_request(events, sign_local=sign_local, verify=False, verbose=verbose)
         response = self.request.post(
             "v2/log_async", LogBulkResult, data=input.dict(exclude_none=True), poll_result=False
         )
         if response.success:
             for result in response.result.results:
-                self._process_log_result(result, verify=verify)
+                self._process_log_result(result, verify=False)
         return response
 
     def search(
