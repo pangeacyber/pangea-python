@@ -3,7 +3,7 @@ import json
 import time
 import unittest
 
-import pangea.exceptions as pexc
+import pangea.exceptions as pe
 from pangea import PangeaConfig
 from pangea.asyncio.services.audit import AuditAsync
 from pangea.response import PangeaResponse, ResponseStatus
@@ -469,7 +469,7 @@ class TestAuditAsync(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(event.consistency_verification, EventVerification.NONE)
             self.assertEqual(event.membership_verification, EventVerification.NONE)
 
-        with self.assertRaises(pexc.BadOffsetException):
+        with self.assertRaises(pe.BadOffsetException):
             # This should fail because offset is out of range
             await self.audit_general.results(id=response_search.result.id, limit=1, offset=max_result + 1)
 
@@ -504,7 +504,7 @@ class TestAuditAsync(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(event.consistency_verification, EventVerification.NONE)
             self.assertEqual(event.membership_verification, EventVerification.NONE)
 
-        with self.assertRaises(pexc.BadOffsetException):
+        with self.assertRaises(pe.BadOffsetException):
             # This should fail because offset is out of range
             await self.audit_general.results(id=response_search.result.id, limit=1, offset=max_result + 1)
 
@@ -632,7 +632,7 @@ class TestAuditAsync(unittest.IsolatedAsyncioTestCase):
         config = PangeaConfig(domain=self.domain)
         audit_multi_config = AuditAsync(self.multi_config_token, config=config)
 
-        with self.assertRaises(pexc.PangeaAPIException):
+        with self.assertRaises(pe.PangeaAPIException):
             # This should fail because this token has multi config but we didn't set up a config id
             response: PangeaResponse[LogResult] = await audit_multi_config.log(
                 message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verbose=True

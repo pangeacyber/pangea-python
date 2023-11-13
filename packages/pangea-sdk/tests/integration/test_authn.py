@@ -4,7 +4,7 @@
 import datetime
 import unittest
 
-import pangea.exceptions as pexc
+import pangea.exceptions as pe
 import pangea.services.authn.models as m
 from pangea import PangeaConfig, PangeaResponse
 from pangea.services.authn.authn import AuthN
@@ -40,7 +40,7 @@ class TestAuthN(unittest.TestCase):
         try:
             self.create_n_login(EMAIL_TEST, PASSWORD_OLD)
             self.create_n_login(EMAIL_DELETE, PASSWORD_OLD)
-        except pexc.PangeaAPIException as e:
+        except pe.PangeaAPIException as e:
             print(e)
             self.assertTrue(False)
 
@@ -113,7 +113,7 @@ class TestAuthN(unittest.TestCase):
             self.assertIsNotNone(response_login.result.active_token)
             self.assertIsNotNone(response_login.result.refresh_token)
 
-        except pexc.PangeaAPIException as e:
+        except pe.PangeaAPIException as e:
             print(e)
             self.assertTrue(False)
 
@@ -146,7 +146,7 @@ class TestAuthN(unittest.TestCase):
             final_profile.update(PROFILE_OLD)
             final_profile.update(PROFILE_NEW)
             self.assertEqual(final_profile, response.result.profile)
-        except pexc.PangeaAPIException as e:
+        except pe.PangeaAPIException as e:
             print(e)
             self.assertTrue(False)
 
@@ -214,7 +214,7 @@ class TestAuthN(unittest.TestCase):
             response_logout = self.authn.client.session.logout(token=tokens.active_token.token)
             self.assertEqual(response_logout.status, "Success")
 
-        except pexc.PangeaAPIException as e:
+        except pe.PangeaAPIException as e:
             print(e)
             self.assertTrue(False)
 
@@ -235,11 +235,11 @@ class TestAuthN(unittest.TestCase):
             for session in response.result.sessions:
                 try:
                     self.authn.session.invalidate(session_id=session.id)
-                except pexc.PangeaAPIException:
+                except pe.PangeaAPIException:
                     print(f"Fail to invalidate session_id: {session.id}")
                     pass
 
-        except pexc.PangeaAPIException as e:
+        except pe.PangeaAPIException as e:
             print(e)
             self.assertTrue(False)
 
@@ -262,12 +262,12 @@ class TestAuthN(unittest.TestCase):
             for session in response.result.sessions:
                 try:
                     self.authn.client.session.invalidate(token=token, session_id=session.id)
-                except pexc.PangeaAPIException as e:
+                except pe.PangeaAPIException as e:
                     print(f"Fail to invalidate session_id[{session.id}] token[{token}]")
                     print(e)
                     pass
 
-        except pexc.PangeaAPIException as e:
+        except pe.PangeaAPIException as e:
             print(e)
             self.assertTrue(False)
 
@@ -284,7 +284,7 @@ class TestAuthN(unittest.TestCase):
             response_logout = self.authn.session.logout(user_id=response_login.result.active_token.id)
             self.assertEqual(response_logout.status, "Success")
 
-        except pexc.PangeaAPIException as e:
+        except pe.PangeaAPIException as e:
             print(e)
             self.assertTrue(False)
 
@@ -296,7 +296,7 @@ class TestAuthN(unittest.TestCase):
         for user in response.result.users:
             try:
                 self.authn.user.delete(email=user.email)
-            except pexc.PangeaAPIException:
+            except pe.PangeaAPIException:
                 print(f"Fail to delete user email: {user.email}")
                 pass
 
