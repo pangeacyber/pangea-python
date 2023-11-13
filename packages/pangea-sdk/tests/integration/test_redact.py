@@ -14,7 +14,7 @@ from pangea.tools import (
     logger_set_pangea_config,
 )
 
-TEST_ENVIRONMENT = TestEnvironment.DEVELOP
+TEST_ENVIRONMENT = TestEnvironment.LIVE
 
 
 class TestRedact(unittest.TestCase):
