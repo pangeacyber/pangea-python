@@ -681,7 +681,7 @@ class TestAudit(unittest.TestCase):
         events = [event, event]
 
         def log():
-            response = self.audit_general.log_bulk_async(events=events, verify=False, verbose=True)
+            response = self.audit_general.log_bulk_async(events=events, verbose=True)
 
         # This should return 202
         self.assertRaises(pexc.AcceptedRequestException, log)

@@ -182,7 +182,6 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
     async def log_bulk(
         self,
         events: List[Dict[str, Any]],
-        verify: bool = False,
         sign_local: bool = False,
         verbose: Optional[bool] = None,
     ) -> PangeaResponse[LogBulkResult]:
@@ -208,17 +207,16 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
             FIXME:
         """
 
-        input = self._get_log_request(events, sign_local=sign_local, verify=verify, verbose=verbose)
+        input = self._get_log_request(events, sign_local=sign_local, verify=False, verbose=verbose)
         response = await self.request.post("v2/log", LogBulkResult, data=input.dict(exclude_none=True))
         if response.success:
             for result in response.result.results:
-                self._process_log_result(result, verify=verify)
+                self._process_log_result(result, verify=False)
         return response
 
     async def log_bulk_async(
         self,
         events: List[Dict[str, Any]],
-        verify: bool = False,
         sign_local: bool = False,
         verbose: Optional[bool] = None,
     ) -> PangeaResponse[LogBulkResult]:

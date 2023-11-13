@@ -687,4 +687,4 @@ class TestAuditAsync(unittest.IsolatedAsyncioTestCase):
         events = [event, event]
 
         with self.assertRaises(pexc.AcceptedRequestException):
-            await self.audit_general.log_bulk_async(events=events, verify=False, verbose=True)
+            await self.audit_general.log_bulk_async(events=events, verbose=True)
