@@ -36,13 +36,8 @@ class RedactAsync(ServiceBaseAsync):
 
     service_name = "redact"
 
-    def __init__(
-        self,
-        token,
-        config=None,
-        logger_name="pangea",
-    ):
-        super().__init__(token, config, logger_name)
+    def __init__(self, token, config=None, logger_name="pangea", config_id: Optional[str] = None):
+        super().__init__(token, config, logger_name, config_id=config_id)
 
     async def redact(
         self,
