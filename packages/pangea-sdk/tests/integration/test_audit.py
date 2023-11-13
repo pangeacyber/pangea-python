@@ -676,15 +676,6 @@ class TestAudit(unittest.TestCase):
             self.assertEqual(result.membership_verification, EventVerification.NONE)
             self.assertEqual(result.signature_verification, EventVerification.NONE)
 
-    def test_log_event_async(self):
-        event = Event(message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED)
-
-        def log():
-            response = self.audit_general.log_event_async(event=event, verify=False, verbose=True)
-
-        # This should return 202
-        self.assertRaises(pexc.AcceptedRequestException, log)
-
     def test_log_bulk_async(self):
         event = Event(message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED)
         events = [event, event]
