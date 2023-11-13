@@ -168,12 +168,10 @@ class LogBulkRequest(APIRequestModel):
     Arguments:
     events -- A list structured events describing an auditable activity.
     verbose -- If true, be verbose in the response; include membership proof, unpublished root and consistency proof, etc.
-    prev_root -- Unpublished root hash that was returned from the last log API call that was made. If the user does not provide prev_root, the consistency proof from the last known unpublished root will be provided.
     """
 
     events: List[LogEvent]
     verbose: Optional[bool] = None
-    prev_root: Optional[str] = None
 
 
 class LogResult(PangeaResponseResult):

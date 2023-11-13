@@ -68,18 +68,17 @@ class AuditBase:
                 request_events.append(self._process_log(e, sign_local=sign_local, verify=verify, verbose=verbose))
 
             input = LogBulkRequest(events=request_events)
+            input.verbose = True if verify else verbose
 
         elif isinstance(events, dict):
             log = self._process_log(events, sign_local=sign_local, verify=verify, verbose=verbose)
             input = LogRequest(event=log.event, signature=log.signature, public_key=log.public_key)
+            input.verbose = True if verify else verbose
+            if verify and self.prev_unpublished_root_hash:
+                input.prev_root = self.prev_unpublished_root_hash
+
         else:
             raise AttributeError(f"events should be a dict or a list[dict] and it is {type(events)}")
-
-        input.verbose = verbose
-        if verify:
-            input.verbose = True
-            if self.prev_unpublished_root_hash:
-                input.prev_root = self.prev_unpublished_root_hash
 
         return input
 
