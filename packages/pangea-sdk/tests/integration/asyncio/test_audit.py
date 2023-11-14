@@ -670,7 +670,7 @@ class TestAuditAsync(unittest.IsolatedAsyncioTestCase):
         event = Event(message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED)
         events = [event, event]
 
-        response = await self.audit_general.log_bulk(events=events, verify=False, verbose=True)
+        response = await self.audit_general.log_bulk(events=events, verbose=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         for result in response.result.results:
             self.assertIsNotNone(result.envelope)
@@ -683,8 +683,8 @@ class TestAuditAsync(unittest.IsolatedAsyncioTestCase):
 
     async def test_log_bulk_async(self):
         event = Event(message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED)
-
         events = [event, event]
 
-        with self.assertRaises(pexc.AcceptedRequestException):
-            await self.audit_general.log_bulk_async(events=events, verbose=True)
+        response = await self.audit_general.log_bulk_async(events=events, verbose=True)
+        self.assertEqual(202, response.http_status)
+        self.assertIsNone(response.result)

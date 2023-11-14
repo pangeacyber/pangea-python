@@ -3,6 +3,7 @@
 import datetime
 from typing import Any, Dict, List, Optional, Union
 
+import pangea.exceptions as pexc
 from pangea.response import PangeaResponse
 from pangea.services.audit.audit import AuditBase
 from pangea.services.audit.exceptions import AuditException
@@ -242,13 +243,16 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
             FIXME:
         """
 
-        input = self._get_log_request(events, sign_local=sign_local, verify=verify, verbose=verbose)
-        response = await self.request.post(
-            "v2/log_async", LogBulkResult, data=input.dict(exclude_none=True), poll_result=False
-        )
+        input = self._get_log_request(events, sign_local=sign_local, verify=False, verbose=verbose)
+        try:
+            response = await self.request.post(
+                "v2/log_async", LogBulkResult, data=input.dict(exclude_none=True), poll_result=False
+            )
+        except pexc.AcceptedRequestException as e:
+            return e.response
         if response.success:
             for result in response.result.results:
-                self._process_log_result(result, verify=verify)
+                self._process_log_result(result, verify=False)
         return response
 
     async def search(

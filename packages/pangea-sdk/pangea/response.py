@@ -144,8 +144,11 @@ class PangeaResponse(Generic[T], ResponseHeader):
             if self.raw_result is not None and issubclass(self.result_class, PangeaResponseResult) and self.success
             else None
         )
-        if not self.success and self.http_status != 202:
-            self.pangea_error = PangeaError(**self.raw_result) if self.raw_result is not None else None
+        if not self.success:
+            if self.http_status == 202:
+                self.accepted_result = AcceptedResult(**self.raw_result) if self.raw_result is not None else None
+            else:
+                self.pangea_error = PangeaError(**self.raw_result) if self.raw_result is not None else None
 
     @property
     def success(self) -> bool:

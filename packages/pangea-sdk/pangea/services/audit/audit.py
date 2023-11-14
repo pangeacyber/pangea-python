@@ -4,6 +4,7 @@ import datetime
 import json
 from typing import Any, Dict, List, Optional, Union
 
+import pangea.exceptions as pexc
 from pangea.response import PangeaResponse
 from pangea.services.audit.exceptions import AuditException, EventCorruption
 from pangea.services.audit.models import (
@@ -536,7 +537,6 @@ class Audit(ServiceBase, AuditBase):
         Create a log entry in the Secure Audit Log.
         Args:
             events (List[dict[str, Any]]): events to be logged
-            verify (bool, optional): True to verify logs consistency after response.
             sign_local (bool, optional): True to sign event with local key.
             verbose (bool, optional): True to get a more verbose response.
         Raises:
@@ -554,6 +554,7 @@ class Audit(ServiceBase, AuditBase):
 
         input = self._get_log_request(events, sign_local=sign_local, verify=False, verbose=verbose)
         response = self.request.post("v2/log", LogBulkResult, data=input.dict(exclude_none=True))
+
         if response.success:
             for result in response.result.results:
                 self._process_log_result(result, verify=False)
@@ -571,7 +572,6 @@ class Audit(ServiceBase, AuditBase):
         Create a log entry in the Secure Audit Log.
         Args:
             events (List[dict[str, Any]]): events to be logged
-            verify (bool, optional): True to verify logs consistency after response.
             sign_local (bool, optional): True to sign event with local key.
             verbose (bool, optional): True to get a more verbose response.
         Raises:
@@ -588,9 +588,15 @@ class Audit(ServiceBase, AuditBase):
         """
 
         input = self._get_log_request(events, sign_local=sign_local, verify=False, verbose=verbose)
-        response = self.request.post(
-            "v2/log_async", LogBulkResult, data=input.dict(exclude_none=True), poll_result=False
-        )
+
+        try:
+            # Calling to v2 methods will return always a 202.
+            response = self.request.post(
+                "v2/log_async", LogBulkResult, data=input.dict(exclude_none=True), poll_result=False
+            )
+        except pexc.AcceptedRequestException as e:
+            return e.response
+
         if response.success:
             for result in response.result.results:
                 self._process_log_result(result, verify=False)

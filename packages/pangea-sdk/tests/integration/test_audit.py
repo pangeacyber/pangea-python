@@ -680,8 +680,6 @@ class TestAudit(unittest.TestCase):
         event = Event(message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED)
         events = [event, event]
 
-        def log():
-            response = self.audit_general.log_bulk_async(events=events, verbose=True)
-
-        # This should return 202
-        self.assertRaises(pexc.AcceptedRequestException, log)
+        response = self.audit_general.log_bulk_async(events=events, verbose=True)
+        self.assertEqual(202, response.http_status)
+        self.assertIsNone(response.result)
