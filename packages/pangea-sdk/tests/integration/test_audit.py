@@ -33,7 +33,7 @@ STATUS_NO_SIGNED = "no-signed"
 STATUS_SIGNED = "signed"
 LONG_FIELD = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed lacinia, orci eget commodo commodo non."
 
-TEST_ENVIRONMENT = TestEnvironment.DEVELOP
+TEST_ENVIRONMENT = TestEnvironment.LIVE
 
 custom_schema_event = {
     "message": MSG_CUSTOM_SCHEMA_NO_SIGNED,
