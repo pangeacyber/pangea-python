@@ -678,7 +678,7 @@ class TestAudit(unittest.TestCase):
             self.assertEqual(result.signature_verification, EventVerification.NONE)
 
     def test_log_bulk_and_sign(self):
-        event = Event(message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED)
+        event = Event(message=MSG_SIGNED_LOCAL, actor=ACTOR, status=STATUS_SIGNED)
         events = [event, event]
 
         response = self.audit_local_sign.log_bulk(events=events, verbose=True, sign_local=True)
@@ -687,7 +687,7 @@ class TestAudit(unittest.TestCase):
         for result in response.result.results:
             self.assertIsNotNone(result.envelope)
             self.assertIsNotNone(result.envelope.event)
-            self.assertEqual(result.envelope.event["message"], MSG_NO_SIGNED)
+            self.assertEqual(result.envelope.event["message"], MSG_SIGNED_LOCAL)
             self.assertIsNone(result.consistency_proof)
             self.assertEqual(result.consistency_verification, EventVerification.NONE)
             self.assertEqual(result.membership_verification, EventVerification.NONE)

@@ -212,7 +212,7 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
         response = await self.request.post("v2/log", LogBulkResult, data=input.dict(exclude_none=True))
         if response.success:
             for result in response.result.results:
-                self._process_log_result(result, verify=False)
+                self._process_log_result(result, verify=True)
         return response
 
     async def log_bulk_async(
@@ -252,7 +252,7 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
             return e.response
         if response.success:
             for result in response.result.results:
-                self._process_log_result(result, verify=False)
+                self._process_log_result(result, verify=True)
         return response
 
     async def search(
