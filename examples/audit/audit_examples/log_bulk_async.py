@@ -30,12 +30,9 @@ def main():
     )
 
     start = time.time()
-    try:
-        audit.log_bulk_async(events=[event1, event2], verbose=True)
-    except pe.AcceptedRequestException:
-        pass
-
+    audit.log_bulk_async(events=[event1, event2], verbose=True)
     end = time.time()
+
     print(f"Sent 2 events in {int((end - start)*1000)} miliseconds")
 
 
