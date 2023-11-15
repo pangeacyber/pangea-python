@@ -66,12 +66,12 @@ class AuditBase:
         if isinstance(events, list):
             request_events: List[LogEvent] = []
             for e in events:
-                request_events.append(self._process_log(e, sign_local=sign_local, verify=verify, verbose=verbose))
+                request_events.append(self._process_log(e, sign_local=sign_local))
 
             input = LogBulkRequest(events=request_events, verbose=verbose)
 
         elif isinstance(events, dict):
-            log = self._process_log(events, sign_local=sign_local, verify=verify, verbose=verbose)
+            log = self._process_log(events, sign_local=sign_local)
             input = LogRequest(event=log.event, signature=log.signature, public_key=log.public_key)
             input.verbose = True if verify else verbose
             if verify and self.prev_unpublished_root_hash:
@@ -82,7 +82,7 @@ class AuditBase:
 
         return input
 
-    def _process_log(self, event: dict, sign_local: bool, verify: bool, verbose: bool) -> LogEvent:
+    def _process_log(self, event: dict, sign_local: bool) -> LogEvent:
         if event.get("tenant_id", None) is None and self.tenant_id:
             event["tenant_id"] = self.tenant_id
 
@@ -557,7 +557,7 @@ class Audit(ServiceBase, AuditBase):
 
         if response.success:
             for result in response.result.results:
-                self._process_log_result(result, verify=False)
+                self._process_log_result(result, verify=True)
         return response
 
     def log_bulk_async(
@@ -599,7 +599,7 @@ class Audit(ServiceBase, AuditBase):
 
         if response.success:
             for result in response.result.results:
-                self._process_log_result(result, verify=False)
+                self._process_log_result(result, verify=True)
         return response
 
     def search(

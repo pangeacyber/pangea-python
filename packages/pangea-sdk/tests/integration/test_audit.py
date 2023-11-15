@@ -667,6 +667,7 @@ class TestAudit(unittest.TestCase):
 
         response = self.audit_general.log_bulk(events=events, verbose=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertEqual(len(response.result.results), 2)
         for result in response.result.results:
             self.assertIsNotNone(result.envelope)
             self.assertIsNotNone(result.envelope.event)
@@ -675,6 +676,26 @@ class TestAudit(unittest.TestCase):
             self.assertEqual(result.consistency_verification, EventVerification.NONE)
             self.assertEqual(result.membership_verification, EventVerification.NONE)
             self.assertEqual(result.signature_verification, EventVerification.NONE)
+
+    def test_log_bulk_and_sign(self):
+        event = Event(message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED)
+        events = [event, event]
+
+        response = self.audit_local_sign.log_bulk(events=events, verbose=True, sign_local=True)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertEqual(len(response.result.results), 2)
+        for result in response.result.results:
+            self.assertIsNotNone(result.envelope)
+            self.assertIsNotNone(result.envelope.event)
+            self.assertEqual(result.envelope.event["message"], MSG_NO_SIGNED)
+            self.assertIsNone(result.consistency_proof)
+            self.assertEqual(result.consistency_verification, EventVerification.NONE)
+            self.assertEqual(result.membership_verification, EventVerification.NONE)
+            self.assertEqual(result.signature_verification, EventVerification.PASS)
+            self.assertEqual(
+                result.envelope.public_key,
+                r'{"algorithm":"ED25519","key":"-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAlvOyDMpK2DQ16NI8G41yINl01wMHzINBahtDPoh4+mE=\n-----END PUBLIC KEY-----\n"}',
+            )
 
     def test_log_bulk_async(self):
         event = Event(message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED)
