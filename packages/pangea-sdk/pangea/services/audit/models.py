@@ -146,6 +146,34 @@ class LogRequest(APIRequestModel):
     prev_root: Optional[str] = None
 
 
+class LogEvent(APIRequestModel):
+    """
+    Event to perform a log action
+
+    Arguments:
+    event -- A structured event describing an auditable activity.
+    signature -- An optional client-side signature for forgery protection.
+    public_key -- The base64-encoded ed25519 public key used for the signature, if one is provided.
+    """
+
+    event: Dict[str, Any]
+    signature: Optional[str] = None
+    public_key: Optional[str] = None
+
+
+class LogBulkRequest(APIRequestModel):
+    """
+    Request to perform a bulk log action
+
+    Arguments:
+    events -- A list structured events describing an auditable activity.
+    verbose -- If true, be verbose in the response; include membership proof, unpublished root and consistency proof, etc.
+    """
+
+    events: List[LogEvent]
+    verbose: Optional[bool] = None
+
+
 class LogResult(PangeaResponseResult):
     """
     Result class after an audit log action
@@ -165,6 +193,10 @@ class LogResult(PangeaResponseResult):
     consistency_verification: EventVerification = EventVerification.NONE
     membership_verification: EventVerification = EventVerification.NONE
     signature_verification: EventVerification = EventVerification.NONE
+
+
+class LogBulkResult(PangeaResponseResult):
+    results: List[LogResult] = []
 
 
 class SearchRestriction(APIResponseModel):
