@@ -15,6 +15,9 @@ T = TypeVar("T")
 class TransferMethod(str, enum.Enum):
     DIRECT = "direct"
     MULTIPART = "multipart"
+    POST_URL = "post-url"
+    PUT_URL = "put-url"
+    URL = "url"
 
     def __str__(self):
         return str(self.value)

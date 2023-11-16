@@ -69,3 +69,43 @@ class ServiceBase(object):
             response = service.poll_result(exception)
         """
         return self.request.poll_result_once(exception.response, check_response=True)
+
+    def poll_result_by_response(self, response: PangeaResponse) -> PangeaResponse:
+        """
+        Poll result
+
+        Returns request's result that has been accepted by the server
+
+        Args:
+            response (PangeaResponse): pangea response with 202 http status to poll result
+
+        Returns:
+            PangeaResponse
+
+        Raises:
+            PangeaAPIException: If an API Error happens
+
+        Examples:
+            response = service.poll_result(exception)
+        """
+        return self.request.poll_result_once(response, check_response=True)
+
+    def poll_result_by_response(self, response: PangeaResponse) -> PangeaResponse:
+        """
+        Poll result
+
+        Returns request's result that has been accepted by the server
+
+        Args:
+            response (PangeaResponse): Exception raise by SDK on the call that is been processed.
+
+        Returns:
+            PangeaResponse
+
+        Raises:
+            PangeaAPIException: If an API Error happens
+
+        Examples:
+            response = service.poll_result(exception)
+        """
+        return self.request.poll_result_once(response, check_response=True)
