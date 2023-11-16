@@ -458,16 +458,13 @@ class Audit(ServiceBase, AuditBase):
             A PangeaResponse where the hash of event data and optional verbose
                 results are returned in the response.result field.
                 Available response fields can be found in our
-                [API documentation](https://pangea.cloud/docs/api/audit#log-an-entry).
+                [API documentation](https://pangea.cloud/docs/api/audit#/v1/log).
 
         Examples:
-            try:
-                log_response = audit.log(message="Hello world", verbose=False)
-                print(f"Response. Hash: {log_response.result.hash}")
-            except pe.PangeaAPIException as e:
-                print(f"Request Error: {e.response.summary}")
-                for err in e.errors:
-                    print(f"\\t{err.detail} \\n")
+            log_response = audit.log(
+                message="hello world", 
+                verbose=True,
+            )
         """
 
         event = Event(
@@ -495,6 +492,7 @@ class Audit(ServiceBase, AuditBase):
         Log an entry
 
         Create a log entry in the Secure Audit Log.
+
         Args:
             event (dict[str, Any]): event to be logged
             verify (bool, optional): True to verify logs consistency after response.
@@ -507,11 +505,11 @@ class Audit(ServiceBase, AuditBase):
         Returns:
             A PangeaResponse where the hash of event data and optional verbose
                 results are returned in the response.result field.
-                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/audit#log-an-entry).
+                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/audit#/v1/log).
 
         Examples:
             try:
-                log_response = audit.log({"message"="Hello world"}, verbose=False)
+                log_response = audit.log({"message": "hello world"}, verbose=True)
                 print(f"Response. Hash: {log_response.result.hash}")
             except pe.PangeaAPIException as e:
                 print(f"Request Error: {e.response.summary}")
@@ -532,9 +530,12 @@ class Audit(ServiceBase, AuditBase):
         verbose: Optional[bool] = None,
     ) -> PangeaResponse[LogBulkResult]:
         """
-        Log an entry
+        Log multiple entries
 
-        Create a log entry in the Secure Audit Log.
+        Create multiple log entries in the Secure Audit Log.
+
+        OperationId: audit_post_v2_log
+
         Args:
             events (List[dict[str, Any]]): events to be logged
             sign_local (bool, optional): True to sign event with local key.
@@ -546,10 +547,13 @@ class Audit(ServiceBase, AuditBase):
         Returns:
             A PangeaResponse where the hash of event data and optional verbose
                 results are returned in the response.result field.
-                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/audit#log-an-entry).
+                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/audit#/v2/log).
 
         Examples:
-            TODO:
+            log_response = audit.log_bulk(
+                events=[{"message": "hello world"}], 
+                verbose=True,
+            )
         """
 
         input = self._get_log_request(events, sign_local=sign_local, verify=False, verbose=verbose)
@@ -567,9 +571,10 @@ class Audit(ServiceBase, AuditBase):
         verbose: Optional[bool] = None,
     ) -> PangeaResponse[LogBulkResult]:
         """
-        Log an entry
+        Log multiple entries asynchronously
 
-        Create a log entry in the Secure Audit Log.
+        Asynchronously create multiple log entries in the Secure Audit Log.
+
         Args:
             events (List[dict[str, Any]]): events to be logged
             sign_local (bool, optional): True to sign event with local key.
@@ -581,10 +586,13 @@ class Audit(ServiceBase, AuditBase):
         Returns:
             A PangeaResponse where the hash of event data and optional verbose
                 results are returned in the response.result field.
-                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/audit#log-an-entry).
+                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/audit#/v2/log_async).
 
         Examples:
-            TODO:
+            log_response = audit.log_bulk_async(
+                events=[{"message": "hello world"}], 
+                verbose=True,
+            )
         """
 
         input = self._get_log_request(events, sign_local=sign_local, verify=False, verbose=verbose)
@@ -651,11 +659,17 @@ class Audit(ServiceBase, AuditBase):
 
         Returns:
             A PangeaResponse[SearchOutput] where the first page of matched events is returned in the
-                response.result field. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/audit#search-for-events).
-                Pagination can be found in the [search results endpoint](https://pangea.cloud/docs/api/audit#search-results).
+                response.result field. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/audit#/v1/search).
+                Pagination can be found in the [search results endpoint](https://pangea.cloud/docs/api/audit#/v1/results).
 
         Examples:
-            response: PangeaResponse[SearchOutput] = audit.search(query="message:test", search_restriction={'source': ["monitor"]}, limit=1, verify_consistency=True, verify_events=True)
+            response = audit.search(
+                query="message:test", 
+                search_restriction={'source': ["monitor"]}, 
+                limit=1, 
+                verify_consistency=True, 
+                verify_events=True,
+            )
         """
 
         if verify_consistency:
@@ -702,17 +716,11 @@ class Audit(ServiceBase, AuditBase):
             PangeaAPIException: If an API Error happens
 
         Examples:
-            search_res: PangeaResponse[SearchOutput] = audit.search(
-                query="message:test",
-                search_restriction={'source': ["monitor"]},
-                limit=100,
-                verify_consistency=True,
-                verify_events=True)
-
-            result_res: PangeaResponse[SearchResultsOutput] = audit.results(
-                id=search_res.result.id,
+            response = audit.results(
+                id="pas_sqilrhruwu54uggihqj3aie24wrctakr",
                 limit=10,
-                offset=0)
+                offset=0,
+            )
         """
 
         if limit <= 0:
