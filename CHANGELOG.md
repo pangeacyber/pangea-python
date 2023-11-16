@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [3.2.0] - 2023-11-15
+
+# Added
+
+- Support for audit /v2/log and /v2/log_async endpoints
+
+
 ## [3.1.0] - 2023-11-09
 
 # Added
@@ -269,7 +276,8 @@ Asyncio support. New Async Service classes are in /asyncio folder.
 - Domain Intel client
 - Redact client
 
-[unreleased]: https://github.com/pangeacyber/pangea-python/compare/v3.1.0...main
+[unreleased]: https://github.com/pangeacyber/pangea-python/compare/v3.2.0...main
+[3.2.0]: https://github.com/pangeacyber/pangea-python/compare/v3.2.0...v3.1.0
 [3.1.0]: https://github.com/pangeacyber/pangea-python/compare/v3.1.0...v3.0.0
 [3.0.0]: https://github.com/pangeacyber/pangea-python/compare/v3.0.0...v2.4.0
 [2.4.0]: https://github.com/pangeacyber/pangea-python/compare/v2.4.0...v2.3.0
