@@ -120,7 +120,7 @@ class FileScan(ServiceBase):
         if file or file_path:
             if file_path:
                 file = open(file_path, "rb")
-            if transfer_method == TransferMethod.DIRECT:
+            if transfer_method == TransferMethod.DIRECT or transfer_method == TransferMethod.POST_URL:
                 params = get_file_upload_params(file)
                 crc = params.crc_hex
                 sha = params.sha256_hex

@@ -51,10 +51,12 @@ class PangeaRequestAsync(PangeaRequestBase):
         if self.config_id and data.get("config_id", None) is None:
             data["config_id"] = self.config_id
 
+        transfer_method = data.get("transfer_method", None)
+
         if (
             files is not None
             and type(data) is dict
-            and data.get("transfer_method", None) == TransferMethod.DIRECT.value
+            and (transfer_method == TransferMethod.DIRECT.value or transfer_method == TransferMethod.POST_URL.value)
         ):
             requests_response = await self._full_post_presigned_url(
                 endpoint, result_class=result_class, data=data, files=files

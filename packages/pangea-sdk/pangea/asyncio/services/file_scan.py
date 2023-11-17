@@ -88,7 +88,7 @@ class FileScanAsync(ServiceBaseAsync):
         if file or file_path:
             if file_path:
                 file = open(file_path, "rb")
-            if transfer_method == TransferMethod.DIRECT:
+            if transfer_method == TransferMethod.DIRECT or transfer_method == TransferMethod.POST_URL:
                 params = get_file_upload_params(file)
                 crc = params.crc_hex
                 sha = params.sha256_hex
@@ -100,7 +100,13 @@ class FileScanAsync(ServiceBaseAsync):
             raise ValueError("Need to set file_path or file arguments")
 
         input = m.FileScanRequest(
-            verbose=verbose, raw=raw, provider=provider, transfer_crc32c=crc, transfer_sha256=sha, transfer_size=size
+            verbose=verbose,
+            raw=raw,
+            provider=provider,
+            transfer_crc32c=crc,
+            transfer_sha256=sha,
+            transfer_size=size,
+            transfer_method=transfer_method,
         )
         data = input.dict(exclude_none=True)
         return await self.request.post("v1/scan", m.FileScanResult, data=data, files=files, poll_result=sync_call)
