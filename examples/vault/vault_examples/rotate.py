@@ -34,7 +34,7 @@ def main():
         else:
             print("version 2 is wrong")
 
-        # Retrieve version 1
+        # Retrieve version 1 of the secret.
         get_response = vault.get(secret_id, version=1)
 
         if get_response.result.versions[0].secret == secret_1:

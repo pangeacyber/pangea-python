@@ -18,9 +18,9 @@ def main():
     print("Checking password breached...")
     # Set the password you would like to check
     password = "mypassword"
-    # Calculate its hash, current options are sha256, sha1, sha512, and ntlm
+    # Calculate its hash, current options are sha256, sha1, sha512, and ntlm.
     hash = hash_sha256(password)
-    # get the hash prefix, the first 5 characters of the hash
+    # Get the hash prefix, the first 5 characters of the hash.
     hash_prefix = get_prefix(hash)
 
     try:

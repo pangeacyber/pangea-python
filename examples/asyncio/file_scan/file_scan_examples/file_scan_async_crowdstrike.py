@@ -10,8 +10,8 @@ from pangea.tools import logger_set_pangea_config
 token = os.getenv("PANGEA_FILE_SCAN_TOKEN")
 domain = os.getenv("PANGEA_DOMAIN")
 
-# To work in async it's need to set up queue_retry_enable to False
-# When we call .scan() it will return an AcceptedRequestException inmediatly if server return a 202 response
+# To work asynchronously, it is necessary to set queue_retry_enable to False.
+# When we call .scan() it will return an AcceptedRequestException immediately if the server returns a 202 response.
 config = PangeaConfig(domain=domain, queued_retry_enabled=False)
 client = FileScanAsync(token, config=config, logger_name="pangea")
 logger_set_pangea_config(logger_name=client.logger.name)
