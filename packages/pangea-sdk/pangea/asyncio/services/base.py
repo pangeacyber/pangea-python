@@ -1,9 +1,11 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 
+from typing import Optional, Type, Union
+
 from pangea.asyncio.request import PangeaRequestAsync
 from pangea.exceptions import AcceptedRequestException
-from pangea.response import PangeaResponse
+from pangea.response import PangeaResponse, PangeaResponseResult
 from pangea.services.base import ServiceBase
 
 
@@ -21,7 +23,13 @@ class ServiceBaseAsync(ServiceBase):
 
         return self._request
 
-    async def poll_result(self, exception: AcceptedRequestException) -> PangeaResponse:
+    async def poll_result(
+        self,
+        exception: Optional[AcceptedRequestException] = None,
+        response: Optional[PangeaResponse] = None,
+        request_id: Optional[str] = None,
+        result_class: Union[Type[PangeaResponseResult], dict] = dict,
+    ) -> PangeaResponse:
         """
         Poll result
 
@@ -39,7 +47,16 @@ class ServiceBaseAsync(ServiceBase):
         Examples:
             response = service.poll_result(exception)
         """
-        return await self.request.poll_result_once(exception.response, check_response=True)
+        if exception is not None:
+            return await self.request.poll_result_once(exception.response, check_response=True)
+        elif response is not None:
+            return await self.request.poll_result_once(response, check_response=True)
+        elif request_id is not None:
+            return await self.request.poll_result_by_id(
+                request_id=request_id, result_class=result_class, check_response=True
+            )
+        else:
+            raise AttributeError("Need to set exception, response or request_id")
 
     async def close(self):
         await self.request.session.close()

@@ -157,7 +157,7 @@ class TestFileScan(unittest.TestCase):
                 # wait some time to get result ready and poll it
                 time.sleep(10)
 
-                response: PangeaResponse[FileScanResult] = self.scan.poll_result_by_response(response)
+                response: PangeaResponse[FileScanResult] = self.scan.poll_result(response=response)
                 self.assertEqual(response.status, "Success")
                 self.assertEqual(response.result.data.verdict, "benign")
                 self.assertEqual(response.result.data.score, 0)
