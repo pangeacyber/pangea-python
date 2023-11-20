@@ -71,7 +71,7 @@ curl -H "Authorization: Bearer ${PANGEA_TOKEN}" -X POST -H 'Content-Type: applic
 
 Download all audit logs for a given time range. Start and end date should be provided,
 a variety of formats is supported, including ISO-8601. The result is stored in a
-jsonl file (one json per line)
+jsonl file (one json per line).
 
 ```
 usage: python -m pangea.dump_audit [-h] [--token TOKEN] [--domain DOMAIN] [--output OUTPUT] start end
