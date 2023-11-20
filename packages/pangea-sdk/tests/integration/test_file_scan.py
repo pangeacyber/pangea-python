@@ -204,7 +204,6 @@ class TestFileScan(unittest.TestCase):
         max_retry = 24
         for retry in range(max_retry):
             try:
-
                 # wait some time to get result ready and poll it
                 time.sleep(10)
 

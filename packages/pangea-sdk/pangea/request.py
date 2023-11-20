@@ -343,7 +343,7 @@ class PangeaRequest(PangeaRequestBase):
         self.logger.debug(
             json.dumps({"service": self.service, "action": "http_put", "url": url}, default=default_encoder)
         )
-        return self.session.put(url, headers=headers, data=files)
+        return self.session.put(url, headers=headers, files=files)
 
     def _http_post_process(
         self, data: Union[str, Dict] = {}, files: Optional[List[Tuple]] = None, multipart_post: bool = True
