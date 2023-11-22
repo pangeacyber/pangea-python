@@ -143,7 +143,7 @@ class FileScan(ServiceBase):
         data = input.dict(exclude_none=True)
         return self.request.post("v1/scan", FileScanResult, data=data, files=files, poll_result=sync_call)
 
-    def get_upload_url(
+    def request_upload_url(
         self,
         transfer_method: TransferMethod = TransferMethod.PUT_URL,
         params: Optional[FileUploadParams] = None,
