@@ -111,7 +111,7 @@ class FileScanAsync(ServiceBaseAsync):
         data = input.dict(exclude_none=True)
         return await self.request.post("v1/scan", m.FileScanResult, data=data, files=files, poll_result=sync_call)
 
-    async def get_upload_url(
+    async def request_upload_url(
         self,
         transfer_method: TransferMethod = TransferMethod.PUT_URL,
         params: Optional[FileUploadParams] = None,

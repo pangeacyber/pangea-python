@@ -88,7 +88,7 @@ class TestFileScan(unittest.IsolatedAsyncioTestCase):
     async def test_split_upload_file_direct(self):
         with get_test_file() as f:
             params = get_file_upload_params(f)
-            response = await self.scan.get_upload_url(
+            response = await self.scan.request_upload_url(
                 transfer_method=TransferMethod.DIRECT, params=params, verbose=True, provider="reversinglabs"
             )
             url = response.accepted_result.accepted_status.upload_url
@@ -117,7 +117,7 @@ class TestFileScan(unittest.IsolatedAsyncioTestCase):
     async def test_split_upload_file_post(self):
         with get_test_file() as f:
             params = get_file_upload_params(f)
-            response = await self.scan.get_upload_url(
+            response = await self.scan.request_upload_url(
                 transfer_method=TransferMethod.POST_URL, params=params, verbose=True, provider="reversinglabs"
             )
             url = response.accepted_result.accepted_status.upload_url
@@ -145,7 +145,7 @@ class TestFileScan(unittest.IsolatedAsyncioTestCase):
 
     async def test_split_upload_file_put(self):
         with get_test_file() as f:
-            response = await self.scan.get_upload_url(
+            response = await self.scan.request_upload_url(
                 transfer_method=TransferMethod.PUT_URL, verbose=True, provider="reversinglabs"
             )
             url = response.accepted_result.accepted_status.upload_url
