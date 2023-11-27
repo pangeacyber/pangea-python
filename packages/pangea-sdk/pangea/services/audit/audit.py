@@ -462,7 +462,7 @@ class Audit(ServiceBase, AuditBase):
 
         Examples:
             log_response = audit.log(
-                message="hello world", 
+                message="hello world",
                 verbose=True,
             )
         """
@@ -551,7 +551,7 @@ class Audit(ServiceBase, AuditBase):
 
         Examples:
             log_response = audit.log_bulk(
-                events=[{"message": "hello world"}], 
+                events=[{"message": "hello world"}],
                 verbose=True,
             )
         """
@@ -590,7 +590,7 @@ class Audit(ServiceBase, AuditBase):
 
         Examples:
             log_response = audit.log_bulk_async(
-                events=[{"message": "hello world"}], 
+                events=[{"message": "hello world"}],
                 verbose=True,
             )
         """
@@ -664,10 +664,10 @@ class Audit(ServiceBase, AuditBase):
 
         Examples:
             response = audit.search(
-                query="message:test", 
-                search_restriction={'source': ["monitor"]}, 
-                limit=1, 
-                verify_consistency=True, 
+                query="message:test",
+                search_restriction={'source': ["monitor"]},
+                limit=1,
+                verify_consistency=True,
                 verify_events=True,
             )
         """
