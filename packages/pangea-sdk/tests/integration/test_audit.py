@@ -465,8 +465,8 @@ class TestAudit(unittest.TestCase):
         self.assertRaises(pexc.BadOffsetException, resultBadOffset)
 
     def test_search_results_no_verbose(self):
-        limit = 10
-        max_result = 10
+        limit = 5
+        max_result = 5
         response_search = self.audit_general.search(
             query='message:""', limit=limit, max_results=max_result, verbose=False
         )
@@ -660,3 +660,47 @@ class TestAudit(unittest.TestCase):
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertIsNotNone(response.result.hash)
         self.assertIsNotNone(response.result.envelope)
+
+    def test_log_bulk(self):
+        event = Event(message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED)
+        events = [event, event]
+
+        response = self.audit_general.log_bulk(events=events, verbose=True)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertEqual(len(response.result.results), 2)
+        for result in response.result.results:
+            self.assertIsNotNone(result.envelope)
+            self.assertIsNotNone(result.envelope.event)
+            self.assertEqual(result.envelope.event["message"], MSG_NO_SIGNED)
+            self.assertIsNone(result.consistency_proof)
+            self.assertEqual(result.consistency_verification, EventVerification.NONE)
+            self.assertEqual(result.membership_verification, EventVerification.NONE)
+            self.assertEqual(result.signature_verification, EventVerification.NONE)
+
+    def test_log_bulk_and_sign(self):
+        event = Event(message=MSG_SIGNED_LOCAL, actor=ACTOR, status=STATUS_SIGNED)
+        events = [event, event]
+
+        response = self.audit_local_sign.log_bulk(events=events, verbose=True, sign_local=True)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertEqual(len(response.result.results), 2)
+        for result in response.result.results:
+            self.assertIsNotNone(result.envelope)
+            self.assertIsNotNone(result.envelope.event)
+            self.assertEqual(result.envelope.event["message"], MSG_SIGNED_LOCAL)
+            self.assertIsNone(result.consistency_proof)
+            self.assertEqual(result.consistency_verification, EventVerification.NONE)
+            self.assertEqual(result.membership_verification, EventVerification.NONE)
+            self.assertEqual(result.signature_verification, EventVerification.PASS)
+            self.assertEqual(
+                result.envelope.public_key,
+                r'{"algorithm":"ED25519","key":"-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAlvOyDMpK2DQ16NI8G41yINl01wMHzINBahtDPoh4+mE=\n-----END PUBLIC KEY-----\n"}',
+            )
+
+    def test_log_bulk_async(self):
+        event = Event(message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED)
+        events = [event, event]
+
+        response = self.audit_general.log_bulk_async(events=events, verbose=True)
+        self.assertEqual(202, response.http_status)
+        self.assertIsNone(response.result)

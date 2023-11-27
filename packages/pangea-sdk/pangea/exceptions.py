@@ -127,7 +127,7 @@ class AcceptedRequestException(PangeaAPIException):
     """Accepted request exception. Async response"""
 
     request_id: str
-    accepted_result: Optional[AcceptedResult]
+    accepted_result: Optional[AcceptedResult] = None
 
     def __init__(self, response: PangeaResponse):
         message = f"summary: {response.summary}. request_id: {response.request_id}."
