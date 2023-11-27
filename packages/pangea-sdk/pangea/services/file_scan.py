@@ -1,10 +1,12 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 import io
+import logging
 from typing import Dict, List, Optional
 
+from pangea.request import PangeaConfig, PangeaRequest
 from pangea.response import APIRequestModel, PangeaResponse, PangeaResponseResult, TransferMethod
-from pangea.utils import get_presigned_url_upload_params
+from pangea.utils import FileUploadParams, get_file_upload_params
 
 from .base import ServiceBase
 
@@ -118,8 +120,11 @@ class FileScan(ServiceBase):
         if file or file_path:
             if file_path:
                 file = open(file_path, "rb")
-            if transfer_method == TransferMethod.DIRECT:
-                crc, sha, size, _ = get_presigned_url_upload_params(file)
+            if transfer_method == TransferMethod.DIRECT or transfer_method == TransferMethod.POST_URL:
+                params = get_file_upload_params(file)
+                crc = params.crc_hex
+                sha = params.sha256_hex
+                size = params.size
             else:
                 crc, sha, size = None, None, None
             files = [("upload", ("filename", file, "application/octet-stream"))]
@@ -137,3 +142,54 @@ class FileScan(ServiceBase):
         )
         data = input.dict(exclude_none=True)
         return self.request.post("v1/scan", FileScanResult, data=data, files=files, poll_result=sync_call)
+
+    def request_upload_url(
+        self,
+        transfer_method: TransferMethod = TransferMethod.PUT_URL,
+        params: Optional[FileUploadParams] = None,
+        verbose: Optional[bool] = None,
+        raw: Optional[bool] = None,
+        provider: Optional[str] = None,
+    ) -> PangeaResponse[FileScanResult]:
+        input = FileScanRequest(
+            verbose=verbose,
+            raw=raw,
+            provider=provider,
+            transfer_method=transfer_method,
+        )
+        if params is not None and (
+            transfer_method == TransferMethod.POST_URL or transfer_method == TransferMethod.DIRECT
+        ):
+            input.transfer_crc32c = params.crc_hex
+            input.transfer_sha256 = params.sha256_hex
+            input.transfer_size = params.size
+
+        data = input.dict(exclude_none=True)
+        return self.request.request_presigned_url("v1/scan", FileScanResult, data=data)
+
+
+class FileUploader:
+    def __init__(self):
+        self.logger = logging.getLogger("pangea")
+        self._request = PangeaRequest(
+            config=PangeaConfig(),
+            token="",
+            service="FileScanUploader",
+            logger=self.logger,
+        )
+
+    def upload_file(
+        self,
+        url: str,
+        file: io.BufferedReader,
+        transfer_method: TransferMethod = TransferMethod.PUT_URL,
+        file_details: Optional[Dict] = None,
+    ):
+        if transfer_method == TransferMethod.PUT_URL:
+            files = [("file", ("filename", file, "application/octet-stream"))]
+            self._request.put_presigned_url(url=url, files=files)
+        elif transfer_method == TransferMethod.POST_URL or transfer_method == TransferMethod.DIRECT:
+            files = [("file", ("filename", file, "application/octet-stream"))]
+            self._request.post_presigned_url(url=url, data=file_details, files=files)
+        else:
+            raise ValueError(f"Transfer method not supported: {transfer_method}")

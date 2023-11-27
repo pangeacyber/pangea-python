@@ -3,13 +3,13 @@
 
 import copy
 import logging
-from typing import Optional, Union
+from typing import Optional, Type, Union
 
 from pangea.asyncio.request import PangeaRequestAsync
 from pangea.config import PangeaConfig
 from pangea.exceptions import AcceptedRequestException
 from pangea.request import PangeaRequest
-from pangea.response import PangeaResponse
+from pangea.response import PangeaResponse, PangeaResponseResult
 
 
 class ServiceBase(object):
@@ -50,7 +50,13 @@ class ServiceBase(object):
 
         return self._request
 
-    def poll_result(self, exception: AcceptedRequestException) -> PangeaResponse:
+    def poll_result(
+        self,
+        exception: Optional[AcceptedRequestException] = None,
+        response: Optional[PangeaResponse] = None,
+        request_id: Optional[str] = None,
+        result_class: Union[Type[PangeaResponseResult], dict] = dict,
+    ) -> PangeaResponse:
         """
         Poll result
 
@@ -68,4 +74,11 @@ class ServiceBase(object):
         Examples:
             response = service.poll_result(exception)
         """
-        return self.request.poll_result_once(exception.response, check_response=True)
+        if exception is not None:
+            return self.request.poll_result_once(exception.response, check_response=True)
+        elif response is not None:
+            return self.request.poll_result_once(response, check_response=True)
+        elif request_id is not None:
+            return self.request.poll_result_by_id(request_id=request_id, result_class=result_class, check_response=True)
+        else:
+            raise AttributeError("Need to set exception, response or request_id")
