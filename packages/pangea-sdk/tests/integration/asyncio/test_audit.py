@@ -202,7 +202,7 @@ class TestAuditAsync(unittest.IsolatedAsyncioTestCase):
     async def test_sign_without_signer(self):
         with self.assertRaises(AuditException):
             # This should fail because there is no signed configured
-            response: PangeaResponse[LogResult] = await self.audit_general.log(
+            await self.audit_general.log(
                 message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verbose=False, sign_local=True
             )
 
@@ -634,9 +634,7 @@ class TestAuditAsync(unittest.IsolatedAsyncioTestCase):
 
         with self.assertRaises(pe.PangeaAPIException):
             # This should fail because this token has multi config but we didn't set up a config id
-            response: PangeaResponse[LogResult] = await audit_multi_config.log(
-                message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verbose=True
-            )
+            await audit_multi_config.log(message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verbose=True)
 
         await audit_multi_config.close()
 
@@ -667,3 +665,46 @@ class TestAuditAsync(unittest.IsolatedAsyncioTestCase):
         self.assertIsNotNone(response.result.envelope)
 
         await audit_multi_config.close()
+
+    async def test_log_bulk(self):
+        event = Event(message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED)
+        events = [event, event]
+
+        response = await self.audit_general.log_bulk(events=events, verbose=True)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        for result in response.result.results:
+            self.assertIsNotNone(result.envelope)
+            self.assertIsNotNone(result.envelope.event)
+            self.assertEqual(result.envelope.event["message"], MSG_NO_SIGNED)
+            self.assertIsNone(result.consistency_proof)
+            self.assertEqual(result.consistency_verification, EventVerification.NONE)
+            self.assertEqual(result.membership_verification, EventVerification.NONE)
+            self.assertEqual(result.signature_verification, EventVerification.NONE)
+
+    async def test_log_bulk_and_sign(self):
+        event = Event(message=MSG_SIGNED_LOCAL, actor=ACTOR, status=STATUS_SIGNED)
+        events = [event, event]
+
+        response = await self.audit_local_sign.log_bulk(events=events, verbose=True, sign_local=True)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertEqual(len(response.result.results), 2)
+        for result in response.result.results:
+            self.assertIsNotNone(result.envelope)
+            self.assertIsNotNone(result.envelope.event)
+            self.assertEqual(result.envelope.event["message"], MSG_SIGNED_LOCAL)
+            self.assertIsNone(result.consistency_proof)
+            self.assertEqual(result.consistency_verification, EventVerification.NONE)
+            self.assertEqual(result.membership_verification, EventVerification.NONE)
+            self.assertEqual(result.signature_verification, EventVerification.PASS)
+            self.assertEqual(
+                result.envelope.public_key,
+                r'{"algorithm":"ED25519","key":"-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAlvOyDMpK2DQ16NI8G41yINl01wMHzINBahtDPoh4+mE=\n-----END PUBLIC KEY-----\n"}',
+            )
+
+    async def test_log_bulk_async(self):
+        event = Event(message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED)
+        events = [event, event]
+
+        response = await self.audit_general.log_bulk_async(events=events, verbose=True)
+        self.assertEqual(202, response.http_status)
+        self.assertIsNone(response.result)

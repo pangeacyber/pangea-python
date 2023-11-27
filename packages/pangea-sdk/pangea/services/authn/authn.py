@@ -520,9 +520,10 @@ class AuthN(ServiceBase):
 
         def update(
             self,
-            disabled: bool,
+            disabled: Optional[bool] = None,
             id: Optional[str] = None,
             email: Optional[str] = None,
+            unlock: Optional[bool] = None,
         ) -> PangeaResponse[m.UserUpdateResult]:
             """
             Update user's settings
@@ -534,6 +535,7 @@ class AuthN(ServiceBase):
             Args:
                 disabled (bool): New disabled value.
                     Disabling a user account will prevent them from logging in.
+                unlock (bool): Unlock a user account if it has been locked out due to failed Authentication attempts.
                 id (str, optional): The identity of a user or a service
                 email (str, optional): An email address
 
@@ -552,6 +554,7 @@ class AuthN(ServiceBase):
                 id=id,
                 email=email,
                 disabled=disabled,
+                unlock=unlock,
             )
 
             return self.request.post("v2/user/update", m.UserUpdateResult, data=input.dict(exclude_none=True))

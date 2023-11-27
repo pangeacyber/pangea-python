@@ -363,7 +363,8 @@ class UserProfileUpdateResult(User):
 class UserUpdateRequest(APIRequestModel):
     id: Optional[str] = None
     email: Optional[str] = None
-    disabled: bool
+    disabled: Optional[bool] = None
+    unlock: Optional[bool] = None
 
 
 class UserUpdateResult(User):
