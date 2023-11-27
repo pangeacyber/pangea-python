@@ -11,7 +11,7 @@ RANDOM_VALUE = random.randint(0, 10000000)
 USER_EMAIL = f"user.email+test{RANDOM_VALUE}@pangea.cloud"  # Email to create user
 PASSWORD_INITIAL = "My1s+Password"  # First password to be set to user created
 PASSWORD_UPDATE = "My1s+Password_new"  # Password used to update user password
-PROFILE_INITIAL = {"first_name": "Name", "last_name": "User"}  # Inicial user profile
+PROFILE_INITIAL = {"first_name": "Name", "last_name": "User"}  # Initial user profile
 PROFILE_UPDATE = {"first_name": "NameUpdate"}  # Additional info to update user profile
 CB_URI = "https://www.usgs.gov/faqs/what-was-pangea"  # Need to setup callbacks in PUC AuthN settings
 

@@ -16,16 +16,16 @@ def main():
     vault = Vault(token, config=config)
 
     try:
-        # name should be unique
+        # Set a unique name.
         name = f"Python encrypt example {int(time.time())}"
 
-        # create a symmetric key with Pangea-provided material and default parameters
+        # Create a symmetric key with the default parameters.
         create_response = vault.symmetric_generate(
             purpose=KeyPurpose.ENCRYPTION, algorithm=SymmetricAlgorithm.AES128_CFB, name=name
         )
         key_id = create_response.result.id
 
-        # encrypt a message
+        # Encrypt a message.
         text = "hello world"
         msg = str2str_b64(text)
         print(f"Encript text: {text}")
@@ -33,7 +33,7 @@ def main():
         cipher_text = encrypt_response.result.cipher_text
         print(f"Cipher text: {cipher_text}")
 
-        # decrypt it
+        # Decrypt the message to verify it is the same as the original message.
         print("Decrypting...")
         decrypt_response = vault.decrypt(key_id, cipher_text)
         plain_text = decrypt_response.result.plain_text

@@ -17,16 +17,16 @@ async def main():
     vault = VaultAsync(token, config=config)
 
     try:
-        # name should be unique
+        # Set a unique name.
         name = f"Python sign example {int(time.time())}"
 
-        # create an asymmetric key with Pangea-provided material and default parameters
+        # Create an asymmetric key with the default parameters.
         create_response = await vault.asymmetric_generate(
             algorithm=AsymmetricAlgorithm.Ed25519, purpose=KeyPurpose.SIGNING, name=name
         )
         key_id = create_response.result.id
 
-        # sign a message
+        # Sign a message.
         text = "hello world"
         msg = str2str_b64(text)
         print(f"text to sign: {text}")
@@ -34,7 +34,7 @@ async def main():
         signature = sign_response.result.signature
         print(f"Signature: {signature}")
 
-        # verify it
+        # Verify the message's signature.
         print("Verifying...")
         verify_response = await vault.verify(key_id, msg, signature)
         if verify_response.result.valid_signature:

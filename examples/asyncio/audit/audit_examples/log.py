@@ -12,7 +12,7 @@ config = PangeaConfig(domain=domain)
 audit = AuditAsync(token, config=config, logger_name="audit")
 logger_set_pangea_config(logger_name=audit.logger.name)
 
-# This example shows how to perform an audit log
+# This example shows how to perform an audit log.
 
 
 async def main():
