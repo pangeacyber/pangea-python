@@ -500,7 +500,7 @@ class FileIntel(ServiceBase):
         """
         Reputation check
 
-        Retrieve hash-based file reputation from a provider, including an optional detailed report.
+        Retrieve a reputation score for a file hash from a provider, including an optional detailed report.
 
         Args:
             hash (str): The hash of the file to be looked up
@@ -517,8 +517,11 @@ class FileIntel(ServiceBase):
                 response.result field.  Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/file-intel).
 
         Examples:
-            response = file_intel.hashReputation(hash="142b638c6a60b60c7f9928da4fb85a5a8e1422a9ffdc9ee49e17e56ccca9cf6e", hash_type="sha256", provider="reversinglabs")
-
+            response = file_intel.hash_reputation(
+                hash="179e2b8a4162372cd9344b81793cbf74a9513a002eda3324e6331243f3137a63", 
+                hash_type="sha256", 
+                provider="reversinglabs",
+            )
         """
         input = FileReputationRequest(hash=hash, hash_type=hash_type, verbose=verbose, raw=raw, provider=provider)
         return self.request.post("v1/reputation", FileReputationResult, data=input.dict(exclude_none=True))
@@ -532,9 +535,9 @@ class FileIntel(ServiceBase):
         raw: Optional[bool] = None,
     ) -> PangeaResponse[FileReputationBulkResult]:
         """
-        Reputation check
+        Reputation check V2
 
-        Retrieve hash-based file reputation from a provider, including an optional detailed report.
+        Retrieve reputation scores for a set of file hashes from a provider, including an optional detailed report.
 
         Args:
             hashes (List[str]): The hash of each file to be looked up
@@ -551,8 +554,11 @@ class FileIntel(ServiceBase):
                 response.result field.  Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/file-intel).
 
         Examples:
-            FIXME:
-
+            response = file_intel.hash_reputation_bulk(
+                hashes=["179e2b8a4162372cd9344b81793cbf74a9513a002eda3324e6331243f3137a63"],
+                hash_type="sha256",
+                provider="reversinglabs",
+            )
         """
         input = FileReputationBulkRequest(
             hashes=hashes, hash_type=hash_type, verbose=verbose, raw=raw, provider=provider
@@ -569,8 +575,8 @@ class FileIntel(ServiceBase):
         """
         Reputation, from filepath
 
-        Retrieve hash-based file reputation from a provider, including an optional detailed report.
-        This function take care of calculate filepath hash and make the request to service
+        Retrieve a reputation score for a file hash from a provider, including an optional detailed report.
+        This function calculates a hash from the file at a given filepath and makes a request to the service.
 
         OperationId: file_intel_post_v1_reputation
 
@@ -588,7 +594,7 @@ class FileIntel(ServiceBase):
                 response.result field.  Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/file-intel).
 
         Examples:
-            response = file_intel.filepathReputation(
+            response = file_intel.filepath_reputation(
                 filepath="./myfile.exe",
                 provider="reversinglabs",
             )
@@ -605,12 +611,12 @@ class FileIntel(ServiceBase):
         raw: Optional[bool] = None,
     ) -> PangeaResponse[FileReputationBulkResult]:
         """
-        Reputation, from filepath
+        Reputation, from filepath V2
 
-        Retrieve hash-based file reputation from a provider, including an optional detailed report.
-        This function take care of calculate filepath hash and make the request to service
+        Retrieve reputation scores for a list of file hashes from a provider, including an optional detailed report.
+        This function calculates hashes from the files at the given filepaths and makes a request to the service.
 
-        OperationId: file_intel_post_v1_reputation
+        OperationId: file_intel_post_v2_reputation
 
         Args:
             filepaths (List[str]): The path list to the files to be looked up
@@ -626,7 +632,10 @@ class FileIntel(ServiceBase):
                 response.result field.  Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/file-intel).
 
         Examples:
-            FIXME:
+            response = file_intel.filepath_reputation_bulk(
+                filepaths=["./myfile.exe"],
+                provider="reversinglabs",
+            )
         """
         hashes = []
         for filepath in filepaths:
@@ -706,11 +715,11 @@ class DomainIntel(ServiceBase):
         provider: Optional[str] = None,
     ) -> PangeaResponse[DomainReputationBulkResult]:
         """
-        Reputation
+        Reputation V2
 
         Retrieve reputation for a domain from a provider, including an optional detailed report.
 
-        OperationId: FIXME:
+        OperationId: domain_intel_post_v2_reputation
 
         Args:
             domains (List[str]): The domain list to be looked up
@@ -726,7 +735,10 @@ class DomainIntel(ServiceBase):
                 response.result field.  Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/domain-intel).
 
         Examples:
-            FIXME:
+            response = domain_intel.reputation_bulk(
+                domains=["737updatesboeing.com"],
+                provider="domaintools",
+            )
         """
         input = DomainReputationBulkRequest(domains=domains, verbose=verbose, provider=provider, raw=raw)
         return self.request.post("v2/reputation", DomainReputationBulkResult, data=input.dict(exclude_none=True))
@@ -811,11 +823,11 @@ class IpIntel(ServiceBase):
 
         Returns:
             A PangeaResponse where the sanctioned source(s) are in the
-                response.result field.  Available response fields can be found in our [API documentation](/docs/api/ip-intel)
+                response.result field.  Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/ip-intel)
 
         Examples:
             response = ip_intel.reputation(
-                ip="93.231.182.110",
+                ip="190.28.74.251",
                 provider="crowdstrike",
             )
         """
@@ -826,11 +838,11 @@ class IpIntel(ServiceBase):
         self, ips: List[str], verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
     ) -> PangeaResponse[IPReputationResult]:
         """
-        Reputation
+        Reputation V2
 
-        Retrieve a reputation score for an IP address from a provider, including an optional detailed report.
+        Retrieve reputation scores for IP addresses from a provider, including an optional detailed report.
 
-        OperationId: FIXME:
+        OperationId: ip_intel_post_v2_reputation
 
         Args:
             ips (List[str]): The IP list to be looked up
@@ -843,10 +855,13 @@ class IpIntel(ServiceBase):
 
         Returns:
             A PangeaResponse where the sanctioned source(s) are in the
-                response.result field.  Available response fields can be found in our [API documentation](/docs/api/ip-intel)
+                response.result field.  Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/ip-intel)
 
         Examples:
-            FIXME:
+            response = ip_intel.reputation_bulk(
+                ips=["190.28.74.251"],
+                provider="crowdstrike",
+            )
         """
         input = IPReputationBulkRequest(ips=ips, verbose=verbose, raw=raw, provider=provider)
         return self.request.post("v2/reputation", IPReputationBulkResult, data=input.dict(exclude_none=True))
@@ -857,7 +872,7 @@ class IpIntel(ServiceBase):
         """
         Geolocate
 
-        Retrieve information about the location of an IP address.
+        Retrieve location information associated with an IP address.
 
         OperationId: ip_intel_post_v1_geolocate
 
@@ -872,7 +887,7 @@ class IpIntel(ServiceBase):
 
         Returns:
             A PangeaResponse where the IP information is in the
-                response.result field.  Available response fields can be found in our [API documentation](/docs/api/ip-intel)
+                response.result field.  Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/ip-intel)
 
         Examples:
             response = ip_intel.geolocate(
@@ -887,14 +902,14 @@ class IpIntel(ServiceBase):
         self, ips: List[str], verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
     ) -> PangeaResponse[IPGeolocateBulkResult]:
         """
-        Geolocate
+        Geolocate V2
 
-        Retrieve information about the location of an IP address.
+        Retrieve location information associated with an IP address.
 
-        OperationId: FIXME:
+        OperationId: ip_intel_post_v2_geolocate
 
         Args:
-            ips (List[str]): IP addresses list to be geolocated
+            ips (List[str]): List of IP addresses to be geolocated
             provider (str, optional): Use geolocation data from this provider ("digitalelement"). Default provider defined by the configuration.
             verbose (bool, optional): Echo the API parameters in the response
             raw (bool, optional): Include raw data from this provider
@@ -904,10 +919,13 @@ class IpIntel(ServiceBase):
 
         Returns:
             A PangeaResponse where the IP information is in the
-                response.result field.  Available response fields can be found in our [API documentation](/docs/api/ip-intel)
+                response.result field.  Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/ip-intel)
 
         Examples:
-            FIXME:
+            response = ip_intel.geolocate_bulk(
+                ips=["93.231.182.110"],
+                provider="digitalelement",
+            )
         """
         input = IPGeolocateBulkRequest(ips=ips, verbose=verbose, raw=raw, provider=provider)
         return self.request.post("v2/geolocate", IPGeolocateBulkResult, data=input.dict(exclude_none=True))
@@ -933,7 +951,7 @@ class IpIntel(ServiceBase):
 
         Returns:
             A PangeaResponse where the IP information is in the
-                response.result field.  Available response fields can be found in our [API documentation](/docs/api/ip-intel)
+                response.result field.  Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/ip-intel)
 
         Examples:
             response = ip_intel.get_domain(
@@ -948,14 +966,14 @@ class IpIntel(ServiceBase):
         self, ips: List[str], verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
     ) -> PangeaResponse[IPDomainBulkResult]:
         """
-        Domain
+        Domain V2
 
-        Retrieve the domain name associated with an IP address.
+        Retrieve the domain names associated with a list of IP addresses.
 
-        OperationId: FIXME:
+        OperationId: ip_intel_post_v2_domain
 
         Args:
-            ips (List[str]): The IPs list to be looked up
+            ips (List[str]): List of IPs to be looked up
             provider (str, optional): Use geolocation data from this provider ("digitalelement"). Default provider defined by the configuration.
             verbose (bool, optional): Echo the API parameters in the response
             raw (bool, optional): Include raw data from this provider
@@ -965,10 +983,13 @@ class IpIntel(ServiceBase):
 
         Returns:
             A PangeaResponse where the IP information is in the
-                response.result field.  Available response fields can be found in our [API documentation](/docs/api/ip-intel)
+                response.result field.  Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/ip-intel)
 
         Examples:
-            FIXME:
+            response = ip_intel.get_domain_bulk(
+                ips=["93.231.182.110"],
+                provider="digitalelement",
+            )
         """
         input = IPDomainBulkRequest(ips=ips, verbose=verbose, raw=raw, provider=provider)
         return self.request.post("v2/domain", IPDomainBulkResult, data=input.dict(exclude_none=True))
@@ -979,7 +1000,7 @@ class IpIntel(ServiceBase):
         """
         VPN
 
-        Determine if an IP address is provided by a VPN service.
+        Determine if an IP address originates from a VPN.
 
         OperationId: ip_intel_post_v1_vpn
 
@@ -994,7 +1015,7 @@ class IpIntel(ServiceBase):
 
         Returns:
             A PangeaResponse where the IP information is in the
-                response.result field.  Available response fields can be found in our [API documentation](/docs/api/ip-intel)
+                response.result field.  Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/ip-intel)
 
         Examples:
             response = ip_intel.is_vpn(
@@ -1009,11 +1030,11 @@ class IpIntel(ServiceBase):
         self, ips: List[str], verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
     ) -> PangeaResponse[IPVPNBulkResult]:
         """
-        VPN
+        VPN V2
 
-        Determine if an IP address is provided by a VPN service.
+        Determine if an IP address originates from a VPN.
 
-        OperationId: FIXME:
+        OperationId: ip_intel_post_v2_vpn
 
         Args:
             ips (List[str]): The IPs list to be looked up
@@ -1026,10 +1047,13 @@ class IpIntel(ServiceBase):
 
         Returns:
             A PangeaResponse where the IP information is in the
-                response.result field.  Available response fields can be found in our [API documentation](/docs/api/ip-intel)
+                response.result field.  Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/ip-intel)
 
         Examples:
-            FIXME:
+            response = ip_intel.is_vpn_bulk(
+                ip="93.231.182.110",
+                provider="digitalelement",
+            )
         """
         input = IPVPNBulkRequest(ips=ips, verbose=verbose, raw=raw, provider=provider)
         return self.request.post("v2/vpn", IPVPNBulkResult, data=input.dict(exclude_none=True))
@@ -1040,7 +1064,7 @@ class IpIntel(ServiceBase):
         """
         Proxy
 
-        Determine if an IP address is provided by a proxy service.
+        Determine if an IP address originates from a proxy.
 
         OperationId: ip_intel_post_v1_proxy
 
@@ -1055,11 +1079,11 @@ class IpIntel(ServiceBase):
 
         Returns:
             A PangeaResponse where the IP information is in the
-                response.result field.  Available response fields can be found in our [API documentation](/docs/api/ip-intel)
+                response.result field.  Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/ip-intel)
 
         Examples:
             response = ip_intel.is_proxy(
-                ip="93.231.182.110",
+                ip="34.201.32.172",
                 provider="digitalelement",
             )
         """
@@ -1070,11 +1094,11 @@ class IpIntel(ServiceBase):
         self, ips: List[str], verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
     ) -> PangeaResponse[IPProxyBulkResult]:
         """
-        Proxy
+        Proxy V2
 
-        Determine if an IP address is provided by a proxy service.
+        Determine if an IP address originates from a proxy.
 
-        OperationId: FIXME:
+        OperationId: ip_intel_post_v2_proxy
 
         Args:
             ips (List[str]): The IPs list to be looked up
@@ -1087,10 +1111,13 @@ class IpIntel(ServiceBase):
 
         Returns:
             A PangeaResponse where the IP information is in the
-                response.result field.  Available response fields can be found in our [API documentation](/docs/api/ip-intel)
+                response.result field.  Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/ip-intel)
 
         Examples:
-            FIXME:
+            response = ip_intel.is_proxy_bulk(
+                ips=["34.201.32.172"],
+                provider="digitalelement",
+            )
         """
         input = IPProxyBulkRequest(ips=ips, verbose=verbose, raw=raw, provider=provider)
         return self.request.post("v2/proxy", IPProxyBulkResult, data=input.dict(exclude_none=True))
@@ -1132,7 +1159,7 @@ class UrlIntel(ServiceBase):
         """
         Reputation
 
-        Retrieve URL address reputation from a provider.
+        Retrieve a reputation score for a URL from a provider, including an optional detailed report.
 
         OperationId: url_intel_post_v1_reputation
 
@@ -1147,7 +1174,7 @@ class UrlIntel(ServiceBase):
 
         Returns:
             A PangeaResponse where the sanctioned source(s) are in the
-                response.result field.  Available response fields can be found in our [API documentation](/docs/api/url-intel)
+                response.result field.  Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/url-intel)
 
         Examples:
             response = url_intel.reputation(
@@ -1167,11 +1194,11 @@ class UrlIntel(ServiceBase):
         provider: Optional[str] = None,
     ) -> PangeaResponse[URLReputationResult]:
         """
-        Reputation
+        Reputation V2
 
-        Retrieve URL address reputation from a provider.
+        Retrieve reputation scores for a list of URLs from a provider, including an optional detailed report.
 
-        OperationId: FIXME:
+        OperationId: url_intel_post_v2_reputation
 
         Args:
             urls (List[str]): The URL list to be looked up
@@ -1184,10 +1211,13 @@ class UrlIntel(ServiceBase):
 
         Returns:
             A PangeaResponse where the sanctioned source(s) are in the
-                response.result field.  Available response fields can be found in our [API documentation](/docs/api/url-intel)
+                response.result field.  Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/url-intel)
 
         Examples:
-            FIXME:
+            response = url_intel.reputation_bulk(
+                urls=["http://113.235.101.11:54384"],
+                provider="crowdstrike",
+            )
         """
 
         input = URLReputationBulkRequest(urls=urls, provider=provider, verbose=verbose, raw=raw)
@@ -1356,7 +1386,7 @@ class UserIntel(ServiceBase):
         """
         Look up breached users
 
-        Find out if an email address, username, phone number, or IP address was exposed in a security breach.
+        Determine if an email address, username, phone number, or IP address was exposed in a security breach.
 
         OperationId: user_intel_post_v1_user_breached
 
@@ -1369,14 +1399,14 @@ class UserIntel(ServiceBase):
             end (str): Latest date for search
             verbose (bool, optional): Echo the API parameters in the response
             raw (bool, optional): Include raw data from this provider
-            provider (str, optional): Use reputation data from this provider: "crowdstrike"
+            provider (str, optional): Use reputation data from this provider: "spycloud"
 
         Raises:
             PangeaAPIException: If an API Error happens
 
         Returns:
             A PangeaResponse where the sanctioned source(s) are in the
-                response.result field.  Available response fields can be found in our [API documentation](/docs/api/user-intel)
+                response.result field.  Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/user-intel)
 
         Examples:
             response = user_intel.user_breached(
@@ -1413,32 +1443,37 @@ class UserIntel(ServiceBase):
         provider: Optional[str] = None,
     ) -> PangeaResponse[UserBreachedBulkResult]:
         """
-        Look up breached users
+        Look up breached users V2
 
-        Find out if an email address, username, phone number, or IP address was exposed in a security breach.
+        Determine if an email address, username, phone number, or IP address was exposed in a security breach.
 
-        OperationId: FIXME:
+        OperationId: user_intel_post_v2_user_breached
 
         Args:
-            emails (List[str]): An email address' list to search for
-            usernames (List[str]): An username's list to search for
-            ips (List[str]): An ip's list to search for
-            phone_numbers (List[str]): A phone number's list to search for. minLength: 7, maxLength: 15.
+            emails (List[str]): A list of email addresses to search for
+            usernames (List[str]): A list of usernames to search for
+            ips (List[str]): A list of ips to search for
+            phone_numbers (List[str]): A list of phone numbers to search for. minLength: 7, maxLength: 15.
             start (str): Earliest date for search
             end (str): Latest date for search
             verbose (bool, optional): Echo the API parameters in the response
             raw (bool, optional): Include raw data from this provider
-            provider (str, optional): Use reputation data from this provider: "crowdstrike"
+            provider (str, optional): Use reputation data from this provider: "spycloud"
 
         Raises:
             PangeaAPIException: If an API Error happens
 
         Returns:
             A PangeaResponse where the sanctioned source(s) are in the
-                response.result field.  Available response fields can be found in our [API documentation](/docs/api/user-intel)
+                response.result field.  Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/user-intel)
 
         Examples:
-            FIXME:
+            response = user_intel.user_breached_bulk(
+                phone_numbers=["8005550123"],
+                provider="spycloud",
+                verbose=True,
+                raw=True,
+            )
         """
 
         input = UserBreachedBulkRequest(
@@ -1465,7 +1500,7 @@ class UserIntel(ServiceBase):
         """
         Look up breached passwords
 
-        Find out if a password has been exposed in security breaches by providing a 5 character prefix of the password hash.
+        Determine if a password has been exposed in a security breach using a 5 character prefix of the password hash.
 
         OperationId: user_intel_post_v1_password_breached
 
@@ -1481,7 +1516,7 @@ class UserIntel(ServiceBase):
 
         Returns:
             A PangeaResponse where the sanctioned source(s) are in the
-                response.result field.  Available response fields can be found in our [API documentation](/docs/api/user-intel)
+                response.result field.  Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/user-intel)
 
         Examples:
             response = user_intel.password_breached(
@@ -1505,11 +1540,11 @@ class UserIntel(ServiceBase):
         provider: Optional[str] = None,
     ) -> PangeaResponse[UserPasswordBreachedBulkResult]:
         """
-        Look up breached passwords
+        Look up breached passwords V2
 
-        Find out if a password has been exposed in security breaches by providing a 5 character prefix of the password hash.
+        Determine if a password has been exposed in a security breach using a 5 character prefix of the password hash.
 
-        OperationId: FIXME:
+        OperationId: user_intel_post_v2_password_breached
 
         Args:
             hash_type (str): Hash type to be looked up
@@ -1523,10 +1558,14 @@ class UserIntel(ServiceBase):
 
         Returns:
             A PangeaResponse where the sanctioned source(s) are in the
-                response.result field.  Available response fields can be found in our [API documentation](/docs/api/user-intel)
+                response.result field.  Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/user-intel)
 
         Examples:
-            FIXME:
+            response = user_intel.password_breached_bulk(
+                hash_prefixes=["5baa6"],
+                hash_type=HashType.SHA256,
+                provider="spycloud",
+            )
         """
 
         input = UserPasswordBreachedBulkRequest(
