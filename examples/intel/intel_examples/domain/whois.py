@@ -11,7 +11,7 @@ intel = DomainIntel(token, config=config)
 
 
 def main():
-    print("Checking domain...")
+    print("Looking up whois data for domain...")
 
     try:
         response = intel.who_is(domain="737updatesboeing.com", provider="whoisxml", verbose=True, raw=True)

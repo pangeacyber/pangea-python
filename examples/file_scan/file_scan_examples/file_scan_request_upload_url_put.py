@@ -11,8 +11,7 @@ from pangea.utils import get_file_upload_params
 
 token = os.getenv("PANGEA_FILE_SCAN_TOKEN")
 domain = os.getenv("PANGEA_DOMAIN")
-# To work in sync it's need to set up queue_retry_enable to true and set up a proper timeout
-# If timeout it's so little service won't end up and will return an AcceptedRequestException anyway
+# To enable sync mode, set queued_retry_enabled to true and set a timeout
 config = PangeaConfig(domain=domain, queued_retry_enabled=True, poll_result_timeout=120)
 client = FileScan(token, config=config, logger_name="pangea")
 logger_set_pangea_config(logger_name=client.logger.name)
@@ -25,19 +24,18 @@ def main():
 
     try:
         with open(FILEPATH, "rb") as f:
-            # If use TransferMethod.PUT_URL it's not needed file params
+            # Only the TransferMethod is needed when using TransferMethod.PUT_URL, in addition to the standard parameters
 
             # request an upload url
             response = client.request_upload_url(
                 transfer_method=TransferMethod.PUT_URL, verbose=True, provider="reversinglabs"
             )
 
-            # extract upload url and upload details that should be posted with the file
+            # extract upload url that should be posted with the file
             url = response.accepted_result.accepted_status.upload_url
             print(f"Got presigned url: {url}")
 
             # Create an uploader and upload the file
-            # If use TransferMethod.PUT_URL it's not needed file_details
             uploader = FileUploader()
             uploader.upload_file(url=url, file=f, transfer_method=TransferMethod.PUT_URL)
             print("Upload file success")

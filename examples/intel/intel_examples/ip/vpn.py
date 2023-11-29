@@ -11,7 +11,7 @@ intel = IpIntel(token, config=config)
 
 
 def main():
-    print("Checking IP's a VPN...")
+    print("Checking if the IP belongs to a VPN service...")
 
     try:
         response = intel.is_vpn(ip="2.56.189.74", provider="digitalelement", verbose=True, raw=True)

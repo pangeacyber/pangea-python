@@ -11,7 +11,7 @@ intel = UserIntel(token, config=config)
 
 
 def main():
-    print("Checking user by phone...")
+    print("Checking phone number...")
 
     try:
         response = intel.user_breached(phone_number="8005550123", provider="spycloud", verbose=True, raw=True)

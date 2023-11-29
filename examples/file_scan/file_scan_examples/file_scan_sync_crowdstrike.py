@@ -7,8 +7,7 @@ from pangea.tools import logger_set_pangea_config
 
 token = os.getenv("PANGEA_FILE_SCAN_TOKEN")
 domain = os.getenv("PANGEA_DOMAIN")
-# To work synchronously, it is necessary to set queue_retry_enable to True and set up a proper timeout.
-# If the timeout is too short, the service will not return the results and will return an AcceptedRequestException.
+# To enable sync mode, set queue_retry_enable to true and set a timeout
 config = PangeaConfig(domain=domain, queued_retry_enabled=True, poll_result_timeout=120)
 client = FileScan(token, config=config, logger_name="pangea")
 logger_set_pangea_config(logger_name=client.logger.name)
