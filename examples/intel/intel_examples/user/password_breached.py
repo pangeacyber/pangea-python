@@ -17,6 +17,7 @@ logger_set_pangea_config(logger_name=intel.logger.name)
 def main():
     print("Checking password breached...")
     # Set the password you would like to check
+    # Observe proper safety with passwords, do not check them into source control etc.
     password = "mypassword"
     # Calculate its hash, current options are sha256, sha1, sha512, and ntlm.
     hash = hash_sha256(password)
@@ -33,7 +34,7 @@ def main():
             raw=True,
         )
 
-        # This auxiliary function analyzes the service provider's raw data to search for the full hash in their registers.
+        # is_password_breached is a helper function that can simplify searching the response's raw data for the full hash
         status = UserIntel.is_password_breached(response, hash)
         if status == UserIntel.PasswordStatus.BREACHED:
             print(f"Password: '{password}' has been breached")
