@@ -8,10 +8,10 @@ from pangea.services.authn.authn import AuthN
 RANDOM_VALUE = random.randint(0, 10000000)
 EMAIL_INVITE_1 = f"user.email+1{RANDOM_VALUE}@pangea.cloud"  # Email to create user
 EMAIL_INVITE_2 = f"user.email+2{RANDOM_VALUE}@pangea.cloud"  # Email to create user
-EMAIL_INVITER = f"user.email+inviter{RANDOM_VALUE}@pangea.cloud"  # Email to create user
+EMAIL_INVITER = f"user.email+inviter{RANDOM_VALUE}@pangea.cloud"  # Email for inviting users
 PASSWORD_INITIAL = "My1s+Password"  # First password to be set to user created
 PASSWORD_UPDATE = "My1s+Password_new"  # Password used to update user password
-PROFILE_INITIAL = {"name": "User Name", "country": "Argentina"}  # Inicial user profile
+PROFILE_INITIAL = {"name": "User Name", "country": "Argentina"}  # Initial user profile
 PROFILE_UPDATE = {"age": "18"}  # Additional info to update user profile
 
 
