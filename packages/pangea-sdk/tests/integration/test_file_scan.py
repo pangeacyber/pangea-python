@@ -11,7 +11,7 @@ from pangea.services.file_scan import FileScanResult, FileUploader
 from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
 from pangea.utils import get_file_upload_params
 
-TEST_ENVIRONMENT = TestEnvironment.LIVE
+TEST_ENVIRONMENT = TestEnvironment.STAGING
 PDF_FILEPATH = "./tests/testdata/testfile.pdf"
 
 
