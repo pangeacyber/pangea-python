@@ -8,7 +8,7 @@ from pangea.response import PangeaResponse
 from pangea.services.audit.audit import SearchOutput, SearchResultOutput
 from pangea.tools import logger_set_pangea_config
 
-# This example shows how to perform an audit log, and then search for thats results
+# This example shows how to perform an audit log, and then search through the results.
 
 token = os.getenv("PANGEA_AUDIT_TOKEN")
 domain = os.getenv("PANGEA_DOMAIN")

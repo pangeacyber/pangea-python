@@ -4,7 +4,7 @@ import json
 import random
 import unittest
 
-import pangea.exceptions as pexc
+import pangea.exceptions as pe
 from pangea import PangeaConfig
 from pangea.services.vault.models.asymmetric import AsymmetricAlgorithm, KeyPurpose
 from pangea.services.vault.models.symmetric import SymmetricAlgorithm
@@ -101,7 +101,7 @@ class TestVault(unittest.TestCase):
         # self.assertNotEqual(data_b64, decrypt_bad.result.plain_text)
 
         # Decrypt wrong id
-        with self.assertRaises(pexc.ValidationException):
+        with self.assertRaises(pe.ValidationException):
             self.vault.decrypt("thisisnotandid", cipher_v2, 2)
 
         # Desactivate key
@@ -157,19 +157,19 @@ class TestVault(unittest.TestCase):
         self.assertEqual(id, update_resp.result.id)
 
         # Verify not existing version
-        with self.assertRaises(pexc.PangeaAPIException):
+        with self.assertRaises(pe.PangeaAPIException):
             self.vault.verify(id, data, signature_v2, 10)
 
         # Verify wrong id
-        with self.assertRaises(pexc.ValidationException):
+        with self.assertRaises(pe.ValidationException):
             self.vault.verify("thisisnotandid", data, signature_v2, 2)
 
         # Verify wrong signature
-        with self.assertRaises(pexc.PangeaAPIException):
+        with self.assertRaises(pe.PangeaAPIException):
             self.vault.verify(id, data, "thisisnotasignature", 2)
 
         # Verify wrong data
-        with self.assertRaises(pexc.PangeaAPIException):
+        with self.assertRaises(pe.PangeaAPIException):
             self.vault.verify(id, "thisisnotvaliddatax", signature_v2, 2)
 
         # Deactivate key
@@ -465,7 +465,7 @@ class TestVault(unittest.TestCase):
             try:
                 self.encrypting_cycle(id)
                 self.vault.delete(id=id)
-            except pexc.PangeaAPIException as e:
+            except pe.PangeaAPIException as e:
                 print(f"Failed test_asym_encripting_life_cycle with {algorithm}")
                 print(e)
                 self.vault.delete(id=id)
@@ -482,7 +482,7 @@ class TestVault(unittest.TestCase):
             try:
                 self.signing_cycle(id)
                 self.vault.delete(id=id)
-            except pexc.PangeaAPIException as e:
+            except pe.PangeaAPIException as e:
                 print(f"Failed {THIS_FUNCTION_NAME()} with {algorithm}")
                 print(e)
                 self.vault.delete(id=id)
@@ -498,7 +498,7 @@ class TestVault(unittest.TestCase):
             try:
                 self.encrypting_cycle(id)
                 self.vault.delete(id=id)
-            except pexc.PangeaAPIException as e:
+            except pe.PangeaAPIException as e:
                 print(f"Failed {THIS_FUNCTION_NAME()} with {algorithm}")
                 print(e)
                 self.vault.delete(id=id)
@@ -552,7 +552,7 @@ class TestVault(unittest.TestCase):
             try:
                 self.jwt_asym_signing_cycle(id)
                 self.vault.delete(id=id)
-            except pexc.PangeaAPIException as e:
+            except pe.PangeaAPIException as e:
                 print(f"Failed {THIS_FUNCTION_NAME()} with {algorithm}")
                 print(e)
                 self.vault.delete(id=id)
@@ -571,7 +571,7 @@ class TestVault(unittest.TestCase):
             try:
                 self.jwt_sym_signing_cycle(id)
                 self.vault.delete(id=id)
-            except pexc.PangeaAPIException as e:
+            except pe.PangeaAPIException as e:
                 print(f"Failed {THIS_FUNCTION_NAME()} with {algorithm}")
                 print(e)
                 self.vault.delete(id=id)
@@ -587,7 +587,7 @@ class TestVault(unittest.TestCase):
                 if i.id is not None and i.type != "folder":
                     del_resp = self.vault.delete(i.id)
                     self.assertEqual(i.id, del_resp.result.id)
-            except pexc.PangeaAPIException as e:
+            except pe.PangeaAPIException as e:
                 print(i)
                 print(e)
 

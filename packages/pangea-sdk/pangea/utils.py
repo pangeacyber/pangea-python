@@ -8,6 +8,7 @@ from collections import OrderedDict
 from hashlib import new, sha1, sha256, sha512
 
 from google_crc32c import Checksum as CRC32C
+from pydantic import BaseModel
 
 
 def format_datetime(dt: datetime.datetime) -> str:
@@ -107,7 +108,13 @@ def get_prefix(hash: str, len: int = 5):
     return hash[0:len]
 
 
-def get_presigned_url_upload_params(file: io.BufferedReader):
+class FileUploadParams(BaseModel):
+    crc_hex: str
+    sha256_hex: str
+    size: int
+
+
+def get_file_upload_params(file: io.BufferedReader) -> FileUploadParams:
     if "b" not in file.mode:
         raise AttributeError("File need to be open in binary mode")
 
@@ -125,4 +132,4 @@ def get_presigned_url_upload_params(file: io.BufferedReader):
         size += len(chunk)
 
     file.seek(0)  # restart reading
-    return crc.hexdigest().decode("utf-8"), sha.hexdigest(), size, file
+    return FileUploadParams(crc_hex=crc.hexdigest().decode("utf-8"), sha256_hex=sha.hexdigest(), size=size)

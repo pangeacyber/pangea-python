@@ -4,7 +4,7 @@ import json
 import random
 import unittest
 
-import pangea.exceptions as pexc
+import pangea.exceptions as pe
 from pangea import PangeaConfig
 from pangea.asyncio.services.vault import VaultAsync
 from pangea.services.vault.models.asymmetric import AsymmetricAlgorithm, KeyPurpose
@@ -105,7 +105,7 @@ class TestVault(unittest.IsolatedAsyncioTestCase):
         # self.assertNotEqual(data_b64, decrypt_bad.result.plain_text)
 
         # Decrypt wrong id
-        with self.assertRaises(pexc.ValidationException):
+        with self.assertRaises(pe.ValidationException):
             await self.vault.decrypt("thisisnotandid", cipher_v2, 2)
 
         # Desactivate key
@@ -161,19 +161,19 @@ class TestVault(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(id, update_resp.result.id)
 
         # Verify not existing version
-        with self.assertRaises(pexc.PangeaAPIException):
+        with self.assertRaises(pe.PangeaAPIException):
             await self.vault.verify(id, data, signature_v2, 10)
 
         # Verify wrong id
-        with self.assertRaises(pexc.ValidationException):
+        with self.assertRaises(pe.ValidationException):
             await self.vault.verify("thisisnotandid", data, signature_v2, 2)
 
         # Verify wrong signature
-        with self.assertRaises(pexc.PangeaAPIException):
+        with self.assertRaises(pe.PangeaAPIException):
             await self.vault.verify(id, data, "thisisnotasignature", 2)
 
         # Verify wrong data
-        with self.assertRaises(pexc.PangeaAPIException):
+        with self.assertRaises(pe.PangeaAPIException):
             await self.vault.verify(id, "thisisnotvaliddatax", signature_v2, 2)
 
         # Deactivate key
@@ -469,7 +469,7 @@ class TestVault(unittest.IsolatedAsyncioTestCase):
             try:
                 await self.encrypting_cycle(id)
                 await self.vault.delete(id=id)
-            except pexc.PangeaAPIException as e:
+            except pe.PangeaAPIException as e:
                 print(f"Failed test_asym_encripting_life_cycle with {algorithm}")
                 print(e)
                 await self.vault.delete(id=id)
@@ -486,7 +486,7 @@ class TestVault(unittest.IsolatedAsyncioTestCase):
             try:
                 await self.signing_cycle(id)
                 await self.vault.delete(id=id)
-            except pexc.PangeaAPIException as e:
+            except pe.PangeaAPIException as e:
                 print(f"Failed {THIS_FUNCTION_NAME()} with {algorithm}")
                 print(e)
                 await self.vault.delete(id=id)
@@ -502,7 +502,7 @@ class TestVault(unittest.IsolatedAsyncioTestCase):
             try:
                 await self.encrypting_cycle(id)
                 await self.vault.delete(id=id)
-            except pexc.PangeaAPIException as e:
+            except pe.PangeaAPIException as e:
                 print(f"Failed {THIS_FUNCTION_NAME()} with {algorithm}")
                 print(e)
                 await self.vault.delete(id=id)
@@ -556,7 +556,7 @@ class TestVault(unittest.IsolatedAsyncioTestCase):
             try:
                 await self.jwt_asym_signing_cycle(id)
                 await self.vault.delete(id=id)
-            except pexc.PangeaAPIException as e:
+            except pe.PangeaAPIException as e:
                 print(f"Failed {THIS_FUNCTION_NAME()} with {algorithm}")
                 print(e)
                 await self.vault.delete(id=id)
@@ -575,7 +575,7 @@ class TestVault(unittest.IsolatedAsyncioTestCase):
             try:
                 await self.jwt_sym_signing_cycle(id)
                 await self.vault.delete(id=id)
-            except pexc.PangeaAPIException as e:
+            except pe.PangeaAPIException as e:
                 print(f"Failed {THIS_FUNCTION_NAME()} with {algorithm}")
                 print(e)
                 await self.vault.delete(id=id)
@@ -591,7 +591,7 @@ class TestVault(unittest.IsolatedAsyncioTestCase):
                 if i.id is not None and i.type != "folder":
                     del_resp = await self.vault.delete(i.id)
                     self.assertEqual(i.id, del_resp.result.id)
-            except pexc.PangeaAPIException as e:
+            except pe.PangeaAPIException as e:
                 print(i)
                 print(e)
 

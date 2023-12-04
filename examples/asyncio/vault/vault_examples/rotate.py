@@ -16,18 +16,18 @@ async def main():
     try:
         secret_1 = "my first secret"
         secret_2 = "my second secret"
-        # name should be unique
+        # Set a unique name.
         name = f"Python secret example {int(time.time())}"
 
-        # store a secret
+        # Store a secret.
         create_response = await vault.secret_store(name=name, secret=secret_1)
         secret_id = create_response.result.id
         print(f"Created success. ID: {secret_id}")
 
-        # rotate it
+        # Rotate the secret.
         await vault.secret_rotate(secret_id, secret_2)
 
-        # retrieve latest version
+        # Retrieve latest version of the secret.
         get_response = await vault.get(secret_id)
 
         if get_response.result.current_version.secret == secret_2:
@@ -35,7 +35,7 @@ async def main():
         else:
             print("version 2 is wrong")
 
-        # retrieve version 1
+        # Retrieve version 1 of the secret.
         get_response = await vault.get(secret_id, version=1)
 
         if get_response.result.versions[0].secret == secret_1:

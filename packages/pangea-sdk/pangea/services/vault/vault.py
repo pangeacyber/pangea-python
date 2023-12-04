@@ -537,7 +537,7 @@ class Vault(ServiceBase):
 
         Generate a symmetric key
 
-        OperationId: vault_post_v1_key_generate 1
+        OperationId: vault_post_v1_key_generate 2
 
         Args:
             algorithm (SymmetricAlgorithm): The algorithm of the key
@@ -611,7 +611,7 @@ class Vault(ServiceBase):
 
         Generate an asymmetric key
 
-        OperationId: vault_post_v1_key_generate 2
+        OperationId: vault_post_v1_key_generate 1
 
         Args:
             algorithm (AsymmetricAlgorithm): The algorithm of the key

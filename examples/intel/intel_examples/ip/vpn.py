@@ -12,7 +12,7 @@ intel = IpIntel(token, config=config)
 
 
 def main():
-    print("Checking IP's a VPN...")
+    print("Checking if the IP belongs to a VPN service...")
 
     try:
         ip = "2.56.189.74"

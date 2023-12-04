@@ -17,15 +17,16 @@ logger_set_pangea_config(logger_name=intel.logger.name)
 def main():
     print("Checking password breached...")
     # Set the password you would like to check
+    # Observe proper safety with passwords, do not check them into source control etc.
     password = "mypassword"
-    # Calculate its hash, it could be sha256 or sha1
+    # Calculate its hash, current options are sha256, sha1, sha512, and ntlm.
     hash = hash_sha256(password)
-    # get the hash prefix, right know it should be just 5 characters
+    # Get the hash prefix, the first 5 characters of the hash.
     hash_prefix = get_prefix(hash)
 
     try:
         response = intel.password_breached(
-            # should setup right hash_type here, sha256 or sha1
+            # Set the correct hash_type here, sha256, sha1, sha512, and ntlm.
             hash_prefix=hash_prefix,
             hash_type=HashType.SHA256,
             provider="spycloud",
@@ -33,7 +34,7 @@ def main():
             raw=True,
         )
 
-        # This auxiliary function analyze service provider raw data to search for full hash in their registers
+        # is_password_breached is a helper function that can simplify searching the response's raw data for the full hash
         status = UserIntel.is_password_breached(response, hash)
         if status == UserIntel.PasswordStatus.BREACHED:
             print(f"Password: '{password}' has been breached")

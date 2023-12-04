@@ -4,7 +4,11 @@ import unittest
 import pangea.exceptions as pe
 from pangea import PangeaConfig
 from pangea.asyncio.services import FileScanAsync
+from pangea.asyncio.services.file_scan import FileUploaderAsync
+from pangea.response import PangeaResponse, TransferMethod
+from pangea.services.file_scan import FileScanResult
 from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
+from pangea.utils import get_file_upload_params
 
 TEST_ENVIRONMENT = TestEnvironment.LIVE
 PDF_FILEPATH = "./tests/testdata/testfile.pdf"
@@ -29,6 +33,18 @@ class TestFileScan(unittest.IsolatedAsyncioTestCase):
         try:
             with get_test_file() as f:
                 response = await self.scan.file_scan(file=f, verbose=True, provider="crowdstrike")
+                self.assertEqual(response.status, "Success")
+                self.assertEqual(response.result.data.verdict, "benign")
+                self.assertEqual(response.result.data.score, 0)
+        except pe.PangeaAPIException as e:
+            print(e)
+            print(type(e))
+            self.assertTrue(False)
+
+    async def test_scan_file_multipart(self):
+        try:
+            with get_test_file() as f:
+                response = await self.scan.file_scan(file=f, verbose=True, transfer_method=TransferMethod.MULTIPART)
                 self.assertEqual(response.status, "Success")
                 self.assertEqual(response.result.data.verdict, "benign")
                 self.assertEqual(response.result.data.score, 0)
@@ -62,6 +78,89 @@ class TestFileScan(unittest.IsolatedAsyncioTestCase):
                 time.sleep(10)
 
                 response = await self.scan.poll_result(exception)
+                self.assertEqual(response.status, "Success")
+                self.assertEqual(response.result.data.verdict, "benign")
+                self.assertEqual(response.result.data.score, 0)
+                break
+            except pe.PangeaAPIException:
+                self.assertLess(retry, max_retry - 1)
+
+    async def test_split_upload_file_direct(self):
+        with get_test_file() as f:
+            params = get_file_upload_params(f)
+            response = await self.scan.request_upload_url(
+                transfer_method=TransferMethod.DIRECT, params=params, verbose=True, provider="reversinglabs"
+            )
+            url = response.accepted_result.accepted_status.upload_url
+            file_details = response.accepted_result.accepted_status.upload_details
+
+            uploader = FileUploaderAsync()
+            await uploader.upload_file(
+                url=url, file=f, transfer_method=TransferMethod.DIRECT, file_details=file_details
+            )
+            await uploader.close()
+
+        max_retry = 24
+        for retry in range(max_retry):
+            try:
+                # wait some time to get result ready and poll it
+                time.sleep(10)
+
+                response: PangeaResponse[FileScanResult] = await self.scan.poll_result(response=response)
+                self.assertEqual(response.status, "Success")
+                self.assertEqual(response.result.data.verdict, "benign")
+                self.assertEqual(response.result.data.score, 0)
+                break
+            except pe.PangeaAPIException:
+                self.assertLess(retry, max_retry - 1)
+
+    async def test_split_upload_file_post(self):
+        with get_test_file() as f:
+            params = get_file_upload_params(f)
+            response = await self.scan.request_upload_url(
+                transfer_method=TransferMethod.POST_URL, params=params, verbose=True, provider="reversinglabs"
+            )
+            url = response.accepted_result.accepted_status.upload_url
+            file_details = response.accepted_result.accepted_status.upload_details
+
+            uploader = FileUploaderAsync()
+            await uploader.upload_file(
+                url=url, file=f, transfer_method=TransferMethod.POST_URL, file_details=file_details
+            )
+            await uploader.close()
+
+        max_retry = 24
+        for retry in range(max_retry):
+            try:
+                # wait some time to get result ready and poll it
+                time.sleep(10)
+
+                response: PangeaResponse[FileScanResult] = await self.scan.poll_result(response=response)
+                self.assertEqual(response.status, "Success")
+                self.assertEqual(response.result.data.verdict, "benign")
+                self.assertEqual(response.result.data.score, 0)
+                break
+            except pe.PangeaAPIException:
+                self.assertLess(retry, max_retry - 1)
+
+    async def test_split_upload_file_put(self):
+        with get_test_file() as f:
+            response = await self.scan.request_upload_url(
+                transfer_method=TransferMethod.PUT_URL, verbose=True, provider="reversinglabs"
+            )
+            url = response.accepted_result.accepted_status.upload_url
+
+            uploader = FileUploaderAsync()
+            await uploader.upload_file(url=url, file=f, transfer_method=TransferMethod.PUT_URL)
+            await uploader.close()
+
+        max_retry = 24
+        for retry in range(max_retry):
+            try:
+                # wait some time to get result ready and poll it
+                time.sleep(10)
+
+                response: PangeaResponse[FileScanResult] = await self.scan.poll_result(response=response)
                 self.assertEqual(response.status, "Success")
                 self.assertEqual(response.result.data.verdict, "benign")
                 self.assertEqual(response.result.data.score, 0)

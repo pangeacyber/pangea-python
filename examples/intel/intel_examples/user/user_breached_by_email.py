@@ -11,7 +11,7 @@ intel = UserIntel(token, config=config)
 
 
 def main():
-    print("Checking user by email...")
+    print("Checking email...")
 
     try:
         response = intel.user_breached(email="test@example.com", provider="spycloud", verbose=True, raw=True)

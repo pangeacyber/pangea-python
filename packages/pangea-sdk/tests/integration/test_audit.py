@@ -3,7 +3,7 @@ import json
 import time
 import unittest
 
-import pangea.exceptions as pexc
+import pangea.exceptions as pe
 from pangea import PangeaConfig
 from pangea.response import PangeaResponse, ResponseStatus
 from pangea.services import Audit
@@ -462,7 +462,7 @@ class TestAudit(unittest.TestCase):
             self.audit_general.results(id=response_search.result.id, limit=1, offset=max_result + 1)
 
         # This should fail because offset is out of range
-        self.assertRaises(pexc.BadOffsetException, resultBadOffset)
+        self.assertRaises(pe.BadOffsetException, resultBadOffset)
 
     def test_search_results_no_verbose(self):
         limit = 5
@@ -499,7 +499,7 @@ class TestAudit(unittest.TestCase):
             self.audit_general.results(id=response_search.result.id, limit=1, offset=max_result + 1)
 
         # This should fail because offset is out of range
-        self.assertRaises(pexc.BadOffsetException, resultBadOffset)
+        self.assertRaises(pe.BadOffsetException, resultBadOffset)
 
     def test_result_bad_offset(self):
         def resultBadOffset():
@@ -635,7 +635,7 @@ class TestAudit(unittest.TestCase):
             )
 
         # This should fail because this token has multi config but we didn't set up a config id
-        self.assertRaises(pexc.PangeaAPIException, log_without_config_id)
+        self.assertRaises(pe.PangeaAPIException, log_without_config_id)
 
     def test_multi_config_log_config_1(self):
         config_id = get_config_id(TEST_ENVIRONMENT, "audit", 1)

@@ -29,18 +29,18 @@ poetry add pangea-sdk
 
 ## Usage
 
-For samples apps look at [/examples](https://github.com/pangeacyber/pangea-python/tree/main/examples) folder in this repository. There you will find basic samples apps for each services supported on this SDK. Each service folder has a README.md with intructions to install, setup and run.
+For sample apps, look at the [/examples](https://github.com/pangeacyber/pangea-python/tree/main/examples) folder in this repository. There you will find basic sample apps for each of the services supported on this SDK. Each service folder has a README.md with instructions to install, setup, and run the sample app.
 
 
 ## Asyncio support
 
-We have added support to asyncio library using aiohttp in order to support async/await calls to all our services.
+We have added support to the asyncio library using aiohttp in order to support async/await calls to all our services.
 Async services classes are inside [pangea/asyncio](https://github.com/pangeacyber/pangea-python/tree/main/packages/pangea-sdk/pangea/asyncio) folder, and examples about how to use them are in [/examples/asyncio](https://github.com/pangeacyber/pangea-python/tree/main/examples/asyncio).
 
 
 ### Secure Audit Service - Integrity Tools
 
-Python Pangea SDK include also some extra features to validate Audit Service log's integrity. Here we explain how to run them.
+The Python Pangea SDK also includes some extra features to validate Audit Service log's integrity. Here we explain how to run them.
 
 #### Verify audit data
 
@@ -71,7 +71,7 @@ curl -H "Authorization: Bearer ${PANGEA_TOKEN}" -X POST -H 'Content-Type: applic
 
 Download all audit logs for a given time range. Start and end date should be provided,
 a variety of formats is supported, including ISO-8601. The result is stored in a
-jsonl file (one json per line)
+json file (one json per line).
 
 ```
 usage: python -m pangea.dump_audit [-h] [--token TOKEN] [--domain DOMAIN] [--output OUTPUT] start end
@@ -96,8 +96,8 @@ options:
 
 #### Perform Exhaustive Verification of Audit Data
 
-This script performs extensive verification on a range of events of the log stream. Appart from verifying the hash
-and the membership proof, it checks that there is no omissions in the stream, i.e. all the events are present and properly located.
+This script performs extensive verification on a range of events of the log stream. Apart from verifying the hash
+and the membership proof, it checks that there are no omissions in the stream, i.e. all the events are present and properly located.
 
 ```
 usage: python -m pangea.deep_verify [-h] [--token TOKEN] [--domain DOMAIN] --file FILE
@@ -123,9 +123,9 @@ It accepts multiple file formats:
 
 ## Reporting issues and new features
 
-If faced some issue using or testing this SDK or a new feature request feel free to open an issue [clicking here](https://github.com/pangeacyber/pangea-python/issues).
-We would need you to provide some basic information like what SDK's version you are using, stack trace if you got it, framework used, and steps to reproduce the issue.
-Also feel free to contact [Pangea support](mailto:support@pangea.cloud) by email or send us a message on [Slack](https://pangea.cloud/join-slack/)
+If you run into an issue using or testing this SDK or if you have a new feature request, feel free to open an issue by [clicking here](https://github.com/pangeacyber/pangea-python/issues).
+We would need you to provide some basic information, such as what SDK version you are using, the stack trace if you got it, the framework used, and steps to reproduce the issue.
+Also, feel free to contact [Pangea support](mailto:support@pangea.cloud) by email or send us a message on [Slack](https://pangea.cloud/join-slack/).
 
 
 ## Contributing
@@ -138,4 +138,4 @@ These linters will run on every `git commit` operation.
 
 ### Send a PR
 
-If you would like to [send a PR](https://github.com/pangeacyber/pangea-python/pulls) including a new feature or fixing a bug in code or an error in documents we will really appreciate it and after review and approval you will be included in our [contributors list](https://github.com/pangeacyber/pangea-python/blob/main/packages/pangea-sdk/CONTRIBUTING.md)
+If you would like to [send a PR](https://github.com/pangeacyber/pangea-python/pulls) including a new feature or fixing a bug in the code or an error in documents, we really appreciate it and after review and approval, you will be included in our [contributors list](https://github.com/pangeacyber/pangea-python/blob/main/packages/pangea-sdk/CONTRIBUTING.md).

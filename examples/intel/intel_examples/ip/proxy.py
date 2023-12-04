@@ -12,7 +12,7 @@ intel = IpIntel(token, config=config)
 
 
 def main():
-    print("Checking IP's proxy...")
+    print("Checking if an IP belongs to a proxy service...")
 
     try:
         ip = "34.201.32.172"
