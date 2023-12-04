@@ -135,7 +135,7 @@ class TestIPIntel(unittest.TestCase):
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertEqual(response.result.data.country, "Federal Republic Of Germany")
         self.assertEqual(response.result.data.city, "unna")
-        self.assertEqual(response.result.data.postal_code, "59423")
+        self.assertEqual(response.result.data.postal_code, "59425")
 
     def test_ip_domain(self):
         response = self.intel_ip.get_domain(ip="24.235.114.61", provider="digitalelement", verbose=True, raw=True)
