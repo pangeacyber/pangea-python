@@ -23,10 +23,11 @@ class FileScanRequest(APIRequestModel):
     verbose: Optional[bool] = None
     raw: Optional[bool] = None
     provider: Optional[str] = None
-    transfer_size: Optional[int] = None
-    transfer_crc32c: Optional[str] = None
-    transfer_sha256: Optional[str] = None
-    transfer_method: TransferMethod = TransferMethod.DIRECT
+    size: Optional[int] = None
+    crc32c: Optional[str] = None
+    sha256: Optional[str] = None
+    source_url: Optional[str] = None
+    transfer_method: TransferMethod = TransferMethod.POST_URL
 
 
 class FileScanData(PangeaResponseResult):
@@ -81,7 +82,8 @@ class FileScan(ServiceBase):
         raw: Optional[bool] = None,
         provider: Optional[str] = None,
         sync_call: bool = True,
-        transfer_method: TransferMethod = TransferMethod.DIRECT,
+        transfer_method: TransferMethod = TransferMethod.POST_URL,
+        source_url: Optional[str] = None,
     ) -> PangeaResponse[FileScanResult]:
         """
         Scan
@@ -120,7 +122,7 @@ class FileScan(ServiceBase):
         if file or file_path:
             if file_path:
                 file = open(file_path, "rb")
-            if transfer_method == TransferMethod.DIRECT or transfer_method == TransferMethod.POST_URL:
+            if transfer_method == TransferMethod.POST_URL:
                 params = get_file_upload_params(file)
                 crc = params.crc_hex
                 sha = params.sha256_hex
@@ -135,10 +137,11 @@ class FileScan(ServiceBase):
             verbose=verbose,
             raw=raw,
             provider=provider,
-            transfer_crc32c=crc,
-            transfer_sha256=sha,
-            transfer_size=size,
+            crc32c=crc,
+            sha256=sha,
+            size=size,
             transfer_method=transfer_method,
+            source_url=source_url,
         )
         data = input.dict(exclude_none=True)
         return self.request.post("v1/scan", FileScanResult, data=data, files=files, poll_result=sync_call)
@@ -157,12 +160,10 @@ class FileScan(ServiceBase):
             provider=provider,
             transfer_method=transfer_method,
         )
-        if params is not None and (
-            transfer_method == TransferMethod.POST_URL or transfer_method == TransferMethod.DIRECT
-        ):
-            input.transfer_crc32c = params.crc_hex
-            input.transfer_sha256 = params.sha256_hex
-            input.transfer_size = params.size
+        if params is not None and (transfer_method == TransferMethod.POST_URL):
+            input.crc32c = params.crc_hex
+            input.sha256 = params.sha256_hex
+            input.size = params.size
 
         data = input.dict(exclude_none=True)
         return self.request.request_presigned_url("v1/scan", FileScanResult, data=data)
@@ -188,7 +189,7 @@ class FileUploader:
         if transfer_method == TransferMethod.PUT_URL:
             files = [("file", ("filename", file, "application/octet-stream"))]
             self._request.put_presigned_url(url=url, files=files)
-        elif transfer_method == TransferMethod.POST_URL or transfer_method == TransferMethod.DIRECT:
+        elif transfer_method == TransferMethod.POST_URL:
             files = [("file", ("filename", file, "application/octet-stream"))]
             self._request.post_presigned_url(url=url, data=file_details, files=files)
         else:

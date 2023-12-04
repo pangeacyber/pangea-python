@@ -85,43 +85,14 @@ class TestFileScan(unittest.IsolatedAsyncioTestCase):
             except pe.PangeaAPIException:
                 self.assertLess(retry, max_retry - 1)
 
-    async def test_split_upload_file_direct(self):
-        with get_test_file() as f:
-            params = get_file_upload_params(f)
-            response = await self.scan.request_upload_url(
-                transfer_method=TransferMethod.DIRECT, params=params, verbose=True, provider="reversinglabs"
-            )
-            url = response.accepted_result.accepted_status.upload_url
-            file_details = response.accepted_result.accepted_status.upload_details
-
-            uploader = FileUploaderAsync()
-            await uploader.upload_file(
-                url=url, file=f, transfer_method=TransferMethod.DIRECT, file_details=file_details
-            )
-            await uploader.close()
-
-        max_retry = 24
-        for retry in range(max_retry):
-            try:
-                # wait some time to get result ready and poll it
-                time.sleep(10)
-
-                response: PangeaResponse[FileScanResult] = await self.scan.poll_result(response=response)
-                self.assertEqual(response.status, "Success")
-                self.assertEqual(response.result.data.verdict, "benign")
-                self.assertEqual(response.result.data.score, 0)
-                break
-            except pe.PangeaAPIException:
-                self.assertLess(retry, max_retry - 1)
-
     async def test_split_upload_file_post(self):
         with get_test_file() as f:
             params = get_file_upload_params(f)
             response = await self.scan.request_upload_url(
                 transfer_method=TransferMethod.POST_URL, params=params, verbose=True, provider="reversinglabs"
             )
-            url = response.accepted_result.accepted_status.upload_url
-            file_details = response.accepted_result.accepted_status.upload_details
+            url = response.accepted_result.post_url
+            file_details = response.accepted_result.post_form_data
 
             uploader = FileUploaderAsync()
             await uploader.upload_file(
@@ -148,7 +119,7 @@ class TestFileScan(unittest.IsolatedAsyncioTestCase):
             response = await self.scan.request_upload_url(
                 transfer_method=TransferMethod.PUT_URL, verbose=True, provider="reversinglabs"
             )
-            url = response.accepted_result.accepted_status.upload_url
+            url = response.accepted_result.put_url
 
             uploader = FileUploaderAsync()
             await uploader.upload_file(url=url, file=f, transfer_method=TransferMethod.PUT_URL)

@@ -32,7 +32,7 @@ def main():
             )
 
             # extract upload url that should be posted with the file
-            url = response.accepted_result.accepted_status.upload_url
+            url = response.accepted_result.put_url
             print(f"Got presigned url: {url}")
 
             # Create an uploader and upload the file

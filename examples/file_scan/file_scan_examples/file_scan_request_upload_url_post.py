@@ -33,8 +33,8 @@ def main():
             )
 
             # extract upload url and upload details that should be posted with the file
-            url = response.accepted_result.accepted_status.upload_url
-            file_details = response.accepted_result.accepted_status.upload_details
+            url = response.accepted_result.post_url
+            file_details = response.accepted_result.post_form_data
 
             print(f"Got presigned url: {url}")
 
