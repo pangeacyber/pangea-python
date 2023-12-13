@@ -418,8 +418,9 @@ class FileIntel(ServiceBase):
             )
         """
 
-        data = open(filepath, "rb")
-        hash = hashlib.sha256(data.read()).hexdigest()
+        with open(filepath, "rb") as data:
+            # Can be simplified with `hashlib.file_digest()` in Python v3.11.
+            hash = hashlib.sha256(data.read()).hexdigest()
 
         input = FileReputationRequest(hash=hash, hash_type="sha256", verbose=verbose, raw=raw, provider=provider)
         return self.request.post("v1/reputation", FileReputationResult, data=input.dict(exclude_none=True))
