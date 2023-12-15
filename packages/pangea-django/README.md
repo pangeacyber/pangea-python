@@ -7,7 +7,7 @@ Use Django as your authentication backend in a few simple steps.
 Run the following command
 
 ```
-pip install pangea-sdk
+pip install pangea-django
 ```
 
 ## Set up AuthN with Pangea

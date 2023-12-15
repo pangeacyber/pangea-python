@@ -16,7 +16,7 @@ from pangea.config import PangeaConfig
 
 UserModel = get_user_model()
 
-def generate_state_param(request):
+def generate_state_param(request: HttpRequest) -> str:
     alphabet = string.ascii_letters + string.digits
     state = ''.join(secrets.choice(alphabet) for i in range(12))
     request.session["PANGEA_LOGIN_STATE"] = state
@@ -31,7 +31,7 @@ class PangeaAuthMiddleware():
         self.authn = PangeaAuthentication()
         self.get_response = get_response
 
-    def __call__(self, request):
+    def __call__(self, request: HttpRequest):
         active_token = None
         try:
             active_token = request.session.get("PANGEA_ACTIVE_TOKEN")
@@ -40,7 +40,7 @@ class PangeaAuthMiddleware():
                 try:
                     expires = datetime.fromisoformat(expires)
                 except ValueError:
-                    # support older python that doesnt understand the trailing Z
+                    # support older python that doesn't understand the trailing Z
                     expires = datetime.fromisoformat(expires.rstrip("Z"))
                 if expires < datetime.utcnow():
                     refresh_token = request.session["PANGEA_REFRESH_TOKEN"]["token"]
@@ -66,7 +66,7 @@ class PangeaAuthentication(BaseBackend):
         self.authn = AuthN(token, config=self.config, logger_name="pangea")
         super().__init__()
 
-    def authenticate(self, request):
+    def authenticate(self, request: HttpRequest):
         code = request.GET.get('code')
         state = request.GET.get('state')
         expected_state = request.session.get("PANGEA_LOGIN_STATE")
@@ -101,11 +101,17 @@ class PangeaAuthentication(BaseBackend):
             request.session["PANGEA_USER"] = None
         return user
 
-    def logout(self, request):
+    def logout(self, request: HttpRequest):
         active = request.session.get("PANGEA_ACTIVE_TOKEN")
-        resp = self.authn.client.session.logout(active["token"])
-        del request.session["PANGEA_ACTIVE_TOKEN"]
-        del request.session["PANGEA_REFRESH_TOKEN"]
+        token = active.get("token")
+        if token:
+            self.authn.client.session.logout(token)
+        if "PANGEA_ACTIVE_TOKEN" in request.session:
+            del request.session["PANGEA_ACTIVE_TOKEN"]
+        if "PANGEA_REFRESH_TOKEN" in request.session:
+            del request.session["PANGEA_REFRESH_TOKEN"]
+        if "PANGEA_USER" in request.session:
+            del request.session["PANGEA_USER"] = None
 
     def user_can_authenticate(self, user):
         return getattr(user, "is_active", True)
