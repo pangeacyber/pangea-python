@@ -1,6 +1,6 @@
 import unittest
 
-from pangea.services.audit.models import EventSigning, EventVerification, SearchOrder, SearchOrderBy
+from pangea.services.audit.models import EventVerification, SearchOrder, SearchOrderBy
 from pangea.services.intel import HashType
 from pangea.services.vault.models.common import (
     AsymmetricAlgorithm,
@@ -20,10 +20,6 @@ class TestEnums(unittest.TestCase):
         event_verification = EventVerification.PASS
         repr(event_verification)
         self.assertEqual(str(event_verification), "pass")
-
-        event_signing = EventSigning.NONE
-        repr(event_signing)
-        self.assertEqual(event_signing.value, 0)
 
         order = SearchOrder.ASC
         repr(order)
