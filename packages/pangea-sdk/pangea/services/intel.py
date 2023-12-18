@@ -1,6 +1,7 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 import enum
+import hashlib
 from typing import Dict, List, Optional
 
 from pangea.exceptions import PangeaException
@@ -518,8 +519,8 @@ class FileIntel(ServiceBase):
 
         Examples:
             response = file_intel.hash_reputation(
-                hash="179e2b8a4162372cd9344b81793cbf74a9513a002eda3324e6331243f3137a63", 
-                hash_type="sha256", 
+                hash="179e2b8a4162372cd9344b81793cbf74a9513a002eda3324e6331243f3137a63",
+                hash_type="sha256",
                 provider="reversinglabs",
             )
         """
@@ -600,7 +601,10 @@ class FileIntel(ServiceBase):
             )
         """
 
-        hash = hash_256_filepath(filepath)
+        with open(filepath, "rb") as data:
+            # Can be simplified with `hashlib.file_digest()` in Python v3.11.
+            hash = hashlib.sha256(data.read()).hexdigest()
+
         return self.hash_reputation(hash=hash, hash_type="sha256", verbose=verbose, raw=raw, provider=provider)
 
     def filepath_reputation_bulk(

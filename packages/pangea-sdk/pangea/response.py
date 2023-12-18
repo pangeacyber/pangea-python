@@ -13,11 +13,10 @@ T = TypeVar("T")
 
 
 class TransferMethod(str, enum.Enum):
-    DIRECT = "post-url"  # deprecated, use POST_URL instead
     MULTIPART = "multipart"
     POST_URL = "post-url"
     PUT_URL = "put-url"
-    # URL = "url"
+    SOURCE_URL = "source-url"
 
     def __str__(self):
         return str(self.value)
@@ -79,7 +78,16 @@ class AcceptedStatus(APIResponseModel):
 
 
 class AcceptedResult(PangeaResponseResult):
-    accepted_status: Optional[AcceptedStatus] = None
+    ttl_mins: int
+    retry_counter: int
+    location: str
+    post_url: Optional[str] = None
+    post_form_data: Dict[str, Any] = {}
+    put_url: Optional[str] = None
+
+    @property
+    def has_upload_url(self) -> bool:
+        return self.post_url is not None or self.put_url is not None
 
 
 class PangeaError(PangeaResponseResult):

@@ -56,11 +56,7 @@ class PangeaRequestAsync(PangeaRequestBase):
         )
         transfer_method = data.get("transfer_method", None)
 
-        if (
-            files is not None
-            and type(data) is dict
-            and (transfer_method == TransferMethod.DIRECT.value or transfer_method == TransferMethod.POST_URL.value)
-        ):
+        if files is not None and type(data) is dict and (transfer_method == TransferMethod.POST_URL.value):
             requests_response = await self._full_post_presigned_url(
                 endpoint, result_class=result_class, data=data, files=files
             )
@@ -70,9 +66,10 @@ class PangeaRequestAsync(PangeaRequestBase):
             )
 
         await self._check_http_errors(requests_response)
-        pangea_response = PangeaResponse(
-            requests_response, result_class=result_class, json=await requests_response.json()
-        )
+        json_resp = await requests_response.json()
+        self.logger.debug(json.dumps({"service": self.service, "action": "post", "url": url, "response": json_resp}))
+
+        pangea_response = PangeaResponse(requests_response, result_class=result_class, json=json_resp)
         if poll_result:
             pangea_response = await self._handle_queued_result(pangea_response)
 
@@ -152,13 +149,13 @@ class PangeaRequestAsync(PangeaRequestBase):
         resp = await self._http_put(url=url, files=files)
         self.logger.debug(
             json.dumps(
-                {"service": self.service, "action": "put presigned", "url": url, "response": resp.text},
+                {"service": self.service, "action": "put presigned", "url": url, "response": await resp.text()},
                 default=default_encoder,
             )
         )
 
-        if resp.status_code < 200 or resp.status_code >= 300:
-            raise pe.PresignedUploadError(f"presigned PUT failure: {resp.status_code}", resp.text)
+        if resp.status < 200 or resp.status >= 300:
+            raise pe.PresignedUploadError(f"presigned PUT failure: {resp.status}", await resp.text())
 
     async def _http_post(
         self,
@@ -205,7 +202,7 @@ class PangeaRequestAsync(PangeaRequestBase):
         form = FormData()
         name, value = files[0]
         form.add_field(name, value[1], filename=value[0], content_type=value[2])
-        return self.session.put(url, headers=headers, data=form)
+        return await self.session.put(url, headers=headers, data=form)
 
     async def _full_post_presigned_url(
         self,
@@ -218,8 +215,8 @@ class PangeaRequestAsync(PangeaRequestBase):
             raise AttributeError("files attribute should have at least 1 file")
 
         response = await self.request_presigned_url(endpoint=endpoint, result_class=result_class, data=data)
-        data_to_presigned = response.accepted_result.accepted_status.upload_details
-        presigned_url = response.accepted_result.accepted_status.upload_url
+        data_to_presigned = response.accepted_result.post_form_data
+        presigned_url = response.accepted_result.post_url
 
         await self.post_presigned_url(url=presigned_url, data=data_to_presigned, files=files)
         return response.raw_response
@@ -240,14 +237,14 @@ class PangeaRequestAsync(PangeaRequestBase):
         except Exception as e:
             raise e
 
-        # Receive 202 with accepted_status
+        # Receive 202
         return await self._poll_presigned_url(accepted_exception.response)
 
     async def _poll_presigned_url(self, response: PangeaResponse) -> AcceptedResult:
         if response.http_status != 202:
             raise AttributeError("Response should be 202")
 
-        if response.accepted_result.accepted_status.upload_url:
+        if response.accepted_result is not None and response.accepted_result.has_upload_url:
             return response
 
         self.logger.debug(json.dumps({"service": self.service, "action": "poll_presigned_url", "step": "start"}))
@@ -257,7 +254,7 @@ class PangeaRequestAsync(PangeaRequestBase):
 
         while (
             loop_resp.accepted_result is not None
-            and not loop_resp.accepted_result.accepted_status.upload_url
+            and not loop_resp.accepted_result.has_upload_url
             and not self._reach_timeout(start)
         ):
             await asyncio.sleep(self._get_delay(retry_count, start))
@@ -284,7 +281,7 @@ class PangeaRequestAsync(PangeaRequestBase):
 
         self.logger.debug(json.dumps({"service": self.service, "action": "poll_presigned_url", "step": "exit"}))
 
-        if loop_resp.accepted_result is not None and not loop_resp.accepted_result.accepted_status.upload_url:
+        if loop_resp.accepted_result is not None and not loop_resp.accepted_result.has_upload_url:
             return loop_resp
         else:
             raise loop_exc

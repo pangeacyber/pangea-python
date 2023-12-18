@@ -16,5 +16,5 @@ Set up the environment variables ([Instructions](https://pangea.cloud/docs/getti
 
 To run examples:
 ```
-poetry run python authn_examples/encrypt.py
+poetry run python authn_examples/invite_actions.py
 ```
