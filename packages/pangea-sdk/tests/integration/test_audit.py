@@ -431,7 +431,7 @@ class TestAudit(unittest.TestCase):
             limit=limit,
             max_results=max_result,
             verbose=True,
-            start="14d",
+            start="21d",
         )
         self.assertEqual(response_search.status, ResponseStatus.SUCCESS)
         self.assertEqual(len(response_search.result.events), limit)
