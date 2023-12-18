@@ -10,7 +10,10 @@ from .base import ServiceBase
 
 
 class RedactFormat(str, enum.Enum):
+    """Structured data format."""
+
     JSON = "json"
+    """JSON format."""
 
 
 class RedactRequest(APIRequestModel):
@@ -101,10 +104,6 @@ class StructuredResult(PangeaResponseResult):
     redacted_data: Optional[Union[Dict, str]] = None
     count: int
     report: Optional[DebugReport] = None
-
-
-class RedactFormat(str, enum.Enum):
-    JSON = "json"
 
 
 class Redact(ServiceBase):
