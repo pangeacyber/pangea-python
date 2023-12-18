@@ -79,22 +79,29 @@ def canonicalize(data: dict) -> str:
 
 def hash_sha256(data: str) -> str:
     # Return sha256 hash in hex format
-    return hexlify(sha256(data.encode("ascii")).digest()).decode("utf8")
+    return sha256(data.encode("ascii")).hexdigest()
+
+
+def hash_256_filepath(filepath: str) -> str:
+    data = open(filepath, "rb")
+    hash = sha256(data.read()).hexdigest()
+    data.close()
+    return hash
 
 
 def hash_sha1(data: str) -> str:
     # Return sha1 hash in hex format
-    return hexlify(sha1(data.encode("ascii")).digest()).decode("utf8")
+    return sha1(data.encode("ascii")).hexdigest()
 
 
 def hash_sha512(data: str) -> str:
     # Return sha512 hash in hex format
-    return hexlify(sha512(data.encode("ascii")).digest()).decode("utf8")
+    return sha512(data.encode("ascii")).hexdigest()
 
 
 def hash_ntlm(data: str):
     # Calculate the NTLM hash
-    return hexlify(new("md4", data.encode("utf-16le")).digest()).decode("utf8")
+    return new("md4", data.encode("utf-16le")).hexdigest()
 
 
 def get_prefix(hash: str, len: int = 5):

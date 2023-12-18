@@ -203,6 +203,9 @@ class PangeaRequest(PangeaRequestBase):
         if self.config_id and data.get("config_id", None) is None:
             data["config_id"] = self.config_id
 
+        self.logger.debug(
+            json.dumps({"service": self.service, "action": "post", "url": url, "data": data}, default=default_encoder)
+        )
         transfer_method = data.get("transfer_method", None)
 
         if files is not None and type(data) is dict and (transfer_method == TransferMethod.POST_URL.value):
@@ -214,6 +217,7 @@ class PangeaRequest(PangeaRequestBase):
                 url, headers=self._headers(), data=data, files=files, multipart_post=True
             )
 
+        self._check_http_errors(requests_response)
         json_resp = requests_response.json()
         self.logger.debug(json.dumps({"service": self.service, "action": "post", "url": url, "response": json_resp}))
 
@@ -222,6 +226,105 @@ class PangeaRequest(PangeaRequestBase):
             pangea_response = self._handle_queued_result(pangea_response)
 
         return self._check_response(pangea_response)
+
+    def _check_http_errors(self, resp: requests.Response):
+        if resp.status_code == 503:
+            raise pe.ServiceTemporarilyUnavailable(resp.json())
+
+    def _http_post(
+        self,
+        url: str,
+        headers: Dict = {},
+        data: Union[str, Dict] = {},
+        files: Optional[List[Tuple]] = None,
+        multipart_post: bool = True,
+    ) -> requests.Response:
+        self.logger.debug(
+            json.dumps(
+                {"service": self.service, "action": "http_post", "url": url, "data": data}, default=default_encoder
+            )
+        )
+
+        data_send, files = self._http_post_process(data=data, files=files, multipart_post=multipart_post)
+        return self.session.post(url, headers=headers, data=data_send, files=files)
+
+    def _http_post_process(
+        self, data: Union[str, Dict] = {}, files: Optional[List[Tuple]] = None, multipart_post: bool = True
+    ):
+        if files:
+            if multipart_post is True:
+                data_send = json.dumps(data, default=default_encoder) if isinstance(data, dict) else data
+                multi = [("request", (None, data_send, "application/json"))]
+                multi.extend(files)
+                files = multi
+                return None, files
+            else:
+                # Post to presigned url as form
+                data_send = []
+                for k, v in data.items():
+                    data_send.append((k, v))
+                # When posting to presigned url, file key should be 'file'
+                files = {
+                    "file": files[0][1],
+                }
+                return data_send, files
+        else:
+            data_send = json.dumps(data, default=default_encoder) if isinstance(data, dict) else data
+            return data_send, None
+
+        return data, files
+
+    def _post_presigned_url(
+        self,
+        endpoint: str,
+        result_class: Type[PangeaResponseResult],
+        data: Union[str, Dict] = {},
+        files: Optional[List[Tuple]] = None,
+    ):
+        if len(files) == 0:
+            raise AttributeError("files attribute should have at least 1 file")
+
+        # Send request
+        try:
+            # This should return 202 (AcceptedRequestException)
+            resp = self.post(endpoint=endpoint, result_class=result_class, data=data, poll_result=False)
+            raise pe.PresignedURLException("Should return 202", resp)
+
+        except pe.AcceptedRequestException as e:
+            accepted_exception = e
+        except Exception as e:
+            raise e
+
+        # Receive 202 with accepted_status
+        result = self._poll_presigned_url(accepted_exception)
+        data_to_presigned = result.accepted_status.upload_details
+        presigned_url = result.accepted_status.upload_url
+
+        # Send multipart request with file and upload_details as body
+        resp = self._http_post(url=presigned_url, data=data_to_presigned, files=files, multipart_post=False)
+        self.logger.debug(
+            json.dumps(
+                {"service": self.service, "action": "post presigned", "url": presigned_url, "response": resp.text},
+                default=default_encoder,
+            )
+        )
+
+        if resp.status_code < 200 or resp.status_code >= 300:
+            raise pe.PresignedUploadError(f"presigned POST failure: {resp.status_code}", resp.text)
+
+        return accepted_exception.response.raw_response
+
+    def _handle_queued_result(self, response: PangeaResponse) -> PangeaResponse:
+        if self._queued_retry_enabled and response.raw_response.status_code == 202:
+            self.logger.debug(
+                json.dumps(
+                    {"service": self.service, "action": "poll_result", "response": response.json},
+                    default=default_encoder,
+                )
+            )
+            response = self._poll_result_retry(response)
+
+        return response
 
     def get(self, path: str, result_class: Type[PangeaResponseResult], check_response: bool = True) -> PangeaResponse:
         """Makes the GET call to a Pangea Service endpoint.
@@ -238,6 +341,7 @@ class PangeaRequest(PangeaRequestBase):
         url = self._url(path)
         self.logger.debug(json.dumps({"service": self.service, "action": "get", "url": url}))
         requests_response = self.session.get(url, headers=self._headers())
+        self._check_http_errors(requests_response)
         pangea_response = PangeaResponse(requests_response, result_class=result_class, json=requests_response.json())
 
         self.logger.debug(

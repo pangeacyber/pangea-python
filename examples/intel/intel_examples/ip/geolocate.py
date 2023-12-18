@@ -1,6 +1,7 @@
 import os
 
 import pangea.exceptions as pe
+from intel_examples.ip.utils import print_ip_geolocate_data
 from pangea.config import PangeaConfig
 from pangea.services import IpIntel
 
@@ -14,10 +15,11 @@ def main():
     print("Geolocate IP...")
 
     try:
-        response = intel.geolocate(ip="93.231.182.110", provider="digitalelement", verbose=True, raw=True)
-        print(f"Response: {response.result}")
+        ip = "93.231.182.110"
+        response = intel.geolocate(ip=ip, provider="digitalelement", verbose=True, raw=True)
+        print("Result")
+        print_ip_geolocate_data(ip, response.result.data)
     except pe.PangeaAPIException as e:
-        print(f"Request Error: {e.response.summary}")
         print(e)
 
 

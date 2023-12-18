@@ -51,6 +51,9 @@ class PangeaRequestAsync(PangeaRequestBase):
         if self.config_id and data.get("config_id", None) is None:
             data["config_id"] = self.config_id
 
+        self.logger.debug(
+            json.dumps({"service": self.service, "action": "post", "url": url, "data": data}, default=default_encoder)
+        )
         transfer_method = data.get("transfer_method", None)
 
         if files is not None and type(data) is dict and (transfer_method == TransferMethod.POST_URL.value):
@@ -62,6 +65,7 @@ class PangeaRequestAsync(PangeaRequestBase):
                 url, headers=self._headers(), data=data, files=files, presigned_url_post=False
             )
 
+        await self._check_http_errors(requests_response)
         json_resp = await requests_response.json()
         self.logger.debug(json.dumps({"service": self.service, "action": "post", "url": url, "response": json_resp}))
 
@@ -89,6 +93,7 @@ class PangeaRequestAsync(PangeaRequestBase):
         self.logger.debug(json.dumps({"service": self.service, "action": "get", "url": url}))
 
         async with self.session.get(url, headers=self._headers()) as requests_response:
+            await self._check_http_errors(requests_response)
             pangea_response = PangeaResponse(
                 requests_response, result_class=result_class, json=await requests_response.json()
             )
@@ -104,6 +109,10 @@ class PangeaRequestAsync(PangeaRequestBase):
             return pangea_response
 
         return self._check_response(pangea_response)
+
+    async def _check_http_errors(self, resp: aiohttp.ClientResponse):
+        if resp.status == 503:
+            raise pe.ServiceTemporarilyUnavailable(await resp.json())
 
     async def poll_result_by_id(
         self, request_id: str, result_class: Union[Type[PangeaResponseResult], dict], check_response: bool = True

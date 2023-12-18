@@ -1,6 +1,7 @@
 import os
 
 import pangea.exceptions as pe
+from intel_examples.utils import print_reputation_data
 from pangea.config import PangeaConfig
 from pangea.services import IpIntel
 
@@ -11,15 +12,15 @@ intel = IpIntel(token, config=config)
 
 
 def main():
-    print(f"Checking IP...")
+    print("Checking IP...")
 
     try:
-        response = intel.reputation(ip="93.231.182.110", provider="cymru", verbose=True, raw=True)
-        print(f"Response: {response.result}")
+        indicator = "93.231.182.110"
+        response = intel.reputation(ip=indicator, provider="cymru", verbose=True, raw=True)
+        print("Result:")
+        print_reputation_data(indicator, response.result.data)
     except pe.PangeaAPIException as e:
-        print(f"Request Error: {e.response.summary}")
-        for err in e.errors:
-            print(f"\t{err.detail} \n")
+        print(e)
 
 
 if __name__ == "__main__":

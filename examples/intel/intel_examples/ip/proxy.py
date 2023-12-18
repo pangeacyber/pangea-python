@@ -1,6 +1,7 @@
 import os
 
 import pangea.exceptions as pe
+from intel_examples.ip.utils import print_ip_proxy_data
 from pangea.config import PangeaConfig
 from pangea.services import IpIntel
 
@@ -14,13 +15,11 @@ def main():
     print("Checking if an IP belongs to a proxy service...")
 
     try:
-        response = intel.is_proxy(ip="34.201.32.172", provider="digitalelement", verbose=True, raw=True)
-        if response.result.data.is_proxy:
-            print("IP is a proxy")
-        else:
-            print("IP is not a proxy")
+        ip = "34.201.32.172"
+        response = intel.is_proxy(ip=ip, provider="digitalelement", verbose=True, raw=True)
+        print("Result:")
+        print_ip_proxy_data(ip, response.result.data)
     except pe.PangeaAPIException as e:
-        print(f"Request Error: {e.response.summary}")
         print(e)
 
 

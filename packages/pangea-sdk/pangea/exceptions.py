@@ -14,6 +14,14 @@ class PangeaException(Exception):
         self.message = message
 
 
+class ServiceTemporarilyUnavailable(PangeaException):
+    body: str
+
+    def __init__(self, body: str):
+        super(PangeaException, self).__init__("Service temporarily unavailable")
+        self.body = body
+
+
 class PresignedUploadError(PangeaException):
     body: str
 
