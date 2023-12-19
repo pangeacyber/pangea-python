@@ -491,18 +491,6 @@ class PangeaRequest(PangeaRequestBase):
         self.post_presigned_url(url=presigned_url, data=data_to_presigned, files=files)
         return response.raw_response
 
-    def _handle_queued_result(self, response: PangeaResponse) -> PangeaResponse:
-        if self._queued_retry_enabled and response.raw_response.status_code == 202:
-            self.logger.debug(
-                json.dumps(
-                    {"service": self.service, "action": "poll_result", "response": response.json},
-                    default=default_encoder,
-                )
-            )
-            response = self._poll_result_retry(response)
-
-        return response
-
     def _poll_result_retry(self, response: PangeaResponse) -> PangeaResponse:
         retry_count = 1
         start = time.time()
