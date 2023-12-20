@@ -6,17 +6,6 @@
   rules:
     - if: $CI_PIPELINE_SOURCE == "push"
 
-.pangea-django-publish:
-  before_script:
-    - cd packages/pangea-django/
-    - pip install poetry
-    - poetry install
-  rules:
-    - if: $CI_COMMIT_BRANCH == "release"
-      changes:
-        - packages/pangea-django/**/*
-      when: on_success
-
 py_lint:
   extends: .pangea-django-base
   stage: lint
@@ -48,14 +37,13 @@ py_lint:
 # - poetry run python -m unittest tests.integration
 
 building:
-  extends: .pangea-django-publish
   stage: build
+  extends: .pangea-django-base
   script:
     - poetry build
     - poetry publish --username __token__ --password $PYPI_SDK_TOKEN
   rules:
-    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_COMMIT_BRANCH == "release"
       changes:
         - packages/pangea-django/**/*
       when: on_success
-
