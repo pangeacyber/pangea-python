@@ -1,0 +1,61 @@
+.pangea-django-base:
+  before_script:
+    - cd packages/pangea-django/
+    - pip install poetry
+    - poetry install
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push"
+
+.pangea-django-publish:
+  before_script:
+    - cd packages/pangea-django/
+    - pip install poetry
+    - poetry install
+  rules:
+    - if: $CI_COMMIT_BRANCH == "release"
+      changes:
+        - packages/pangea-django/**/*
+      when: on_success
+
+py_lint:
+  extends: .pangea-django-base
+  stage: lint
+  script:
+    - poetry run black .
+
+# generate_docs:
+# extends: .pangea-sdk-base
+# stage: lint
+# allow_failure: true
+# script:
+# - poetry run python parse_module.py > python_sdk.json
+# artifacts:
+# expire_in: 1 month
+# expose_as: python_sdk
+# paths: ['packages/pangea-sdk/python_sdk.json']
+# when: on_success
+
+# testing:
+# extends: .pangea-sdk-base
+# stage: unit_tests
+# script:
+# - poetry run python -m unittest tests.unit
+
+# integration:
+# extends: .pangea-sdk-base
+# stage: integration_tests
+# script:
+# - poetry run python -m unittest tests.integration
+
+building:
+  extends: .pangea-django-publish
+  stage: build
+  script:
+    - poetry build
+    - poetry publish --username __token__ --password $PYPI_SDK_TOKEN
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      changes:
+        - packages/pangea-django/**/*
+      when: on_success
+
