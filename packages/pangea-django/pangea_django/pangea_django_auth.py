@@ -111,7 +111,7 @@ class PangeaAuthentication(BaseBackend):
         if "PANGEA_REFRESH_TOKEN" in request.session:
             del request.session["PANGEA_REFRESH_TOKEN"]
         if "PANGEA_USER" in request.session:
-            del request.session["PANGEA_USER"] = None
+            del request.session["PANGEA_USER"]
 
     def user_can_authenticate(self, user):
         return getattr(user, "is_active", True)

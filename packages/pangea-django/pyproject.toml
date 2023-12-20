@@ -17,9 +17,12 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.7.2"
-"Django" = "^4.2"
+python = "^3.8.0"
+"Django" = "^4.2.1"
 "pangea-sdk" = "^3.4.0"
+
+[tool.poetry.dev-dependencies]
+black = "^22.1.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

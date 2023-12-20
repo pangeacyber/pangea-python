@@ -12,4 +12,4 @@ stages:
 
 include:
   - /packages/pangea-sdk/.sdk-ci.yml
-  - /packages/pangea-django/.sdk-ci.yml
+  - /packages/pangea-django/.django-ci.yml
