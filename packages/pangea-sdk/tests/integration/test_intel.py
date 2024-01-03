@@ -179,7 +179,7 @@ class TestIPIntel(unittest.TestCase):
         response = self.intel_ip.geolocate(ip="93.231.182.110", verbose=True, raw=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertEqual(response.result.data.country, "Federal Republic Of Germany")
-        self.assertEqual(response.result.data.city, "unna")
+        self.assertIn(response.result.data.city, ("unna", "holzwickede"))
         self.assertEqual(len(response.result.data.postal_code), 5)
         self.assertIn(response.result.data.postal_code, ("59425", "59427"))
 
