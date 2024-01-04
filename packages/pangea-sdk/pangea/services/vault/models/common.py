@@ -2,7 +2,7 @@
 # Author: Pangea Cyber Corporation
 import datetime
 import enum
-from typing import Dict, List, NewType, Optional, Union
+from typing import Dict, Generic, List, NewType, Optional, TypeVar, Union
 
 from pangea.response import APIRequestModel, PangeaResponseResult
 
@@ -314,7 +314,7 @@ class JWK(JWKHeader):
 
 
 class JWKec(JWKHeader):
-    # Eliptyc curve JWK
+    # Elliptic curve JWK
     crv: str
     d: Optional[str] = None
     x: str
@@ -375,3 +375,38 @@ class FolderCreateRequest(APIRequestModel):
 
 class FolderCreateResult(PangeaResponseResult):
     id: str
+
+
+TDict = TypeVar("TDict", bound=Dict)
+"""Generic dictionary."""
+
+
+class EncryptStructuredRequest(APIRequestModel, Generic[TDict]):
+    id: str
+    """The item ID."""
+
+    structured_data: TDict
+    """Structured data for applying bulk operations."""
+
+    filter: str
+    """A filter expression for applying bulk operations to the data field."""
+
+    version: Optional[int] = None
+    """The item version. Defaults to the current version."""
+
+    additional_data: Optional[str] = None
+    """User provided authentication data."""
+
+
+class EncryptStructuredResult(PangeaResponseResult, Generic[TDict]):
+    id: str
+    """The ID of the item."""
+
+    version: int
+    """The item version."""
+
+    algorithm: str
+    """The algorithm of the key."""
+
+    structured_data: TDict
+    """Encrypted structured data."""
