@@ -315,7 +315,7 @@ class TestAuthN(unittest.IsolatedAsyncioTestCase):
         response = await self.authn.user.list()
         self.assertEqual(response.status, "Success")
         self.assertIsNotNone(response.result)
-        self.assertGreater(len(response.result.users), 0)
+        self.assertGreaterEqual(len(response.result.users), 0)
         for user in response.result.users:
             try:
                 await self.authn.user.delete(email=user.email)

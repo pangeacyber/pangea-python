@@ -12,11 +12,31 @@ from pydantic import BaseModel
 T = TypeVar("T")
 
 
+class AttachedFile(object):
+    filename: str
+    file: bytes
+    content_type: str
+
+    def __init__(self, filename: str, file: bytes, content_type: str):
+        self.filename = filename
+        self.file = file
+        self.content_type = content_type
+
+    def save(self, dest_folder: str = "./", filename: Optional[str] = None):
+        if filename is None:
+            filename = self.filename
+
+        filepath = dest_folder + filename
+        with open(filepath, "wb") as file:
+            file.write(self.file)
+
+
 class TransferMethod(str, enum.Enum):
     MULTIPART = "multipart"
     POST_URL = "post-url"
     PUT_URL = "put-url"
     SOURCE_URL = "source-url"
+    DEST_URL = "dest-url"
 
     def __str__(self):
         return str(self.value)
@@ -143,13 +163,22 @@ class PangeaResponse(Generic[T], ResponseHeader):
     accepted_result: Optional[AcceptedResult] = None
     result_class: Type[PangeaResponseResult] = PangeaResponseResult
     _json: Any
+    attached_files: List[AttachedFile] = []
 
-    def __init__(self, response: requests.Response, result_class: Type[PangeaResponseResult], json: dict):
+    def __init__(
+        self,
+        response: requests.Response,
+        result_class: Type[PangeaResponseResult],
+        json: dict,
+        attached_files: List[AttachedFile] = [],
+    ):
         super(PangeaResponse, self).__init__(**json)
         self._json = json
         self.raw_response = response
         self.raw_result = self._json["result"]
         self.result_class = result_class
+        self.attached_files = attached_files
+
         self.result = (
             self.result_class(**self.raw_result)
             if self.raw_result is not None and issubclass(self.result_class, PangeaResponseResult) and self.success

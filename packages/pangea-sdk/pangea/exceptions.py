@@ -30,6 +30,14 @@ class PresignedUploadError(PangeaException):
         self.body = body
 
 
+class DownloadFileError(PangeaException):
+    body: str
+
+    def __init__(self, message: str, body: str):
+        super().__init__(message)
+        self.body = body
+
+
 class PangeaAPIException(PangeaException):
     """Exceptions raised during API calls"""
 

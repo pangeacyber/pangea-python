@@ -82,3 +82,6 @@ class ServiceBase(object):
             return self.request.poll_result_by_id(request_id=request_id, result_class=result_class, check_response=True)
         else:
             raise AttributeError("Need to set exception, response or request_id")
+
+    def download_file(self, url: str, filename: Optional[str] = None, dest_folder: Optional[str] = None):
+        return self.request.download_file(url=url, filename=filename, dest_folder=dest_folder)

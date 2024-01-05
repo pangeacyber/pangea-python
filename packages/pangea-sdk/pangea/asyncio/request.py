@@ -3,6 +3,7 @@
 
 import asyncio
 import json
+import os
 import time
 from typing import Dict, List, Optional, Tuple, Type, Union
 
@@ -11,8 +12,15 @@ import pangea.exceptions as pe
 from aiohttp import FormData
 
 # from requests.adapters import HTTPAdapter, Retry
-from pangea.request import PangeaRequestBase
-from pangea.response import AcceptedResult, PangeaResponse, PangeaResponseResult, ResponseStatus, TransferMethod
+from pangea.request import MultipartResponse, PangeaRequestBase
+from pangea.response import (
+    AcceptedResult,
+    AttachedFile,
+    PangeaResponse,
+    PangeaResponseResult,
+    ResponseStatus,
+    TransferMethod,
+)
 from pangea.utils import default_encoder
 
 
@@ -66,10 +74,26 @@ class PangeaRequestAsync(PangeaRequestBase):
             )
 
         await self._check_http_errors(requests_response)
-        json_resp = await requests_response.json()
-        self.logger.debug(json.dumps({"service": self.service, "action": "post", "url": url, "response": json_resp}))
 
-        pangea_response = PangeaResponse(requests_response, result_class=result_class, json=json_resp)
+        if "multipart/form-data" in requests_response.headers.get("content-type", ""):
+            multipart_response = await self._process_multipart_response(requests_response)
+            pangea_response = PangeaResponse(
+                requests_response,
+                result_class=result_class,
+                json=multipart_response.pangea_json,
+                attached_files=multipart_response.attached_files,
+            )
+        else:
+            try:
+                json_resp = await requests_response.json()
+                self.logger.debug(
+                    json.dumps({"service": self.service, "action": "post", "url": url, "response": json_resp})
+                )
+
+                pangea_response = PangeaResponse(requests_response, result_class=result_class, json=json_resp)
+            except aiohttp.ContentTypeError as e:
+                raise pe.PangeaException(f"Failed to decode json response. {e}. Body: {await requests_response.text()}")
+
         if poll_result:
             pangea_response = await self._handle_queued_result(pangea_response)
 
@@ -156,6 +180,86 @@ class PangeaRequestAsync(PangeaRequestBase):
 
         if resp.status < 200 or resp.status >= 300:
             raise pe.PresignedUploadError(f"presigned PUT failure: {resp.status}", await resp.text())
+
+    async def download_file(self, url: str, filename: Optional[str] = None, dest_folder: Optional[str] = None):
+        self.logger.debug(
+            json.dumps(
+                {
+                    "service": self.service,
+                    "action": "download_file",
+                    "url": url,
+                    "filename": filename,
+                    "folder": dest_folder,
+                    "status": "start",
+                }
+            )
+        )
+        async with self.session.get(url, headers={}) as response:
+            if response.status == 200:
+                if filename is None:
+                    content_disposition = response.headers.get("Content-Disposition", "")
+                    name = self._get_part_name(content_disposition)
+                    filename = name if name is not None else "download_file"
+                if dest_folder is None:
+                    dest_folder = "./"
+
+                destination_path = dest_folder + filename
+
+                directory = os.path.dirname(destination_path)
+                if not os.path.exists(directory):
+                    os.makedirs(directory)
+
+                with open(destination_path, "wb") as file:
+                    file.write(await response.read())
+
+                self.logger.debug(
+                    json.dumps(
+                        {
+                            "service": self.service,
+                            "action": "download_file",
+                            "url": url,
+                            "filename": filename,
+                            "folder": dest_folder,
+                            "status": "success",
+                        }
+                    )
+                )
+            else:
+                raise pe.DownloadFileError(f"Failed to download file. Status: {response.status}", await response.text())
+
+    async def _get_pangea_json(self, reader: aiohttp.MultipartReader) -> Optional[Dict]:
+        # Iterate through parts
+        async for part in reader:
+            return await part.json()
+        return None
+
+    async def _get_attached_files(self, reader: aiohttp.MultipartReader) -> List[AttachedFile]:
+        files = []
+        i = 0
+
+        async for part in reader:
+            content_type = part.headers.get("Content-Type", "")
+            content_disposition = part.headers.get("Content-Disposition", "")
+            name = self._get_part_name(content_disposition)
+            if name is None:
+                name = f"default_file_name_{i}"
+                i += 1
+            files.append(AttachedFile(name, await part.read(), content_type))
+
+        return files
+
+    async def _process_multipart_response(self, resp: aiohttp.ClientResponse) -> MultipartResponse:
+        # Parse the multipart response
+        multipart_reader = aiohttp.MultipartReader.from_response(resp)
+
+        pangea_json = await self._get_pangea_json(multipart_reader)
+        self.logger.debug(
+            json.dumps({"service": self.service, "action": "multipart response", "response": pangea_json})
+        )
+
+        multipart_reader = multipart_reader.__aiter__()
+        attached_files = await self._get_attached_files(multipart_reader)
+        return MultipartResponse(pangea_json, attached_files)
 
     async def _http_post(
         self,

@@ -3,9 +3,9 @@ import copy
 import datetime
 import io
 import json
-from binascii import hexlify
 from collections import OrderedDict
-from hashlib import new, sha1, sha256, sha512
+from hashlib import md5, new, sha1, sha256, sha512
+from typing import Union
 
 from google_crc32c import Checksum as CRC32C
 from pydantic import BaseModel
@@ -77,9 +77,88 @@ def canonicalize(data: dict) -> str:
         return str(data)
 
 
-def hash_sha256(data: str) -> str:
-    # Return sha256 hash in hex format
-    return sha256(data.encode("ascii")).hexdigest()
+def hash_sha256(input: Union[str, io.BufferedReader]) -> str:
+    # Return SHA256 hash in hex format
+    hash = sha256()
+    if isinstance(input, io.BufferedReader):
+        input.seek(0)  # restart reading
+        while True:
+            chunk = input.read(1024 * 1024)
+            if not chunk:
+                break
+            hash.update(chunk)
+
+        input.seek(0)  # restart reading
+    else:
+        hash.update(input)
+
+    return hash.hexdigest()
+
+
+def hash_sha1(input: Union[str, io.BufferedReader]) -> str:
+    # Return SHA1 hash in hex format
+    hash = sha1()
+    if isinstance(input, io.BufferedReader):
+        input.seek(0)  # restart reading
+        while True:
+            chunk = input.read(1024 * 1024)
+            if not chunk:
+                break
+            hash.update(chunk)
+
+        input.seek(0)  # restart reading
+    else:
+        hash.update(input)
+
+    return hash.hexdigest()
+
+
+def hash_sha512(input: Union[str, io.BufferedReader]) -> str:
+    # Return SHA512 hash in hex format
+    hash = sha512()
+    if isinstance(input, io.BufferedReader):
+        input.seek(0)  # restart reading
+        while True:
+            chunk = input.read(1024 * 1024)
+            if not chunk:
+                break
+            hash.update(chunk)
+
+        input.seek(0)  # restart reading
+    else:
+        hash.update(input)
+
+    return hash.hexdigest()
+
+
+def hash_ntlm(data: str) -> str:
+    # Return NTLM hash in hex format
+    return new("md4", data.encode("utf-16le")).hexdigest()
+
+
+def hash_md5(input: Union[str, io.BufferedReader]) -> str:
+    # Return MD5 hash in hex format
+    hash = md5()
+    if isinstance(input, io.BufferedReader):
+        input.seek(0)  # restart reading
+
+        while True:
+            chunk = input.read(1024 * 1024)
+            if not chunk:
+                break
+            hash.update(chunk)
+
+        input.seek(0)  # restart reading
+    else:
+        hash.update(input)
+
+    return hash.hexdigest()
+
+
+def get_crc32c(data: str) -> str:
+    crc = CRC32C()
+    crc.update(data)
+    return crc.hexdigest().decode("utf-8")
 
 
 def hash_256_filepath(filepath: str) -> str:
@@ -87,21 +166,6 @@ def hash_256_filepath(filepath: str) -> str:
     hash = sha256(data.read()).hexdigest()
     data.close()
     return hash
-
-
-def hash_sha1(data: str) -> str:
-    # Return sha1 hash in hex format
-    return sha1(data.encode("ascii")).hexdigest()
-
-
-def hash_sha512(data: str) -> str:
-    # Return sha512 hash in hex format
-    return sha512(data.encode("ascii")).hexdigest()
-
-
-def hash_ntlm(data: str):
-    # Calculate the NTLM hash
-    return new("md4", data.encode("utf-16le")).hexdigest()
 
 
 def get_prefix(hash: str, len: int = 5):
