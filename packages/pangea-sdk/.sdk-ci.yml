@@ -47,11 +47,12 @@ integration:
   script:
     - poetry run python -m unittest tests.integration
 
-asyncio-integration:
-  extends: .pangea-sdk-base
-  stage: asyncio_tests
-  script:
-    - poetry run python -m unittest tests.integration.asyncio
+# Disabled until python 3.8 is supported
+# asyncio-integration:
+#   extends: .pangea-sdk-base
+#   stage: asyncio_tests
+#   script:
+#     - poetry run python -m unittest tests.integration.asyncio
 
 building:
   extends: .pangea-sdk-publish
