@@ -28,6 +28,7 @@ deprecated = "^1.2.13"
 aiohttp = "^3.8.6"
 asyncio = "^3.4.3"
 google-crc32c = "^1.5.0"
+requests-toolbelt = "^1.0.0"
 
 [tool.poetry.dev-dependencies]
 mypy = "^0.941"
