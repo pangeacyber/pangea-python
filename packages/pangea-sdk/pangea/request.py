@@ -448,32 +448,6 @@ class PangeaRequest(PangeaRequestBase):
         )
         return self.session.put(url, headers=headers, files=files)
 
-    def _http_post_process(
-        self, data: Union[str, Dict] = {}, files: Optional[List[Tuple]] = None, multipart_post: bool = True
-    ):
-        if files:
-            if multipart_post is True:
-                data_send = json.dumps(data, default=default_encoder) if isinstance(data, dict) else data
-                multi = [("request", (None, data_send, "application/json"))]
-                multi.extend(files)
-                files = multi
-                return None, files
-            else:
-                # Post to presigned url as form
-                data_send = []
-                for k, v in data.items():
-                    data_send.append((k, v))
-                # When posting to presigned url, file key should be 'file'
-                files = {
-                    "file": files[0][1],
-                }
-                return data_send, files
-        else:
-            data_send = json.dumps(data, default=default_encoder) if isinstance(data, dict) else data
-            return data_send, None
-
-        return data, files
-
     def _full_post_presigned_url(
         self,
         endpoint: str,
