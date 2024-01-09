@@ -37,7 +37,7 @@ generate_docs:
 
 mypy:
   extends: .pangea-sdk-base
-  stage: examples
+  stage: lint
   needs: []
   script:
     - poetry run mypy pangea tests
