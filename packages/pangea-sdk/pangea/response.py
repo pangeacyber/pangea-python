@@ -151,7 +151,7 @@ class PangeaResponse(Generic[T], ResponseHeader):
         self.raw_result = self._json["result"]
         self.result_class = result_class
         self.result = (
-            self.result_class(**self.raw_result)
+            self.result_class(**self.raw_result)  # type: ignore[assignment]
             if self.raw_result is not None and issubclass(self.result_class, PangeaResponseResult) and self.success
             else None
         )
@@ -174,13 +174,13 @@ class PangeaResponse(Generic[T], ResponseHeader):
         return self._json
 
     @property
-    def http_status(self) -> int:
+    def http_status(self) -> int:  # type: ignore[return]
         if self.raw_response:
             if type(self.raw_response) == aiohttp.ClientResponse:
                 return self.raw_response.status
             else:
-                return self.raw_response.status_code
+                return self.raw_response.status_code  # type: ignore[union-attr]
 
     @property
     def url(self) -> str:
-        return str(self.raw_response.url)
+        return str(self.raw_response.url)  # type: ignore[arg-type,union-attr]

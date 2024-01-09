@@ -90,7 +90,7 @@ class FileScanAsync(ServiceBaseAsync):
             if file_path:
                 file = open(file_path, "rb")
             if transfer_method == TransferMethod.POST_URL:
-                params = get_file_upload_params(file)
+                params = get_file_upload_params(file)  # type: ignore[arg-type]
                 crc = params.crc_hex
                 sha = params.sha256_hex
                 size = params.size
@@ -137,7 +137,7 @@ class FileScanAsync(ServiceBaseAsync):
 
 
 class FileUploaderAsync:
-    def __init__(self):
+    def __init__(self) -> None:
         self.logger = logging.getLogger("pangea")
         self._request: PangeaRequestAsync = PangeaRequestAsync(
             config=PangeaConfig(),
@@ -152,15 +152,15 @@ class FileUploaderAsync:
         file: io.BufferedReader,
         transfer_method: TransferMethod = TransferMethod.PUT_URL,
         file_details: Optional[Dict] = None,
-    ):
+    ) -> None:
         if transfer_method == TransferMethod.PUT_URL:
             files = [("file", ("filename", file, "application/octet-stream"))]
-            await self._request.put_presigned_url(url=url, files=files)
+            await self._request.put_presigned_url(url=url, files=files)  # type: ignore[arg-type]
         elif transfer_method == TransferMethod.POST_URL:
             files = [("file", ("filename", file, "application/octet-stream"))]
-            await self._request.post_presigned_url(url=url, data=file_details, files=files)
+            await self._request.post_presigned_url(url=url, data=file_details, files=files)  # type: ignore[arg-type]
         else:
             raise ValueError(f"Transfer method not supported: {transfer_method}")
 
-    async def close(self):
+    async def close(self) -> None:
         await self._request.session.close()

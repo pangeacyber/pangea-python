@@ -24,9 +24,9 @@ class ServiceBase(object):
         self.config = config if copy.deepcopy(config) else PangeaConfig()
         self.logger = logging.getLogger(logger_name)
         self._token = token
-        self.config_id: Optional[None] = config_id
-        self._request: Union[PangeaRequest, PangeaRequestAsync] = None
-        extra_headers = {}
+        self.config_id: Optional[None] = config_id  # type: ignore[assignment]
+        self._request: Union[PangeaRequest, PangeaRequestAsync] = None  # type: ignore[assignment]
+        extra_headers = {}  # type: ignore[var-annotated]
         self.request.set_extra_headers(extra_headers)
 
     @property
@@ -55,7 +55,7 @@ class ServiceBase(object):
         exception: Optional[AcceptedRequestException] = None,
         response: Optional[PangeaResponse] = None,
         request_id: Optional[str] = None,
-        result_class: Union[Type[PangeaResponseResult], dict] = dict,
+        result_class: Union[Type[PangeaResponseResult], dict] = dict,  # type: ignore[assignment]
     ) -> PangeaResponse:
         """
         Poll result

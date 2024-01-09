@@ -64,11 +64,11 @@ class TestRedact(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(response.result.count, 1)
 
     # call plain redact with structured data, should throw a 400
-    async def test_redact_with_structured_data(self):
+    async def test_redact_with_structured_data(self) -> None:
         data = {"phone": "415-867-5309"}
 
         with self.assertRaises(pydantic.ValidationError):
-            await self.redact.redact(text=data)  # type: ignore
+            await self.redact.redact(text=data)
 
     async def test_redact_with_bad_auth_token(self):
         token = "notarealtoken"

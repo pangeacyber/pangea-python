@@ -7,9 +7,9 @@ import json
 import logging
 import os
 import sys
-import typing as t
 from datetime import datetime, timezone
 from logging.handlers import TimedRotatingFileHandler
+from typing import Dict, Iterator, List, Optional
 
 from pangea.config import PangeaConfig
 from pangea.exceptions import PangeaException
@@ -28,17 +28,17 @@ class TestEnvironment(str, enum.Enum):
         return str(self.value)
 
 
-class Root(t.Dict):
+class Root(Dict):
     size: int
     tree_name: str
 
 
-class Event(t.Dict):
+class Event(Dict):
     membership_proof: str
-    leaf_index: t.Optional[int]
-    event: t.Dict
+    leaf_index: Optional[int]
+    event: Dict
     hash: str
-    tree_size: t.Optional[int]
+    tree_size: Optional[int]
 
 
 def print_progress_bar(iteration, total, prefix="", suffix="", decimals=1, length=100):
@@ -68,7 +68,7 @@ def exit_with_error(message: str):
     sys.exit(1)
 
 
-def file_events(root_hashes: t.Dict[int, str], f: io.TextIOWrapper) -> t.Iterator[Event]:
+def file_events(root_hashes: Dict[int, str], f: io.TextIOWrapper) -> Iterator[Event]:
     """
     Reads a file containing Events in JSON format with the following fields:
     - membership_proof: str
@@ -112,8 +112,8 @@ def make_aware_datetime(d: datetime) -> datetime:
         return d
 
 
-def filter_deep_none(data: t.Dict) -> t.Dict:
-    return {k: v if not isinstance(v, t.Dict) else filter_deep_none(v) for k, v in data.items() if v is not None}
+def filter_deep_none(data: Dict) -> Dict:
+    return {k: v if not isinstance(v, Dict) else filter_deep_none(v) for k, v in data.items() if v is not None}
 
 
 def _load_env_var(env_var_name: str):
@@ -187,7 +187,7 @@ class SequenceFollower:
             self.numbers.remove(min_val)
             min_val += 1
 
-    def holes(self) -> t.List[int]:
+    def holes(self) -> List[int]:
         if not self.numbers:
             return []
 
@@ -196,7 +196,7 @@ class SequenceFollower:
         return [val for val in range(min_val, max_val) if val not in self.numbers]
 
 
-loggers = {}
+loggers: Dict[str, bool] = {}
 
 
 def logger_set_pangea_config(logger_name: str, level=logging.DEBUG):
