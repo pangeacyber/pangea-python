@@ -120,15 +120,20 @@ class StoreAsync(ServiceBaseAsync):
 
     async def request_upload_url(
         self,
-        name: str,
-        transfer_method: TransferMethod = TransferMethod.PUT_URL,
-        params: Optional[FileUploadParams] = None,
+        name: Optional[str] = None,
+        path: Optional[str] = None,
         format: Optional[FileFormat] = None,
         metadata: Optional[m.Metadata] = None,
         mimetype: Optional[str] = None,
         parent_id: Optional[str] = None,
-        path: Optional[str] = None,
         tags: Optional[m.Tags] = None,
+        transfer_method: Optional[TransferMethod] = TransferMethod.PUT_URL,
+        md5: Optional[str] = None,
+        sha1: Optional[str] = None,
+        sha512: Optional[str] = None,
+        crc32c: Optional[str] = None,
+        sha256: Optional[str] = None,
+        size: Optional[int] = None,
     ) -> PangeaResponse[m.PutResult]:
         input = m.PutRequest(
             name=name,
@@ -139,11 +144,13 @@ class StoreAsync(ServiceBaseAsync):
             path=path,
             tags=tags,
             transfer_method=transfer_method,
+            crc32c=crc32c,
+            md5=md5,
+            sha1=sha1,
+            sha256=sha256,
+            sha512=sha512,
+            size=size,
         )
-        if params is not None and (transfer_method == TransferMethod.POST_URL):
-            input.crc32c = params.crc_hex
-            input.sha256 = params.sha256_hex
-            input.size = params.size
 
         data = input.dict(exclude_none=True)
         return await self.request.request_presigned_url("v1beta/put", m.PutResult, data=data)

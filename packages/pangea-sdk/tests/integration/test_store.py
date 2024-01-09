@@ -103,7 +103,13 @@ class TestStore(unittest.TestCase):
         with get_test_file() as f:
             name = f"{TIME}_file_split_post_url"
             params = get_file_upload_params(f)
-            response = self.client.request_upload_url(name=name, transfer_method=TransferMethod.POST_URL, params=params)
+            response = self.client.request_upload_url(
+                name=name,
+                transfer_method=TransferMethod.POST_URL,
+                crc32c=params.crc_hex,
+                sha256=params.sha256_hex,
+                size=params.size,
+            )
             url = response.accepted_result.post_url
             file_details = response.accepted_result.post_form_data
 
