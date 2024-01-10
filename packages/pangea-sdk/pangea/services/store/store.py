@@ -329,6 +329,25 @@ class Store(ServiceBase):
     def delete(
         self, id: Optional[str] = None, path: Optional[str] = None, force: Optional[bool] = None
     ) -> PangeaResponse[DeleteResult]:
+        """
+        Delete
+
+        Delete object by ID or path.
+        If both are supplied, the path must match that of the object represented by the ID.
+
+        OperationId: store_post_v1beta_delete
+
+        Args:
+            id (str, optional): The ID of the object to delete.
+            path (str, optional): The path of the object to delete.
+            force (bool, optional): If true, delete a folder even if it's not empty.
+
+        Returns:
+            A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/store).
+
+        Examples:
+            response = store.delete(id="pos_3djfmzg2db4c6donarecbyv5begtj2bm")
+        """
         input = DeleteRequest(id=id, path=path, force=force)
         return self.request.post("v1beta/delete", DeleteResult, data=input.dict(exclude_none=True))
 
@@ -340,12 +359,62 @@ class Store(ServiceBase):
         path: Optional[str] = None,
         tags: Optional[Tags] = None,
     ) -> PangeaResponse[FolderCreateResult]:
+        """
+        Create a folder
+
+        Create a folder, either by name or path and parent_id.
+
+        OperationId: store_post_v1beta_folder_create
+
+        Args:
+            name (str, optional): The name of an object.
+            metadata (Metadata, optional): A set of string-based key/value pairs used to provide additional data about an object.
+            parent_id (str, optional): The ID of a stored object.
+            path (str, optional): A case-sensitive path to an object. Contains a sequence of path segments delimited by the the / character. Any path ending in a / character refers to a folder.
+            tags (Tags, optional): A list of user-defined tags.
+
+        Returns:
+            A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/store).
+
+        Examples:
+            response = store.folder_create(
+                metadata={
+                    "created_by": "jim",
+                    "priority": "medium",
+                },
+                parent_id="pos_3djfmzg2db4c6donarecbyv5begtj2bm",
+                path="/",
+                tags=["irs_2023", "personal"],
+            )
+        """
         input = FolderCreateRequest(name=name, metadata=metadata, parent_id=parent_id, path=path, tags=tags)
         return self.request.post("v1beta/folder/create", FolderCreateResult, data=input.dict(exclude_none=True))
 
     def get(
         self, id: Optional[str] = None, path: Optional[str] = None, transfer_method: Optional[TransferMethod] = None
     ) -> PangeaResponse[GetResult]:
+        """
+        Get an object
+
+        Get object.
+        If both ID and Path are supplied, the call will fail if the target object doesn't match both properties.
+
+        OperationId: store_post_v1beta_get
+
+        Args:
+            id (str, optional): The ID of the object to retrieve.
+            path (str, optional): The path of the object to retrieve.
+            transfer_method (TransferMethod, optional): The requested transfer method for the file data.
+
+        Returns:
+            A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/store).
+
+        Examples:
+            response = store.get(
+                id="pos_3djfmzg2db4c6donarecbyv5begtj2bm",
+                path="/",
+            )
+        """
         input = GetRequest(
             id=id,
             path=path,
@@ -359,6 +428,26 @@ class Store(ServiceBase):
         format: Optional[ArchiveFormat] = None,
         transfer_method: Optional[TransferMethod] = None,
     ) -> PangeaResponse[GetArchiveResult]:
+        """
+        Get archive
+
+        Get an archive file of multiple objects.
+
+        OperationId: store_post_v1beta_get_archive
+
+        Args:
+            ids (List[str]): The IDs of the objects to include in the archive. Folders include all children.
+            format (ArchiveFormat, optional): The format to use for the built archive.
+            transfer_method (TransferMethod, optional): The requested transfer method for the file data.
+
+        Returns:
+            A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/store).
+
+        Examples:
+            response = store.get_archive(
+                ids=["pos_3djfmzg2db4c6donarecbyv5begtj2bm"],
+            )
+        """
         if (
             transfer_method is not None
             and transfer_method != TransferMethod.DEST_URL
@@ -377,6 +466,26 @@ class Store(ServiceBase):
         order_by: Optional[ItemOrderBy] = None,
         size: Optional[int] = None,
     ) -> PangeaResponse[ListResult]:
+        """
+        List
+
+        List or filter/search records.
+
+        OperationId: store_post_v1beta_list
+
+        Args:
+            filter (Union[Dict[str, str], FilterList], optional):
+            last (str, optional): Reflected value from a previous response to obtain the next page of results.
+            order (ItemOrder, optional): Order results asc(ending) or desc(ending).
+            order_by (ItemOrderBy, optional): Which field to order results by.
+            size (int, optional): Maximum results to include in the response.
+
+        Returns:
+            A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/store).
+
+        Examples:
+            response = store.list()
+        """
         input = ListRequest(filter=filter, last=last, order=order, order_by=order_by, size=size)
         return self.request.post("v1beta/list", ListResult, data=input.dict(exclude_none=True))
 
@@ -398,6 +507,43 @@ class Store(ServiceBase):
         sha512: Optional[str] = None,
         size: Optional[int] = None,
     ) -> PangeaResponse[PutResult]:
+        """
+        Upload a file [beta]
+
+        Upload a file.
+
+        OperationId: store_post_v1beta_put
+
+        Args:
+            file (io.BufferedReader):
+            name (str, optional): The name of the object to store.
+            path (str, optional): An optional path where the file should be placed. Will auto-create directories if necessary.
+            format (FileFormat, optional): The format of the file, which will be verified by the server if provided. Uploads not matching the supplied format will be rejected.
+            metadata (Metadata, optional): A set of string-based key/value pairs used to provide additional data about an object.
+            mimetype (str, optional): The MIME type of the file, which will be verified by the server if provided. Uploads not matching the supplied MIME type will be rejected.
+            parent_id (str, optional): The parent ID of the object (a folder). Leave blank to keep in the root folder.
+            tags (Tags, optional): A list of user-defined tags.
+            transfer_method (TransferMethod, optional): The transfer method used to upload the file data.
+            crc32c (str, optional): The hexadecimal-encoded CRC32C hash of the file data, which will be verified by the server if provided.
+            md5 (str, optional): The hexadecimal-encoded MD5 hash of the file data, which will be verified by the server if provided.
+            sha1 (str, optional): The hexadecimal-encoded SHA1 hash of the file data, which will be verified by the server if provided.
+            sha256 (str, optional): The SHA256 hash of the file data, which will be verified by the server if provided.
+            sha512 (str, optional): The hexadecimal-encoded SHA512 hash of the file data, which will be verified by the server if provided.
+            size (str, optional): The size (in bytes) of the file. If the upload doesn't match, the call will fail.
+
+        Returns:
+            A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/store).
+
+        Examples:
+            try:
+                with open("./path/to/file.pdf", "rb") as f:
+                    response = store.put(file=f)
+                    print(f"Response: {response.result}")
+            except pe.PangeaAPIException as e:
+                print(f"Request Error: {e.response.summary}")
+                for err in e.errors:
+                    print(f"\\t{err.detail} \\n")
+        """
         files = [("upload", (name, file, "application/octet-stream"))]
 
         if transfer_method == TransferMethod.POST_URL:
@@ -442,6 +588,47 @@ class Store(ServiceBase):
         sha256: Optional[str] = None,
         size: Optional[int] = None,
     ) -> PangeaResponse[PutResult]:
+        """
+        Request upload URL
+
+        Request an upload URL.
+
+        OperationId: store_post_v1beta_put 2
+
+        Args:
+            name (str, optional): The name of the object to store.
+            path (str, optional): An optional path where the file should be placed. Will auto-create directories if necessary.
+            format (FileFormat, optional): The format of the file, which will be verified by the server if provided. Uploads not matching the supplied format will be rejected.
+            metadata (Metadata, optional): A set of string-based key/value pairs used to provide additional data about an object.
+            mimetype (str, optional): The MIME type of the file, which will be verified by the server if provided. Uploads not matching the supplied MIME type will be rejected.
+            parent_id (str, optional): The parent ID of the object (a folder). Leave blank to keep in the root folder.
+            tags (Tags, optional): A list of user-defined tags.
+            transfer_method (TransferMethod, optional): The transfer method used to upload the file data.
+            md5 (str, optional): The hexadecimal-encoded MD5 hash of the file data, which will be verified by the server if provided.
+            sha1 (str, optional): The hexadecimal-encoded SHA1 hash of the file data, which will be verified by the server if provided.
+            sha512 (str, optional): The hexadecimal-encoded SHA512 hash of the file data, which will be verified by the server if provided.
+            crc32c (str, optional): The hexadecimal-encoded CRC32C hash of the file data, which will be verified by the server if provided.
+            sha256 (str, optional): The SHA256 hash of the file data, which will be verified by the server if provided.
+            size (str, optional): The size (in bytes) of the file. If the upload doesn't match, the call will fail.
+
+        Returns:
+            A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/store).
+
+        Examples:
+            response = store.request_upload_url(
+                transfer_method=TransferMethod.POST_URL,
+                crc32c="515f7c32",
+                sha256="c0b56b1a154697f79d27d57a3a2aad4c93849aa2239cd23048fc6f45726271cc",
+                size=222089,
+                metadata={
+                    "created_by": "jim",
+                    "priority": "medium",
+                },
+                parent_id="pos_3djfmzg2db4c6donarecbyv5begtj2bm",
+                path="/",
+                tags=["irs_2023", "personal"],
+            )
+        """
         input = PutRequest(
             name=name,
             format=format,
@@ -475,6 +662,38 @@ class Store(ServiceBase):
         parent_id: Optional[str] = None,
         updated_at: Optional[str] = None,
     ) -> PangeaResponse[UpdateResult]:
+        """
+        Update a file
+
+        Update a file.
+
+        OperationId: store_post_v1beta_update
+
+        Args:
+            id (str, optional): An identifier for the file to update.
+            path (str, optional): An alternative to ID for providing the target file.
+            add_metadata (Metadata, optional): A list of Metadata key/values to set in the object. If a provided key exists, the value will be replaced.
+            remove_metadata (Metadata, optional): A list of Metadata key/values to remove in the object. It is not an error for a provided key to not exist. If a provided key exists but doesn't match the provided value, it will not be removed.
+            metadata (Metadata, optional): Set the object's Metadata.
+            add_tags (Tags, optional): A list of Tags to add. It is not an error to provide a tag which already exists.
+            remove_tags (Tags, optional): A list of Tags to remove. It is not an error to provide a tag which is not present.
+            tags (Tags, optional): Set the object's Tags.
+            parent_id (str, optional): Set the parent (folder) of the object.
+            updated_at (str, optional): The date and time the object was last updated. If included, the update will fail if this doesn't match what's stored.
+
+        Returns:
+            A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/store).
+
+        Examples:
+            response = store.update(
+                id="pos_3djfmzg2db4c6donarecbyv5begtj2bm",
+                remove_metadata={
+                    "created_by": "jim",
+                    "priority": "medium",
+                },
+                remove_tags=["irs_2023", "personal"],
+            )
+        """
         input = UpdateRequest(
             id=id,
             path=path,
@@ -490,10 +709,57 @@ class Store(ServiceBase):
         return self.request.post("v1beta/update", UpdateResult, data=input.dict(exclude_none=True))
 
     def share_link_create(self, links: List[ShareLinkCreateItem]) -> PangeaResponse[ShareLinkCreateResult]:
+        """
+        Create share links
+
+        Create a share link.
+
+        OperationId: store_post_v1beta_share_link_create
+
+        Args:
+            links (List[ShareLinkCreateItem]):
+
+        Returns:
+            A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/store).
+
+        Examples:
+            response = store.share_link_create(
+                links=[
+                    {
+                        targets: ["pos_3djfmzg2db4c6donarecbyv5begtj2bm"],
+                        link_type: LinkType.DOWNLOAD,
+                        authenticators: [
+                            {
+                                "auth_type": AuthenticatorType.PASSWORD,
+                                "auth_context": "my_fav_Pa55word",
+                            }
+                        ],
+                    }
+                ],
+            )
+        """
         input = ShareLinkCreateRequest(links=links)
         return self.request.post("v1beta/share/link/create", ShareLinkCreateResult, data=input.dict(exclude_none=True))
 
     def share_link_get(self, id: str) -> PangeaResponse[ShareLinkGetResult]:
+        """
+        Get share link
+
+        Get a share link.
+
+        OperationId: store_post_v1beta_share_link_get
+
+        Args:
+            id (str, optional): The ID of a share link.
+
+        Returns:
+            A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/store).
+
+        Examples:
+            response = store.share_link_get(
+                id="psl_3djfmzg2db4c6donarecbyv5begtj2bm"
+            )
+        """
         input = ShareLinkGetRequest(id=id)
         return self.request.post("v1beta/share/link/get", ShareLinkGetResult, data=input.dict(exclude_none=True))
 
@@ -505,10 +771,48 @@ class Store(ServiceBase):
         order_by: Optional[ItemOrderBy] = None,
         size: Optional[int] = None,
     ) -> PangeaResponse[ShareLinkListResult]:
+        """
+        List share links
+
+        Look up share links by filter options.
+
+        OperationId: store_post_v1beta_share_link_list
+
+        Args:
+            filter (Union[Dict[str, str], ShareLinkListFilter], optional):
+            last (str, optional): Reflected value from a previous response to obtain the next page of results.
+            order (ItemOrder, optional): Order results asc(ending) or desc(ending).
+            order_by (ItemOrderBy, optional): Which field to order results by.
+            size (int, optional): Maximum results to include in the response.
+
+        Returns:
+            A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/store).
+
+        Examples:
+            response = store.share_link_list()
+        """
         input = ShareLinkListRequest(filter=filter, last=last, order=order, order_by=order_by, size=size)
         return self.request.post("v1beta/share/link/list", ShareLinkListResult, data=input.dict(exclude_none=True))
 
     def share_link_delete(self, ids: List[str]) -> PangeaResponse[ShareLinkDeleteResult]:
+        """
+        Delete share links
+
+        Delete share links.
+
+        OperationId: store_post_v1beta_share_link_delete
+
+        Args:
+            ids (List[str]): 
+
+        Returns:
+            A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/store).
+
+        Examples:
+            response = store.share_link_delete(
+                ids=["psl_3djfmzg2db4c6donarecbyv5begtj2bm"]
+            )
+        """
         input = ShareLinkDeleteRequest(ids=ids)
         return self.request.post("v1beta/share/link/delete", ShareLinkDeleteResult, data=input.dict(exclude_none=True))
 
