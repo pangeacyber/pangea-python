@@ -37,7 +37,7 @@ def main():
         print("Verifying...")
         verify_response = vault.verify(key_id, msg, signature)
         if verify_response.result.valid_signature:
-            print("Signature verified succesfully")
+            print("Signature verified successfully")
         else:
             print("Invalid signature")
 
