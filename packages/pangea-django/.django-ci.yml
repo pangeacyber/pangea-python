@@ -6,7 +6,7 @@
   rules:
     - if: $CI_PIPELINE_SOURCE == "push"
 
-py_lint:
+django_lint:
   extends: .pangea-django-base
   stage: lint
   script:

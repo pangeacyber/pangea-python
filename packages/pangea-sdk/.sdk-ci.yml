@@ -17,7 +17,7 @@
         - packages/pangea-sdk/**/*
       when: on_success
 
-black:
+lint:
   extends: .pangea-sdk-base
   stage: lint
   script:
@@ -35,7 +35,7 @@ generate_docs:
     paths: ['packages/pangea-sdk/python_sdk.json']
     when: on_success
 
-mypy:
+type_check:
   extends: .pangea-sdk-base
   stage: lint
   needs: []
