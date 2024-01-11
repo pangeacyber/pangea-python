@@ -239,12 +239,6 @@ class PangeaRequest(PangeaRequestBase):
         files: Optional[List[Tuple]] = None,
         multipart_post: bool = True,
     ) -> requests.Response:
-        self.logger.debug(
-            json.dumps(
-                {"service": self.service, "action": "http_post", "url": url, "data": data}, default=default_encoder
-            )
-        )
-
         data_send, files = self._http_post_process(data=data, files=files, multipart_post=multipart_post)
         return self.session.post(url, headers=headers, data=data_send, files=files)
 
