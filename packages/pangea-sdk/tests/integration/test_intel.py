@@ -8,7 +8,7 @@ from pangea.services import DomainIntel, FileIntel, IpIntel, UrlIntel, UserIntel
 from pangea.services.intel import HashType, IntelReputationData
 from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
 
-TEST_ENVIRONMENT = TestEnvironment.DEVELOP
+TEST_ENVIRONMENT = TestEnvironment.LIVE
 
 
 def check_bulk_data(self: unittest.TestCase, data: Dict[str, IntelReputationData]):
