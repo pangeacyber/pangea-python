@@ -17,7 +17,7 @@
         - packages/pangea-sdk/**/*
       when: on_success
 
-py_lint:
+lint:
   extends: .pangea-sdk-base
   stage: lint
   script:
@@ -34,6 +34,13 @@ generate_docs:
     expose_as: python_sdk
     paths: ['packages/pangea-sdk/python_sdk.json']
     when: on_success
+
+type_check:
+  extends: .pangea-sdk-base
+  stage: lint
+  needs: []
+  script:
+    - poetry run mypy pangea tests
 
 testing:
   extends: .pangea-sdk-base

@@ -6,15 +6,15 @@ from typing import Optional
 from cryptography import exceptions
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ed25519
-from cryptography.hazmat.primitives.asymmetric.types import PrivateKeyTypes
+from cryptography.hazmat.primitives.asymmetric.types import PrivateKeyTypes, PublicKeyTypes
 from pangea.exceptions import PangeaException
 from pangea.services.audit.util import b64decode, b64decode_ascii, b64encode_ascii
 from pangea.services.vault.models.common import AsymmetricAlgorithm
 
 
 class AlgorithmSigner(ABC):
-    def __init__(self, private_key):
-        self.private_key: PrivateKeyTypes = private_key
+    def __init__(self, private_key: PrivateKeyTypes):
+        self.private_key = private_key
 
     @abstractmethod
     def sign(self, message: bytes) -> str:
@@ -31,7 +31,7 @@ class AlgorithmSigner(ABC):
 
 class ED25519Signer(AlgorithmSigner):
     def sign(self, message: bytes) -> str:
-        signature = self.private_key.sign(message)
+        signature = self.private_key.sign(message)  # type: ignore[call-arg, union-attr]
         return b64encode_ascii(signature)
 
     def get_public_key_PEM(self) -> str:
@@ -59,15 +59,15 @@ class Signer:
 
     def sign(self, message: bytes) -> str:
         self._load_signer()
-        return self.signer.sign(message=message)
+        return self.signer.sign(message=message)  # type: ignore[union-attr]
 
     def get_public_key_PEM(self) -> str:
         self._load_signer()
-        return self.signer.get_public_key_PEM()
+        return self.signer.get_public_key_PEM()  # type: ignore[union-attr]
 
     def get_algorithm(self) -> str:
         self._load_signer()
-        return self.signer.get_algorithm()
+        return self.signer.get_algorithm()  # type: ignore[union-attr]
 
     def _load_signer(self):
         if self.signer is not None:
@@ -95,7 +95,7 @@ class Signer:
 
         for func in (serialization.load_pem_private_key, serialization.load_ssh_private_key):
             try:
-                return func(private_key, None)
+                return func(private_key, None)  # type: ignore[operator]
             except exceptions.UnsupportedAlgorithm as e:
                 raise e
             except ValueError:
@@ -105,7 +105,7 @@ class Signer:
 
 
 class AlgorithmVerifier(ABC):
-    def __init__(self, public_key):
+    def __init__(self, public_key: PublicKeyTypes):
         self.public_key = public_key
 
     @abstractmethod
@@ -116,7 +116,7 @@ class AlgorithmVerifier(ABC):
 class ED25519Verifier(AlgorithmVerifier):
     def verify(self, message: bytes, signature: bytes) -> bool:
         try:
-            self.public_key.verify(signature, message)
+            self.public_key.verify(signature, message)  # type: ignore[call-arg,union-attr]
             return True
         except exceptions.InvalidSignature:
             return False
@@ -130,13 +130,13 @@ verifiers = {
 class Verifier:
     # verify message with signature and public key bytes
     def verify_signature(
-        self, signature_b64: str, message_bytes: bytes, public_key_input: str = None
+        self, signature_b64: str, message_bytes: bytes, public_key_input: Optional[str] = None
     ) -> Optional[bool]:
-        if self._has_header(public_key_input):
-            pubkey = self._decode_public_key(bytes(public_key_input, "utf-8"))
+        if self._has_header(public_key_input):  # type: ignore[arg-type]
+            pubkey = self._decode_public_key(bytes(public_key_input, "utf-8"))  # type: ignore[arg-type]
         else:
             # To make backward compatible with original public keys send encoded bytes in base64
-            public_key_bytes = b64decode_ascii(public_key_input)
+            public_key_bytes = b64decode_ascii(public_key_input)  # type: ignore[arg-type]
             pubkey = ed25519.Ed25519PublicKey.from_public_bytes(public_key_bytes[-32:])
 
         signature_bytes = b64decode(signature_b64)

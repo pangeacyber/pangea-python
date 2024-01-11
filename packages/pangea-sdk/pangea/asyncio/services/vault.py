@@ -521,7 +521,7 @@ class VaultAsync(ServiceBaseAsync):
                 id="pvi_p6g5i3gtbvqvc3u6zugab6qs6r63tqf5",
             )
         """
-        input = SecretRotateRequest(id=id)
+        input = SecretRotateRequest(id=id)  # type: ignore[call-arg]
         return await self.request.post("v1/secret/rotate", SecretRotateResult, data=input.dict(exclude_none=True))
 
     async def symmetric_generate(
@@ -588,7 +588,7 @@ class VaultAsync(ServiceBaseAsync):
             type=ItemType.SYMMETRIC_KEY,
             algorithm=algorithm,
             purpose=purpose,
-            name=name,
+            name=name,  # type: ignore[arg-type]
             folder=folder,
             metadata=metadata,
             tags=tags,
@@ -662,7 +662,7 @@ class VaultAsync(ServiceBaseAsync):
             type=ItemType.ASYMMETRIC_KEY,
             algorithm=algorithm,
             purpose=purpose,
-            name=name,
+            name=name,  # type: ignore[arg-type]
             folder=folder,
             metadata=metadata,
             tags=tags,
@@ -822,7 +822,7 @@ class VaultAsync(ServiceBaseAsync):
             type=ItemType.SYMMETRIC_KEY,
             algorithm=algorithm,
             purpose=purpose,
-            key=key,
+            key=key,  # type: ignore[arg-type]
             name=name,
             folder=folder,
             metadata=metadata,
@@ -911,7 +911,7 @@ class VaultAsync(ServiceBaseAsync):
                 version=1,
             )
         """
-        input = EncryptRequest(id=id, plain_text=plain_text, version=version)
+        input = EncryptRequest(id=id, plain_text=plain_text, version=version)  # type: ignore[call-arg]
         return await self.request.post("v1/key/encrypt", EncryptResult, data=input.dict(exclude_none=True))
 
     # Decrypt
@@ -943,7 +943,7 @@ class VaultAsync(ServiceBaseAsync):
                 version=1,
             )
         """
-        input = DecryptRequest(id=id, cipher_text=cipher_text, version=version)
+        input = DecryptRequest(id=id, cipher_text=cipher_text, version=version)  # type: ignore[call-arg]
         return await self.request.post("v1/key/decrypt", DecryptResult, data=input.dict(exclude_none=True))
 
     # Sign

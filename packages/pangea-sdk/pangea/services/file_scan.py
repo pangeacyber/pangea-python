@@ -123,7 +123,7 @@ class FileScan(ServiceBase):
             if file_path:
                 file = open(file_path, "rb")
             if transfer_method == TransferMethod.POST_URL:
-                params = get_file_upload_params(file)
+                params = get_file_upload_params(file)  # type: ignore[arg-type]
                 crc = params.crc_hex
                 sha = params.sha256_hex
                 size = params.size

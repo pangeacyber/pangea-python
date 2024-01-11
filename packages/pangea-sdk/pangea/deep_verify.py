@@ -6,8 +6,8 @@ import io
 import math
 import os
 import sys
-import typing as t
 from itertools import groupby
+from typing import Dict, Iterator, List, Optional, Set, TypedDict, Union
 
 import pangea.services.audit.util as audit_util
 from pangea.services import Audit
@@ -15,7 +15,7 @@ from pangea.services.audit.models import EventEnvelope
 from pangea.tools import Event, SequenceFollower, exit_with_error, file_events, init_audit, print_progress_bar
 
 
-class Errors(t.TypedDict):
+class Errors(TypedDict):
     hash: int
     membership_proof: int
     missing: int
@@ -24,7 +24,7 @@ class Errors(t.TypedDict):
     buffer_missing: int
 
 
-root_hashes: dict[int, str] = {}
+root_hashes: Dict[int, str] = {}
 
 
 def num_lines(f: io.TextIOWrapper) -> int:
@@ -120,7 +120,7 @@ def get_root_hash(audit: Audit, tree_size: int) -> str:
     resp = audit.root(tree_size)
     if not resp.success:
         raise ValueError(f"Error getting root: {resp.status}")
-    return resp.result.data.root_hash
+    return resp.result.data.root_hash  # type: ignore[union-attr]
 
 
 def print_error(msg: str, level: str = "error"):
@@ -148,7 +148,7 @@ def deep_verify(audit: Audit, file: io.TextIOWrapper) -> Errors:
     }
 
     events = file_events(root_hashes, file)
-    events_by_idx: t.Union[list[Event], t.Iterator[Event]]
+    events_by_idx: Union[List[Event], Iterator[Event]]
     cold_indexes = SequenceFollower()
     for leaf_index, events_by_idx in groupby(events, lambda event: event.get("leaf_index")):
         events_by_idx = list(events_by_idx)
@@ -163,8 +163,8 @@ def deep_verify(audit: Audit, file: io.TextIOWrapper) -> Errors:
 
         cold_indexes.add(leaf_index)
 
-        cold_path_size: t.Optional[int] = None
-        hot_indexes: set[int] = set()
+        cold_path_size: Optional[int] = None
+        hot_indexes: Set[int] = set()
         for i, event in enumerate(events_by_idx):
             cnt += 1
             tree_size = get_tree_size(event)
@@ -176,7 +176,7 @@ def deep_verify(audit: Audit, file: io.TextIOWrapper) -> Errors:
             if not verify_hash(event["envelope"], event["hash"]):
                 errors["hash"] += 1
 
-            elif not verify_membership_proof(event["hash"], root_hashes[tree_size], event.get("membership_proof")):
+            elif not verify_membership_proof(event["hash"], root_hashes[tree_size], event.get("membership_proof")):  # type: ignore[arg-type]
                 errors["membership_proof"] += 1
 
             if "membership_proof" not in event:

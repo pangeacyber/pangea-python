@@ -52,7 +52,7 @@ class TestRedact(unittest.TestCase):
         self.assertEqual(response.result.redacted_data, expected)
         self.assertEqual(response.result.count, 1)
 
-    def test_redact_structured_no_result(self):
+    def test_redact_structured_no_result(self) -> None:
         data = {"phone": "415-867-5309"}
 
         response = self.redact.redact_structured(data=data, return_result=False)
@@ -61,13 +61,13 @@ class TestRedact(unittest.TestCase):
         self.assertEqual(response.result.count, 1)
 
     # call plain redact with structured data, should throw a 400
-    def test_redact_with_structured_data(self):
+    def test_redact_with_structured_data(self) -> None:
         data = {"phone": "415-867-5309"}
 
         with self.assertRaises(pydantic.ValidationError):
-            self.redact.redact(text=data)  # type: ignore
+            self.redact.redact(text=data)
 
-    def test_redact_with_bad_auth_token(self):
+    def test_redact_with_bad_auth_token(self) -> None:
         token = "notarealtoken"
         domain = get_test_domain(TEST_ENVIRONMENT)
         config = PangeaConfig(domain=domain, custom_user_agent="sdk-test")

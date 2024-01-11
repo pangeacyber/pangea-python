@@ -72,15 +72,15 @@ class AuditBase:
 
         elif isinstance(events, dict):
             log = self._process_log(events, sign_local=sign_local)
-            input = LogRequest(event=log.event, signature=log.signature, public_key=log.public_key)
+            input = LogRequest(event=log.event, signature=log.signature, public_key=log.public_key)  # type: ignore[assignment]
             input.verbose = True if verify else verbose
             if verify and self.prev_unpublished_root_hash:
-                input.prev_root = self.prev_unpublished_root_hash
+                input.prev_root = self.prev_unpublished_root_hash  # type: ignore[attr-defined]
 
         else:
             raise AttributeError(f"events should be a dict or a list[dict] and it is {type(events)}")
 
-        return input
+        return input  # type: ignore[return-value]
 
     def _process_log(self, event: dict, sign_local: bool) -> LogEvent:
         if event.get("tenant_id", None) is None and self.tenant_id:
@@ -95,13 +95,13 @@ class AuditBase:
         signature = None
         pki = None
         if sign_local is True:
-            data2sign = canonicalize_event(event)
-            signature = self.signer.sign(data2sign)
+            data2sign = canonicalize_event(event)  # type: ignore[arg-type]
+            signature = self.signer.sign(data2sign)  # type: ignore[union-attr]
             if signature is None:
                 raise AuditException("Error: failure signing message")
 
             # Add public key value to public key info and serialize
-            pki = self._get_public_key_info(self.signer, self.public_key_info)
+            pki = self._get_public_key_info(self.signer, self.public_key_info)  # type: ignore[arg-type]
 
         return LogEvent(event=event, signature=signature, public_key=pki)
 
@@ -161,13 +161,13 @@ class AuditBase:
         if not response.success:
             return response
 
-        return self.process_search_results(response, verify_consistency, verify_events)
+        return self.process_search_results(response, verify_consistency, verify_events)  # type: ignore[arg-type,return-value]
 
     def process_search_results(
         self, response: PangeaResponse[SearchResultOutput], verify_consistency: bool = False, verify_events: bool = True
     ) -> PangeaResponse[SearchResultOutput]:
         if verify_events:
-            for event_search in response.result.events:
+            for event_search in response.result.events:  # type: ignore[union-attr]
                 # verify event hash
                 if event_search.hash and not verify_envelope_hash(event_search.envelope, event_search.hash):
                     # it's a extreme case, it's OK to raise an exception
@@ -178,16 +178,16 @@ class AuditBase:
 
                 event_search.signature_verification = self.verify_signature(event_search.envelope)
 
-        root = response.result.root
-        unpublished_root = response.result.unpublished_root
+        root = response.result.root  # type: ignore[union-attr]
+        unpublished_root = response.result.unpublished_root  # type: ignore[union-attr]
 
         if verify_consistency:
-            self.update_published_roots(response.result)
+            self.update_published_roots(response.result)  # type: ignore[arg-type]
 
-            for search_event in response.result.events:
+            for search_event in response.result.events:  # type: ignore[union-attr]
                 # verify membership proofs
                 if self.can_verify_membership_proof(search_event):
-                    if self.verify_membership_proof(root if search_event.published else unpublished_root, search_event):
+                    if self.verify_membership_proof(root if search_event.published else unpublished_root, search_event):  # type: ignore[arg-type]
                         search_event.membership_verification = EventVerification.PASS
                     else:
                         search_event.membership_verification = EventVerification.FAIL
@@ -241,11 +241,11 @@ class AuditBase:
                 pub_root = PublishedRoot(**arweave_roots[tree_size].dict(exclude_none=True))
                 pub_root.source = RootSource.ARWEAVE
             elif self.allow_server_roots:
-                resp = self.root(tree_size=tree_size)
+                resp = self.root(tree_size=tree_size)  # type: ignore[attr-defined]
                 if resp.success:
                     pub_root = PublishedRoot(**resp.result.data.dict(exclude_none=True))
                     pub_root.source = RootSource.PANGEA
-            self.pub_roots[tree_size] = pub_root
+            self.pub_roots[tree_size] = pub_root  # type: ignore[assignment]
 
     def can_verify_membership_proof(self, event: SearchEvent) -> bool:
         """
@@ -278,12 +278,12 @@ class AuditBase:
         Returns:
             bool: True if membership proof is verified, False otherwise
         """
-        if not self.allow_server_roots and root.source != RootSource.ARWEAVE:
+        if not self.allow_server_roots and root.source != RootSource.ARWEAVE:  # type: ignore[attr-defined]
             return False
 
         node_hash = decode_hash(event.hash)
         root_hash = decode_hash(root.root_hash)
-        proof = decode_membership_proof(event.membership_proof)
+        proof = decode_membership_proof(event.membership_proof)  # type: ignore[arg-type]
 
         return verify_membership_proof(node_hash, root_hash, proof)
 
@@ -301,7 +301,7 @@ class AuditBase:
         Returns:
             bool: True if the consistency can be verified, False otherwise
         """
-        return event.published and event.leaf_index is not None and event.leaf_index >= 0
+        return event.published and event.leaf_index is not None and event.leaf_index >= 0  # type: ignore[return-value]
 
     def verify_consistency_proof(self, pub_roots: Dict[int, Root], event: SearchEvent) -> bool:
         """
@@ -322,20 +322,20 @@ class AuditBase:
         if event.leaf_index == 0:
             return True
 
-        curr_root = pub_roots.get(event.leaf_index + 1)
-        prev_root = pub_roots.get(event.leaf_index)
+        curr_root = pub_roots.get(event.leaf_index + 1)  # type: ignore[operator]
+        prev_root = pub_roots.get(event.leaf_index)  # type: ignore[arg-type]
 
         if not curr_root or not prev_root:
             return False
 
         if not self.allow_server_roots and (
-            curr_root.source != RootSource.ARWEAVE or prev_root.source != RootSource.ARWEAVE
+            curr_root.source != RootSource.ARWEAVE or prev_root.source != RootSource.ARWEAVE  # type: ignore[attr-defined]
         ):
             return False
 
         curr_root_hash = decode_hash(curr_root.root_hash)
         prev_root_hash = decode_hash(prev_root.root_hash)
-        proof = decode_consistency_proof(curr_root.consistency_proof)
+        proof = decode_consistency_proof(curr_root.consistency_proof)  # type: ignore[arg-type]
 
         return verify_consistency_proof(curr_root_hash, prev_root_hash, proof)
 
@@ -355,7 +355,7 @@ class AuditBase:
         if audit_envelope and audit_envelope.signature and public_key:
             v = Verifier()
             verification = v.verify_signature(
-                audit_envelope.signature, canonicalize_event(audit_envelope.event), public_key
+                audit_envelope.signature, canonicalize_event(audit_envelope.event), public_key  # type: ignore[arg-type]
             )
             if verification is not None:
                 return EventVerification.PASS if verification else EventVerification.FAIL
@@ -723,10 +723,10 @@ class Audit(ServiceBase, AuditBase):
             )
         """
 
-        if limit <= 0:
+        if limit <= 0:  # type: ignore[operator]
             raise AuditException("The 'limit' argument must be a positive integer > 0")
 
-        if offset < 0:
+        if offset < 0:  # type: ignore[operator]
             raise AuditException("The 'offset' argument must be a positive integer")
 
         input = SearchResultRequest(

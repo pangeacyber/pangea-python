@@ -30,12 +30,26 @@ asyncio = "^3.4.3"
 google-crc32c = "^1.5.0"
 
 [tool.poetry.dev-dependencies]
-mypy = "^0.941"
+mypy = "^1.4.1"
 black = "^22.1.0"
 docstring-parser = "^0.14.1"
+types-Deprecated = "^1.2.9.3"
+types-requests = "^2.31.0.10"
+types-python-dateutil = "^2.8.19.14"
 
 [tool.black]
 line-length = 120
+
+[tool.isort]
+profile = "black"
+
+[tool.mypy]
+python_version = "3.8"
+color_output = true
+error_summary = true
+pretty = true
+show_column_numbers = true
+warn_unused_ignores = true
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

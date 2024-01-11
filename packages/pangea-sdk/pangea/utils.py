@@ -7,7 +7,7 @@ from binascii import hexlify
 from collections import OrderedDict
 from hashlib import new, sha1, sha256, sha512
 
-from google_crc32c import Checksum as CRC32C
+from google_crc32c import Checksum as CRC32C  # type: ignore[import]
 from pydantic import BaseModel
 
 
@@ -48,7 +48,7 @@ def dict_order_keys_recursive(data: dict) -> OrderedDict:
             if type(v) is dict:
                 data[k] = dict_order_keys_recursive(v)
 
-    return data
+    return data  # type: ignore[return-value]
 
 
 def canonicalize_nested_json(data: dict) -> dict:

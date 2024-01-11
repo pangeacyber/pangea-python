@@ -30,7 +30,7 @@ class AuditLogger(logging.Logger):
         """
         self.auditor = auditor
 
-    def audit(self, message, *args, **kwargs):
+    def audit(self, message, *args, **kwargs) -> None:
         """Logs a Pangea Audit message
 
         Args:
@@ -68,7 +68,7 @@ class AuditLogger(logging.Logger):
 
         try:
             resp: PangeaResponse[LogResult] = self.auditor.log(**audit_record)
-            print(f"Response. Hash: {resp.result.hash}")
+            print(f"Response. Hash: {resp.result.hash}")  # type: ignore[union-attr]
         except pe.PangeaAPIException as e:
             print(f"Request Error: {e.response.summary}")
             for err in e.errors:
@@ -119,7 +119,7 @@ def getLogger(name, level=logging.DEBUG) -> AuditLogger:
     auditor = Audit(token=PANGEA_AUDIT_TOKEN, config=audit_config)
     logging.basicConfig(level=level)
     logging.setLoggerClass(AuditLogger)
-    logger: AuditLogger = logging.getLogger(name)
+    logger: AuditLogger = logging.getLogger(name)  # type: ignore[assignment]
     logger.set_auditor(auditor)
 
     return logger
