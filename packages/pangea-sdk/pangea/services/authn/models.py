@@ -168,7 +168,7 @@ class User(PangeaResponseResult):
     accepted_privacy_policy_id: Optional[str] = None
     last_login_at: Optional[str] = None
     created_at: str
-    login_count: int
+    login_count: int = 0
     last_login_ip: Optional[str] = None
     last_login_city: Optional[str] = None
     last_login_country: Optional[str] = None
