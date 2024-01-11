@@ -165,12 +165,6 @@ class PangeaRequestAsync(PangeaRequestBase):
         files: Optional[List[Tuple]] = None,
         presigned_url_post: bool = False,
     ) -> aiohttp.ClientResponse:
-        self.logger.debug(
-            json.dumps(
-                {"service": self.service, "action": "http_post", "url": url, "data": data}, default=default_encoder
-            )
-        )
-
         if files:
             form = FormData()
             if presigned_url_post:
