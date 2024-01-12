@@ -4,7 +4,7 @@ This is a quick example of how to set up and use the Pangea Python SDK.
 
 ## Set up
 
-In the example root directory (./examples/vault), run the following command:
+In the example root directory (`./examples/vault`), run the following command:
 
 ```
 poetry install
