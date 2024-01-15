@@ -108,7 +108,7 @@ class TestVault(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(pe.ValidationException):
             await self.vault.decrypt("thisisnotandid", cipher_v2, 2)
 
-        # Desactivate key
+        # Deactivate key
         change_state_resp = await self.vault.state_change(id, ItemVersionState.DEACTIVATED, version=1)
         self.assertEqual(id, change_state_resp.result.id)
 
@@ -459,7 +459,7 @@ class TestVault(unittest.IsolatedAsyncioTestCase):
             id = await self.sym_generate_all_params(algorithm=a, purpose=purpose)
             await self.vault.delete(id=id)
 
-    async def test_asym_encripting_life_cycle(self):
+    async def test_asym_encrypting_life_cycle(self):
         algorithms = [
             AsymmetricAlgorithm.RSA2048_OAEP_SHA256,
         ]
@@ -470,7 +470,7 @@ class TestVault(unittest.IsolatedAsyncioTestCase):
                 await self.encrypting_cycle(id)
                 await self.vault.delete(id=id)
             except pe.PangeaAPIException as e:
-                print(f"Failed test_asym_encripting_life_cycle with {algorithm}")
+                print(f"Failed test_asym_encrypting_life_cycle with {algorithm}")
                 print(e)
                 await self.vault.delete(id=id)
                 self.assertTrue(False)
@@ -492,7 +492,7 @@ class TestVault(unittest.IsolatedAsyncioTestCase):
                 await self.vault.delete(id=id)
                 self.assertTrue(False)
 
-    async def test_sym_encripting_life_cycle(self):
+    async def test_sym_encrypting_life_cycle(self):
         algorithms = [
             SymmetricAlgorithm.AES,
         ]
@@ -626,3 +626,33 @@ class TestVault(unittest.IsolatedAsyncioTestCase):
         # Delete parent folder
         delete_resp = await self.vault.delete(id=create_parent_resp.result.id)
         self.assertEqual(delete_resp.result.id, create_parent_resp.result.id)
+
+    async def test_encrypt_structured(self):
+        key = await self.vault.symmetric_generate(
+            algorithm=SymmetricAlgorithm.AES256_CFB, purpose=KeyPurpose.ENCRYPTION, name=get_name()
+        )
+        self.assertIsNotNone(key.result)
+
+        data: dict[str, str | list[bool | str]] = {"field1": [1, 2, "true", "false"], "field2": "data2"}
+
+        encrypted = await self.vault.encrypt_structured(id=key.result.id, structured_data=data, filter="$.field1[2:4]")
+        self.assertIsNotNone(encrypted.result)
+
+        encrypted_data = encrypted.result.structured_data
+        self.assertIn("field1", encrypted_data)
+        self.assertEqual(len(data["field1"]), len(encrypted_data["field1"]))
+        self.assertEqual(data["field1"][0], encrypted_data["field1"][0])
+        self.assertEqual(data["field1"][1], encrypted_data["field1"][1])
+        self.assertNotEqual(data["field1"][2], encrypted_data["field1"][2])
+        self.assertNotEqual(data["field1"][3], encrypted_data["field1"][3])
+
+        self.assertIn("field2", encrypted_data)
+        self.assertEqual(data["field2"], encrypted_data["field2"])
+
+        decrypted = await self.vault.decrypt_structured(
+            id=key.result.id, structured_data=encrypted_data, filter="$.field1[2:4]"
+        )
+        self.assertIsNotNone(decrypted.result)
+
+        decrypted_data = decrypted.result.structured_data
+        self.assertDictEqual(data, decrypted_data)

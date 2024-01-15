@@ -368,10 +368,10 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
                 offset=0)
         """
 
-        if limit <= 0:
+        if limit <= 0:  # type: ignore[operator]
             raise AuditException("The 'limit' argument must be a positive integer > 0")
 
-        if offset < 0:
+        if offset < 0:  # type: ignore[operator]
             raise AuditException("The 'offset' argument must be a positive integer")
 
         input = SearchResultRequest(

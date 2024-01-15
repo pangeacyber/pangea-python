@@ -130,7 +130,7 @@ class TestAuthN(unittest.IsolatedAsyncioTestCase):
             print(e)
             self.assertTrue(False)
 
-    async def authn_a4_user_profile(self):
+    async def authn_a4_user_profile(self) -> None:
         global USER_ID
         # This could (should) fail if test_authn_a1_user_create_with_password failed
         try:

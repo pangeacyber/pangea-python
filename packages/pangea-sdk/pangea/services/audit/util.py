@@ -157,7 +157,7 @@ def normalize_log(data: dict) -> dict:
         if type(data[key]) == datetime:
             ans[key] = format_datetime(data[key])
         elif type(data[key]) == dict:
-            ans[key] = normalize_log(data[key])
+            ans[key] = normalize_log(data[key])  # type: ignore[assignment]
         else:
             ans[key] = data[key]
     return ans
@@ -261,7 +261,6 @@ def get_arweave_published_roots(tree_name: str, tree_sizes: List[int]) -> Dict[i
 
 
 def verify_consistency_proof(new_root: Hash, prev_root: Hash, proof: ConsistencyProof) -> bool:
-
     # check the prev_root
     logger.debug("Calculating the proof for the old root")
     root_hash = proof[0].node_hash

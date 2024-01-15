@@ -23,12 +23,12 @@ class ServiceBaseAsync(ServiceBase):
 
         return self._request
 
-    async def poll_result(
+    async def poll_result(  # type: ignore[override]
         self,
         exception: Optional[AcceptedRequestException] = None,
         response: Optional[PangeaResponse] = None,
         request_id: Optional[str] = None,
-        result_class: Union[Type[PangeaResponseResult], dict] = dict,
+        result_class: Union[Type[PangeaResponseResult], dict] = dict,  # type: ignore[assignment]
     ) -> PangeaResponse:
         """
         Poll result

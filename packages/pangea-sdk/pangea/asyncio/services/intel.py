@@ -101,7 +101,7 @@ class FileIntelAsync(ServiceBaseAsync):
             FIXME:
 
         """
-        input = m.FileReputationBulkRequest(
+        input = m.FileReputationBulkRequest(  # type: ignore[call-arg]
             hashes=hashes, hash_type=hash_type, verbose=verbose, raw=raw, provider=provider
         )
         return await self.request.post("v2/reputation", m.FileReputationBulkResult, data=input.dict(exclude_none=True))
@@ -183,7 +183,7 @@ class FileIntelAsync(ServiceBaseAsync):
             hash = hash_256_filepath(filepath)
             hashes.append(hash)
 
-        return await self.hash_reputation_bulk(
+        return await self.hash_reputation_bulk(  # type: ignore[return-value]
             hashes=hashes, hash_type="sha256", verbose=verbose, raw=raw, provider=provider
         )
 
@@ -310,7 +310,7 @@ class DomainIntelAsync(ServiceBaseAsync):
                 provider="whoisxml",
             )
         """
-        input = m.DomainWhoIsRequest(domain=domain, verbose=verbose, provider=provider, raw=raw)
+        input = m.DomainWhoIsRequest(domain=domain, verbose=verbose, provider=provider, raw=raw)  # type: ignore[call-arg]
         return await self.request.post("v1/whois", m.DomainWhoIsResult, data=input.dict(exclude_none=True))
 
 

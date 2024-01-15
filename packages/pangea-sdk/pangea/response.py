@@ -6,8 +6,9 @@ from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
 
 import aiohttp
 import requests
-from pangea.utils import format_datetime
 from pydantic import BaseModel
+
+from pangea.utils import format_datetime
 
 T = TypeVar("T")
 
@@ -180,7 +181,7 @@ class PangeaResponse(Generic[T], ResponseHeader):
         self.attached_files = attached_files
 
         self.result = (
-            self.result_class(**self.raw_result)
+            self.result_class(**self.raw_result)  # type: ignore[assignment]
             if self.raw_result is not None and issubclass(self.result_class, PangeaResponseResult) and self.success
             else None
         )
@@ -203,13 +204,13 @@ class PangeaResponse(Generic[T], ResponseHeader):
         return self._json
 
     @property
-    def http_status(self) -> int:
+    def http_status(self) -> int:  # type: ignore[return]
         if self.raw_response:
             if type(self.raw_response) == aiohttp.ClientResponse:
                 return self.raw_response.status
             else:
-                return self.raw_response.status_code
+                return self.raw_response.status_code  # type: ignore[union-attr]
 
     @property
     def url(self) -> str:
-        return str(self.raw_response.url)
+        return str(self.raw_response.url)  # type: ignore[arg-type,union-attr]

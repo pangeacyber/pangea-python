@@ -28,7 +28,7 @@ def main():
         # Encrypt a message.
         text = "hello world"
         msg = str2str_b64(text)
-        print(f"Encript text: {text}")
+        print(f"Encrypt text: {text}")
         encrypt_response = vault.encrypt(key_id, msg)
         cipher_text = encrypt_response.result.cipher_text
         print(f"Cipher text: {cipher_text}")
@@ -39,7 +39,7 @@ def main():
         plain_text = decrypt_response.result.plain_text
 
         if plain_text == msg:
-            print("Text encrypted and decrypted succesfully")
+            print("Text encrypted and decrypted successfully")
         else:
             print("Encrypted/decrypted message is not equal to original message")
 

@@ -13,7 +13,7 @@ import argparse
 import json
 import logging
 import sys
-import typing as t
+from typing import Dict, List, Optional
 
 from pangea.services.audit.signing import Verifier
 from pangea.services.audit.util import (
@@ -29,7 +29,7 @@ from pangea.services.audit.util import (
 )
 
 logger = logging.getLogger("audit")
-pub_roots: t.Dict[int, t.Dict] = {}
+pub_roots: Dict[int, Dict] = {}
 
 
 class VerifierLogFormatter(logging.Formatter):
@@ -39,7 +39,6 @@ class VerifierLogFormatter(logging.Formatter):
         self.in_section = False
 
     def format(self, record):
-
         if hasattr(record, "is_result"):
             if record.succeeded:
                 point = "🟢"
@@ -62,7 +61,7 @@ class VerifierLogFormatter(logging.Formatter):
             return f"{pre}{record.msg}"
 
 
-def log_result(msg: str, succeeded: t.Optional[bool]):
+def log_result(msg: str, succeeded: Optional[bool]):
     if succeeded is True:
         msg += " succeeded"
     elif succeeded is False:
@@ -79,7 +78,7 @@ def log_section(msg: str):
 formatter = VerifierLogFormatter()
 
 
-def _verify_hash(data: t.Dict, data_hash: str) -> t.Optional[bool]:
+def _verify_hash(data: Dict, data_hash: str) -> Optional[bool]:
     log_section("Checking data hash")
     try:
         logger.debug("Canonicalizing data")
@@ -99,7 +98,7 @@ def _verify_hash(data: t.Dict, data_hash: str) -> t.Optional[bool]:
     return succeeded
 
 
-def _verify_unpublished_membership_proof(root_hash, node_hash: str, proof: t.Optional[str]) -> t.Optional[bool]:
+def _verify_unpublished_membership_proof(root_hash, node_hash: str, proof: Optional[str]) -> Optional[bool]:
     global pub_roots
 
     log_section("Checking unpublished membership proof")
@@ -128,9 +127,7 @@ def _verify_unpublished_membership_proof(root_hash, node_hash: str, proof: t.Opt
     return succeeded
 
 
-def _verify_membership_proof(
-    tree_name: str, tree_size: int, node_hash: str, proof: t.Optional[str]
-) -> t.Optional[bool]:
+def _verify_membership_proof(tree_name: str, tree_size: int, node_hash: str, proof: Optional[str]) -> Optional[bool]:
     global pub_roots
 
     log_section("Checking membership proof")
@@ -142,11 +139,11 @@ def _verify_membership_proof(
         try:
             logger.debug("Fetching published roots from Arweave")
             if tree_size not in pub_roots:
-                pub_roots |= {int(k): v for k, v in get_arweave_published_roots(tree_name, [tree_size]).items()}
+                pub_roots |= {int(k): v for k, v in get_arweave_published_roots(tree_name, [tree_size]).items()}  # type: ignore[operator]
             if tree_size not in pub_roots:
                 raise ValueError("Published root could was not found")
 
-            root_hash_dec = decode_hash(pub_roots[tree_size].root_hash)
+            root_hash_dec = decode_hash(pub_roots[tree_size].root_hash)  # type: ignore[attr-defined]
             node_hash_dec = decode_hash(node_hash)
             logger.debug("Calculating the proof")
             proof_dec = decode_membership_proof(proof)
@@ -161,7 +158,7 @@ def _verify_membership_proof(
     return succeeded
 
 
-def _verify_consistency_proof(tree_name: str, leaf_index: t.Optional[int]) -> t.Optional[bool]:
+def _verify_consistency_proof(tree_name: str, leaf_index: Optional[int]) -> Optional[bool]:
     global pub_roots
     log_section("Checking consistency proof")
 
@@ -175,7 +172,7 @@ def _verify_consistency_proof(tree_name: str, leaf_index: t.Optional[int]) -> t.
     else:
         try:
             logger.debug("Fetching published roots from Arweave")
-            pub_roots |= {
+            pub_roots |= {  # type: ignore[operator]
                 int(k): v for k, v in get_arweave_published_roots(tree_name, [leaf_index + 1, leaf_index]).items()
             }
             if leaf_index + 1 not in pub_roots or leaf_index not in pub_roots:
@@ -183,10 +180,10 @@ def _verify_consistency_proof(tree_name: str, leaf_index: t.Optional[int]) -> t.
 
             curr_root = pub_roots[leaf_index + 1]
             prev_root = pub_roots[leaf_index]
-            curr_root_hash = decode_hash(curr_root.root_hash)
-            prev_root_hash = decode_hash(prev_root.root_hash)
+            curr_root_hash = decode_hash(curr_root.root_hash)  # type: ignore[attr-defined]
+            prev_root_hash = decode_hash(prev_root.root_hash)  # type: ignore[attr-defined]
             logger.debug("Calculating the proof")
-            proof = decode_consistency_proof(curr_root.consistency_proof)
+            proof = decode_consistency_proof(curr_root.consistency_proof)  # type: ignore[attr-defined]
             succeeded = verify_consistency_proof(curr_root_hash, prev_root_hash, proof)
 
         except Exception as e:
@@ -198,11 +195,11 @@ def _verify_consistency_proof(tree_name: str, leaf_index: t.Optional[int]) -> t.
     return succeeded
 
 
-def create_signed_event(event: t.Dict) -> t.Dict:
+def create_signed_event(event: Dict) -> Dict:
     return {k: v for k, v in event.items() if v is not None}
 
 
-def _verify_signature(data: t.Dict) -> t.Optional[bool]:
+def _verify_signature(data: Dict) -> Optional[bool]:
     log_section("Checking signature")
     if "signature" not in data:
         logger.debug("Signature is not present")
@@ -225,7 +222,7 @@ def _verify_signature(data: t.Dict) -> t.Optional[bool]:
     return succeeded
 
 
-def verify_multiple(root: t.Dict, unpublished_root: t.Dict, events: t.List[t.Dict]) -> t.Optional[bool]:
+def verify_multiple(root: Dict, unpublished_root: Dict, events: List[Dict]) -> Optional[bool]:
     """
     Verify a list of events.
     Returns a status.
@@ -239,7 +236,7 @@ def verify_multiple(root: t.Dict, unpublished_root: t.Dict, events: t.List[t.Dic
     return not any(event_succeeded is False for event_succeeded in succeeded)
 
 
-def verify_single(data: t.Dict, counter: t.Optional[int] = None) -> t.Optional[bool]:
+def verify_single(data: Dict, counter: Optional[int] = None) -> Optional[bool]:
     """
     Verify a single event.
     Returns a status.

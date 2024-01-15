@@ -7,17 +7,19 @@ import json
 import os
 import sys
 from datetime import datetime
+from typing import Tuple
 
 import dateutil.parser
 from pangea.response import PangeaResponse
 from pangea.services import Audit
+from pangea.services.audit.models import SearchEvent, SearchOrder, SearchOrderBy, SearchOutput, SearchResultOutput
 from pangea.tools import filter_deep_none, get_script_name, init_audit, make_aware_datetime, print_progress_bar
 from pangea.utils import default_encoder
 
 
-def dump_event(output: io.TextIOWrapper, row: dict, resp: PangeaResponse):
+def dump_event(output: io.TextIOWrapper, row: SearchEvent, resp: PangeaResponse[SearchOutput]):
     row_data = filter_deep_none(row.dict())
-    if resp.result.root:
+    if resp.result and resp.result.root:
         row_data["tree_size"] = resp.result.root.size
     output.write(json.dumps(row_data, default=default_encoder) + "\n")
 
@@ -48,7 +50,7 @@ def dump_before(audit: Audit, output: io.TextIOWrapper, start: datetime) -> int:
         query="",
         start=datetime.strptime("2020-01-01T10:00:00Z", "%Y-%m-%dT%H:%M:%SZ"),
         end=start,
-        order="desc",
+        order=SearchOrder.DESC,
         verify_consistency=False,
         limit=1000,
         max_results=1000,
@@ -58,7 +60,7 @@ def dump_before(audit: Audit, output: io.TextIOWrapper, start: datetime) -> int:
         raise ValueError(f"Error fetching events: {search_res.result}")
 
     cnt = 0
-    if search_res.result.count > 0:
+    if search_res.result and search_res.result.count > 0:
         leaf_index = search_res.result.events[0].leaf_index
         for row in reversed(search_res.result.events):
             if row.leaf_index != leaf_index:
@@ -72,17 +74,23 @@ def dump_before(audit: Audit, output: io.TextIOWrapper, start: datetime) -> int:
 def dump_after(audit: Audit, output: io.TextIOWrapper, start: datetime, last_event_hash, last_leaf_index) -> int:
     print("Dumping after...", end="\r")
     search_res = audit.search(
-        query="", start=start, order="asc", verify_consistency=False, limit=1000, max_results=1000, verify_events=False
+        query="",
+        start=start,
+        order=SearchOrder.ASC,
+        verify_consistency=False,
+        limit=1000,
+        max_results=1000,
+        verify_events=False,
     )
     if not search_res.success:
         raise ValueError("Error fetching events")
 
     cnt = 0
-    if search_res.result.count > 0:
+    if search_res.result and search_res.result.count > 0:
         leaf_index = search_res.result.events[0].leaf_index
         if leaf_index == last_leaf_index:
-            start = 1 if last_event_hash == search_res.result.events[0].hash else 0
-            for row in search_res.result.events[start:]:
+            start_idx: int = 1 if last_event_hash == search_res.result.events[0].hash else 0
+            for row in search_res.result.events[start_idx:]:
                 if row.leaf_index != leaf_index:
                     break
                 dump_event(output, row, search_res)
@@ -93,7 +101,7 @@ def dump_after(audit: Audit, output: io.TextIOWrapper, start: datetime, last_eve
 
 def dump_page(
     audit: Audit, output: io.TextIOWrapper, start: datetime, end: datetime, first: bool = False
-) -> tuple[datetime, int, bool, str, int]:
+) -> Tuple[datetime, int, bool, str, int]:
     PAGE_SIZE = 1000
     print(start, end)
     print("Dumping...")
@@ -101,19 +109,21 @@ def dump_page(
         query="",
         start=start,
         end=end,
-        order="asc",
-        order_by="received_at",
+        order=SearchOrder.ASC,
+        order_by=SearchOrderBy.RECEIVED_AT,
         verify_consistency=False,
         verify_events=False,
         limit=PAGE_SIZE,
     )
+    assert search_res.result
+
     if not search_res.success:
         raise ValueError(f"Error fetching events: {search_res.result}")
 
     msg = f"Dumping... {search_res.result.count} events"
 
     if search_res.result.count <= 1:
-        return end, 0
+        return end, 0  # type: ignore[return-value]
 
     offset = 0
     result_id = search_res.result.id
@@ -124,12 +134,14 @@ def dump_page(
                 dump_event(output, row, search_res)
             offset += 1
         if offset < count:
-            search_res = audit.results(result_id, offset=offset, verify_events=False)
+            search_res: PangeaResponse[SearchResultOutput] = audit.results(  # type: ignore[no-redef]
+                result_id, offset=offset, verify_events=False
+            )
             if not search_res.success:
                 raise ValueError("Error fetching events")
         print_progress_bar(offset, count, prefix=msg, suffix="Complete", length=50)
     page_end = row.envelope.received_at
-    return page_end, offset, search_res.result.count < PAGE_SIZE, row.hash, row.leaf_index
+    return page_end, offset, search_res.result.count < PAGE_SIZE, row.hash, row.leaf_index  # type: ignore[return-value]
 
 
 def create_parser() -> argparse.ArgumentParser:

@@ -561,7 +561,7 @@ class FileIntel(ServiceBase):
                 provider="reversinglabs",
             )
         """
-        input = FileReputationBulkRequest(
+        input = FileReputationBulkRequest(  # type: ignore[call-arg]
             hashes=hashes, hash_type=hash_type, verbose=verbose, raw=raw, provider=provider
         )
         return self.request.post("v2/reputation", FileReputationBulkResult, data=input.dict(exclude_none=True))
@@ -776,7 +776,7 @@ class DomainIntel(ServiceBase):
                 provider="whoisxml",
             )
         """
-        input = DomainWhoIsRequest(domain=domain, verbose=verbose, provider=provider, raw=raw)
+        input = DomainWhoIsRequest(domain=domain, verbose=verbose, provider=provider, raw=raw)  # type: ignore[call-arg]
         return self.request.post("v1/whois", DomainWhoIsResult, data=input.dict(exclude_none=True))
 
 
@@ -1586,10 +1586,10 @@ class UserIntel(ServiceBase):
 
     @staticmethod
     def is_password_breached(response: PangeaResponse[UserBreachedResult], hash: str) -> PasswordStatus:
-        if response.result.raw_data is None:
+        if response.result.raw_data is None:  # type: ignore[union-attr]
             raise PangeaException("Need raw data to check if hash is breached. Send request with raw=true")
 
-        hash_data = response.result.raw_data.pop(hash, None)
+        hash_data = response.result.raw_data.pop(hash, None)  # type: ignore[union-attr]
         if hash_data is not None:
             # If hash is present in raw data, it's because it was breached
             return UserIntel.PasswordStatus.BREACHED
@@ -1597,7 +1597,7 @@ class UserIntel(ServiceBase):
             # If it's not present, should check if I have all breached hash
             # Server will return a maximum of 1000 hash, so if breached count is greater than that,
             # I can't conclude is password is or is not breached
-            if len(response.result.raw_data.keys()) >= 1000:
+            if len(response.result.raw_data.keys()) >= 1000:  # type: ignore[union-attr]
                 return UserIntel.PasswordStatus.INCONCLUSIVE
             else:
                 return UserIntel.PasswordStatus.UNBREACHED

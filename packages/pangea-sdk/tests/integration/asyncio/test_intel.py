@@ -7,7 +7,7 @@ from pangea.response import ResponseStatus
 from pangea.services.intel import HashType
 from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
 
-TEST_ENVIRONMENT = TestEnvironment.DEVELOP
+TEST_ENVIRONMENT = TestEnvironment.LIVE
 
 
 class TestDomainIntel(unittest.IsolatedAsyncioTestCase):

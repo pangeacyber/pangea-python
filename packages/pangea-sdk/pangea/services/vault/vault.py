@@ -22,6 +22,8 @@ from pangea.services.vault.models.common import (
     EncodedPrivateKey,
     EncodedPublicKey,
     EncodedSymmetricKey,
+    EncryptStructuredRequest,
+    EncryptStructuredResult,
     FolderCreateRequest,
     FolderCreateResult,
     GetRequest,
@@ -46,6 +48,7 @@ from pangea.services.vault.models.common import (
     StateChangeRequest,
     StateChangeResult,
     SymmetricAlgorithm,
+    TDict,
     Tags,
     UpdateRequest,
     UpdateResult,
@@ -75,7 +78,7 @@ class Vault(ServiceBase):
 
     The following information is needed:
         PANGEA_VAULT_TOKEN - service token which can be found on the Pangea User
-            Console at [https://console.pangea.cloud/project/tokens](https://console.pangea.cloud/project/tokens)
+            Console at <https://console.pangea.cloud/project/tokens>
 
     Examples:
         import os
@@ -517,7 +520,7 @@ class Vault(ServiceBase):
                 id="pvi_p6g5i3gtbvqvc3u6zugab6qs6r63tqf5",
             )
         """
-        input = SecretRotateRequest(id=id)
+        input = SecretRotateRequest(id=id)  # type: ignore[call-arg]
         return self.request.post("v1/secret/rotate", SecretRotateResult, data=input.dict(exclude_none=True))
 
     def symmetric_generate(
@@ -584,7 +587,7 @@ class Vault(ServiceBase):
             type=ItemType.SYMMETRIC_KEY,
             algorithm=algorithm,
             purpose=purpose,
-            name=name,
+            name=name,  # type: ignore[arg-type]
             folder=folder,
             metadata=metadata,
             tags=tags,
@@ -592,7 +595,11 @@ class Vault(ServiceBase):
             rotation_state=rotation_state,
             expiration=expiration,
         )
-        return self.request.post("v1/key/generate", SymmetricGenerateResult, data=input.dict(exclude_none=True))
+        return self.request.post(
+            "v1/key/generate",
+            SymmetricGenerateResult,
+            data=input.dict(exclude_none=True),
+        )
 
     def asymmetric_generate(
         self,
@@ -658,7 +665,7 @@ class Vault(ServiceBase):
             type=ItemType.ASYMMETRIC_KEY,
             algorithm=algorithm,
             purpose=purpose,
-            name=name,
+            name=name,  # type: ignore[arg-type]
             folder=folder,
             metadata=metadata,
             tags=tags,
@@ -666,7 +673,11 @@ class Vault(ServiceBase):
             rotation_state=rotation_state,
             expiration=expiration,
         )
-        return self.request.post("v1/key/generate", AsymmetricGenerateResult, data=input.dict(exclude_none=True))
+        return self.request.post(
+            "v1/key/generate",
+            AsymmetricGenerateResult,
+            data=input.dict(exclude_none=True),
+        )
 
     # Store endpoints
     def asymmetric_store(
@@ -718,7 +729,7 @@ class Vault(ServiceBase):
             response = vault.asymmetric_store(
                 private_key="private key example",
                 public_key="-----BEGIN PUBLIC KEY-----\\nMCowBQYDK2VwAyEA8s5JopbEPGBylPBcMK+L5PqHMqPJW/5KYPgBHzZGncc=\\n-----END PUBLIC KEY-----",
-                algorithm="AsymmetricAlgorithm.RSA,
+                algorithm=AsymmetricAlgorithm.RSA,
                 purpose=KeyPurpose.SIGNING,
                 name="my-very-secret-secret",
                 folder="/personal",
@@ -818,7 +829,7 @@ class Vault(ServiceBase):
             type=ItemType.SYMMETRIC_KEY,
             algorithm=algorithm,
             purpose=purpose,
-            key=key,
+            key=key,  # type: ignore[arg-type]
             name=name,
             folder=folder,
             metadata=metadata,
@@ -874,7 +885,11 @@ class Vault(ServiceBase):
             )
         """
         input = KeyRotateRequest(
-            id=id, public_key=public_key, private_key=private_key, key=key, rotation_state=rotation_state
+            id=id,
+            public_key=public_key,
+            private_key=private_key,
+            key=key,
+            rotation_state=rotation_state,
         )
         return self.request.post("v1/key/rotate", KeyRotateResult, data=input.dict(exclude_none=True))
 
@@ -907,7 +922,7 @@ class Vault(ServiceBase):
                 version=1,
             )
         """
-        input = EncryptRequest(id=id, plain_text=plain_text, version=version)
+        input = EncryptRequest(id=id, plain_text=plain_text, version=version)  # type: ignore[call-arg]
         return self.request.post("v1/key/encrypt", EncryptResult, data=input.dict(exclude_none=True))
 
     # Decrypt
@@ -939,7 +954,7 @@ class Vault(ServiceBase):
                 version=1,
             )
         """
-        input = DecryptRequest(id=id, cipher_text=cipher_text, version=version)
+        input = DecryptRequest(id=id, cipher_text=cipher_text, version=version)  # type: ignore[call-arg]
         return self.request.post("v1/key/decrypt", DecryptResult, data=input.dict(exclude_none=True))
 
     # Sign
@@ -1092,7 +1107,7 @@ class Vault(ServiceBase):
         Returns:
             A PangeaResponse where the JSON Web Key Set (JWKS) object
                 is returned in the response.result field.
-                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#retrieve-jwk").
+                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#retrieve-jwk).
 
         Examples:
             response = vault.jwk_get(
@@ -1104,7 +1119,11 @@ class Vault(ServiceBase):
 
     # State change
     def state_change(
-        self, id: str, state: ItemVersionState, version: Optional[int] = None, destroy_period: Optional[str] = None
+        self,
+        id: str,
+        state: ItemVersionState,
+        version: Optional[int] = None,
+        destroy_period: Optional[str] = None,
     ) -> PangeaResponse[StateChangeResult]:
         """
         State change
@@ -1130,7 +1149,7 @@ class Vault(ServiceBase):
         Returns:
             A PangeaResponse where the state change object
                 is returned in the response.result field.
-                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#change-state").
+                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#change-state).
 
         Examples:
             response = vault.state_change(
@@ -1159,7 +1178,7 @@ class Vault(ServiceBase):
         Args:
             name (str): The name of this folder
             folder (str): The parent folder where this folder is stored
-            medadata (Metadata, optional): User-provided metadata
+            metadata (Metadata, optional): User-provided metadata
             tags (Tags, optional): A list of user-defined tags
         Raises:
             PangeaAPIException: If an API Error happens
@@ -1167,7 +1186,7 @@ class Vault(ServiceBase):
         Returns:
             A PangeaResponse where the state change object
                 is returned in the response.result field.
-                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#create").
+                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#create).
 
         Examples:
             response = vault.folder_create(
@@ -1177,3 +1196,101 @@ class Vault(ServiceBase):
         """
         input = FolderCreateRequest(name=name, folder=folder, metadata=metadata, tags=tags)
         return self.request.post("v1/folder/create", FolderCreateResult, data=input.dict(exclude_none=True))
+
+    # Encrypt structured
+    def encrypt_structured(
+        self,
+        id: str,
+        structured_data: TDict,
+        filter: str,
+        version: Optional[int] = None,
+        additional_data: Optional[str] = None,
+    ) -> PangeaResponse[EncryptStructuredResult[TDict]]:
+        """
+        Encrypt structured
+
+        Encrypt parts of a JSON object.
+
+        OperationId: vault_post_v1_key_encrypt_structured
+
+        Args:
+            id (str): The item ID.
+            structured_data (dict): Structured data for applying bulk operations.
+            filter (str, optional): A filter expression for applying bulk operations to the data field.
+            version (int, optional): The item version. Defaults to the current version.
+            additional_data (str, optional): User provided authentication data.
+
+        Raises:
+            PangeaAPIException: If an API error happens.
+
+        Returns:
+            A `PangeaResponse` where the encrypted object is returned in the
+            `response.result` field. Available response fields can be found in
+            our [API documentation](https://pangea.cloud/docs/api/vault#encrypt-structured).
+
+        Examples:
+            data = {"field1": [1, 2, "true", "false"], "field2": "data2"}
+            response = vault.encrypt_structured(
+                id="pvi_[...]",
+                structured_data=data,
+                filter="$.field1[2:4]"
+            )
+        """
+
+        input = EncryptStructuredRequest(
+            id=id, structured_data=structured_data, filter=filter, version=version, additional_data=additional_data
+        )
+        return self.request.post(
+            "v1/key/encrypt/structured",
+            EncryptStructuredResult,
+            data=input.dict(exclude_none=True),
+        )
+
+    # Decrypt structured
+    def decrypt_structured(
+        self,
+        id: str,
+        structured_data: TDict,
+        filter: str,
+        version: Optional[int] = None,
+        additional_data: Optional[str] = None,
+    ) -> PangeaResponse[EncryptStructuredResult[TDict]]:
+        """
+        Decrypt structured
+
+        Decrypt parts of a JSON object.
+
+        OperationId: vault_post_v1_key_decrypt_structured
+
+        Args:
+            id (str): The item ID.
+            structured_data (dict): Structured data to decrypt.
+            filter (str, optional): A filter expression for applying bulk operations to the data field.
+            version (int, optional): The item version. Defaults to the current version.
+            additional_data (str, optional): User provided authentication data.
+
+        Raises:
+            PangeaAPIException: If an API error happens.
+
+        Returns:
+            A `PangeaResponse` where the decrypted object is returned in the
+            `response.result` field. Available response fields can be found in
+            our [API documentation](https://pangea.cloud/docs/api/vault#decrypt-structured).
+
+        Examples:
+            data = {"field1": [1, 2, "kxcbC9E9IlgVaSCChPWUMgUC3ko=", "6FfI/LCzatLRLNAc8SuBK/TDnGxp"], "field2": "data2"}
+            response = vault.decrypt_structured(
+                id="pvi_[...]",
+                structured_data=data,
+                filter="$.field1[2:4]"
+            )
+        """
+
+        input = EncryptStructuredRequest(
+            id=id, structured_data=structured_data, filter=filter, version=version, additional_data=additional_data
+        )
+        return self.request.post(
+            "v1/key/decrypt/structured",
+            EncryptStructuredResult,
+            data=input.dict(exclude_none=True),
+        )

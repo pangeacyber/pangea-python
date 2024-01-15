@@ -56,7 +56,7 @@ class TestVault(unittest.TestCase):
         self.vault = Vault(self.token, config=self.config, logger_name="vault")
         logger_set_pangea_config("vault")
 
-    def encrypting_cycle(self, id):
+    def encrypting_cycle(self, id: str):
         msg = "thisisamessagetoencrypt"
         data_b64 = str2str_b64(msg)
 
@@ -104,7 +104,7 @@ class TestVault(unittest.TestCase):
         with self.assertRaises(pe.ValidationException):
             self.vault.decrypt("thisisnotandid", cipher_v2, 2)
 
-        # Desactivate key
+        # Deactivate key
         change_state_resp = self.vault.state_change(id, ItemVersionState.DEACTIVATED, version=1)
         self.assertEqual(id, change_state_resp.result.id)
 
@@ -112,7 +112,7 @@ class TestVault(unittest.TestCase):
         decrypt1_deactivated_resp = self.vault.decrypt(id, cipher_v1, 1)
         self.assertEqual(data_b64, decrypt1_deactivated_resp.result.plain_text)
 
-    def signing_cycle(self, id):
+    def signing_cycle(self, id: str):
         msg = "thisisamessagetosign"
         data = str2str_b64(msg)
         # Sign 1
@@ -333,7 +333,7 @@ class TestVault(unittest.TestCase):
         self.assertEqual(EXPIRATION_VALUE_STR, response.result.expiration)
         return response.result.id
 
-    def jwt_sym_signing_cycle(self, id):
+    def jwt_sym_signing_cycle(self, id: str):
         data = {"message": "message to sign", "data": "Some extra data"}
         payload = json.dumps(data)
 
@@ -372,7 +372,7 @@ class TestVault(unittest.TestCase):
         verify1_deactivated_resp = self.vault.jwt_verify(jws_v1)
         self.assertTrue(verify1_deactivated_resp.result.valid_signature)
 
-    def jwt_asym_signing_cycle(self, id):
+    def jwt_asym_signing_cycle(self, id: str):
         data = {"message": "message to sign", "data": "Some extra data"}
         payload = json.dumps(data)
 
@@ -455,7 +455,7 @@ class TestVault(unittest.TestCase):
             id = self.sym_generate_all_params(algorithm=a, purpose=purpose)
             self.vault.delete(id=id)
 
-    def test_asym_encripting_life_cycle(self):
+    def test_asym_encrypting_life_cycle(self):
         algorithms = [
             AsymmetricAlgorithm.RSA2048_OAEP_SHA256,
         ]
@@ -466,10 +466,10 @@ class TestVault(unittest.TestCase):
                 self.encrypting_cycle(id)
                 self.vault.delete(id=id)
             except pe.PangeaAPIException as e:
-                print(f"Failed test_asym_encripting_life_cycle with {algorithm}")
+                print(f"Failed test_asym_encrypting_life_cycle with {algorithm}")
                 print(e)
                 self.vault.delete(id=id)
-                self.assertTrue(False)
+                self.fail()
 
     def test_asym_signing_life_cycle(self):
         algorithms = [
@@ -486,9 +486,9 @@ class TestVault(unittest.TestCase):
                 print(f"Failed {THIS_FUNCTION_NAME()} with {algorithm}")
                 print(e)
                 self.vault.delete(id=id)
-                self.assertTrue(False)
+                self.fail()
 
-    def test_sym_encripting_life_cycle(self):
+    def test_sym_encrypting_life_cycle(self):
         algorithms = [
             SymmetricAlgorithm.AES,
         ]
@@ -502,7 +502,7 @@ class TestVault(unittest.TestCase):
                 print(f"Failed {THIS_FUNCTION_NAME()} with {algorithm}")
                 print(e)
                 self.vault.delete(id=id)
-                self.assertTrue(False)
+                self.fail()
 
     def test_secret_life_cycle(self):
         name = name = get_name()
@@ -622,3 +622,33 @@ class TestVault(unittest.TestCase):
         # Delete parent folder
         delete_resp = self.vault.delete(id=create_parent_resp.result.id)
         self.assertEqual(delete_resp.result.id, create_parent_resp.result.id)
+
+    def test_encrypt_structured(self):
+        key = self.vault.symmetric_generate(
+            algorithm=SymmetricAlgorithm.AES256_CFB, purpose=KeyPurpose.ENCRYPTION, name=get_name()
+        )
+        self.assertIsNotNone(key.result)
+
+        data: dict[str, str | list[bool | str]] = {"field1": [1, 2, "true", "false"], "field2": "data2"}
+
+        encrypted = self.vault.encrypt_structured(id=key.result.id, structured_data=data, filter="$.field1[2:4]")
+        self.assertIsNotNone(encrypted.result)
+
+        encrypted_data = encrypted.result.structured_data
+        self.assertIn("field1", encrypted_data)
+        self.assertEqual(len(data["field1"]), len(encrypted_data["field1"]))
+        self.assertEqual(data["field1"][0], encrypted_data["field1"][0])
+        self.assertEqual(data["field1"][1], encrypted_data["field1"][1])
+        self.assertNotEqual(data["field1"][2], encrypted_data["field1"][2])
+        self.assertNotEqual(data["field1"][3], encrypted_data["field1"][3])
+
+        self.assertIn("field2", encrypted_data)
+        self.assertEqual(data["field2"], encrypted_data["field2"])
+
+        decrypted = self.vault.decrypt_structured(
+            id=key.result.id, structured_data=encrypted_data, filter="$.field1[2:4]"
+        )
+        self.assertIsNotNone(decrypted.result)
+
+        decrypted_data = decrypted.result.structured_data
+        self.assertDictEqual(data, decrypted_data)
