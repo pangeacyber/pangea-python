@@ -240,7 +240,7 @@ class TestStore(unittest.IsolatedAsyncioTestCase):
         authenticators = [Authenticator(auth_type=AuthenticatorType.PASSWORD, auth_context="somepassword")]
         link_list = [
             ShareLinkCreateItem(
-                targets=[folder_id], link_type=LinkType.ALL, max_access_count=3, authenticators=authenticators
+                targets=[folder_id], link_type=LinkType.EDITOR, max_access_count=3, authenticators=authenticators
             )
         ]
         resp_create_link = await self.client.share_link_create(links=link_list)

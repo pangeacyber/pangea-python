@@ -196,7 +196,7 @@ class StoreAsync(ServiceBaseAsync):
 
     async def share_link_list(
         self,
-        filter: Optional[Union[Dict[str, str], m.ShareLinkListFilter]] = None,
+        filter: Optional[Union[Dict[str, str], m.FilterShareLinkList]] = None,
         last: Optional[str] = None,
         order: Optional[m.ItemOrder] = None,
         order_by: Optional[m.ShareLinkOrderBy] = None,

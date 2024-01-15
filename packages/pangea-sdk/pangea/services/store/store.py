@@ -41,7 +41,7 @@ class ArchiveFormat(str, enum.Enum):
 class LinkType(str, enum.Enum):
     UPLOAD = "upload"
     DOWNLOAD = "download"
-    ALL = "all"
+    EDITOR = "editor"
 
     def __str__(self):
         return str(self.value)
@@ -257,7 +257,7 @@ class ShareLinkGetResult(PangeaResponseResult):
     share_link_object: ShareLinkItem
 
 
-class ShareLinkListFilter(APIRequestModel):
+class FilterShareLinkList(APIRequestModel):
     id: Optional[str] = None
     id__contains: Optional[List[str]] = None
     id__in: Optional[List[str]] = None
@@ -301,7 +301,7 @@ class ShareLinkListFilter(APIRequestModel):
 
 
 class ShareLinkListRequest(APIRequestModel):
-    filter: Optional[Union[ShareLinkListFilter, Dict[str, str]]] = None
+    filter: Optional[Union[FilterShareLinkList, Dict[str, str]]] = None
     last: Optional[str] = None
     order: Optional[ItemOrder] = None
     order_by: Optional[ShareLinkOrderBy] = None
@@ -765,7 +765,7 @@ class Store(ServiceBase):
 
     def share_link_list(
         self,
-        filter: Optional[Union[Dict[str, str], ShareLinkListFilter]] = None,
+        filter: Optional[Union[Dict[str, str], FilterShareLinkList]] = None,
         last: Optional[str] = None,
         order: Optional[ItemOrder] = None,
         order_by: Optional[ItemOrderBy] = None,
@@ -803,7 +803,7 @@ class Store(ServiceBase):
         OperationId: store_post_v1beta_share_link_delete
 
         Args:
-            ids (List[str]): 
+            ids (List[str]): list of the share link's id to delete
 
         Returns:
             A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/store).
