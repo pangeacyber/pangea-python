@@ -96,10 +96,6 @@ class TestVault(unittest.TestCase):
         decrypt_default_resp = self.vault.decrypt(id, cipher_v2)
         self.assertEqual(data_b64, decrypt_default_resp.result.plain_text)
 
-        # Decrypt wrong version
-        # decrypt_bad = self.vault.decrypt(id, cipher_v2, 1)
-        # self.assertNotEqual(data_b64, decrypt_bad.result.plain_text)
-
         # Decrypt wrong id
         with self.assertRaises(pe.ValidationException):
             self.vault.decrypt("thisisnotandid", cipher_v2, 2)
