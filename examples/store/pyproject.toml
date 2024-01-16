@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "redact-examples"
+name = "store-examples"
 version = "2.0.0"
 description = "This is a set of examples about how to use python SDK to communicate with Store service"
 authors = ["H. Andres Tournour <andres.tournour@pangea.cloud>"]

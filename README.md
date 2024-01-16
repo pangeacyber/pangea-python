@@ -40,5 +40,5 @@ This is a list of tools and other useful items that you will find in this reposi
 |----- **redact**: Redact service examples [Click here](/examples/redact)  
 |----- **vault**: Vault service examples [Click here](/examples/vault)  
 |- **packages**: All python packages (1 available now) [Click here](/packages)  
-|----- **pangea-sdk**: Python pangea SDK folder. Also available through `pip install` [Click here](/packages/pangea-sdk)  
-|--------- **README.md**: Python pangea SDK install and usage instructions [Click here](/packages/pangea-sdk/README.md)  
+|----- **pangea-sdk**: Python Pangea SDK folder. Also available through `pip install` [Click here](/packages/pangea-sdk)  
+|--------- **README.md**: Python Pangea SDK install and usage instructions [Click here](/packages/pangea-sdk/README.md)  
