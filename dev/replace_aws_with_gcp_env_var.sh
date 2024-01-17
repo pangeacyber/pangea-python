@@ -11,13 +11,13 @@ for var in $(env | cut -d= -f1); do
         gcp_var="${var}_GCP"
 
         # Check if the 'GCP' variable is not set or empty
-        if [ -z "${!gcp_var}" ]; then
+        if [ -z "$(eval "echo \${$gcp_var}")" ]; then
             echo "Error: The 'GCP' variable for '$var' is not set or empty."
             exit 1
         fi
 
         echo "Updating '$var'..."
         # Replace the value of the current variable with the value of the 'GCP' variable
-        export "$var=${!gcp_var}"
+        export "$var=$(eval "echo \${$gcp_var}")"
     fi
 done

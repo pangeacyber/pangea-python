@@ -8,7 +8,7 @@
 
 .pangea-sdk-gcp:
   before_script:
-    - ./dev/replace_aws_with_gcp_env_var.sh
+    - source ./dev/replace_aws_with_gcp_env_var.sh
     - cd packages/pangea-sdk/
     - pip install poetry
     - poetry install
