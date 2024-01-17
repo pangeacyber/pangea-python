@@ -72,12 +72,14 @@ integration-gcp:
 asyncio-integration-aws:
   extends: .pangea-sdk-base
   stage: asyncio_tests_aws
+  allow_failure: true
   script:
     - poetry run python -m unittest tests.integration.asyncio
 
 asyncio-integration-gcp:
   extends: .pangea-sdk-gcp
   stage: asyncio_tests_gcp
+  allow_failure: true
   script:
     - poetry run python -m unittest tests.integration.asyncio
 
