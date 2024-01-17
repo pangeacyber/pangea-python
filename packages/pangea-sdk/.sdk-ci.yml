@@ -6,6 +6,15 @@
   rules:
     - if: $CI_PIPELINE_SOURCE == "push"
 
+.pangea-sdk-gcp:
+  before_script:
+    - ./dev/replace_aws_with_gcp_env_var.sh
+    - cd packages/pangea-sdk/
+    - pip install poetry
+    - poetry install
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push"
+
 .pangea-sdk-publish:
   before_script:
     - cd packages/pangea-sdk/
@@ -48,15 +57,27 @@ testing:
   script:
     - poetry run python -m unittest tests.unit
 
-integration:
+integration-aws:
   extends: .pangea-sdk-base
-  stage: integration_tests
+  stage: integration_tests_aws
   script:
     - poetry run python -m unittest tests.integration
 
-asyncio-integration:
+integration-gcp:
+  extends: .pangea-sdk-gcp
+  stage: integration_tests_gcp
+  script:
+    - poetry run python -m unittest tests.integration
+
+asyncio-integration-aws:
   extends: .pangea-sdk-base
-  stage: asyncio_tests
+  stage: asyncio_tests_aws
+  script:
+    - poetry run python -m unittest tests.integration.asyncio
+
+asyncio-integration-gcp:
+  extends: .pangea-sdk-gcp
+  stage: asyncio_tests_gcp
   script:
     - poetry run python -m unittest tests.integration.asyncio
 
