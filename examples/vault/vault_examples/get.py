@@ -17,7 +17,7 @@ def main():
         # ID of the audit token
         token_id = os.getenv("PANGEA_AUDIT_TOKEN_ID")
 
-        # Store a secret.
+        # Fetch the audit token.
         create_response = vault.get(id=token_id)
         audit_token = create_response.result.current_version.secret
 
@@ -27,7 +27,7 @@ def main():
         print(f"Envelope: {log_response.result.envelope}")
 
     except pe.PangeaAPIException as e:
-        print(f"Vault Request Error: {e.response.summary}")
+        print(f"Error: {e.response.summary}")
         for err in e.errors:
             print(f"\t{err.detail} \n")
 
