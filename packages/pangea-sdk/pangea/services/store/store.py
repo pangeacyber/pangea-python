@@ -169,7 +169,7 @@ class PutResult(PangeaResponseResult):
 
 
 class UpdateRequest(APIRequestModel):
-    id: str
+    id: Optional[str]
     path: Optional[str] = None
     add_metadata: Optional[Metadata] = None
     remove_metadata: Optional[Metadata] = None
@@ -695,7 +695,7 @@ class Store(ServiceBase):
             )
         """
         input = UpdateRequest(
-            id=id,
+            id=id,  # noqa: F401
             path=path,
             add_metadata=add_metadata,
             remove_metadata=remove_metadata,
@@ -838,7 +838,7 @@ class FileUploader:
         if transfer_method == TransferMethod.PUT_URL:
             files = [("file", (name, file, "application/octet-stream"))]
             self._request.put_presigned_url(url=url, files=files)
-        elif transfer_method == TransferMethod.POST_URL or transfer_method == TransferMethod.DIRECT:
+        elif transfer_method == TransferMethod.POST_URL:
             files = [("file", (name, file, "application/octet-stream"))]
             self._request.post_presigned_url(url=url, data=file_details, files=files)
         else:

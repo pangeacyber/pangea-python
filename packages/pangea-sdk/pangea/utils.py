@@ -90,7 +90,7 @@ def hash_sha256(input: Union[str, io.BufferedReader]) -> str:
 
         input.seek(0)  # restart reading
     else:
-        hash.update(input)
+        hash.update(input)  # noqa: F401
 
     return hash.hexdigest()
 
@@ -108,7 +108,7 @@ def hash_sha1(input: Union[str, io.BufferedReader]) -> str:
 
         input.seek(0)  # restart reading
     else:
-        hash.update(input)
+        hash.update(input)  # noqa: F401
 
     return hash.hexdigest()
 
@@ -126,7 +126,7 @@ def hash_sha512(input: Union[str, io.BufferedReader]) -> str:
 
         input.seek(0)  # restart reading
     else:
-        hash.update(input)
+        hash.update(input)  # noqa: F401
 
     return hash.hexdigest()
 
@@ -150,7 +150,7 @@ def hash_md5(input: Union[str, io.BufferedReader]) -> str:
 
         input.seek(0)  # restart reading
     else:
-        hash.update(input)
+        hash.update(input)  # noqa: F401
 
     return hash.hexdigest()
 

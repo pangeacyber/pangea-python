@@ -235,7 +235,7 @@ class FileUploaderAsync:
         if transfer_method == TransferMethod.PUT_URL:
             files = [("file", (name, file, "application/octet-stream"))]
             await self._request.put_presigned_url(url=url, files=files)
-        elif transfer_method == TransferMethod.POST_URL or transfer_method == TransferMethod.DIRECT:
+        elif transfer_method == TransferMethod.POST_URL:
             files = [("file", (name, file, "application/octet-stream"))]
             await self._request.post_presigned_url(url=url, data=file_details, files=files)
         else:

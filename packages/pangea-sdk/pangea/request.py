@@ -298,7 +298,7 @@ class PangeaRequest(PangeaRequestBase):
         )
 
         attached_files = self._get_attached_files(decoder)
-        return MultipartResponse(pangea_json, attached_files)
+        return MultipartResponse(pangea_json, attached_files)  # noqa: F401
 
     def _check_http_errors(self, resp: requests.Response):
         if resp.status_code == 503:

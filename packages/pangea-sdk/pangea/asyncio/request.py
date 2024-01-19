@@ -11,8 +11,6 @@ import aiohttp
 from aiohttp import FormData
 
 import pangea.exceptions as pe
-
-# from requests.adapters import HTTPAdapter, Retry
 from pangea.request import MultipartResponse, PangeaRequestBase
 from pangea.response import (
     AcceptedResult,
@@ -78,7 +76,7 @@ class PangeaRequestAsync(PangeaRequestBase):
 
         if "multipart/form-data" in requests_response.headers.get("content-type", ""):
             multipart_response = await self._process_multipart_response(requests_response)
-            pangea_response = PangeaResponse(
+            pangea_response: PangeaResponse = PangeaResponse(
                 requests_response,
                 result_class=result_class,
                 json=multipart_response.pangea_json,
@@ -259,8 +257,8 @@ class PangeaRequestAsync(PangeaRequestBase):
         )
 
         multipart_reader = multipart_reader.__aiter__()
-        attached_files = await self._get_attached_files(multipart_reader)
-        return MultipartResponse(pangea_json, attached_files)
+        attached_files = await self._get_attached_files(multipart_reader)  # noqa: F401
+        return MultipartResponse(pangea_json, attached_files)  # noqa: F401
 
     async def _http_post(
         self,
