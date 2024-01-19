@@ -1,4 +1,4 @@
-<a href="https://pangea.cloud?utm_source=github&utm_medium=dotnet-sdk" target="_blank" rel="noopener noreferrer">
+<a href="https://pangea.cloud?utm_source=github&utm_medium=python-sdk" target="_blank" rel="noopener noreferrer">
   <img src="https://pangea-marketing.s3.us-west-2.amazonaws.com/pangea-color.svg" alt="Pangea Logo" height="40" />
 </a>
 
