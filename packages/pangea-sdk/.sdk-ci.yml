@@ -191,17 +191,6 @@ staging-tests:
   stage: staging_tests
   parallel: !reference [.parallel-cloud,parallel]
   variables:
-    SERVICE_AUDIT_ENV: STG
-    SERVICE_AUTHN_ENV: STG
-    SERVICE_EMBARGO_ENV: STG
-    SERVICE_FILE_SCAN_ENV: STG
-    SERVICE_IP_INTEL_ENV: STG
-    SERVICE_DOMAIN_INTEL_ENV: STG
-    SERVICE_URL_INTEL_ENV: STG
-    SERVICE_FILE_INTEL_ENV: STG
-    SERVICE_USER_INTEL_ENV: STG
-    SERVICE_REDACT_ENV: STG
-    SERVICE_VAULT_ENV: STG
     ENV: STG
   script:
     - poetry run python -m unittest tests.integration
