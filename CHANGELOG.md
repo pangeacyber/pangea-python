@@ -2,13 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+## [3.6.0] - 2024-01-12
+
+### Added
+
+- Vault encrypt structured support.
 
 ## [3.5.0] - 2023-12-18
 
-# Added
+### Added
 
 - File Intel /v2/reputation support
 - IP Intel /v2/reputation, /v2/domain, /v2/proxy, v2/vpn and /v2/geolocate support
@@ -19,22 +26,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [3.4.0] - 2023-12-07
 
-# Changed 
+### Changed
 
 - 202 result format
 
-# Removed
+### Removed
 
 - accepted_status in 202 result
 
-# Added 
+### Added
 
 - put_url, post_url, post_form_data fields in 202 result
 
 
 ## [3.3.0] - 2023-11-28
 
-# Added
+### Added
 
 - Authn unlock user support
 - Redact multiconfig support
@@ -43,14 +50,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [3.2.0] - 2023-11-15
 
-# Added
+### Added
 
 - Support for audit /v2/log and /v2/log_async endpoints
 
 
 ## [3.1.0] - 2023-11-09
 
-# Added
+### Added
 
 - Presigned URL upload support on FileScan service
 - Folder settings support in Vault service
@@ -58,102 +65,102 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [3.0.0] - 2023-10-23
 
-# Added 
+### Added
 
-- AuthN v2 support 
+- AuthN v2 support
 
-# Removed
+### Removed
 
 - AuthN v1 support
 
 
 ## [2.4.0] - 2023-09-29
 
-# Added
+### Added
 
 Asyncio support. New Async Service classes are in /asyncio folder.
 
 
 ## [2.3.0] - 2023-09-26
 
-# Added
+### Added
 
 - FileScan Reversinglabs provider example
 - Domain WhoIs endpoint support
 
-# Changed
+### Changed
 
 - Deprecated config_id in PangeaConfig. Now is set in service initialization.
 
-# Fixed
+### Fixed
 
 - HashType supported in File Intel
 
 
 ## [2.2.1] - 2023-09-06
 
-# Fixed
+### Fixed
 
 - Disable multiconfig support in AuthN service
 
 
 ## [2.2.0] - 2023-09-05
 
-# Added
+### Added
 
-- Redact rulesets field support 
+- Redact rulesets field support
 - FileScan service support
 
 
 ## [2.1.0] - 2023-07-14
 
-# Added
+### Added
 
 - Vault /folder/create endpoint support
 
 
 ## [2.0.0] - 2023-07-06
 
-# Added
+### Added
 
 - Custom schema support: Add Audit.log_event() to use custom schema
 
-# Changed
+### Changed
 
 - Custom schema support breaking change: event is a dict now
 - Audit.log(): signing param rename to sign_local due to vault signing is set by token config
 - Rename FileIntel.hashReputation to hash_reputation, and filepathReputation to filepath_reputation
 
-# Removed
+### Removed
 
 - Intel lookup deprecated methods.
 
 ## [1.10.0] - 2023-06-26
 
-# Added
+### Added
 - Multiconfig support
 - Instructions to setup token and domain in examples
 
 ## [1.9.1] - 2023-06-08
 
-# Added
+### Added
 
 - Defang examples
 - Intel IP /domain, /vpn and /proxy endpoint examples
 
-# Changed
+### Changed
 
 - Intel User password breached full workflow example
 - Update requests package to fix vulnerability
 
-# Fixed
+### Fixed
 
 - Audit search order. Enums were switched out
 
 
 ## [1.9.0] - 2023-05-25
 
-# Added
+### Added
 
 - New algorithm support in Vault Service
 - Algorithm field support in Audit Service
@@ -162,7 +169,7 @@ Asyncio support. New Async Service classes are in /asyncio folder.
 
 ## [1.8.0] - 2023-04-21
 
-# Added
+### Added
 
 - AuthN service support
 
@@ -311,16 +318,17 @@ Asyncio support. New Async Service classes are in /asyncio folder.
 - Domain Intel client
 - Redact client
 
-[unreleased]: https://github.com/pangeacyber/pangea-python/compare/v3.5.0...main
-[3.5.0]: https://github.com/pangeacyber/pangea-python/compare/v3.5.0...v3.4.0
-[3.4.0]: https://github.com/pangeacyber/pangea-python/compare/v3.4.0...v3.3.0
-[3.3.0]: https://github.com/pangeacyber/pangea-python/compare/v3.3.0...v3.2.0
-[3.2.0]: https://github.com/pangeacyber/pangea-python/compare/v3.2.0...v3.1.0
-[3.1.0]: https://github.com/pangeacyber/pangea-python/compare/v3.1.0...v3.0.0
-[3.0.0]: https://github.com/pangeacyber/pangea-python/compare/v3.0.0...v2.4.0
-[2.4.0]: https://github.com/pangeacyber/pangea-python/compare/v2.4.0...v2.3.0
-[2.3.0]: https://github.com/pangeacyber/pangea-python/compare/v2.3.0...v2.2.1
-[2.2.1]: https://github.com/pangeacyber/pangea-python/compare/v2.2.1...v2.2.0
+[unreleased]: https://github.com/pangeacyber/pangea-python/compare/v3.6.0...main
+[3.6.0]: https://github.com/pangeacyber/pangea-python/compare/v3.5.0...v3.6.0
+[3.5.0]: https://github.com/pangeacyber/pangea-python/compare/v3.4.0...v3.5.0
+[3.4.0]: https://github.com/pangeacyber/pangea-python/compare/v3.3.0...v3.4.0
+[3.3.0]: https://github.com/pangeacyber/pangea-python/compare/v3.2.0...v3.3.0
+[3.2.0]: https://github.com/pangeacyber/pangea-python/compare/v3.1.0...v3.2.0
+[3.1.0]: https://github.com/pangeacyber/pangea-python/compare/v3.0.0...v3.1.0
+[3.0.0]: https://github.com/pangeacyber/pangea-python/compare/v2.4.0...v3.0.0
+[2.4.0]: https://github.com/pangeacyber/pangea-python/compare/v2.3.0...v2.4.0
+[2.3.0]: https://github.com/pangeacyber/pangea-python/compare/v2.2.1...v2.3.0
+[2.2.1]: https://github.com/pangeacyber/pangea-python/compare/v2.2.0...v2.2.1
 [2.2.0]: https://github.com/pangeacyber/pangea-python/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/pangeacyber/pangea-python/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/pangeacyber/pangea-python/compare/v1.10.0...v2.0.0

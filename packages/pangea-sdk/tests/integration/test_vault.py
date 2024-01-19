@@ -96,10 +96,6 @@ class TestVault(unittest.TestCase):
         decrypt_default_resp = self.vault.decrypt(id, cipher_v2)
         self.assertEqual(data_b64, decrypt_default_resp.result.plain_text)
 
-        # Decrypt wrong version
-        # decrypt_bad = self.vault.decrypt(id, cipher_v2, 1)
-        # self.assertNotEqual(data_b64, decrypt_bad.result.plain_text)
-
         # Decrypt wrong id
         with self.assertRaises(pe.ValidationException):
             self.vault.decrypt("thisisnotandid", cipher_v2, 2)
@@ -490,7 +486,11 @@ class TestVault(unittest.TestCase):
 
     def test_sym_encrypting_life_cycle(self):
         algorithms = [
-            SymmetricAlgorithm.AES,
+            SymmetricAlgorithm.AES128_CBC,
+            SymmetricAlgorithm.AES256_CBC,
+            SymmetricAlgorithm.AES128_CFB,
+            SymmetricAlgorithm.AES256_CFB,
+            SymmetricAlgorithm.AES256_GCM,
         ]
         purpose = KeyPurpose.ENCRYPTION
         for algorithm in algorithms:

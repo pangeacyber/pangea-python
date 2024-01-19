@@ -66,6 +66,8 @@ class SymmetricAlgorithm(str, enum.Enum):
     AES128_CFB = "AES-CFB-128"
     AES256_CFB = "AES-CFB-256"
     AES256_GCM = "AES-GCM-256"
+    AES128_CBC = "AES-CBC-128"
+    AES256_CBC = "AES-CBC-256"
     AES = "AES-CFB-128"  # deprecated, use AES128_CFB instead
 
     def __str__(self):

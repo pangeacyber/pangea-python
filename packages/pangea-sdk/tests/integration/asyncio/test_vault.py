@@ -494,7 +494,11 @@ class TestVault(unittest.IsolatedAsyncioTestCase):
 
     async def test_sym_encrypting_life_cycle(self):
         algorithms = [
-            SymmetricAlgorithm.AES,
+            SymmetricAlgorithm.AES128_CBC,
+            SymmetricAlgorithm.AES256_CBC,
+            SymmetricAlgorithm.AES128_CFB,
+            SymmetricAlgorithm.AES256_CFB,
+            SymmetricAlgorithm.AES256_GCM,
         ]
         purpose = KeyPurpose.ENCRYPTION
         for algorithm in algorithms:
