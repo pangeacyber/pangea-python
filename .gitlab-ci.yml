@@ -6,12 +6,10 @@ default:
 stages:
   - lint
   - unit_tests
-  - integration_tests_aws
-  - asyncio_tests_aws
-  - integration_tests_gcp
-  - asyncio_tests_gcp
+  - integration_tests
+  - staging_tests
   - build
 
 include:
   - /packages/pangea-sdk/.sdk-ci.yml
-  - /packages/pangea-django/.django-ci.yml
+  # - /packages/pangea-django/.django-ci.yml

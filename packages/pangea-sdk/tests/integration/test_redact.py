@@ -1,7 +1,8 @@
 import unittest
 
-import pangea.exceptions as pe
 import pydantic
+
+import pangea.exceptions as pe
 from pangea import PangeaConfig
 from pangea.response import ResponseStatus
 from pangea.services import Redact
@@ -11,10 +12,11 @@ from pangea.tools import (
     get_multi_config_test_token,
     get_test_domain,
     get_test_token,
+    load_test_environment,
     logger_set_pangea_config,
 )
 
-TEST_ENVIRONMENT = TestEnvironment.LIVE
+TEST_ENVIRONMENT = load_test_environment(Redact.service_name, TestEnvironment.LIVE)
 
 
 class TestRedact(unittest.TestCase):

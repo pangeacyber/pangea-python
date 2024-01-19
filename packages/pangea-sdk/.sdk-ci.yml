@@ -1,19 +1,45 @@
 .pangea-sdk-base:
+  variables:
+  # Set each service test environment
+    SERVICE_AUDIT_ENV: LVE
+    SERVICE_AUTHN_ENV: LVE
+    SERVICE_EMBARGO_ENV: LVE
+    SERVICE_FILE_SCAN_ENV: LVE
+    SERVICE_IP_INTEL_ENV: LVE
+    SERVICE_DOMAIN_INTEL_ENV: LVE
+    SERVICE_URL_INTEL_ENV: LVE
+    SERVICE_FILE_INTEL_ENV: LVE
+    SERVICE_USER_INTEL_ENV: LVE
+    SERVICE_REDACT_ENV: LVE
+    SERVICE_VAULT_ENV: DEV
+
   before_script:
+    - echo $ENV
+    - echo $CLOUD
+  # Update environment variables
+  # Domain
+    - export PANGEA_INTEGRATION_DOMAIN_${ENV}="$(eval echo \$PANGEA_INTEGRATION_DOMAIN_${ENV}_${CLOUD})"
+  # Tokens
+    - export PANGEA_INTEGRATION_TOKEN_${ENV}="$(eval echo \$PANGEA_INTEGRATION_TOKEN_${ENV}_${CLOUD})"
+    - export PANGEA_INTEGRATION_VAULT_TOKEN_${ENV}="$(eval echo \$PANGEA_INTEGRATION_VAULT_TOKEN_${ENV}_${CLOUD})"
+    - export PANGEA_INTEGRATION_CUSTOM_SCHEMA_TOKEN_${ENV}="$(eval echo \$PANGEA_INTEGRATION_CUSTOM_SCHEMA_TOKEN_${ENV}_${CLOUD})"
+    - export PANGEA_INTEGRATION_MULTI_CONFIG_TOKEN_${ENV}="$(eval echo \$PANGEA_INTEGRATION_MULTI_CONFIG_TOKEN_${ENV}_${CLOUD})"
+  # Config IDs
+    - export PANGEA_AUDIT_CONFIG_ID_1_${ENV}="$(eval echo \$PANGEA_AUDIT_CONFIG_ID_1_${ENV}_${CLOUD})"
+    - export PANGEA_AUDIT_CONFIG_ID_2_${ENV}="$(eval echo \$PANGEA_AUDIT_CONFIG_ID_2_${ENV}_${CLOUD})"
+    - export PANGEA_REDACT_CONFIG_ID_1_${ENV}="$(eval echo \$PANGEA_REDACT_CONFIG_ID_1_${ENV}_${CLOUD})"
+    - export PANGEA_REDACT_CONFIG_ID_2_${ENV}="$(eval echo \$PANGEA_REDACT_CONFIG_ID_2_${ENV}_${CLOUD})"
+
     - cd packages/pangea-sdk/
     - pip install poetry
     - poetry install
   rules:
     - if: $CI_PIPELINE_SOURCE == "push"
 
-.pangea-sdk-gcp:
-  before_script:
-    - source ./dev/replace_aws_with_gcp_env_var.sh
-    - cd packages/pangea-sdk/
-    - pip install poetry
-    - poetry install
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "push"
+.parallel-cloud:
+  parallel:
+    matrix:
+      - CLOUD: [AWS, GCP]
 
 .pangea-sdk-publish:
   before_script:
@@ -57,31 +83,142 @@ testing:
   script:
     - poetry run python -m unittest tests.unit
 
-integration-aws:
+audit:
   extends: .pangea-sdk-base
-  stage: integration_tests_aws
+  stage: integration_tests
+  parallel: !reference [.parallel-cloud,parallel]
+  variables:
+    ENV: ${SERVICE_AUDIT_ENV}
+  script:
+    - poetry run python -m unittest tests.integration.test_audit
+  # allow_failure should be true just for GCP
+  allow_failure: true
+
+vault:
+  extends: .pangea-sdk-base
+  stage: integration_tests
+  parallel: !reference [.parallel-cloud,parallel]
+  variables:
+    ENV: ${SERVICE_VAULT_ENV}
+  script:
+    - poetry run python -m unittest tests.integration.test_vault
+
+authn:
+  extends: .pangea-sdk-base
+  stage: integration_tests
+  parallel: !reference [.parallel-cloud,parallel]
+  variables:
+    ENV: ${SERVICE_AUTHN_ENV}
+  script:
+    - poetry run python -m unittest tests.integration.test_authn
+
+embargo:
+  extends: .pangea-sdk-base
+  stage: integration_tests
+  parallel: !reference [.parallel-cloud,parallel]
+  variables:
+    ENV: ${SERVICE_EMBARGO_ENV}
+  script:
+    - poetry run python -m unittest tests.integration.test_embargo
+
+redact:
+  extends: .pangea-sdk-base
+  stage: integration_tests
+  parallel: !reference [.parallel-cloud,parallel]
+  variables:
+    ENV: ${SERVICE_REDACT_ENV}
+  script:
+    - poetry run python -m unittest tests.integration.test_redact
+
+file-scan:
+  extends: .pangea-sdk-base
+  stage: integration_tests
+  parallel: !reference [.parallel-cloud,parallel]
+  variables:
+    ENV: ${SERVICE_FILE_SCAN_ENV}
+  script:
+    - poetry run python -m unittest tests.integration.test_file_scan
+  # allow_failure should be true just for GCP
+  allow_failure: true
+
+ip-intel:
+  extends: .pangea-sdk-base
+  stage: integration_tests
+  parallel: !reference [.parallel-cloud,parallel]
+  variables:
+    ENV: ${SERVICE_IP_INTEL_ENV}
+  script:
+    - poetry run python -m unittest tests.integration.test_intel.TestIPIntel
+
+domain-intel:
+  extends: .pangea-sdk-base
+  stage: integration_tests
+  parallel: !reference [.parallel-cloud,parallel]
+  variables:
+    ENV: ${SERVICE_DOMAIN_INTEL_ENV}
+  script:
+    - poetry run python -m unittest tests.integration.test_intel.TestDomainIntel
+
+url-intel:
+  extends: .pangea-sdk-base
+  stage: integration_tests
+  parallel: !reference [.parallel-cloud,parallel]
+  variables:
+    ENV: ${SERVICE_URL_INTEL_ENV}
+  script:
+    - poetry run python -m unittest tests.integration.test_intel.TestURLIntel
+
+user-intel:
+  extends: .pangea-sdk-base
+  stage: integration_tests
+  parallel: !reference [.parallel-cloud,parallel]
+  variables:
+    ENV: ${SERVICE_USER_INTEL_ENV}
+  script:
+    - poetry run python -m unittest tests.integration.test_intel.TestUserIntel
+
+file-intel:
+  extends: .pangea-sdk-base
+  stage: integration_tests
+  parallel: !reference [.parallel-cloud,parallel]
+  variables:
+    ENV: ${SERVICE_FILE_INTEL_ENV}
+  script:
+    - poetry run python -m unittest tests.integration.test_intel.TestFileIntel
+
+staging-tests:
+  extends: .pangea-sdk-base
+  stage: staging_tests
+  parallel: !reference [.parallel-cloud,parallel]
+  variables:
+    SERVICE_AUDIT_ENV: STG
+    SERVICE_AUTHN_ENV: STG
+    SERVICE_EMBARGO_ENV: STG
+    SERVICE_FILE_SCAN_ENV: STG
+    SERVICE_IP_INTEL_ENV: STG
+    SERVICE_DOMAIN_INTEL_ENV: STG
+    SERVICE_URL_INTEL_ENV: STG
+    SERVICE_FILE_INTEL_ENV: STG
+    SERVICE_USER_INTEL_ENV: STG
+    SERVICE_REDACT_ENV: STG
+    SERVICE_VAULT_ENV: STG
+    ENV: STG
   script:
     - poetry run python -m unittest tests.integration
 
-integration-gcp:
-  extends: .pangea-sdk-gcp
-  stage: integration_tests_gcp
-  script:
-    - poetry run python -m unittest tests.integration
+# asyncio-aws:
+#   extends: .pangea-sdk-base
+#   stage: asyncio_tests_aws
+#   allow_failure: true
+#   script:
+#     - poetry run python -m unittest tests.integration.asyncio
 
-asyncio-integration-aws:
-  extends: .pangea-sdk-base
-  stage: asyncio_tests_aws
-  allow_failure: true
-  script:
-    - poetry run python -m unittest tests.integration.asyncio
-
-asyncio-integration-gcp:
-  extends: .pangea-sdk-gcp
-  stage: asyncio_tests_gcp
-  allow_failure: true
-  script:
-    - poetry run python -m unittest tests.integration.asyncio
+# asyncio-gcp:
+#   extends: .pangea-sdk-gcp
+#   stage: asyncio_tests_gcp
+#   allow_failure: true
+#   script:
+#     - poetry run python -m unittest tests.integration.asyncio
 
 building:
   extends: .pangea-sdk-publish

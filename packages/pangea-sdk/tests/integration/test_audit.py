@@ -17,6 +17,7 @@ from pangea.tools import (
     get_test_domain,
     get_test_token,
     get_vault_signature_test_token,
+    load_test_environment,
     logger_set_pangea_config,
 )
 
@@ -33,7 +34,6 @@ STATUS_NO_SIGNED = "no-signed"
 STATUS_SIGNED = "signed"
 LONG_FIELD = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed lacinia, orci eget commodo commodo non."
 
-TEST_ENVIRONMENT = TestEnvironment.LIVE
 
 custom_schema_event = {
     "message": MSG_CUSTOM_SCHEMA_NO_SIGNED,
@@ -43,6 +43,8 @@ custom_schema_event = {
     "field_str_long": LONG_FIELD,
     "field_time": datetime.datetime.now(),
 }
+
+TEST_ENVIRONMENT = load_test_environment(Audit.service_name, TestEnvironment.LIVE)
 
 
 class TestAudit(unittest.TestCase):
