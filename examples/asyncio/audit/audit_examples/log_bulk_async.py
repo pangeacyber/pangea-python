@@ -34,7 +34,7 @@ async def main():
     await audit.log_bulk_async(events=[event1, event2], verbose=True)
     end = time.time()
 
-    print(f"Sent 2 events in {int((end - start)*1000)} miliseconds")
+    print(f"Sent 2 events in {int((end - start)*1000)} milliseconds")
     await audit.close()
 
 
