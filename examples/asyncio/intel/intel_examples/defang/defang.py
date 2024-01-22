@@ -7,7 +7,9 @@ from pangea.asyncio.services import DomainIntelAsync, UrlIntelAsync
 from pangea.config import PangeaConfig
 
 token = os.getenv("PANGEA_INTEL_TOKEN")
+assert token
 domain = os.getenv("PANGEA_DOMAIN")
+assert domain
 config = PangeaConfig(domain=domain)
 url_intel = UrlIntelAsync(token, config=config)
 domain_intel = DomainIntelAsync(token, config=config)
@@ -16,6 +18,7 @@ defanged_schemes = {"http": "hxxp", "https": "hxxps"}
 
 def get_domain(url: str) -> str:
     o = urlparse(url)
+    assert o.hostname
     return o.hostname
 
 

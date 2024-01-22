@@ -6,7 +6,9 @@ from pangea.asyncio.services import IpIntelAsync
 from pangea.config import PangeaConfig
 
 token = os.getenv("PANGEA_INTEL_TOKEN")
+assert token
 domain = os.getenv("PANGEA_DOMAIN")
+assert domain
 config = PangeaConfig(domain=domain)
 intel = IpIntelAsync(token, config=config)
 

@@ -11,6 +11,8 @@ from pangea.utils import get_file_upload_params
 
 token = os.getenv("PANGEA_FILE_SCAN_TOKEN")
 domain = os.getenv("PANGEA_DOMAIN")
+assert domain
+
 # To enable sync mode, set queued_retry_enabled to true and set a timeout
 config = PangeaConfig(domain=domain, queued_retry_enabled=True, poll_result_timeout=120)
 client = FileScan(token, config=config, logger_name="pangea")

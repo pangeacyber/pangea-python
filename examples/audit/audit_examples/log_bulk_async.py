@@ -1,14 +1,15 @@
 import os
 import time
 
-import pangea.exceptions as pe
 from pangea.config import PangeaConfig
 from pangea.services import Audit
 from pangea.services.audit.models import Event
 from pangea.tools import logger_set_pangea_config
 
 token = os.getenv("PANGEA_AUDIT_TOKEN")
+assert token
 domain = os.getenv("PANGEA_DOMAIN")
+assert domain
 config = PangeaConfig(domain=domain)
 audit = Audit(token, config=config, logger_name="audit")
 logger_set_pangea_config(logger_name=audit.logger.name)

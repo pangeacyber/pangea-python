@@ -7,6 +7,7 @@ from pangea.services import Redact
 token = os.getenv("PANGEA_REDACT_MULTICONFIG_TOKEN")
 config_id = os.getenv("PANGEA_REDACT_CONFIG_ID")
 domain = os.getenv("PANGEA_DOMAIN")
+assert domain
 config = PangeaConfig(domain=domain)
 
 # Set config_id in service constructor

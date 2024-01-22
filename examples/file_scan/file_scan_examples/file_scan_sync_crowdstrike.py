@@ -7,6 +7,8 @@ from pangea.tools import logger_set_pangea_config
 
 token = os.getenv("PANGEA_FILE_SCAN_TOKEN")
 domain = os.getenv("PANGEA_DOMAIN")
+assert domain
+
 # To enable sync mode, set queue_retry_enable to true and set a timeout
 config = PangeaConfig(domain=domain, queued_retry_enabled=True, poll_result_timeout=120)
 client = FileScan(token, config=config, logger_name="pangea")

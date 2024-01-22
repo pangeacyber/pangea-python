@@ -11,7 +11,9 @@ from pangea.tools import logger_set_pangea_config
 # This example shows how to perform an audit log, and then search through the results.
 
 token = os.getenv("PANGEA_AUDIT_CUSTOM_SCHEMA_TOKEN")
+assert token
 domain = os.getenv("PANGEA_DOMAIN")
+assert domain
 config = PangeaConfig(domain=domain)
 audit = Audit(token, config=config, private_key_file="./key/privkey", logger_name="audit")
 logger_set_pangea_config(logger_name=audit.logger.name)
@@ -77,10 +79,11 @@ def main():
 
 
 def print_header_results():
-    print(f"\n\nreceived_at\t\t\t\tMessage \t\tMembership \tConsistency \tSignature\t")
+    print("\n\nreceived_at\t\t\t\tMessage \t\tMembership \tConsistency \tSignature\t")
 
 
-def print_page_results(search_res: PangeaResponse[SearchResultOutput], offset, count):
+def print_page_results(search_res: PangeaResponse[SearchResultOutput], offset: int, count: int) -> None:
+    assert search_res.result
     print("\n--------------------------------------------------------------------\n")
     for row in search_res.result.events:
         print(

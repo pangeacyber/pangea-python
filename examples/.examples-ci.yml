@@ -1,0 +1,152 @@
+.examples-base:
+  stage: examples
+  needs: []
+  parallel:
+    matrix:
+      - PYTHON_VERSION: ['3.7', '3.8', '3.9', '3.10', '3.11']
+  image: python:${PYTHON_VERSION}
+  before_script:
+    - export PANGEA_AUDIT_CONFIG_ID="$(eval echo \$PANGEA_AUDIT_CONFIG_ID_1_LVE_AWS)"
+    - export PANGEA_AUDIT_CUSTOM_SCHEMA_TOKEN="$(eval echo \$PANGEA_INTEGRATION_CUSTOM_SCHEMA_TOKEN_LVE_AWS)"
+    - export PANGEA_AUDIT_MULTICONFIG_TOKEN="$(eval echo \$PANGEA_INTEGRATION_MULTI_CONFIG_TOKEN_LVE_AWS)"
+    - export PANGEA_AUDIT_TOKEN="$(eval echo \$PANGEA_INTEGRATION_TOKEN_LVE_AWS)"
+    - export PANGEA_AUTHN_TOKEN="$(eval echo \$PANGEA_INTEGRATION_TOKEN_LVE_AWS)"
+    - export PANGEA_DOMAIN="$(eval echo \$PANGEA_INTEGRATION_DOMAIN_LVE_AWS)"
+    - export PANGEA_EMBARGO_TOKEN="$(eval echo \$PANGEA_INTEGRATION_TOKEN_LVE_AWS)"
+    - export PANGEA_FILE_SCAN_TOKEN="$(eval echo \$PANGEA_INTEGRATION_TOKEN_LVE_AWS)"
+    - export PANGEA_INTEL_TOKEN="$(eval echo \$PANGEA_INTEGRATION_TOKEN_LVE_AWS)"
+    - export PANGEA_REDACT_CONFIG_ID="$(eval echo \$PANGEA_REDACT_CONFIG_ID_1_LVE_AWS)"
+    - export PANGEA_REDACT_MULTICONFIG_TOKEN="$(eval echo \$PANGEA_INTEGRATION_MULTI_CONFIG_TOKEN_LVE_AWS)"
+    - export PANGEA_REDACT_TOKEN="$(eval echo \$PANGEA_INTEGRATION_TOKEN_LVE_AWS)"
+    - export PANGEA_VAULT_TOKEN="$(eval echo \$PANGEA_INTEGRATION_TOKEN_LVE_AWS)"
+    - pip install --upgrade pip
+    - pip --version
+    - pip install --upgrade poetry
+    - poetry --version
+
+examples-asyncio-audit:
+  extends: .examples-base
+  script:
+    - cd examples/asyncio/audit/
+    - poetry check
+    - poetry install
+    - bash ../../../dev/run_examples.sh
+
+examples-asyncio-authn:
+  extends: .examples-base
+  script:
+    - cd examples/asyncio/authn/
+    - poetry check
+    - poetry install
+    - bash ../../../dev/run_examples.sh
+
+examples-asyncio-embargo:
+  extends: .examples-base
+  script:
+    - cd examples/asyncio/embargo/
+    - poetry check
+    - poetry install
+    - bash ../../../dev/run_examples.sh
+
+examples-asyncio-file-scan:
+  extends: .examples-base
+  script:
+    - cd examples/asyncio/file_scan/
+    - poetry check
+    - poetry install
+    - bash ../../../dev/run_examples.sh
+
+examples-asyncio-intel:
+  extends: .examples-base
+  script:
+    - cd examples/asyncio/intel/
+    - poetry check
+    - poetry install
+    - bash ../../../dev/run_examples.sh
+
+examples-asyncio-redact:
+  extends: .examples-base
+  script:
+    - cd examples/asyncio/redact/
+    - poetry check
+    - poetry install
+    - bash ../../../dev/run_examples.sh
+
+examples-asyncio-vault:
+  extends: .examples-base
+  script:
+    - cd examples/asyncio/vault/
+    - poetry check
+    - poetry install
+    - bash ../../../dev/run_examples.sh
+
+examples-audit:
+  extends: .examples-base
+  script:
+    - cd examples/audit/
+    - poetry check
+    - poetry install
+
+    # `audit_examples/log_bulk_async_with_vault.py` is skipped because it
+    # depends on a `PANGEA_AUDIT_TOKEN_VAULT_ID` which does not exist in CI.
+    - poetry run python audit_examples/audit_multiconfig.py
+    - poetry run python audit_examples/log_bulk_async.py
+    - poetry run python audit_examples/log_bulk_async.py
+    - poetry run python audit_examples/log_bulk.py
+    - poetry run python audit_examples/log_n_search_custom_schema.py
+    - poetry run python audit_examples/log_n_search_standard_schema.py
+    - poetry run python audit_examples/log.py
+
+examples-authn:
+  extends: .examples-base
+  script:
+    - cd examples/authn/
+    - poetry check
+    - poetry install
+    - bash ../../dev/run_examples.sh
+
+examples-embargo:
+  extends: .examples-base
+  script:
+    - cd examples/embargo/
+    - poetry check
+    - poetry install
+    - bash ../../dev/run_examples.sh
+
+examples-file-scan:
+  extends: .examples-base
+  script:
+    - cd examples/file_scan/
+    - poetry check
+    - poetry install
+    - bash ../../dev/run_examples.sh
+
+examples-intel:
+  extends: .examples-base
+  script:
+    - cd examples/intel/
+    - poetry check
+    - poetry install
+    - bash ../../dev/run_examples.sh
+
+examples-redact:
+  extends: .examples-base
+  script:
+    - cd examples/redact/
+    - poetry check
+    - poetry install
+    - bash ../../dev/run_examples.sh
+
+examples-vault:
+  extends: .examples-base
+  script:
+    - cd examples/vault/
+    - poetry check
+    - poetry install
+
+    # `vault_examples/get.py` is skipped because it depends on a
+    # `PANGEA_AUDIT_TOKEN_ID` which does not exist in CI.
+    - poetry run python vault_examples/encrypt_structured.py
+    - poetry run python vault_examples/encrypt.py
+    - poetry run python vault_examples/rotate.py
+    - poetry run python vault_examples/sign.py

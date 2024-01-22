@@ -6,7 +6,9 @@ from pangea.asyncio.services import RedactAsync
 from pangea.config import PangeaConfig
 
 token = os.getenv("PANGEA_REDACT_TOKEN")
+assert token
 domain = os.getenv("PANGEA_DOMAIN")
+assert domain
 config = PangeaConfig(domain=domain)
 redact = RedactAsync(token, config=config)
 

@@ -5,7 +5,9 @@ from pangea.config import PangeaConfig
 from pangea.services import UserIntel
 
 token = os.getenv("PANGEA_INTEL_TOKEN")
+assert token
 domain = os.getenv("PANGEA_DOMAIN")
+assert domain
 config = PangeaConfig(domain=domain)
 intel = UserIntel(token, config=config)
 

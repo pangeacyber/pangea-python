@@ -9,7 +9,9 @@ stages:
   - integration_tests
   - staging_tests
   - build
+  - examples
 
 include:
   - /packages/pangea-sdk/.sdk-ci.yml
   - /packages/pangea-django/.django-ci.yml
+  - /examples/.examples-ci.yml
