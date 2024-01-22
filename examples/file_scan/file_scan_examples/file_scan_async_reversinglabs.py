@@ -36,7 +36,7 @@ def main():
         for err in e.errors:
             print(f"\t{err.detail} \n")
     except pe.PangeaAPIException as e:
-        print("This is a unexcepted exception")
+        print("This is a unexpected exception")
         print(f"Request Error: {e.response.summary}")
         for err in e.errors:
             print(f"\t{err.detail} \n")
