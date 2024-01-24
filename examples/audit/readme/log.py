@@ -17,7 +17,7 @@ config = PangeaConfig(domain=domain)
 # Initialize an Audit instance using the config object
 audit = Audit(token, config=config)
 
-print(f"Logging...")
+print("Logging...")
 try:
     # Create test data
     # All input fields are listed, only `message` is required
