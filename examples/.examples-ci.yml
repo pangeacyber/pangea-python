@@ -91,7 +91,6 @@ examples-audit:
     # depends on a `PANGEA_AUDIT_TOKEN_VAULT_ID` which does not exist in CI.
     - poetry run python audit_examples/audit_multiconfig.py
     - poetry run python audit_examples/log_bulk_async.py
-    - poetry run python audit_examples/log_bulk_async.py
     - poetry run python audit_examples/log_bulk.py
     - poetry run python audit_examples/log_n_search_custom_schema.py
     - poetry run python audit_examples/log_n_search_standard_schema.py
