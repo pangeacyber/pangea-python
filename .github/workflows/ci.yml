@@ -1,4 +1,4 @@
-name: CI
+name: Lint and Test
 
 on:
   push:
@@ -37,7 +37,7 @@ jobs:
 
       - name: Install poetry
         run: |
-          pip install --upgrade poetry
+          pip install --upgrade poetry==1.7.1
           poetry --version
 
       - name: Setup Python
@@ -81,7 +81,7 @@ jobs:
 
       - name: Install poetry
         run: |
-          pip install --upgrade poetry
+          pip install --upgrade poetry==1.7.1
           poetry --version
 
       - name: Setup Python
