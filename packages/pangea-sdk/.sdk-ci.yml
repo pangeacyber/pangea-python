@@ -1,4 +1,12 @@
 .pangea-sdk-base:
+  before_script:
+    - cd packages/pangea-sdk/
+    - pip install poetry
+    - poetry install
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push"
+
+.pangea-sdk-test-base:
   variables:
   # Set each service test environment
     SERVICE_AUDIT_ENV: LVE
@@ -33,13 +41,14 @@
     - cd packages/pangea-sdk/
     - pip install poetry
     - poetry install
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "push"
 
-.parallel-cloud:
   parallel:
     matrix:
       - CLOUD: [AWS, GCP]
+
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push"
+
 
 .pangea-sdk-publish:
   before_script:
@@ -84,9 +93,8 @@ testing:
     - poetry run python -m unittest tests.unit
 
 audit:
-  extends: .pangea-sdk-base
+  extends: .pangea-sdk-test-base
   stage: integration_tests
-  parallel: !reference [.parallel-cloud,parallel]
   variables:
     ENV: ${SERVICE_AUDIT_ENV}
   script:
@@ -95,45 +103,40 @@ audit:
   allow_failure: true
 
 vault:
-  extends: .pangea-sdk-base
+  extends: .pangea-sdk-test-base
   stage: integration_tests
-  parallel: !reference [.parallel-cloud,parallel]
   variables:
     ENV: ${SERVICE_VAULT_ENV}
   script:
     - poetry run python -m unittest tests.integration.test_vault
 
 authn:
-  extends: .pangea-sdk-base
+  extends: .pangea-sdk-test-base
   stage: integration_tests
-  parallel: !reference [.parallel-cloud,parallel]
   variables:
     ENV: ${SERVICE_AUTHN_ENV}
   script:
     - poetry run python -m unittest tests.integration.test_authn
 
 embargo:
-  extends: .pangea-sdk-base
+  extends: .pangea-sdk-test-base
   stage: integration_tests
-  parallel: !reference [.parallel-cloud,parallel]
   variables:
     ENV: ${SERVICE_EMBARGO_ENV}
   script:
     - poetry run python -m unittest tests.integration.test_embargo
 
 redact:
-  extends: .pangea-sdk-base
+  extends: .pangea-sdk-test-base
   stage: integration_tests
-  parallel: !reference [.parallel-cloud,parallel]
   variables:
     ENV: ${SERVICE_REDACT_ENV}
   script:
     - poetry run python -m unittest tests.integration.test_redact
 
 file-scan:
-  extends: .pangea-sdk-base
+  extends: .pangea-sdk-test-base
   stage: integration_tests
-  parallel: !reference [.parallel-cloud,parallel]
   variables:
     ENV: ${SERVICE_FILE_SCAN_ENV}
   script:
@@ -142,54 +145,48 @@ file-scan:
   allow_failure: true
 
 ip-intel:
-  extends: .pangea-sdk-base
+  extends: .pangea-sdk-test-base
   stage: integration_tests
-  parallel: !reference [.parallel-cloud,parallel]
   variables:
     ENV: ${SERVICE_IP_INTEL_ENV}
   script:
     - poetry run python -m unittest tests.integration.test_intel.TestIPIntel
 
 domain-intel:
-  extends: .pangea-sdk-base
+  extends: .pangea-sdk-test-base
   stage: integration_tests
-  parallel: !reference [.parallel-cloud,parallel]
   variables:
     ENV: ${SERVICE_DOMAIN_INTEL_ENV}
   script:
     - poetry run python -m unittest tests.integration.test_intel.TestDomainIntel
 
 url-intel:
-  extends: .pangea-sdk-base
+  extends: .pangea-sdk-test-base
   stage: integration_tests
-  parallel: !reference [.parallel-cloud,parallel]
   variables:
     ENV: ${SERVICE_URL_INTEL_ENV}
   script:
     - poetry run python -m unittest tests.integration.test_intel.TestURLIntel
 
 user-intel:
-  extends: .pangea-sdk-base
+  extends: .pangea-sdk-test-base
   stage: integration_tests
-  parallel: !reference [.parallel-cloud,parallel]
   variables:
     ENV: ${SERVICE_USER_INTEL_ENV}
   script:
     - poetry run python -m unittest tests.integration.test_intel.TestUserIntel
 
 file-intel:
-  extends: .pangea-sdk-base
+  extends: .pangea-sdk-test-base
   stage: integration_tests
-  parallel: !reference [.parallel-cloud,parallel]
   variables:
     ENV: ${SERVICE_FILE_INTEL_ENV}
   script:
     - poetry run python -m unittest tests.integration.test_intel.TestFileIntel
 
 staging-tests:
-  extends: .pangea-sdk-base
+  extends: .pangea-sdk-test-base
   stage: staging_tests
-  parallel: !reference [.parallel-cloud,parallel]
   variables:
     ENV: STG
   script:
@@ -199,7 +196,7 @@ staging-tests:
     - if: $CI_COMMIT_BRANCH == "staging"
 
 # asyncio-aws:
-#   extends: .pangea-sdk-base
+#   extends: .pangea-sdk-test-base
 #   stage: asyncio_tests_aws
 #   allow_failure: true
 #   script:
