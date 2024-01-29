@@ -12,9 +12,9 @@ from pangea.tools import (
     get_multi_config_test_token,
     get_test_domain,
     get_test_token,
-    load_test_environment,
     logger_set_pangea_config,
 )
+from tests.test_tools import load_test_environment
 
 TEST_ENVIRONMENT = load_test_environment(Redact.service_name, TestEnvironment.LIVE)
 

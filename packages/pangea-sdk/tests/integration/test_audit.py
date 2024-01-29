@@ -17,9 +17,9 @@ from pangea.tools import (
     get_test_domain,
     get_test_token,
     get_vault_signature_test_token,
-    load_test_environment,
     logger_set_pangea_config,
 )
+from tests.test_tools import load_test_environment
 
 ACTOR = "python-sdk"
 MSG_NO_SIGNED = "test-message"

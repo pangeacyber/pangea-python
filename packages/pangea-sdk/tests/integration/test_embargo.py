@@ -3,13 +3,8 @@ import unittest
 import pangea.exceptions as pe
 from pangea import PangeaConfig
 from pangea.services import Embargo
-from pangea.tools import (
-    TestEnvironment,
-    get_test_domain,
-    get_test_token,
-    load_test_environment,
-    logger_set_pangea_config,
-)
+from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
+from tests.test_tools import load_test_environment
 
 TEST_ENVIRONMENT = load_test_environment(Embargo.service_name, TestEnvironment.LIVE)
 

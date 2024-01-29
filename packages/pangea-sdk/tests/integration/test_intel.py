@@ -6,13 +6,8 @@ from pangea import PangeaConfig
 from pangea.response import ResponseStatus
 from pangea.services import DomainIntel, FileIntel, IpIntel, UrlIntel, UserIntel
 from pangea.services.intel import HashType, IntelReputationData
-from pangea.tools import (
-    TestEnvironment,
-    get_test_domain,
-    get_test_token,
-    load_test_environment,
-    logger_set_pangea_config,
-)
+from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
+from tests.test_tools import load_test_environment
 
 
 def check_bulk_data(self: unittest.TestCase, data: Dict[str, IntelReputationData]):

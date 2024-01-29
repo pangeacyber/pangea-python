@@ -9,14 +9,9 @@ from pangea import PangeaConfig
 from pangea.services.vault.models.asymmetric import AsymmetricAlgorithm, KeyPurpose
 from pangea.services.vault.models.symmetric import SymmetricAlgorithm
 from pangea.services.vault.vault import ItemType, ItemVersionState, Vault
-from pangea.tools import (
-    TestEnvironment,
-    get_test_domain,
-    get_test_token,
-    load_test_environment,
-    logger_set_pangea_config,
-)
+from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
 from pangea.utils import format_datetime, str2str_b64
+from tests.test_tools import load_test_environment
 
 TIME = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 THIS_FUNCTION_NAME = lambda: inspect.stack()[1][3]

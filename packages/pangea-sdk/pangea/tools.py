@@ -168,23 +168,6 @@ def get_custom_schema_vault_test_token(environment: TestEnvironment):
     return value
 
 
-def load_test_environment(service_name: str, default: TestEnvironment = TestEnvironment.LIVE) -> TestEnvironment:
-    service_name = service_name.replace("-", "_").upper()
-    var_name = f"SERVICE_{service_name}_ENV"
-    value = os.getenv(var_name)
-    if not value:
-        print(f"{var_name} is not set. Return default test environment value: {default}")
-        return default
-    elif value == "DEV":
-        return TestEnvironment.DEVELOP
-    elif value == "STG":
-        return TestEnvironment.STAGING
-    elif value == "LVE":
-        return TestEnvironment.LIVE
-    else:
-        raise PangeaException(f"{var_name} not allowed value: {value}")
-
-
 class SequenceFollower:
     """
     Follows an unordered sequence of integers, looking for holes

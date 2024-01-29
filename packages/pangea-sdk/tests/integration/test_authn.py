@@ -8,13 +8,8 @@ import pangea.exceptions as pe
 import pangea.services.authn.models as m
 from pangea import PangeaConfig, PangeaResponse
 from pangea.services.authn.authn import AuthN
-from pangea.tools import (
-    TestEnvironment,
-    get_test_domain,
-    get_test_token,
-    load_test_environment,
-    logger_set_pangea_config,
-)
+from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
+from tests.test_tools import load_test_environment
 
 TEST_ENVIRONMENT = load_test_environment(AuthN.service_name, TestEnvironment.LIVE)
 
