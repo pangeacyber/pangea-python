@@ -99,8 +99,11 @@ audit:
     ENV: ${SERVICE_AUDIT_ENV}
   script:
     - poetry run python -m unittest tests.integration.test_audit
-  # allow_failure should be true just for GCP
-  allow_failure: true
+  rules:
+    - if: '$CLOUD == "GCP"'
+      allow_failure: true
+    - if: '$CLOUD != "GCP"'
+      allow_failure: false
 
 vault:
   extends: .pangea-sdk-test-base
@@ -141,8 +144,11 @@ file-scan:
     ENV: ${SERVICE_FILE_SCAN_ENV}
   script:
     - poetry run python -m unittest tests.integration.test_file_scan
-  # allow_failure should be true just for GCP
-  allow_failure: true
+  rules:
+    - if: '$CLOUD == "GCP"'
+      allow_failure: true
+    - if: '$CLOUD != "GCP"'
+      allow_failure: false
 
 ip-intel:
   extends: .pangea-sdk-test-base
