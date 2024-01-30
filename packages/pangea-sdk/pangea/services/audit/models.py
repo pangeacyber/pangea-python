@@ -2,7 +2,7 @@
 # Author: Pangea Cyber Corporation
 import datetime
 import enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 from pangea.response import APIRequestModel, APIResponseModel, PangeaResponseResult
 
@@ -273,7 +273,7 @@ class SearchRequest(APIRequestModel):
 
     query: str
     order: Optional[SearchOrder] = None
-    order_by: Optional[SearchOrderBy] = None
+    order_by: Optional[Union[SearchOrderBy, str]] = None
     last: Optional[str] = None
     start: Optional[str] = None
     end: Optional[str] = None
