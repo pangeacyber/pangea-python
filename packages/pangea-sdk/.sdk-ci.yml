@@ -192,9 +192,7 @@ staging-tests:
     ENV: STG
   script:
     - poetry run python -m unittest tests.integration
-  rules:
-  # Just to avoid running this every time
-    - if: $CI_COMMIT_BRANCH == "staging"
+  when: manual
 
 # TODO: Add asyncio tests when upgrade python 3.8
 
