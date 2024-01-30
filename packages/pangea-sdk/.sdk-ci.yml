@@ -6,6 +6,50 @@
   rules:
     - if: $CI_PIPELINE_SOURCE == "push"
 
+.pangea-sdk-test-base:
+  variables:
+  # Set each service test environment
+    SERVICE_AUDIT_ENV: LVE
+    SERVICE_AUTHN_ENV: LVE
+    SERVICE_EMBARGO_ENV: LVE
+    SERVICE_FILE_SCAN_ENV: LVE
+    SERVICE_IP_INTEL_ENV: LVE
+    SERVICE_DOMAIN_INTEL_ENV: LVE
+    SERVICE_URL_INTEL_ENV: LVE
+    SERVICE_FILE_INTEL_ENV: LVE
+    SERVICE_USER_INTEL_ENV: LVE
+    SERVICE_REDACT_ENV: LVE
+    SERVICE_VAULT_ENV: LVE
+
+  before_script:
+    - echo $ENV
+    - echo $CLOUD
+  # Update environment variables
+  # Domain
+    - export PANGEA_INTEGRATION_DOMAIN_${ENV}="$(eval echo \$PANGEA_INTEGRATION_DOMAIN_${ENV}_${CLOUD})"
+  # Tokens
+    - export PANGEA_INTEGRATION_TOKEN_${ENV}="$(eval echo \$PANGEA_INTEGRATION_TOKEN_${ENV}_${CLOUD})"
+    - export PANGEA_INTEGRATION_VAULT_TOKEN_${ENV}="$(eval echo \$PANGEA_INTEGRATION_VAULT_TOKEN_${ENV}_${CLOUD})"
+    - export PANGEA_INTEGRATION_CUSTOM_SCHEMA_TOKEN_${ENV}="$(eval echo \$PANGEA_INTEGRATION_CUSTOM_SCHEMA_TOKEN_${ENV}_${CLOUD})"
+    - export PANGEA_INTEGRATION_MULTI_CONFIG_TOKEN_${ENV}="$(eval echo \$PANGEA_INTEGRATION_MULTI_CONFIG_TOKEN_${ENV}_${CLOUD})"
+  # Config IDs
+    - export PANGEA_AUDIT_CONFIG_ID_1_${ENV}="$(eval echo \$PANGEA_AUDIT_CONFIG_ID_1_${ENV}_${CLOUD})"
+    - export PANGEA_AUDIT_CONFIG_ID_2_${ENV}="$(eval echo \$PANGEA_AUDIT_CONFIG_ID_2_${ENV}_${CLOUD})"
+    - export PANGEA_REDACT_CONFIG_ID_1_${ENV}="$(eval echo \$PANGEA_REDACT_CONFIG_ID_1_${ENV}_${CLOUD})"
+    - export PANGEA_REDACT_CONFIG_ID_2_${ENV}="$(eval echo \$PANGEA_REDACT_CONFIG_ID_2_${ENV}_${CLOUD})"
+
+    - cd packages/pangea-sdk/
+    - pip install poetry
+    - poetry install
+
+  parallel:
+    matrix:
+      - CLOUD: [AWS, GCP]
+
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push"
+
+
 .pangea-sdk-publish:
   before_script:
     - cd packages/pangea-sdk/
@@ -48,17 +92,109 @@ testing:
   script:
     - poetry run python -m unittest tests.unit
 
-integration:
-  extends: .pangea-sdk-base
+audit:
+  extends: .pangea-sdk-test-base
   stage: integration_tests
+  variables:
+    ENV: ${SERVICE_AUDIT_ENV}
+  script:
+    - poetry run python -m unittest tests.integration.test_audit
+
+vault:
+  extends: .pangea-sdk-test-base
+  stage: integration_tests
+  variables:
+    ENV: ${SERVICE_VAULT_ENV}
+  script:
+    - poetry run python -m unittest tests.integration.test_vault
+
+authn:
+  extends: .pangea-sdk-test-base
+  stage: integration_tests
+  variables:
+    ENV: ${SERVICE_AUTHN_ENV}
+  script:
+    - poetry run python -m unittest tests.integration.test_authn
+
+embargo:
+  extends: .pangea-sdk-test-base
+  stage: integration_tests
+  variables:
+    ENV: ${SERVICE_EMBARGO_ENV}
+  script:
+    - poetry run python -m unittest tests.integration.test_embargo
+
+redact:
+  extends: .pangea-sdk-test-base
+  stage: integration_tests
+  variables:
+    ENV: ${SERVICE_REDACT_ENV}
+  script:
+    - poetry run python -m unittest tests.integration.test_redact
+
+file-scan:
+  extends: .pangea-sdk-test-base
+  stage: integration_tests
+  variables:
+    ENV: ${SERVICE_FILE_SCAN_ENV}
+  script:
+    - poetry run python -m unittest tests.integration.test_file_scan
+  rules:
+    - if: '$CLOUD == "GCP"'
+      allow_failure: true
+    - if: '$CLOUD != "GCP"'
+      allow_failure: false
+
+ip-intel:
+  extends: .pangea-sdk-test-base
+  stage: integration_tests
+  variables:
+    ENV: ${SERVICE_IP_INTEL_ENV}
+  script:
+    - poetry run python -m unittest tests.integration.test_intel.TestIPIntel
+
+domain-intel:
+  extends: .pangea-sdk-test-base
+  stage: integration_tests
+  variables:
+    ENV: ${SERVICE_DOMAIN_INTEL_ENV}
+  script:
+    - poetry run python -m unittest tests.integration.test_intel.TestDomainIntel
+
+url-intel:
+  extends: .pangea-sdk-test-base
+  stage: integration_tests
+  variables:
+    ENV: ${SERVICE_URL_INTEL_ENV}
+  script:
+    - poetry run python -m unittest tests.integration.test_intel.TestURLIntel
+
+user-intel:
+  extends: .pangea-sdk-test-base
+  stage: integration_tests
+  variables:
+    ENV: ${SERVICE_USER_INTEL_ENV}
+  script:
+    - poetry run python -m unittest tests.integration.test_intel.TestUserIntel
+
+file-intel:
+  extends: .pangea-sdk-test-base
+  stage: integration_tests
+  variables:
+    ENV: ${SERVICE_FILE_INTEL_ENV}
+  script:
+    - poetry run python -m unittest tests.integration.test_intel.TestFileIntel
+
+staging-tests:
+  extends: .pangea-sdk-test-base
+  stage: staging_tests
+  variables:
+    ENV: STG
   script:
     - poetry run python -m unittest tests.integration
+  when: manual
 
-asyncio-integration:
-  extends: .pangea-sdk-base
-  stage: asyncio_tests
-  script:
-    - poetry run python -m unittest tests.integration.asyncio
+# TODO: Add asyncio tests when upgrade python 3.8
 
 building:
   extends: .pangea-sdk-publish
