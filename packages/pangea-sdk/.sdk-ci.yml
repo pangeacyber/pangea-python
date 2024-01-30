@@ -99,11 +99,6 @@ audit:
     ENV: ${SERVICE_AUDIT_ENV}
   script:
     - poetry run python -m unittest tests.integration.test_audit
-  rules:
-    - if: '$CLOUD == "GCP"'
-      allow_failure: true
-    - if: '$CLOUD != "GCP"'
-      allow_failure: false
 
 vault:
   extends: .pangea-sdk-test-base
