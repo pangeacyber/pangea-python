@@ -259,7 +259,7 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
         self,
         query: str,
         order: Optional[SearchOrder] = None,
-        order_by: Optional[SearchOrderBy] = None,
+        order_by: Optional[Union[SearchOrderBy, str]] = None,
         start: Optional[Union[datetime.datetime, str]] = None,
         end: Optional[Union[datetime.datetime, str]] = None,
         limit: Optional[int] = None,
@@ -287,7 +287,7 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
                     - status
                     - target
             order (SearchOrder, optional): Specify the sort order of the response.
-            order_by (SearchOrderBy, optional): Name of column to sort the results by.
+            order_by (SearchOrderBy, str, optional): Name of column to sort the results by.
             last (str, optional): Optional[str] = None,
             start (datetime, optional): An RFC-3339 formatted timestamp, or relative time adjustment from the current time.
             end (datetime, optional): An RFC-3339 formatted timestamp, or relative time adjustment from the current time.

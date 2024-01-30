@@ -628,6 +628,23 @@ class TestAuditAsync(unittest.IsolatedAsyncioTestCase):
         for idx in range(0, len(authors)):
             self.assertEqual(r_asc.result.events[len(authors) - 1 - idx].envelope.event["actor"], authors[idx])
 
+    async def test_search_custom_schema_order_by(self):
+        limit = 2
+        max_result = 3
+        response_search = await self.auditCustomSchema.search(
+            query='message:""',
+            order=SearchOrder.DESC,
+            order_by="field_int",
+            limit=limit,
+            max_results=max_result,
+            verbose=True,
+            end="0d",
+            start="30d",
+        )
+        self.assertEqual(response_search.status, ResponseStatus.SUCCESS)
+        self.assertEqual(len(response_search.result.events), limit)
+        self.assertEqual(response_search.result.count, max_result)
+
     async def test_multi_config_log(self):
         config = PangeaConfig(domain=self.domain)
         audit_multi_config = AuditAsync(self.multi_config_token, config=config)
