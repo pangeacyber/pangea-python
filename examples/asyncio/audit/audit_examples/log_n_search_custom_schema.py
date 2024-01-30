@@ -6,13 +6,15 @@ import pangea.exceptions as pe
 from pangea.asyncio.services import AuditAsync
 from pangea.config import PangeaConfig
 from pangea.response import PangeaResponse
-from pangea.services.audit.audit import SearchOutput, SearchResultOutput
+from pangea.services.audit.audit import SearchOutput
 from pangea.tools import logger_set_pangea_config
 
 # This example shows how to perform an audit log, and then search through the results.
 
 token = os.getenv("PANGEA_AUDIT_CUSTOM_SCHEMA_TOKEN")
+assert token
 domain = os.getenv("PANGEA_DOMAIN")
+assert domain
 config = PangeaConfig(domain=domain)
 audit = AuditAsync(token, config=config, private_key_file="./key/privkey", logger_name="audit")
 logger_set_pangea_config(logger_name=audit.logger.name)
@@ -29,7 +31,7 @@ custom_schema_event = {
 }
 
 
-async def main():
+async def main() -> None:
     print("Log Data...")
 
     try:
@@ -56,6 +58,7 @@ async def main():
             query=query, limit=page_size, verify_consistency=True, verify_events=True
         )
 
+        assert search_res.result
         result_id = search_res.result.id
         count = search_res.result.count
         print(f"Search Request ID: {search_res.request_id}, Success: {search_res.status}, Results: {count}")
@@ -67,7 +70,7 @@ async def main():
             offset += page_size
 
             if offset < count:
-                search_res = audit.results(
+                search_res = await audit.results(  # type: ignore[assignment]
                     id=result_id, limit=page_size, offset=offset, verify_consistency=True, verify_events=True
                 )
 
@@ -79,11 +82,12 @@ async def main():
     await audit.close()
 
 
-def print_header_results():
+def print_header_results() -> None:
     print("\n\nreceived_at\t\t\t\tMessage \t\tMembership \tConsistency \tSignature\t")
 
 
-def print_page_results(search_res: PangeaResponse[SearchResultOutput], offset, count):
+def print_page_results(search_res: PangeaResponse[SearchOutput], offset: int, count: int) -> None:
+    assert search_res.result
     print("\n--------------------------------------------------------------------\n")
     for row in search_res.result.events:
         print(

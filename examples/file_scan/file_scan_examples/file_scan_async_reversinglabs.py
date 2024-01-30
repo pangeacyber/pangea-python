@@ -8,6 +8,7 @@ from pangea.tools import logger_set_pangea_config
 
 token = os.getenv("PANGEA_FILE_SCAN_TOKEN")
 domain = os.getenv("PANGEA_DOMAIN")
+assert domain
 
 # To enable async mode, set queue_retry_enable to False.
 # When .scan() is called it will raise an AcceptedRequestException when server returns a 202 response

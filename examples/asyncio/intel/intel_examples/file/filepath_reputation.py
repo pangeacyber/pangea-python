@@ -7,7 +7,9 @@ from pangea.config import PangeaConfig
 from pangea.tools import logger_set_pangea_config
 
 token = os.getenv("PANGEA_INTEL_TOKEN")
+assert token
 domain = os.getenv("PANGEA_DOMAIN")
+assert domain
 config = PangeaConfig(domain=domain)
 intel = FileIntelAsync(token, config=config, logger_name="intel")
 logger_set_pangea_config(logger_name=intel.logger.name)

@@ -1,0 +1,106 @@
+name: Lint and Test
+
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+
+  merge_group:
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  prefetch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.1.1
+
+      - name: Update pip
+        run: |
+          pip install --upgrade pip
+          pip --version
+
+      - name: Install poetry
+        run: |
+          pip install --upgrade poetry==1.7.1
+          poetry --version
+
+      - name: Setup Python
+        uses: actions/setup-python@v5.0.0
+        with:
+          python-version: 3.11.7
+          cache: poetry
+          cache-dependency-path: '**/poetry.lock'
+
+  examples:
+    needs: [prefetch]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        example:
+          - asyncio/audit
+          - asyncio/authn
+          - asyncio/embargo
+          - asyncio/file_scan
+          - asyncio/intel
+          - asyncio/redact
+          - asyncio/vault
+          - audit
+          - authn
+          - embargo
+          - file_scan
+          - intel
+          - redact
+          - vault
+    defaults:
+      run:
+        working-directory: ./examples/${{ matrix.example }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.1.1
+
+      - name: Update pip
+        run: |
+          pip install --upgrade pip
+          pip --version
+
+      - name: Install poetry
+        run: |
+          pip install --upgrade poetry==1.7.1
+          poetry --version
+
+      - name: Setup Python
+        uses: actions/setup-python@v5.0.0
+        with:
+          python-version: 3.11.7
+          cache: poetry
+          cache-dependency-path: ./examples/${{ matrix.example }}/poetry.lock
+
+      - name: Install dependencies
+        run: |
+          poetry check
+          poetry install
+
+      - name: black
+        run: poetry run black --check .
+
+      - name: isort
+        run: poetry run isort --check .
+
+      - name: mypy
+        run: poetry run mypy .
