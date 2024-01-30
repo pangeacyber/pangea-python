@@ -6,7 +6,9 @@ from pangea.services.audit.models import Event
 from pangea.tools import logger_set_pangea_config
 
 vault_token = os.getenv("PANGEA_VAULT_TOKEN")
+assert vault_token
 audit_token_vault_id = os.getenv("PANGEA_AUDIT_TOKEN_VAULT_ID")
+assert audit_token_vault_id
 domain = os.getenv("PANGEA_DOMAIN")
 assert domain
 config = PangeaConfig(domain=domain)

@@ -6,7 +6,9 @@ from pangea.services import Audit
 from pangea.tools import logger_set_pangea_config
 
 token = os.getenv("PANGEA_AUDIT_MULTICONFIG_TOKEN")
+assert token
 config_id = os.getenv("PANGEA_AUDIT_CONFIG_ID")
+assert config_id
 domain = os.getenv("PANGEA_DOMAIN")
 assert domain
 config = PangeaConfig(domain=domain)
