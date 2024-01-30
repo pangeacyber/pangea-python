@@ -196,19 +196,7 @@ staging-tests:
   # Just to avoid running this every time
     - if: $CI_COMMIT_BRANCH == "staging"
 
-# asyncio-aws:
-#   extends: .pangea-sdk-test-base
-#   stage: asyncio_tests_aws
-#   allow_failure: true
-#   script:
-#     - poetry run python -m unittest tests.integration.asyncio
-
-# asyncio-gcp:
-#   extends: .pangea-sdk-gcp
-#   stage: asyncio_tests_gcp
-#   allow_failure: true
-#   script:
-#     - poetry run python -m unittest tests.integration.asyncio
+# TODO: Add asyncio tests when upgrade python 3.8
 
 building:
   extends: .pangea-sdk-publish
