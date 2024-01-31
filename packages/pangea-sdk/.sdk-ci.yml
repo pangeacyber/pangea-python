@@ -49,8 +49,7 @@
   rules:
     - if: $CI_PIPELINE_SOURCE == "push"
 
-
-.pangea-sdk-publish:
+.pangea-sdk-publish-base:
   before_script:
     - cd packages/pangea-sdk/
     - pip install poetry
@@ -61,13 +60,13 @@
         - packages/pangea-sdk/**/*
       when: on_success
 
-lint:
+pangea-sdk-lint:
   extends: .pangea-sdk-base
   stage: lint
   script:
     - poetry run black .
 
-generate_docs:
+pangea-sdk-generate-docs:
   extends: .pangea-sdk-base
   stage: lint
   allow_failure: true
@@ -79,20 +78,20 @@ generate_docs:
     paths: ['packages/pangea-sdk/python_sdk.json']
     when: on_success
 
-type_check:
+pangea-sdk-type-check:
   extends: .pangea-sdk-base
   stage: lint
   needs: []
   script:
     - poetry run mypy pangea tests
 
-testing:
+pangea-sdk-unit-testing:
   extends: .pangea-sdk-base
   stage: unit_tests
   script:
     - poetry run python -m unittest tests.unit
 
-audit:
+pangea-sdk-it-audit:
   extends: .pangea-sdk-test-base
   stage: integration_tests
   variables:
@@ -100,7 +99,7 @@ audit:
   script:
     - poetry run python -m unittest tests.integration.test_audit
 
-vault:
+pangea-sdk-it-vault:
   extends: .pangea-sdk-test-base
   stage: integration_tests
   variables:
@@ -108,7 +107,7 @@ vault:
   script:
     - poetry run python -m unittest tests.integration.test_vault
 
-authn:
+pangea-sdk-it-authn:
   extends: .pangea-sdk-test-base
   stage: integration_tests
   variables:
@@ -116,7 +115,7 @@ authn:
   script:
     - poetry run python -m unittest tests.integration.test_authn
 
-embargo:
+pangea-sdk-it-embargo:
   extends: .pangea-sdk-test-base
   stage: integration_tests
   variables:
@@ -124,7 +123,7 @@ embargo:
   script:
     - poetry run python -m unittest tests.integration.test_embargo
 
-redact:
+pangea-sdk-it-redact:
   extends: .pangea-sdk-test-base
   stage: integration_tests
   variables:
@@ -132,7 +131,7 @@ redact:
   script:
     - poetry run python -m unittest tests.integration.test_redact
 
-file-scan:
+pangea-sdk-it-file-scan:
   extends: .pangea-sdk-test-base
   stage: integration_tests
   variables:
@@ -145,7 +144,7 @@ file-scan:
     - if: '$CLOUD != "GCP"'
       allow_failure: false
 
-ip-intel:
+pangea-sdk-it-ip-intel:
   extends: .pangea-sdk-test-base
   stage: integration_tests
   variables:
@@ -153,7 +152,7 @@ ip-intel:
   script:
     - poetry run python -m unittest tests.integration.test_intel.TestIPIntel
 
-domain-intel:
+pangea-sdk-it-domain-intel:
   extends: .pangea-sdk-test-base
   stage: integration_tests
   variables:
@@ -161,7 +160,7 @@ domain-intel:
   script:
     - poetry run python -m unittest tests.integration.test_intel.TestDomainIntel
 
-url-intel:
+pangea-sdk-it-url-intel:
   extends: .pangea-sdk-test-base
   stage: integration_tests
   variables:
@@ -169,7 +168,7 @@ url-intel:
   script:
     - poetry run python -m unittest tests.integration.test_intel.TestURLIntel
 
-user-intel:
+pangea-sdk-it-user-intel:
   extends: .pangea-sdk-test-base
   stage: integration_tests
   variables:
@@ -177,7 +176,7 @@ user-intel:
   script:
     - poetry run python -m unittest tests.integration.test_intel.TestUserIntel
 
-file-intel:
+pangea-sdk-it-file-intel:
   extends: .pangea-sdk-test-base
   stage: integration_tests
   variables:
@@ -185,20 +184,31 @@ file-intel:
   script:
     - poetry run python -m unittest tests.integration.test_intel.TestFileIntel
 
-staging-tests:
+.pangea-sdk-staging-tests:
   extends: .pangea-sdk-test-base
-  stage: staging_tests
   variables:
     ENV: STG
+  # Set each service test environment
+    SERVICE_AUDIT_ENV: STG
+    SERVICE_AUTHN_ENV: STG
+    SERVICE_EMBARGO_ENV: STG
+    SERVICE_FILE_SCAN_ENV: STG
+    SERVICE_IP_INTEL_ENV: STG
+    SERVICE_DOMAIN_INTEL_ENV: STG
+    SERVICE_URL_INTEL_ENV: STG
+    SERVICE_FILE_INTEL_ENV: STG
+    SERVICE_USER_INTEL_ENV: STG
+    SERVICE_REDACT_ENV: STG
+    SERVICE_VAULT_ENV: STG
+
   script:
     - poetry run python -m unittest tests.integration
-  when: manual
 
 # TODO: Add asyncio tests when upgrade python 3.8
 
-building:
-  extends: .pangea-sdk-publish
-  stage: build
+pangea-sdk-publish:
+  extends: .pangea-sdk-publish-base
+  stage: publish
   script:
     - poetry build
     - poetry publish --username __token__ --password $PYPI_SDK_TOKEN
