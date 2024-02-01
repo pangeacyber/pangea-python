@@ -40,7 +40,10 @@ jobs:
         env:
           JQ_FILTER: >-
             "examples-matrix=" + (split("\n") | map(select(length > 0)) | tostring)
-        run: find . -type f -name 'pyproject.toml' -printf '%h\n' | cut -c 3- | sort -u | jq -cRrs '${{ env.JQ_FILTER }}' >> "$GITHUB_OUTPUT"
+        run: |
+          examples=$(find . -type f -name 'pyproject.toml' -printf '%h\n' | cut -c 3- | sort -u | jq -cRrs '${{ env.JQ_FILTER }}')
+          echo "$examples"
+          echo "$examples" >> "$GITHUB_OUTPUT"
 
   prefetch:
     runs-on: ubuntu-latest
