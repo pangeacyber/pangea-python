@@ -24,6 +24,27 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  setup:
+    runs-on: ubuntu-latest
+
+    outputs:
+      examples-matrix: ${{ steps.examples-matrix.outputs.examples-matrix }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.1.1
+
+      - name: Calculate `examples-matrix` output
+        id: examples-matrix
+        working-directory: ./examples
+        env:
+          JQ_FILTER: >-
+            "examples-matrix=" + (split("\n") | map(select(length > 0)) | tostring)
+        run: |
+          examples=$(find . -type f -name 'pyproject.toml' -printf '%h\n' | cut -c 3- | sort -u | jq -cRrs '${{ env.JQ_FILTER }}')
+          echo "$examples"
+          echo "$examples" >> "$GITHUB_OUTPUT"
+
   prefetch:
     runs-on: ubuntu-latest
     steps:
@@ -48,25 +69,11 @@ jobs:
           cache-dependency-path: '**/poetry.lock'
 
   examples:
-    needs: [prefetch]
+    needs: [setup, prefetch]
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        example:
-          - asyncio/audit
-          - asyncio/authn
-          - asyncio/embargo
-          - asyncio/file_scan
-          - asyncio/intel
-          - asyncio/redact
-          - asyncio/vault
-          - audit
-          - authn
-          - embargo
-          - file_scan
-          - intel
-          - redact
-          - vault
+        example: ${{ fromJSON(needs.setup.outputs.examples-matrix) }}
     defaults:
       run:
         working-directory: ./examples/${{ matrix.example }}
