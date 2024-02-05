@@ -78,7 +78,6 @@
         ENV: ${SERVICE_VAULT_ENV}
         TEST: test_vault
   rules:
-    - if: $CI_PIPELINE_SOURCE == "push"
     - if: '$CLOUD == "GCP" && $TEST == "test_file_scan"'
       allow_failure: true
     - if: '$CLOUD != "GCP"'
