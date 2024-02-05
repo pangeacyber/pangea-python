@@ -14,7 +14,7 @@ def main() -> None:
 
     try:
         # ID of the audit token
-        token_id = os.getenv("PANGEA_AUDIT_TOKEN_ID")
+        token_id = os.getenv("PANGEA_AUDIT_TOKEN_VAULT_ID")
         assert token_id
 
         # Fetch the audit token.
