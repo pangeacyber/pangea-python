@@ -6,6 +6,6 @@ updates:
       interval: daily
 
   - package-ecosystem: pip
-    directory: /examples
+    directory: /
     schedule:
       interval: daily
