@@ -80,6 +80,8 @@
   rules:
     - if: '$CLOUD == "GCP" && $TEST == "test_file_scan"'
       allow_failure: true
+    - if: '$CLOUD == "GCP" && $TEST != "test_file_scan"'
+      allow_failure: false
     - if: '$CLOUD != "GCP"'
       allow_failure: false
 
