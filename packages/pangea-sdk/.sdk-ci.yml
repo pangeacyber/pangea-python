@@ -2,6 +2,7 @@
   before_script:
     - cd packages/pangea-sdk/
     - pip install poetry
+    - poetry check
     - poetry install
   rules:
     - if: $CI_PIPELINE_SOURCE == "push"
@@ -41,6 +42,7 @@
 
     - cd packages/pangea-sdk/
     - pip install poetry
+    - poetry check
     - poetry install
   parallel:
     matrix:
@@ -89,6 +91,7 @@
   before_script:
     - cd packages/pangea-sdk/
     - pip install poetry
+    - poetry check
     - poetry install
   rules:
     - if: $CI_COMMIT_BRANCH == "release"
