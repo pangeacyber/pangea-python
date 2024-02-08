@@ -6,6 +6,97 @@ updates:
       interval: daily
 
   - package-ecosystem: pip
-    directory: /
+    directory: /examples/asyncio/audit
+    versioning-strategy: increase
+    schedule:
+      interval: daily
+
+  - package-ecosystem: pip
+    directory: /examples/asyncio/authn
+    versioning-strategy: increase
+    schedule:
+      interval: daily
+
+  - package-ecosystem: pip
+    directory: /examples/asyncio/embargo
+    versioning-strategy: increase
+    schedule:
+      interval: daily
+
+  - package-ecosystem: pip
+    directory: /examples/asyncio/file_scan
+    versioning-strategy: increase
+    schedule:
+      interval: daily
+
+  - package-ecosystem: pip
+    directory: /examples/asyncio/intel
+    versioning-strategy: increase
+    schedule:
+      interval: daily
+
+  - package-ecosystem: pip
+    directory: /examples/asyncio/redact
+    versioning-strategy: increase
+    schedule:
+      interval: daily
+
+  - package-ecosystem: pip
+    directory: /examples/asyncio/vault
+    versioning-strategy: increase
+    schedule:
+      interval: daily
+
+  - package-ecosystem: pip
+    directory: /examples/audit
+    versioning-strategy: increase
+    schedule:
+      interval: daily
+
+  - package-ecosystem: pip
+    directory: /examples/authn
+    versioning-strategy: increase
+    schedule:
+      interval: daily
+
+  - package-ecosystem: pip
+    directory: /examples/embargo
+    versioning-strategy: increase
+    schedule:
+      interval: daily
+
+  - package-ecosystem: pip
+    directory: /examples/file_scan
+    versioning-strategy: increase
+    schedule:
+      interval: daily
+
+  - package-ecosystem: pip
+    directory: /examples/intel
+    versioning-strategy: increase
+    schedule:
+      interval: daily
+
+  - package-ecosystem: pip
+    directory: /examples/redact
+    versioning-strategy: increase
+    schedule:
+      interval: daily
+
+  - package-ecosystem: pip
+    directory: /examples/vault
+    versioning-strategy: increase
+    schedule:
+      interval: daily
+
+  - package-ecosystem: pip
+    directory: /packages/pangea-django
+    versioning-strategy: increase
+    schedule:
+      interval: daily
+
+  - package-ecosystem: pip
+    directory: /packages/pangea-sdk
+    versioning-strategy: increase
     schedule:
       interval: daily
