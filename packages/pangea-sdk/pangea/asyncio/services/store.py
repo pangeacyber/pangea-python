@@ -9,7 +9,7 @@ from pangea.asyncio.request import PangeaRequestAsync
 from pangea.request import PangeaConfig
 from pangea.response import PangeaResponse, TransferMethod
 from pangea.services.store.file_format import FileFormat
-from pangea.utils import FileUploadParams, get_file_upload_params
+from pangea.utils import get_file_upload_params
 
 from .base import ServiceBaseAsync
 
@@ -211,6 +211,14 @@ class StoreAsync(ServiceBaseAsync):
         input = m.ShareLinkDeleteRequest(ids=ids)
         return await self.request.post(
             "v1beta/share/link/delete", m.ShareLinkDeleteResult, data=input.dict(exclude_none=True)
+        )
+
+    async def share_link_send(
+        self, links: List[m.ShareLinkSendItem], sender_email: str, sender_name: Optional[str] = None
+    ) -> PangeaResponse[m.ShareLinkSendResult]:
+        input = m.ShareLinkSendRequest(links=links, sender_email=sender_email, sender_name=sender_name)
+        return await self.request.post(
+            "v1beta/share/link/send", m.ShareLinkSendResult, data=input.dict(exclude_none=True)
         )
 
 

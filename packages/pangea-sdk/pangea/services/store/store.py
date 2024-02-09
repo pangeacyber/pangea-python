@@ -323,6 +323,21 @@ class ShareLinkDeleteResult(PangeaResponseResult):
     share_link_objects: List[ShareLinkItem] = []
 
 
+class ShareLinkSendItem(APIRequestModel):
+    id: str
+    email: str
+
+
+class ShareLinkSendRequest(APIRequestModel):
+    links: List[ShareLinkSendItem]
+    sender_email: str
+    sender_name: Optional[str]
+
+
+class ShareLinkSendResult(PangeaResponseResult):
+    share_link_objects: List[ShareLinkItem]
+
+
 class Store(ServiceBase):
     """Store service client."""
 
@@ -817,6 +832,12 @@ class Store(ServiceBase):
         """
         input = ShareLinkDeleteRequest(ids=ids)
         return self.request.post("v1beta/share/link/delete", ShareLinkDeleteResult, data=input.dict(exclude_none=True))
+
+    def share_link_send(
+        self, links: List[ShareLinkSendItem], sender_email: str, sender_name: Optional[str] = None
+    ) -> PangeaResponse[ShareLinkSendResult]:
+        input = ShareLinkSendRequest(links=links, sender_email=sender_email, sender_name=sender_name)
+        return self.request.post("v1beta/share/link/send", ShareLinkSendResult, data=input.dict(exclude_none=True))
 
 
 class FileUploader:

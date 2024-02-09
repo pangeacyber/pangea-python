@@ -16,6 +16,7 @@ from pangea.services.store.store import (
     LinkType,
     PutResult,
     ShareLinkCreateItem,
+    ShareLinkSendItem,
 )
 from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
 from pangea.utils import get_file_upload_params
@@ -265,6 +266,14 @@ class TestStore(unittest.IsolatedAsyncioTestCase):
         self.assertNotEqual(link.id, "")
 
         self.assertEqual(len(link.targets), 1)
+
+        # Send link
+        resp_send_link = await self.client.share_link_send(
+            links=[ShareLinkSendItem(id=link.id, email="email@pangea.cloud")],
+            sender_email="share@pangea.cloud",
+            sender_name="Pangea",
+        )
+        self.assertTrue(len(resp_send_link.result.share_link_objects) > 0)
 
         # Get share link
         resp_get_link = await self.client.share_link_get(id=link.id)
