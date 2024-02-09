@@ -11,7 +11,7 @@ from typing import Dict, List, Optional, Tuple, Type, Union
 import aiohttp
 import requests
 from requests.adapters import HTTPAdapter, Retry
-from requests_toolbelt import MultipartDecoder
+from requests_toolbelt import MultipartDecoder  # type: ignore
 
 import pangea
 import pangea.exceptions as pe
@@ -241,7 +241,7 @@ class PangeaRequest(PangeaRequestBase):
 
         if "multipart/form-data" in requests_response.headers.get("content-type", ""):
             multipart_response = self._process_multipart_response(requests_response)
-            pangea_response = PangeaResponse(
+            pangea_response: PangeaResponse = PangeaResponse(
                 requests_response,
                 result_class=result_class,
                 json=multipart_response.pangea_json,
@@ -298,7 +298,7 @@ class PangeaRequest(PangeaRequestBase):
         )
 
         attached_files = self._get_attached_files(decoder)
-        return MultipartResponse(pangea_json, attached_files)  # noqa: F401
+        return MultipartResponse(pangea_json, attached_files)  # type: ignore
 
     def _check_http_errors(self, resp: requests.Response):
         if resp.status_code == 503:

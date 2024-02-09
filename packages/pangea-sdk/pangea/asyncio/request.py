@@ -251,14 +251,14 @@ class PangeaRequestAsync(PangeaRequestBase):
         # Parse the multipart response
         multipart_reader = aiohttp.MultipartReader.from_response(resp)
 
-        pangea_json = await self._get_pangea_json(multipart_reader)
+        pangea_json = await self._get_pangea_json(multipart_reader)  # type: ignore
         self.logger.debug(
             json.dumps({"service": self.service, "action": "multipart response", "response": pangea_json})
         )
 
         multipart_reader = multipart_reader.__aiter__()
-        attached_files = await self._get_attached_files(multipart_reader)  # noqa: F401
-        return MultipartResponse(pangea_json, attached_files)  # noqa: F401
+        attached_files = await self._get_attached_files(multipart_reader)  # type: ignore
+        return MultipartResponse(pangea_json, attached_files)  # type: ignore
 
     async def _http_post(
         self,

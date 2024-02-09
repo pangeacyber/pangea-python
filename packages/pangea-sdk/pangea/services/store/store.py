@@ -785,7 +785,7 @@ class Store(ServiceBase):
         filter: Optional[Union[Dict[str, str], FilterShareLinkList]] = None,
         last: Optional[str] = None,
         order: Optional[ItemOrder] = None,
-        order_by: Optional[ItemOrderBy] = None,
+        order_by: Optional[ShareLinkOrderBy] = None,
         size: Optional[int] = None,
     ) -> PangeaResponse[ShareLinkListResult]:
         """
