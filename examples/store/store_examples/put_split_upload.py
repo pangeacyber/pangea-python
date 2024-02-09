@@ -41,7 +41,11 @@ def main():
             print("Request URL success. Uploading file...")
             uploader = FileUploader()
             uploader.upload_file(
-                url=url, name=name, file=f, transfer_method=TransferMethod.POST_URL, file_details=file_details
+                url=url,
+                name=name,
+                file=f,
+                transfer_method=TransferMethod.POST_URL,
+                file_details=file_details,
             )
 
             print("Upload file success.")

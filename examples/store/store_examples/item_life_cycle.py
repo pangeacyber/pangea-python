@@ -77,14 +77,20 @@ def main():
         add_metadata = {"field3": "value3"}
         add_tags = ["tag3"]
         print(f"\nUpdating item ID: {resp_put_path.result.object.id}")
-        resp_update_add = store.update(id=resp_put_path.result.object.id, add_metadata=add_metadata, add_tags=add_tags)
+        resp_update_add = store.update(
+            id=resp_put_path.result.object.id,
+            add_metadata=add_metadata,
+            add_tags=add_tags,
+        )
         print(f"Update success. Item ID: {resp_update_add.result.object.id}")
         print(f"Metadata: {resp_update_add.result.object.metadata}. Tags: {resp_update_add.result.object.tags}")
 
         # Get archive
         print("\nGetting archive with multipart transfer method...")
         resp_get_archive = store.get_archive(
-            ids=[folder_id], format=ArchiveFormat.ZIP, transfer_method=TransferMethod.MULTIPART
+            ids=[folder_id],
+            format=ArchiveFormat.ZIP,
+            transfer_method=TransferMethod.MULTIPART,
         )
         print(f"Got {len(resp_get_archive.attached_files)} attached file(s).")
         print(f"Download URL: {resp_get_archive.url}")
@@ -94,7 +100,9 @@ def main():
 
         print("\nGetting archive with dest-url transfer method...")
         resp_get_archive = store.get_archive(
-            ids=[folder_id], format=ArchiveFormat.TAR, transfer_method=TransferMethod.DEST_URL
+            ids=[folder_id],
+            format=ArchiveFormat.TAR,
+            transfer_method=TransferMethod.DEST_URL,
         )
         print(f"Got {len(resp_get_archive.attached_files)} attached file(s).")
         print(f"Download URL: {resp_get_archive.url}")
@@ -104,7 +112,11 @@ def main():
         store.download_file(url=resp_get_archive.result.dest_url)
         store.download_file(url=resp_get_archive.result.dest_url, filename="download.tar")
         store.download_file(url=resp_get_archive.result.dest_url, dest_folder="./download/")
-        store.download_file(url=resp_get_archive.result.dest_url, filename="download.tar", dest_folder="./download/")
+        store.download_file(
+            url=resp_get_archive.result.dest_url,
+            filename="download.tar",
+            dest_folder="./download/",
+        )
 
         # Create share link
         print("\nCreating share link...")
@@ -115,7 +127,10 @@ def main():
         # Create share link list, including all the items to share
         link_list = [
             ShareLinkCreateItem(
-                targets=[folder_id], link_type=LinkType.EDITOR, max_access_count=3, authenticators=authenticators
+                targets=[folder_id],
+                link_type=LinkType.EDITOR,
+                max_access_count=3,
+                authenticators=authenticators,
             )
         ]
 
