@@ -1,15 +1,102 @@
-.pangea-sdk-base:
+.python-sdk-base:
   before_script:
     - cd packages/pangea-sdk/
     - pip install poetry
+    - poetry check
     - poetry install
   rules:
     - if: $CI_PIPELINE_SOURCE == "push"
 
-.pangea-sdk-publish:
+.python-sdk-test-base:
+  variables:
+  # Set each service test environment
+    SERVICE_AUDIT_ENV: LVE
+    SERVICE_AUTHN_ENV: LVE
+    SERVICE_EMBARGO_ENV: LVE
+    SERVICE_FILE_SCAN_ENV: LVE
+    SERVICE_IP_INTEL_ENV: LVE
+    SERVICE_DOMAIN_INTEL_ENV: LVE
+    SERVICE_URL_INTEL_ENV: LVE
+    SERVICE_FILE_INTEL_ENV: LVE
+    SERVICE_USER_INTEL_ENV: LVE
+    SERVICE_REDACT_ENV: LVE
+    SERVICE_VAULT_ENV: LVE
+    SERVICE_STORE_ENV: DEV
+
+  before_script:
+    - echo ${ENV}
+    - echo ${CLOUD}
+    - echo ${TEST}
+  # Update environment variables
+  # Domain
+    - export PANGEA_INTEGRATION_DOMAIN_${ENV}="$(eval echo \$PANGEA_INTEGRATION_DOMAIN_${ENV}_${CLOUD})"
+  # Tokens
+    - export PANGEA_INTEGRATION_TOKEN_${ENV}="$(eval echo \$PANGEA_INTEGRATION_TOKEN_${ENV}_${CLOUD})"
+    - export PANGEA_INTEGRATION_VAULT_TOKEN_${ENV}="$(eval echo \$PANGEA_INTEGRATION_VAULT_TOKEN_${ENV}_${CLOUD})"
+    - export PANGEA_INTEGRATION_CUSTOM_SCHEMA_TOKEN_${ENV}="$(eval echo \$PANGEA_INTEGRATION_CUSTOM_SCHEMA_TOKEN_${ENV}_${CLOUD})"
+    - export PANGEA_INTEGRATION_MULTI_CONFIG_TOKEN_${ENV}="$(eval echo \$PANGEA_INTEGRATION_MULTI_CONFIG_TOKEN_${ENV}_${CLOUD})"
+  # Config IDs
+    - export PANGEA_AUDIT_CONFIG_ID_1_${ENV}="$(eval echo \$PANGEA_AUDIT_CONFIG_ID_1_${ENV}_${CLOUD})"
+    - export PANGEA_AUDIT_CONFIG_ID_2_${ENV}="$(eval echo \$PANGEA_AUDIT_CONFIG_ID_2_${ENV}_${CLOUD})"
+    - export PANGEA_REDACT_CONFIG_ID_1_${ENV}="$(eval echo \$PANGEA_REDACT_CONFIG_ID_1_${ENV}_${CLOUD})"
+    - export PANGEA_REDACT_CONFIG_ID_2_${ENV}="$(eval echo \$PANGEA_REDACT_CONFIG_ID_2_${ENV}_${CLOUD})"
+
+    - cd packages/pangea-sdk/
+    - pip install poetry
+    - poetry check
+    - poetry install
+  parallel:
+    matrix:
+      - CLOUD: [AWS, GCP]
+        ENV: ${SERVICE_AUDIT_ENV}
+        TEST: test_audit
+      - CLOUD: [AWS, GCP]
+        ENV: ${SERVICE_AUTHN_ENV}
+        TEST: test_authn
+      - CLOUD: [AWS, GCP]
+        ENV: ${SERVICE_EMBARGO_ENV}
+        TEST: test_embargo
+      - CLOUD: [AWS, GCP]
+        ENV: ${SERVICE_DOMAIN_INTEL_ENV}
+        TEST: test_intel.TestDomainIntel
+      - CLOUD: [AWS, GCP]
+        ENV: ${SERVICE_IP_INTEL_ENV}
+        TEST: test_intel.TestIPIntel
+      - CLOUD: [AWS, GCP]
+        ENV: ${SERVICE_URL_INTEL_ENV}
+        TEST: test_intel.TestURLIntel
+      - CLOUD: [AWS, GCP]
+        ENV: ${SERVICE_USER_INTEL_ENV}
+        TEST: test_intel.TestUserIntel
+      - CLOUD: [AWS, GCP]
+        ENV: ${SERVICE_FILE_INTEL_ENV}
+        TEST: test_intel.TestFileIntel
+      - CLOUD: [AWS, GCP]
+        ENV: ${SERVICE_FILE_SCAN_ENV}
+        TEST: test_file_scan
+      - CLOUD: [AWS, GCP]
+        ENV: ${SERVICE_REDACT_ENV}
+        TEST: test_redact
+      - CLOUD: [AWS, GCP]
+        ENV: ${SERVICE_VAULT_ENV}
+        TEST: test_vault
+      - CLOUD: [AWS, GCP]
+        ENV: ${SERVICE_STORE_ENV}
+        TEST: test_store
+
+  rules:
+    - if: '$CLOUD == "GCP" && $TEST == "test_file_scan"'
+      allow_failure: true
+    - if: '$CLOUD == "GCP" && $TEST != "test_file_scan"'
+      allow_failure: false
+    - if: '$CLOUD != "GCP"'
+      allow_failure: false
+
+.python-sdk-publish-base:
   before_script:
     - cd packages/pangea-sdk/
     - pip install poetry
+    - poetry check
     - poetry install
   rules:
     - if: $CI_COMMIT_BRANCH == "release"
@@ -17,14 +104,14 @@
         - packages/pangea-sdk/**/*
       when: on_success
 
-lint:
-  extends: .pangea-sdk-base
+python-sdk-lint:
+  extends: .python-sdk-base
   stage: lint
   script:
     - poetry run black .
 
-generate_docs:
-  extends: .pangea-sdk-base
+python-sdk-generate-docs:
+  extends: .python-sdk-base
   stage: lint
   allow_failure: true
   script:
@@ -35,35 +122,35 @@ generate_docs:
     paths: ['packages/pangea-sdk/python_sdk.json']
     when: on_success
 
-type_check:
-  extends: .pangea-sdk-base
+python-sdk-type-check:
+  extends: .python-sdk-base
   stage: lint
   needs: []
   script:
     - poetry run mypy pangea tests
 
-testing:
-  extends: .pangea-sdk-base
+python-sdk-unit-tests:
+  extends: .python-sdk-base
   stage: unit_tests
   script:
     - poetry run python -m unittest tests.unit
 
-integration:
-  extends: .pangea-sdk-base
+python-sdk-integration-tests:
+  extends: .python-sdk-test-base
   stage: integration_tests
   script:
-    - poetry run python -m unittest tests.integration
+    - poetry run python -m unittest tests.integration.${TEST}
 
-# Disabled until python 3.8 is supported
-# asyncio-integration:
-#   extends: .pangea-sdk-base
-#   stage: asyncio_tests
+# TODO: Add asyncio tests when upgrade python 3.8
+# python-sdk-asyncio-integration-tests:
+#   extends: .python-sdk-test-base
+#   stage: integration_tests
 #   script:
-#     - poetry run python -m unittest tests.integration.asyncio
+#     - poetry run python -m unittest tests.integration.asyncio.${TEST}
 
-building:
-  extends: .pangea-sdk-publish
-  stage: build
+python-sdk-publish:
+  extends: .python-sdk-publish-base
+  stage: publish
   script:
     - poetry build
     - poetry publish --username __token__ --password $PYPI_SDK_TOKEN

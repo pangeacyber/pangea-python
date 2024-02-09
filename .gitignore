@@ -36,7 +36,6 @@ packages/pangea-sdk/tests/testdata/dump.json
 
 # examples poetry locks
 examples/*/poetry.lock
-.DS_Store
 download_file
 payload
 *.tar

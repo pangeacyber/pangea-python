@@ -1,14 +1,25 @@
 [tool.poetry]
 name = "redact-examples"
 version = "2.0.0"
-description = "This is a set of examples about how to use python SDK to communicate with Redact service"
+description = "This is a set of examples about how to use Python SDK to communicate with Redact service"
 authors = ["H. Andres Tournour <andres.tournour@pangea.cloud>"]
 readme = "README.md"
 packages = [{include = "redact_examples"}]
 
 [tool.poetry.dependencies]
 python = "^3.7.2"
-pangea-sdk = "^3.5.0"
+pangea-sdk = "^3.6.1"
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.3.0"
+isort = "^5.11.5"
+mypy = "^1.4.1"
+
+[tool.black]
+line-length = 120
+
+[tool.isort]
+profile = "black"
 
 [build-system]
 requires = ["poetry-core"]

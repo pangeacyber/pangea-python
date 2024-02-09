@@ -1,48 +1,98 @@
-<p>
-  <br />
-  <a href="https://pangea.cloud?utm_source=github&utm_medium=node-sdk" target="_blank" rel="noopener noreferrer">
-    <img src="https://pangea-marketing.s3.us-west-2.amazonaws.com/pangea-color.svg" alt="Pangea Logo" height="40" />
-  </a>
-  <br />
-</p>
-
-<p>
-<br />
-
-[![documentation](https://img.shields.io/badge/documentation-pangea-blue?style=for-the-badge&labelColor=551B76)](https://pangea.cloud/docs/sdk/python/)
-[![Slack](https://img.shields.io/badge/Slack-4A154B?style=for-the-badge&logo=slack&logoColor=white)](https://pangea.cloud/join-slack/)
+<a href="https://pangea.cloud?utm_source=github&utm_medium=python-sdk" target="_blank" rel="noopener noreferrer">
+  <img src="https://pangea-marketing.s3.us-west-2.amazonaws.com/pangea-color.svg" alt="Pangea Logo" height="40" />
+</a>
 
 <br />
-</p>
+
+[![documentation](https://img.shields.io/badge/documentation-pangea-blue?style=for-the-badge&labelColor=551B76)][Documentation]
+[![Slack](https://img.shields.io/badge/Slack-4A154B?style=for-the-badge&logo=slack&logoColor=white)][Slack]
 
 # Pangea Python SDK
 
-A Python SDK for integrating with Pangea Services. [Click here](https://pangea.cloud/docs/#everything-a-builder-needs-united) to check out Pangea services.
+A Python SDK for integrating with Pangea services. Supports Python v3.7 and
+above.
 
 ## Installation
 
+Via pip:
+
+```bash
+$ pip3 install pangea-sdk
 ```
-pip3 install pangea-sdk
-# or
-poetry add pangea-sdk
+
+Via poetry:
+
+```bash
+$ poetry add pangea-sdk
 ```
 
 ## Usage
 
-For sample apps, look at the [/examples](https://github.com/pangeacyber/pangea-python/tree/main/examples) folder in this repository. There you will find basic sample apps for each of the services supported on this SDK. Each service folder has a README.md with instructions to install, setup, and run the sample app.
+- [Documentation][]
+- [Examples][]
+
+General usage would be to create a token for a service through the
+[Pangea Console][] and then construct an API client for that respective service.
+The below example shows how this can be done for [Secure Audit Log][] to log a
+simple event:
+
+```python
+import os
+
+from pangea.config import PangeaConfig
+from pangea.services import Audit
+
+# Load client configuration from environment variables `PANGEA_AUDIT_TOKEN` and
+# `PANGEA_DOMAIN`.
+token = os.getenv("PANGEA_AUDIT_TOKEN")
+domain = os.getenv("PANGEA_DOMAIN")
+config = PangeaConfig(domain=domain)
+
+# Create a Secure Audit Log client.
+audit = Audit(token, config)
+
+# Log a basic event.
+response = audit.log(message="Hello, World!")
+```
+
+## asyncio support
+
+asyncio support is available through the `pangea.asyncio.services` module. The
+previous example may be rewritten to utilize async/await syntax like so:
+
+```python
+import asyncio
+import os
+
+from pangea.asyncio.services import AuditAsync
+from pangea.config import PangeaConfig
+
+# Load client configuration from environment variables `PANGEA_AUDIT_TOKEN` and
+# `PANGEA_DOMAIN`.
+token = os.getenv("PANGEA_AUDIT_TOKEN")
+domain = os.getenv("PANGEA_DOMAIN")
+config = PangeaConfig(domain=domain)
+
+# Create a Secure Audit Log client.
+audit = AuditAsync(token, config=config)
 
 
-## Asyncio support
+async def main():
+    # Log a basic event.
+    response = await audit.log(message="Hello, World!")
 
-We have added support to the asyncio library using aiohttp in order to support async/await calls to all our services.
-Async services classes are inside [pangea/asyncio](https://github.com/pangeacyber/pangea-python/tree/main/packages/pangea-sdk/pangea/asyncio) folder, and examples about how to use them are in [/examples/asyncio](https://github.com/pangeacyber/pangea-python/tree/main/examples/asyncio).
+    await audit.close()
 
 
-### Secure Audit Service - Integrity Tools
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+## Secure Audit Log - Integrity Tools
 
 The Python Pangea SDK also includes some extra features to validate Audit Service log's integrity. Here we explain how to run them.
 
-#### Verify audit data
+### Verify audit data
 
 Verify that an event or a list of events has not been tampered with. Usage:
 
@@ -62,12 +112,12 @@ It accepts multiple file formats:
 - a Verification Artifact from the Pangea User Console
 - a search response from the REST API:
 
-```
-curl -H "Authorization: Bearer ${PANGEA_TOKEN}" -X POST -H 'Content-Type: application/json'  --data '{"verbose": true}' https://audit.aws.us.pangea.cloud/v1/search
+```bash
+$ curl -H "Authorization: Bearer ${PANGEA_TOKEN}" -X POST -H 'Content-Type: application/json'  --data '{"verbose": true}' https://audit.aws.us.pangea.cloud/v1/search
 ```
 
 
-#### Bulk Download Audit Data
+### Bulk Download Audit Data
 
 Download all audit logs for a given time range. Start and end date should be provided,
 a variety of formats is supported, including ISO-8601. The result is stored in a
@@ -94,7 +144,7 @@ options:
                         Output file name. Default: dump-<timestamp>
 ```
 
-#### Perform Exhaustive Verification of Audit Data
+### Perform Exhaustive Verification of Audit Data
 
 This script performs extensive verification on a range of events of the log stream. Apart from verifying the hash
 and the membership proof, it checks that there are no omissions in the stream, i.e. all the events are present and properly located.
@@ -121,21 +171,9 @@ It accepts multiple file formats:
 - a search response from the REST API (see `verify_audit`)
 
 
-## Reporting issues and new features
 
-If you run into an issue using or testing this SDK or if you have a new feature request, feel free to open an issue by [clicking here](https://github.com/pangeacyber/pangea-python/issues).
-We would need you to provide some basic information, such as what SDK version you are using, the stack trace if you got it, the framework used, and steps to reproduce the issue.
-Also, feel free to contact [Pangea support](mailto:support@pangea.cloud) by email or send us a message on [Slack](https://pangea.cloud/join-slack/).
-
-
-## Contributing
-
-Currently, the setup scripts only have support for Mac/ZSH environments.
-Future support is incoming.
-
-To install our linters, simply run `./dev/setup_repo.sh`
-These linters will run on every `git commit` operation.
-
-### Send a PR
-
-If you would like to [send a PR](https://github.com/pangeacyber/pangea-python/pulls) including a new feature or fixing a bug in the code or an error in documents, we really appreciate it and after review and approval, you will be included in our [contributors list](https://github.com/pangeacyber/pangea-python/blob/main/packages/pangea-sdk/CONTRIBUTING.md).
+   [Documentation]: https://pangea.cloud/docs/sdk/python/
+   [Examples]: https://github.com/pangeacyber/pangea-python/tree/main/examples
+   [Pangea Console]: https://console.pangea.cloud/
+   [Slack]: https://pangea.cloud/join-slack/
+   [Secure Audit Log]: https://pangea.cloud/docs/audit

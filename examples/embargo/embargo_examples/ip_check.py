@@ -6,7 +6,9 @@ from pangea.services import Embargo
 from pangea.tools import logger_set_pangea_config
 
 token = os.getenv("PANGEA_EMBARGO_TOKEN")
+assert token
 domain = os.getenv("PANGEA_DOMAIN")
+assert domain
 config = PangeaConfig(domain=domain)
 embargo = Embargo(token, config=config, logger_name="embargo")
 logger_set_pangea_config(logger_name=embargo.logger.name)

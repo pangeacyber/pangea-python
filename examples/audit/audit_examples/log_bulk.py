@@ -8,7 +8,9 @@ from pangea.services.audit.models import Event
 from pangea.tools import logger_set_pangea_config
 
 token = os.getenv("PANGEA_AUDIT_TOKEN")
+assert token
 domain = os.getenv("PANGEA_DOMAIN")
+assert domain
 config = PangeaConfig(domain=domain)
 audit = Audit(token, config=config, logger_name="audit")
 logger_set_pangea_config(logger_name=audit.logger.name)
@@ -34,7 +36,7 @@ def main():
         log_response = audit.log_bulk(events=[event1, event2], verbose=True)
         end = time.time()
 
-        print(f"log 2 events in {int((end - start)*1000)} miliseconds")
+        print(f"log 2 events in {int((end - start)*1000)} milliseconds")
 
         for result in log_response.result.results:
             print(f"Envelope: {result.envelope}")

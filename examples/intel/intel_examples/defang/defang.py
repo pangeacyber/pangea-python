@@ -6,7 +6,9 @@ from pangea.config import PangeaConfig
 from pangea.services import DomainIntel, UrlIntel
 
 token = os.getenv("PANGEA_INTEL_TOKEN")
+assert token
 domain = os.getenv("PANGEA_DOMAIN")
+assert domain
 config = PangeaConfig(domain=domain)
 url_intel = UrlIntel(token, config=config)
 domain_intel = DomainIntel(token, config=config)
@@ -15,6 +17,7 @@ defanged_schemes = {"http": "hxxp", "https": "hxxps"}
 
 def get_domain(url: str) -> str:
     o = urlparse(url)
+    assert o.hostname
     return o.hostname
 
 

@@ -7,8 +7,7 @@ from pangea.response import ResponseStatus
 from pangea.services import DomainIntel, FileIntel, IpIntel, UrlIntel, UserIntel
 from pangea.services.intel import HashType, IntelReputationData
 from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
-
-TEST_ENVIRONMENT = TestEnvironment.LIVE
+from tests.test_tools import load_test_environment
 
 
 def check_bulk_data(self: unittest.TestCase, data: Dict[str, IntelReputationData]):
@@ -22,9 +21,11 @@ def check_bulk_data(self: unittest.TestCase, data: Dict[str, IntelReputationData
 
 
 class TestDomainIntel(unittest.TestCase):
+    TEST_ENVIRONMENT = load_test_environment(DomainIntel.service_name, TestEnvironment.LIVE)
+
     def setUp(self):
-        token = get_test_token(TEST_ENVIRONMENT)
-        domain = get_test_domain(TEST_ENVIRONMENT)
+        token = get_test_token(TestDomainIntel.TEST_ENVIRONMENT)
+        domain = get_test_domain(TestDomainIntel.TEST_ENVIRONMENT)
         config = PangeaConfig(domain=domain, custom_user_agent="sdk-test")
         self.intel_domain = DomainIntel(token, config=config, logger_name="pangea")
         logger_set_pangea_config(logger_name=self.intel_domain.logger.name)
@@ -70,7 +71,7 @@ class TestDomainIntel(unittest.TestCase):
 
     def test_domain_reputation_with_bad_auth_token(self):
         token = "noarealtoken"
-        domain = get_test_domain(TEST_ENVIRONMENT)
+        domain = get_test_domain(TestDomainIntel.TEST_ENVIRONMENT)
         config = PangeaConfig(domain=domain, custom_user_agent="sdk-test")
         badintel_domain = DomainIntel(token, config=config)
 
@@ -79,9 +80,11 @@ class TestDomainIntel(unittest.TestCase):
 
 
 class TestFileIntel(unittest.TestCase):
+    TEST_ENVIRONMENT = load_test_environment(FileIntel.service_name, TestEnvironment.LIVE)
+
     def setUp(self):
-        token = get_test_token(TEST_ENVIRONMENT)
-        domain = get_test_domain(TEST_ENVIRONMENT)
+        token = get_test_token(TestFileIntel.TEST_ENVIRONMENT)
+        domain = get_test_domain(TestFileIntel.TEST_ENVIRONMENT)
         config = PangeaConfig(domain=domain, custom_user_agent="sdk-test")
         self.intel_file = FileIntel(token, config=config, logger_name="pangea")
         logger_set_pangea_config(logger_name=self.intel_file.logger.name)
@@ -143,7 +146,7 @@ class TestFileIntel(unittest.TestCase):
 
     def test_file_reputation_with_bad_auth_token(self):
         token = "noarealtoken"
-        domain = get_test_domain(TEST_ENVIRONMENT)
+        domain = get_test_domain(TestFileIntel.TEST_ENVIRONMENT)
         config = PangeaConfig(domain=domain, custom_user_agent="sdk-test")
         badintel_domain = FileIntel(token, config=config)
 
@@ -168,9 +171,11 @@ class TestFileIntel(unittest.TestCase):
 
 
 class TestIPIntel(unittest.TestCase):
+    TEST_ENVIRONMENT = load_test_environment(IpIntel.service_name, TestEnvironment.LIVE)
+
     def setUp(self):
-        token = get_test_token(TEST_ENVIRONMENT)
-        domain = get_test_domain(TEST_ENVIRONMENT)
+        token = get_test_token(TestIPIntel.TEST_ENVIRONMENT)
+        domain = get_test_domain(TestIPIntel.TEST_ENVIRONMENT)
         config = PangeaConfig(domain=domain, custom_user_agent="sdk-test")
         self.intel_ip = IpIntel(token, config=config, logger_name="pangea")
         logger_set_pangea_config(logger_name=self.intel_ip.logger.name)
@@ -298,7 +303,7 @@ class TestIPIntel(unittest.TestCase):
 
     def test_ip_reputation_with_bad_auth_token(self):
         token = "noarealtoken"
-        domain = get_test_domain(TEST_ENVIRONMENT)
+        domain = get_test_domain(TestIPIntel.TEST_ENVIRONMENT)
         config = PangeaConfig(domain=domain, custom_user_agent="sdk-test")
         badintel_ip = IpIntel(token, config=config)
 
@@ -307,9 +312,11 @@ class TestIPIntel(unittest.TestCase):
 
 
 class TestURLIntel(unittest.TestCase):
+    TEST_ENVIRONMENT = load_test_environment(UrlIntel.service_name, TestEnvironment.LIVE)
+
     def setUp(self):
-        token = get_test_token(TEST_ENVIRONMENT)
-        domain = get_test_domain(TEST_ENVIRONMENT)
+        token = get_test_token(TestURLIntel.TEST_ENVIRONMENT)
+        domain = get_test_domain(TestURLIntel.TEST_ENVIRONMENT)
         config = PangeaConfig(domain=domain, custom_user_agent="sdk-test")
         self.intel_url = UrlIntel(token, config=config, logger_name="pangea")
         logger_set_pangea_config(logger_name=self.intel_url.logger.name)
@@ -346,7 +353,7 @@ class TestURLIntel(unittest.TestCase):
 
     def test_url_reputation_with_bad_auth_token(self):
         token = "noarealtoken"
-        domain = get_test_domain(TEST_ENVIRONMENT)
+        domain = get_test_domain(TestURLIntel.TEST_ENVIRONMENT)
         config = PangeaConfig(domain=domain, custom_user_agent="sdk-test")
         badintel_url = UrlIntel(token, config=config)
 
@@ -355,9 +362,11 @@ class TestURLIntel(unittest.TestCase):
 
 
 class TestUserIntel(unittest.TestCase):
+    TEST_ENVIRONMENT = load_test_environment(UserIntel.service_name, TestEnvironment.LIVE)
+
     def setUp(self):
-        token = get_test_token(TEST_ENVIRONMENT)
-        domain = get_test_domain(TEST_ENVIRONMENT)
+        token = get_test_token(TestUserIntel.TEST_ENVIRONMENT)
+        domain = get_test_domain(TestUserIntel.TEST_ENVIRONMENT)
         config = PangeaConfig(domain=domain, custom_user_agent="sdk-test")
         self.intel_user = UserIntel(token, config=config, logger_name="pangea")
         logger_set_pangea_config(logger_name=self.intel_user.logger.name)

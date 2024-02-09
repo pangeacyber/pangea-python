@@ -6,7 +6,9 @@ from pangea.asyncio.services import EmbargoAsync
 from pangea.config import PangeaConfig
 
 token = os.getenv("PANGEA_EMBARGO_TOKEN")
+assert token
 domain = os.getenv("PANGEA_DOMAIN")
+assert domain
 config = PangeaConfig(domain=domain)
 embargo = EmbargoAsync(token, config=config)
 

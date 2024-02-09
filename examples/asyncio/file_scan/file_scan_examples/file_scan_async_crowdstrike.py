@@ -1,6 +1,5 @@
 import asyncio
 import os
-import time
 
 import pangea.exceptions as pe
 from pangea.asyncio.services import FileScanAsync
@@ -8,7 +7,9 @@ from pangea.config import PangeaConfig
 from pangea.tools import logger_set_pangea_config
 
 token = os.getenv("PANGEA_FILE_SCAN_TOKEN")
+assert token
 domain = os.getenv("PANGEA_DOMAIN")
+assert domain
 
 # To work asynchronously, it is necessary to set queue_retry_enable to False.
 # When we call .scan() it will return an AcceptedRequestException immediately if the server returns a 202 response.
@@ -37,7 +38,7 @@ async def main():
         for err in e.errors:
             print(f"\t{err.detail} \n")
     except pe.PangeaAPIException as e:
-        print("This is a unexcepted exception")
+        print("This is a unexpected exception")
         print(f"Request Error: {e.response.summary}")
         for err in e.errors:
             print(f"\t{err.detail} \n")

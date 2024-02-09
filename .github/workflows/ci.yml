@@ -1,0 +1,149 @@
+name: Lint and Test
+
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+
+  merge_group:
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  POETRY_VERSION: 1.7.1
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+
+    outputs:
+      examples-matrix: ${{ steps.examples-matrix.outputs.examples-matrix }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.1.1
+
+      - name: Calculate `examples-matrix` output
+        id: examples-matrix
+        working-directory: ./examples
+        env:
+          JQ_FILTER: >-
+            "examples-matrix=" + (split("\n") | map(select(length > 0)) | tostring)
+        run: |
+          examples=$(find . -type f -name 'pyproject.toml' -printf '%h\n' | cut -c 3- | sort -u | jq -cRrs '${{ env.JQ_FILTER }}')
+          echo "$examples"
+          echo "$examples" >> "$GITHUB_OUTPUT"
+
+  prefetch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.1.1
+
+      - name: Update pip
+        run: |
+          pip install --upgrade pip
+          pip --version
+
+      - name: Install poetry
+        run: |
+          pip install --upgrade poetry==${{ env.POETRY_VERSION }}
+          poetry --version
+
+      - name: Setup Python
+        uses: actions/setup-python@v5.0.0
+        with:
+          python-version: 3.11.7
+          cache: poetry
+          cache-dependency-path: '**/poetry.lock'
+
+  test-unit:
+    needs: [prefetch]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11']
+    defaults:
+      run:
+        working-directory: ./packages/pangea-sdk
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.1.1
+
+      - name: Install poetry
+        run: |
+          pip install --upgrade poetry==${{ env.POETRY_VERSION }}
+          poetry --version
+
+      - name: Setup Python
+        uses: actions/setup-python@v5.0.0
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: poetry
+          cache-dependency-path: ./packages/pangea-sdk/poetry.lock
+
+      - name: Install dependencies
+        run: |
+          poetry check
+          poetry install
+
+      - name: Unit test
+        run: poetry run python -m unittest tests.unit
+
+  examples:
+    needs: [setup, prefetch]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        example: ${{ fromJSON(needs.setup.outputs.examples-matrix) }}
+    defaults:
+      run:
+        working-directory: ./examples/${{ matrix.example }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.1.1
+
+      - name: Update pip
+        run: |
+          pip install --upgrade pip
+          pip --version
+
+      - name: Install poetry
+        run: |
+          pip install --upgrade poetry==${{ env.POETRY_VERSION }}
+          poetry --version
+
+      - name: Setup Python
+        uses: actions/setup-python@v5.0.0
+        with:
+          python-version: 3.11.7
+          cache: poetry
+          cache-dependency-path: ./examples/${{ matrix.example }}/poetry.lock
+
+      - name: Install dependencies
+        run: |
+          poetry check
+          poetry install
+
+      - name: black
+        run: poetry run black --check .
+
+      - name: isort
+        run: poetry run isort --check .
+
+      - name: mypy
+        run: poetry run mypy .

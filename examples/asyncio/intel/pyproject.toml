@@ -1,14 +1,25 @@
 [tool.poetry]
 name = "intel-examples"
 version = "2.1.0"
-description = "This is a set of examples about how to use python SDK to communicate with Vault service"
+description = "This is a set of examples about how to use python SDK to communicate with Intel service"
 authors = ["H. Andres Tournour <andres.tournour@pangea.cloud>"]
 readme = "README.md"
 packages = [{include = "intel_examples"}]
 
 [tool.poetry.dependencies]
 python = "^3.7.2"
-pangea-sdk = "^3.5.0"
+pangea-sdk = "^3.6.1"
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.3.0"
+isort = "^5.11.5"
+mypy = "^1.4.1"
+
+[tool.black]
+line-length = 120
+
+[tool.isort]
+profile = "black"
 
 [build-system]
 requires = ["poetry-core"]

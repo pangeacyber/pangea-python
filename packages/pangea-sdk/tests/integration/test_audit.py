@@ -19,6 +19,7 @@ from pangea.tools import (
     get_vault_signature_test_token,
     logger_set_pangea_config,
 )
+from tests.test_tools import load_test_environment
 
 ACTOR = "python-sdk"
 MSG_NO_SIGNED = "test-message"
@@ -33,7 +34,6 @@ STATUS_NO_SIGNED = "no-signed"
 STATUS_SIGNED = "signed"
 LONG_FIELD = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed lacinia, orci eget commodo commodo non."
 
-TEST_ENVIRONMENT = TestEnvironment.LIVE
 
 custom_schema_event = {
     "message": MSG_CUSTOM_SCHEMA_NO_SIGNED,
@@ -43,6 +43,8 @@ custom_schema_event = {
     "field_str_long": LONG_FIELD,
     "field_time": datetime.datetime.now(),
 }
+
+TEST_ENVIRONMENT = load_test_environment(Audit.service_name, TestEnvironment.LIVE)
 
 
 class TestAudit(unittest.TestCase):
@@ -624,6 +626,23 @@ class TestAudit(unittest.TestCase):
 
         for idx in range(0, len(authors)):
             self.assertEqual(r_asc.result.events[len(authors) - 1 - idx].envelope.event["actor"], authors[idx])
+
+    def test_search_custom_schema_order_by(self):
+        limit = 2
+        max_result = 3
+        response_search = self.auditCustomSchema.search(
+            query='message:""',
+            order=SearchOrder.DESC,
+            order_by="field_int",
+            limit=limit,
+            max_results=max_result,
+            verbose=True,
+            end="0d",
+            start="30d",
+        )
+        self.assertEqual(response_search.status, ResponseStatus.SUCCESS)
+        self.assertEqual(len(response_search.result.events), limit)
+        self.assertEqual(response_search.result.count, max_result)
 
     def test_multi_config_log(self):
         config = PangeaConfig(domain=self.domain)

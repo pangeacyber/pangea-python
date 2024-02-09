@@ -11,6 +11,7 @@ from pangea.services.vault.models.symmetric import SymmetricAlgorithm
 from pangea.services.vault.vault import ItemType, ItemVersionState, Vault
 from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
 from pangea.utils import format_datetime, str2str_b64
+from tests.test_tools import load_test_environment
 
 TIME = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 THIS_FUNCTION_NAME = lambda: inspect.stack()[1][3]
@@ -34,8 +35,6 @@ def get_name() -> str:
     return f"{TIME}_{ACTOR}_{caller_name}_{get_random_id()}"
 
 
-TEST_ENVIRONMENT = TestEnvironment.LIVE
-
 KEY_ED25519 = {
     "algorithm": AsymmetricAlgorithm.Ed25519,
     "private_key": "-----BEGIN PRIVATE KEY-----\nMC4CAQAwBQYDK2VwBCIEIGthqegkjgddRAn0PWN2FeYC6HcCVQf/Ph9sUbeprTBO\n-----END PRIVATE KEY-----\n",
@@ -46,6 +45,9 @@ KEY_AES = {
     "algorithm": SymmetricAlgorithm.AES,
     "key": "oILlp2FUPHWiaqFXl4/1ww==",
 }
+
+
+TEST_ENVIRONMENT = load_test_environment(Vault.service_name, TestEnvironment.LIVE)
 
 
 class TestVault(unittest.TestCase):
