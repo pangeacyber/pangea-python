@@ -34,8 +34,7 @@ python_sdk.json
 pangea_sdk_logs.json*
 packages/pangea-sdk/tests/testdata/dump.json
 
-# examples poetry locks
-examples/*/poetry.lock
+# downloaded files
 download_file
 payload
 *.tar
