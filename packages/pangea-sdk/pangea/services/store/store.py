@@ -225,6 +225,8 @@ class ShareLinkCreateItem(PangeaResponseResult):
     expires_at: Optional[str] = None
     max_access_count: Optional[int] = None
     authenticators: List[Authenticator]
+    message: Optional[str] = None
+    title: Optional[str] = None
 
 
 class ShareLinkCreateRequest(APIRequestModel):
