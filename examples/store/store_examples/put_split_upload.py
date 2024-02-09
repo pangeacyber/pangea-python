@@ -6,11 +6,13 @@ import pangea.exceptions as pe
 from pangea.config import PangeaConfig
 from pangea.response import PangeaResponse, TransferMethod
 from pangea.services import Store
-from pangea.services.store.store import FileUploader, PutResult
+from pangea.services.store.store import FileUploader, PutResult  # type: ignore
 from pangea.utils import get_file_upload_params
 
 token = os.getenv("PANGEA_STORE_TOKEN")
+assert token
 domain = os.getenv("PANGEA_DOMAIN")
+assert domain
 config = PangeaConfig(domain=domain)
 
 # Create a path name

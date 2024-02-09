@@ -5,7 +5,7 @@ import pangea.exceptions as pe
 from pangea.config import PangeaConfig
 from pangea.response import TransferMethod
 from pangea.services import Store
-from pangea.services.store.store import (
+from pangea.services.store.store import (  # type: ignore
     ArchiveFormat,
     Authenticator,
     AuthenticatorType,
@@ -15,7 +15,9 @@ from pangea.services.store.store import (
 )
 
 token = os.getenv("PANGEA_STORE_TOKEN")
+assert token
 domain = os.getenv("PANGEA_DOMAIN")
+assert domain
 config = PangeaConfig(domain=domain)
 
 # Create a path name
