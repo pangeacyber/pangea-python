@@ -18,6 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rewrote `README.md`.
 - Audit.search() `order_by` param also takes `str` now
 
+### Added 
+
+- Vault service. Post quantum signing algorithms support
+
 
 ## [3.6.0] - 2024-01-12
 
