@@ -14,7 +14,6 @@ from pangea.utils import format_datetime, str2str_b64
 from tests.test_tools import load_test_environment
 
 TIME = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-THIS_FUNCTION_NAME = lambda: inspect.stack()[1][3]
 FOLDER_VALUE = f"/test_key_folder/{TIME}/"
 METADATA_VALUE = {"test": "True", "field1": "value1", "field2": "value2"}
 TAGS_VALUE = ["test", "symmetric"]
@@ -28,6 +27,10 @@ ACTOR = "PythonSDKTest"
 
 def get_random_id() -> str:
     return str(random.randrange(1, MAX_RANDOM))
+
+
+def get_function_name() -> str:
+    return inspect.stack()[1][3]
 
 
 def get_name() -> str:
@@ -429,27 +432,63 @@ class TestVault(unittest.TestCase):
         algorithms = [
             AsymmetricAlgorithm.Ed25519,
             AsymmetricAlgorithm.RSA2048_PKCS1V15_SHA256,
+            AsymmetricAlgorithm.RSA2048_PSS_SHA256,
+            AsymmetricAlgorithm.RSA3072_PSS_SHA256,
+            AsymmetricAlgorithm.RSA4096_PSS_SHA256,
+            AsymmetricAlgorithm.RSA4096_PSS_SHA512,
+            AsymmetricAlgorithm.ES256K,
+            AsymmetricAlgorithm.Ed25519_DILITHIUM2_BETA,
+            AsymmetricAlgorithm.Ed448_DILITHIUM3_BETA,
+            AsymmetricAlgorithm.SPHINCSPLUS_128F_SHAKE256_SIMPLE_BETA,
+            AsymmetricAlgorithm.SPHINCSPLUS_128F_SHAKE256_ROBUST_BETA,
+            AsymmetricAlgorithm.SPHINCSPLUS_192F_SHAKE256_SIMPLE_BETA,
+            AsymmetricAlgorithm.SPHINCSPLUS_192F_SHAKE256_ROBUST_BETA,
+            AsymmetricAlgorithm.SPHINCSPLUS_256F_SHAKE256_SIMPLE_BETA,
+            AsymmetricAlgorithm.SPHINCSPLUS_256F_SHAKE256_ROBUST_BETA,
+            AsymmetricAlgorithm.SPHINCSPLUS_128F_SHA256_SIMPLE_BETA,
+            AsymmetricAlgorithm.SPHINCSPLUS_128F_SHA256_ROBUST_BETA,
+            AsymmetricAlgorithm.SPHINCSPLUS_192F_SHA256_SIMPLE_BETA,
+            AsymmetricAlgorithm.SPHINCSPLUS_192F_SHA256_ROBUST_BETA,
+            AsymmetricAlgorithm.SPHINCSPLUS_256F_SHA256_SIMPLE_BETA,
+            AsymmetricAlgorithm.SPHINCSPLUS_256F_SHA256_ROBUST_BETA,
+            AsymmetricAlgorithm.FALCON_1024_BETA,
         ]
         purpose = KeyPurpose.SIGNING
         for a in algorithms:
+            print(f"Test {get_function_name()}. Generate {a} {purpose}...")
             id = self.asym_generate_all_params(algorithm=a, purpose=purpose)
             self.vault.delete(id=id)
 
     def test_generate_asym_encrypting_all_params(self):
         algorithms = [
             AsymmetricAlgorithm.RSA2048_OAEP_SHA256,
+            AsymmetricAlgorithm.RSA2048_OAEP_SHA1,
+            AsymmetricAlgorithm.RSA2048_OAEP_SHA512,
+            AsymmetricAlgorithm.RSA3072_OAEP_SHA1,
+            AsymmetricAlgorithm.RSA3072_OAEP_SHA256,
+            AsymmetricAlgorithm.RSA3072_OAEP_SHA512,
+            AsymmetricAlgorithm.RSA4096_OAEP_SHA1,
+            AsymmetricAlgorithm.RSA4096_OAEP_SHA256,
+            AsymmetricAlgorithm.RSA4096_OAEP_SHA512,
         ]
         purpose = KeyPurpose.ENCRYPTION
         for a in algorithms:
+            print(f"Test {get_function_name()}. Generate {a} {purpose}...")
             id = self.asym_generate_all_params(algorithm=a, purpose=purpose)
             self.vault.delete(id=id)
 
     def test_generate_sym_encrypting_all_params(self):
         algorithms = [
             SymmetricAlgorithm.AES,
+            SymmetricAlgorithm.AES128_CFB,
+            SymmetricAlgorithm.AES256_CFB,
+            SymmetricAlgorithm.AES256_GCM,
+            SymmetricAlgorithm.AES128_CBC,
+            SymmetricAlgorithm.AES256_CBC,
         ]
         purpose = KeyPurpose.ENCRYPTION
         for a in algorithms:
+            print(f"Test {get_function_name()}. Generate {a} {purpose}...")
             id = self.sym_generate_all_params(algorithm=a, purpose=purpose)
             self.vault.delete(id=id)
 
@@ -464,7 +503,7 @@ class TestVault(unittest.TestCase):
                 self.encrypting_cycle(id)
                 self.vault.delete(id=id)
             except pe.PangeaAPIException as e:
-                print(f"Failed test_asym_encrypting_life_cycle with {algorithm}")
+                print(f"Failed {get_function_name()} with {algorithm}")
                 print(e)
                 self.vault.delete(id=id)
                 self.fail()
@@ -481,7 +520,7 @@ class TestVault(unittest.TestCase):
                 self.signing_cycle(id)
                 self.vault.delete(id=id)
             except pe.PangeaAPIException as e:
-                print(f"Failed {THIS_FUNCTION_NAME()} with {algorithm}")
+                print(f"Failed {get_function_name()} with {algorithm}")
                 print(e)
                 self.vault.delete(id=id)
                 self.fail()
@@ -501,7 +540,7 @@ class TestVault(unittest.TestCase):
                 self.encrypting_cycle(id)
                 self.vault.delete(id=id)
             except pe.PangeaAPIException as e:
-                print(f"Failed {THIS_FUNCTION_NAME()} with {algorithm}")
+                print(f"Failed {get_function_name()} with {algorithm}")
                 print(e)
                 self.vault.delete(id=id)
                 self.fail()
@@ -555,7 +594,7 @@ class TestVault(unittest.TestCase):
                 self.jwt_asym_signing_cycle(id)
                 self.vault.delete(id=id)
             except pe.PangeaAPIException as e:
-                print(f"Failed {THIS_FUNCTION_NAME()} with {algorithm}")
+                print(f"Failed {get_function_name()} with {algorithm}")
                 print(e)
                 self.vault.delete(id=id)
                 self.assertTrue(False)
@@ -574,7 +613,7 @@ class TestVault(unittest.TestCase):
                 self.jwt_sym_signing_cycle(id)
                 self.vault.delete(id=id)
             except pe.PangeaAPIException as e:
-                print(f"Failed {THIS_FUNCTION_NAME()} with {algorithm}")
+                print(f"Failed {get_function_name()} with {algorithm}")
                 print(e)
                 self.vault.delete(id=id)
                 self.assertTrue(False)
