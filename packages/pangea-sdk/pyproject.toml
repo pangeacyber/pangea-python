@@ -29,7 +29,7 @@ google-crc32c = "^1.5.0"
 
 [tool.poetry.dev-dependencies]
 mypy = "^1.4.1"
-black = "^23.3.0"
+black = "^23.12.1"
 docstring-parser = "^0.15"
 types-Deprecated = "^1.2.9.3"
 types-requests = "^2.31.0.10"
