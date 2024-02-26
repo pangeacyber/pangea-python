@@ -160,7 +160,7 @@ class TestAuthN(unittest.TestCase):
         self.assertEqual(False, response.result.disabled)
 
     def test_authn_b1_user_invite(self):
-        # This could (should) fail if test_authn_user_create_with_password failed
+        # This could (should) fail if test_authn_user_createf_with_password failed
         response = self.authn.user.invite(
             inviter=EMAIL_TEST,
             email=EMAIL_INVITE_KEEP,
@@ -185,7 +185,16 @@ class TestAuthN(unittest.TestCase):
         self.assertIsNone(response_delete.result)
 
     def test_authn_b2_user_invite_list(self):
-        response = self.authn.user.invites.list()
+        filter = m.UserInviteListFilter()
+        filter.email__contains = ["user.email"]
+        response = self.authn.user.invites.list(filter=filter)
+        self.assertEqual(response.status, "Success")
+        self.assertIsNotNone(response.result)
+        self.assertGreater(len(response.result.invites), 0)
+
+        # Filter with dictionary
+        filter = {"email__contains": ["user.email"]}
+        response = self.authn.user.invites.list(filter=filter)
         self.assertEqual(response.status, "Success")
         self.assertIsNotNone(response.result)
         self.assertGreater(len(response.result.invites), 0)
@@ -229,7 +238,8 @@ class TestAuthN(unittest.TestCase):
             self.assertIsNotNone(response_login.result.refresh_token)
 
             # list sessions
-            response = self.authn.session.list()
+            filter = m.SessionListFilter()
+            response = self.authn.session.list(filter=filter)
             self.assertEqual(response.status, "Success")
             self.assertIsNotNone(response.result)
             self.assertGreater(len(response.result.sessions), 0)
@@ -255,7 +265,7 @@ class TestAuthN(unittest.TestCase):
             token = response_login.result.active_token.token
 
             # list sessions
-            response = self.authn.client.session.list(token=token)
+            response = self.authn.client.session.list(token=token, filter={})
             self.assertEqual(response.status, "Success")
             self.assertIsNotNone(response.result)
             self.assertGreater(len(response.result.sessions), 0)
@@ -290,7 +300,7 @@ class TestAuthN(unittest.TestCase):
             self.assertTrue(False)
 
     def test_authn_z1_user_list(self):
-        response = self.authn.user.list()
+        response = self.authn.user.list(filter={})
         self.assertEqual(response.status, "Success")
         self.assertIsNotNone(response.result)
         self.assertGreater(len(response.result.users), 0)
@@ -325,7 +335,7 @@ class TestAuthN(unittest.TestCase):
         self.assertEqual(response.result.active, active)
 
         # List
-        response = self.authn.agreements.list()
+        response = self.authn.agreements.list(filter={})
         self.assertGreater(response.result.count, 0)
         self.assertGreater(len(response.result.agreements), 0)
         count = response.result.count  # save current value

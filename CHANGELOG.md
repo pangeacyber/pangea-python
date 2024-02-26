@@ -16,7 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Rewrote `README.md`.
-- Audit.search() `order_by` param also takes `str` now
+- Audit.search() `order_by` param also takes `str` now.
+- Fixed AuthN list method's filter. Filters have not been serialized properly.
 
 ### Added 
 
