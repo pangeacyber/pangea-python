@@ -5,11 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [3.7.0] - 2024-02-26
+
+### Added 
+
+- Vault service. Post quantum signing algorithms support
 
 ### Removed
 
 - Unused dependency on alive-progress.
+
 
 ## [3.6.1] - 2024-01-30
 
@@ -17,10 +22,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Rewrote `README.md`.
 - Audit.search() `order_by` param also takes `str` now
-
-### Added 
-
-- Vault service. Post quantum signing algorithms support
 
 
 ## [3.6.0] - 2024-01-12
@@ -334,7 +335,8 @@ Asyncio support. New Async Service classes are in /asyncio folder.
 - Domain Intel client
 - Redact client
 
-[unreleased]: https://github.com/pangeacyber/pangea-python/compare/v3.6.1...main
+[unreleased]: https://github.com/pangeacyber/pangea-python/compare/v3.7.0...main
+[3.7.0]: https://github.com/pangeacyber/pangea-python/compare/v3.6.1...v3.7.0
 [3.6.1]: https://github.com/pangeacyber/pangea-python/compare/v3.6.0...v3.6.1
 [3.6.0]: https://github.com/pangeacyber/pangea-python/compare/v3.5.0...v3.6.0
 [3.5.0]: https://github.com/pangeacyber/pangea-python/compare/v3.4.0...v3.5.0
