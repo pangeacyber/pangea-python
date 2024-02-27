@@ -234,7 +234,7 @@ class UserListFilter(APIRequestModel):
 
 
 class UserListRequest(APIRequestModel):
-    filter: Optional[Union[Dict, UserListFilter]] = None
+    filter: Optional[UserListFilter] = None
     last: Optional[str] = None
     order: Optional[ItemOrder] = None
     order_by: Optional[UserListOrderBy] = None
@@ -289,7 +289,7 @@ class UserInviterOrderBy(enum.Enum):
 
 
 class UserInviteListFilter(APIRequestModel):
-    callback: Optional[str] = None
+    callback: Optional[str]
     callback__contains: Optional[List[str]] = None
     callback__in: Optional[List[str]] = None
     created_at: Optional[str] = None
@@ -322,7 +322,7 @@ class UserInviteListFilter(APIRequestModel):
 
 
 class UserInviteListRequest(APIRequestModel):
-    filter: Optional[Union[Dict, UserInviteListFilter]] = None
+    filter: Optional[UserInviteListFilter] = None
     last: Optional[str] = None
     order: Optional[ItemOrder] = None
     order_by: Optional[UserInviterOrderBy] = None
@@ -607,7 +607,7 @@ class SessionListFilter(APIRequestModel):
 
 class ClientSessionListRequest(APIRequestModel):
     token: str
-    filter: Optional[Union[Dict, SessionListFilter]] = None
+    filter: Optional[SessionListFilter] = None
     last: Optional[str] = None
     order: Optional[ItemOrder] = None
     order_by: Optional[SessionListOrderBy] = None
@@ -663,7 +663,7 @@ class SessionInvalidateResult(PangeaResponseResult):
 
 
 class SessionListRequest(APIRequestModel):
-    filter: Optional[Union[Dict, SessionListFilter]] = None
+    filter: Optional[SessionListFilter] = None
     last: Optional[str] = None
     order: Optional[ItemOrder] = None
     order_by: Optional[SessionListOrderBy] = None
@@ -760,7 +760,7 @@ class AgreementListFilter(APIRequestModel):
 
 
 class AgreementListRequest(APIRequestModel):
-    filter: Optional[Union[Dict, AgreementListFilter]] = None
+    filter: Optional[AgreementListFilter] = None
     last: Optional[str] = None
     order: Optional[ItemOrder] = None
     order_by: Optional[AgreementListOrderBy] = None
