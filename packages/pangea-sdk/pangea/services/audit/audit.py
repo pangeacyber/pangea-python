@@ -199,9 +199,9 @@ class AuditBase:
 
         return response
 
-    def _get_tree_sizes_and_roots(self, result: SearchOutput) -> Tuple[Set[int], Dict[int, PublishedRoot]]:
+    def _get_tree_sizes_and_roots(self, result: SearchResultOutput) -> Tuple[Set[int], Dict[int, PublishedRoot]]:
         if not result.root:
-            return
+            return set(), {}
 
         tree_sizes = set()
         for search_event in result.events:
@@ -303,7 +303,7 @@ class AuditBase:
             return False
 
         if not self.allow_server_roots and (
-            curr_root.source != RootSource.ARWEAVE or prev_root.source != RootSource.ARWEAVE  # type: ignore[attr-defined]
+            curr_root.source != RootSource.ARWEAVE or prev_root.source != RootSource.ARWEAVE
         ):
             return False
 
@@ -663,7 +663,7 @@ class Audit(ServiceBase, AuditBase):
 
         response = self.request.post("v1/search", SearchOutput, data=input.dict(exclude_none=True))
         if verify_consistency:
-            self.update_published_roots(response.result)  # type: ignore[arg-type]
+            self.update_published_roots(response.result)
         return self.handle_search_response(response, verify_consistency, verify_events)
 
     def results(
@@ -712,7 +712,7 @@ class Audit(ServiceBase, AuditBase):
         )
         response = self.request.post("v1/results", SearchResultOutput, data=input.dict(exclude_none=True))
         if verify_consistency:
-            self.update_published_roots(response.result)  # type: ignore[arg-type]
+            self.update_published_roots(response.result)
         return self.handle_results_response(response, verify_consistency, verify_events)
 
     def root(self, tree_size: Optional[int] = None) -> PangeaResponse[RootResult]:
@@ -766,7 +766,7 @@ class Audit(ServiceBase, AuditBase):
                 pub_root.source = RootSource.ARWEAVE
             elif self.allow_server_roots:
                 resp = self.root(tree_size=tree_size)
-                if resp.success:
+                if resp.success and resp.result is not None:
                     pub_root = PublishedRoot(**resp.result.data.dict(exclude_none=True))
                     pub_root.source = RootSource.PANGEA
             if pub_root is not None:

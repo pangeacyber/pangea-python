@@ -388,7 +388,7 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
         )
         response = await self.request.post("v1/results", SearchResultOutput, data=input.dict(exclude_none=True))
         if verify_consistency:
-            await self.update_published_roots(response.result)  # type: ignore[arg-type]
+            await self.update_published_roots(response.result)
 
         return self.handle_results_response(response, verify_consistency, verify_events)
 
@@ -442,9 +442,9 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
                 pub_root = PublishedRoot(**arweave_roots[tree_size].dict(exclude_none=True))
                 pub_root.source = RootSource.ARWEAVE
             elif self.allow_server_roots:
-                resp = await self.root(tree_size=tree_size)  # type: ignore[attr-defined]
-                if resp.success:
+                resp = await self.root(tree_size=tree_size)
+                if resp.success and resp.result is not None:
                     pub_root = PublishedRoot(**resp.result.data.dict(exclude_none=True))
                     pub_root.source = RootSource.PANGEA
             if pub_root is not None:
-                self.pub_roots[tree_size] = pub_root  # type: ignore[assignment]
+                self.pub_roots[tree_size] = pub_root

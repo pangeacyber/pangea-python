@@ -13,7 +13,7 @@ import pangea.exceptions as pe
 
 # from requests.adapters import HTTPAdapter, Retry
 from pangea.request import PangeaRequestBase
-from pangea.response import AcceptedResult, PangeaResponse, PangeaResponseResult, ResponseStatus, TransferMethod
+from pangea.response import PangeaResponse, PangeaResponseResult, ResponseStatus, TransferMethod
 from pangea.utils import default_encoder
 
 
@@ -116,7 +116,7 @@ class PangeaRequestAsync(PangeaRequestBase):
             raise pe.ServiceTemporarilyUnavailable(await resp.json())
 
     async def poll_result_by_id(
-        self, request_id: str, result_class: Union[Type[PangeaResponseResult], dict], check_response: bool = True
+        self, request_id: str, result_class: Union[Type[PangeaResponseResult], Type[dict]], check_response: bool = True
     ):
         path = self._get_poll_path(request_id)
         self.logger.debug(json.dumps({"service": self.service, "action": "poll_result_once", "url": path}))
@@ -206,14 +206,19 @@ class PangeaRequestAsync(PangeaRequestBase):
         data: Union[str, Dict] = {},
         files: Optional[List[Tuple]] = None,
     ):
-        if len(files) == 0:  # type: ignore[arg-type]
+        if files is None or len(files) == 0:
             raise AttributeError("files attribute should have at least 1 file")
 
         response = await self.request_presigned_url(endpoint=endpoint, result_class=result_class, data=data)
-        data_to_presigned = response.accepted_result.post_form_data  # type: ignore[union-attr]
-        presigned_url = response.accepted_result.post_url  # type: ignore[union-attr]
+        if response.accepted_result is None:
+            raise pe.PangeaException("No accepted_result field when requesting presigned url")
+        if response.accepted_result.post_url is None:
+            raise pe.PresignedURLException("No presigned url", response)
 
-        await self.post_presigned_url(url=presigned_url, data=data_to_presigned, files=files)  # type: ignore[arg-type]
+        data_to_presigned = response.accepted_result.post_form_data
+        presigned_url = response.accepted_result.post_url
+
+        await self.post_presigned_url(url=presigned_url, data=data_to_presigned, files=files)
         return response.raw_response
 
     async def request_presigned_url(
@@ -242,7 +247,7 @@ class PangeaRequestAsync(PangeaRequestBase):
             raise AttributeError("Response should be 202")
 
         if response.accepted_result is not None and response.accepted_result.has_upload_url:
-            return response  # type: ignore[return-value]
+            return response
 
         self.logger.debug(json.dumps({"service": self.service, "action": "poll_presigned_url", "step": "start"}))
         retry_count = 1
@@ -279,7 +284,7 @@ class PangeaRequestAsync(PangeaRequestBase):
         self.logger.debug(json.dumps({"service": self.service, "action": "poll_presigned_url", "step": "exit"}))
 
         if loop_resp.accepted_result is not None and not loop_resp.accepted_result.has_upload_url:
-            return loop_resp  # type: ignore[return-value]
+            return loop_resp
         else:
             raise loop_exc
 
