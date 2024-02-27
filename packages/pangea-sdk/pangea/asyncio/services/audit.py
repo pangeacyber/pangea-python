@@ -11,8 +11,10 @@ from pangea.services.audit.models import (
     Event,
     LogBulkResult,
     LogResult,
+    PublishedRoot,
     RootRequest,
     RootResult,
+    RootSource,
     SearchOrder,
     SearchOrderBy,
     SearchOutput,
@@ -326,7 +328,12 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
             verbose=verbose,
         )
 
-        response = await self.request.post("v1/search", SearchOutput, data=input.dict(exclude_none=True))
+        response: PangeaResponse[SearchOutput] = await self.request.post(
+            "v1/search", SearchOutput, data=input.dict(exclude_none=True)
+        )
+        if verify_consistency:
+            await self.update_published_roots(response.result)  # type: ignore[arg-type]
+
         return self.handle_search_response(response, verify_consistency, verify_events)
 
     async def results(
@@ -380,6 +387,9 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
             offset=offset,
         )
         response = await self.request.post("v1/results", SearchResultOutput, data=input.dict(exclude_none=True))
+        if verify_consistency:
+            await self.update_published_roots(response.result)  # type: ignore[arg-type]
+
         return self.handle_results_response(response, verify_consistency, verify_events)
 
     async def root(self, tree_size: Optional[int] = None) -> PangeaResponse[RootResult]:
@@ -405,3 +415,36 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
         """
         input = RootRequest(tree_size=tree_size)
         return await self.request.post("v1/root", RootResult, data=input.dict(exclude_none=True))
+
+    async def update_published_roots(self, result: SearchResultOutput):
+        """Fetches series of published root hashes from Arweave
+
+        This is used for subsequent calls to verify_consistency_proof(). Root hashes
+        are published on [Arweave](https://arweave.net).
+
+        Args:
+            result (SearchOutput): PangeaResponse object from previous call to audit.search()
+
+        Raises:
+            AuditException: If an audit based api exception happens
+            PangeaAPIException: If an API Error happens
+        """
+
+        if not result.root:
+            return
+
+        tree_sizes, arweave_roots = self._get_tree_sizes_and_roots(result)
+
+        # fill the missing roots from the server (if allowed)
+        for tree_size in tree_sizes:
+            pub_root = None
+            if tree_size in arweave_roots:
+                pub_root = PublishedRoot(**arweave_roots[tree_size].dict(exclude_none=True))
+                pub_root.source = RootSource.ARWEAVE
+            elif self.allow_server_roots:
+                resp = await self.root(tree_size=tree_size)  # type: ignore[attr-defined]
+                if resp.success:
+                    pub_root = PublishedRoot(**resp.result.data.dict(exclude_none=True))
+                    pub_root.source = RootSource.PANGEA
+            if pub_root is not None:
+                self.pub_roots[tree_size] = pub_root  # type: ignore[assignment]

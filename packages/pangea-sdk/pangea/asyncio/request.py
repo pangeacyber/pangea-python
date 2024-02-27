@@ -7,8 +7,9 @@ import time
 from typing import Dict, List, Optional, Tuple, Type, Union
 
 import aiohttp
-import pangea.exceptions as pe
 from aiohttp import FormData
+
+import pangea.exceptions as pe
 
 # from requests.adapters import HTTPAdapter, Retry
 from pangea.request import PangeaRequestBase
@@ -33,7 +34,7 @@ class PangeaRequestAsync(PangeaRequestBase):
         files: Optional[List[Tuple]] = None,
         poll_result: bool = True,
         url: Optional[str] = None,
-    ) -> PangeaResponse:
+    ) -> PangeaResponse[Type[PangeaResponseResult]]:
         """Makes the POST call to a Pangea Service endpoint.
 
         Args:
@@ -77,7 +78,7 @@ class PangeaRequestAsync(PangeaRequestBase):
 
     async def get(
         self, path: str, result_class: Type[PangeaResponseResult], check_response: bool = True
-    ) -> PangeaResponse:
+    ) -> PangeaResponse[Type[PangeaResponseResult]]:
         """Makes the GET call to a Pangea Service endpoint.
 
         Args:
@@ -220,7 +221,7 @@ class PangeaRequestAsync(PangeaRequestBase):
         endpoint: str,
         result_class: Type[PangeaResponseResult],
         data: Union[str, Dict] = {},
-    ) -> PangeaResponse:
+    ) -> PangeaResponse[Type[PangeaResponseResult]]:
         # Send request
         try:
             # This should return 202 (AcceptedRequestException)
@@ -232,9 +233,11 @@ class PangeaRequestAsync(PangeaRequestBase):
             raise e
 
         # Receive 202
-        return await self._poll_presigned_url(accepted_exception.response)  # type: ignore[return-value]
+        return await self._poll_presigned_url(accepted_exception.response)
 
-    async def _poll_presigned_url(self, response: PangeaResponse) -> AcceptedResult:
+    async def _poll_presigned_url(
+        self, response: PangeaResponse[Type[PangeaResponseResult]]
+    ) -> PangeaResponse[Type[PangeaResponseResult]]:
         if response.http_status != 202:
             raise AttributeError("Response should be 202")
 

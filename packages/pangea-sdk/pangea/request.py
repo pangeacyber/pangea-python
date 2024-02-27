@@ -8,13 +8,14 @@ import time
 from typing import Dict, List, Optional, Tuple, Type, Union
 
 import aiohttp
+import requests
+from requests.adapters import HTTPAdapter, Retry
+
 import pangea
 import pangea.exceptions as pe
-import requests
 from pangea.config import PangeaConfig
-from pangea.response import PangeaResponse, PangeaResponseResult, ResponseStatus, TransferMethod
+from pangea.response import AcceptedResult, PangeaResponse, PangeaResponseResult, ResponseStatus, TransferMethod
 from pangea.utils import default_encoder
-from requests.adapters import HTTPAdapter, Retry
 
 
 class PangeaRequestBase(object):
@@ -185,7 +186,7 @@ class PangeaRequest(PangeaRequestBase):
         files: Optional[List[Tuple]] = None,
         poll_result: bool = True,
         url: Optional[str] = None,
-    ) -> PangeaResponse:
+    ) -> PangeaResponse[Type[PangeaResponseResult]]:
         """Makes the POST call to a Pangea Service endpoint.
 
         Args:
@@ -268,47 +269,7 @@ class PangeaRequest(PangeaRequestBase):
 
         return data, files
 
-    def _post_presigned_url(
-        self,
-        endpoint: str,
-        result_class: Type[PangeaResponseResult],
-        data: Union[str, Dict] = {},
-        files: Optional[List[Tuple]] = None,
-    ):
-        if len(files) == 0:  # type: ignore[arg-type]
-            raise AttributeError("files attribute should have at least 1 file")
-
-        # Send request
-        try:
-            # This should return 202 (AcceptedRequestException)
-            resp = self.post(endpoint=endpoint, result_class=result_class, data=data, poll_result=False)
-            raise pe.PresignedURLException("Should return 202", resp)
-
-        except pe.AcceptedRequestException as e:
-            accepted_exception = e
-        except Exception as e:
-            raise e
-
-        # Receive 202 with accepted_status
-        result = self._poll_presigned_url(accepted_exception)  # type: ignore[arg-type]
-        data_to_presigned = result.accepted_status.upload_details  # type: ignore[attr-defined]
-        presigned_url = result.accepted_status.upload_url  # type: ignore[attr-defined]
-
-        # Send multipart request with file and upload_details as body
-        resp = self._http_post(url=presigned_url, data=data_to_presigned, files=files, multipart_post=False)  # type: ignore[assignment]
-        self.logger.debug(
-            json.dumps(
-                {"service": self.service, "action": "post presigned", "url": presigned_url, "response": resp.text},  # type: ignore[attr-defined]
-                default=default_encoder,
-            )
-        )
-
-        if resp.status_code < 200 or resp.status_code >= 300:  # type: ignore[attr-defined]
-            raise pe.PresignedUploadError(f"presigned POST failure: {resp.status_code}", resp.text)  # type: ignore[attr-defined]
-
-        return accepted_exception.response.raw_response
-
-    def _handle_queued_result(self, response: PangeaResponse) -> PangeaResponse:
+    def _handle_queued_result(self, response: PangeaResponse) -> PangeaResponse[Type[PangeaResponseResult]]:
         if self._queued_retry_enabled and response.raw_response.status_code == 202:  # type: ignore[union-attr]
             self.logger.debug(
                 json.dumps(
@@ -372,7 +333,7 @@ class PangeaRequest(PangeaRequestBase):
         endpoint: str,
         result_class: Type[PangeaResponseResult],
         data: Union[str, Dict] = {},
-    ) -> PangeaResponse:
+    ) -> PangeaResponse[Type[PangeaResponseResult]]:
         # Send request
         try:
             # This should return 202 (AcceptedRequestException)
@@ -430,7 +391,7 @@ class PangeaRequest(PangeaRequestBase):
         result_class: Type[PangeaResponseResult],
         data: Union[str, Dict] = {},
         files: Optional[List[Tuple]] = None,
-    ):
+    ) -> requests.Response:
         if len(files) == 0:  # type: ignore[arg-type]
             raise AttributeError("files attribute should have at least 1 file")
 
@@ -441,7 +402,7 @@ class PangeaRequest(PangeaRequestBase):
         self.post_presigned_url(url=presigned_url, data=data_to_presigned, files=files)  # type: ignore[arg-type]
         return response.raw_response
 
-    def _poll_result_retry(self, response: PangeaResponse) -> PangeaResponse:
+    def _poll_result_retry(self, response: PangeaResponse) -> PangeaResponse[Type[PangeaResponseResult]]:
         retry_count = 1
         start = time.time()
 
@@ -453,7 +414,9 @@ class PangeaRequest(PangeaRequestBase):
         self.logger.debug(json.dumps({"service": self.service, "action": "poll_result_retry", "step": "exit"}))
         return self._check_response(response)
 
-    def _poll_presigned_url(self, response: PangeaResponse) -> PangeaResponse:
+    def _poll_presigned_url(
+        self, response: PangeaResponse[Type[PangeaResponseResult]]
+    ) -> PangeaResponse[Type[PangeaResponseResult]]:
         if response.http_status != 202:
             raise AttributeError("Response should be 202")
 
