@@ -160,7 +160,7 @@ class TestAuthN(unittest.TestCase):
         self.assertEqual(False, response.result.disabled)
 
     def test_authn_b1_user_invite(self):
-        # This could (should) fail if test_authn_user_createf_with_password failed
+        # This could (should) fail if test_authn_a1_user_create_with_password failed
         response = self.authn.user.invite(
             inviter=EMAIL_TEST,
             email=EMAIL_INVITE_KEEP,
