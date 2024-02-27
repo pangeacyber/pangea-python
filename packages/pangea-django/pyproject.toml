@@ -17,7 +17,7 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.8.0"
+python = "^3.8.18"
 "Django" = "^4.2.10"
 "pangea-sdk" = "^3.6.1"
 
