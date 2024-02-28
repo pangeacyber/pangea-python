@@ -739,14 +739,14 @@ class Audit(ServiceBase, AuditBase):
         input = RootRequest(tree_size=tree_size)
         return self.request.post("v1/root", RootResult, data=input.dict(exclude_none=True))
 
-    def update_published_roots(self, result: SearchOutput):
+    def update_published_roots(self, result: SearchResultOutput):
         """Fetches series of published root hashes from Arweave
 
         This is used for subsequent calls to verify_consistency_proof(). Root hashes
         are published on [Arweave](https://arweave.net).
 
         Args:
-            result (SearchOutput): PangeaResponse object from previous call to audit.search()
+            result (SearchResultOutput): Result object from previous call to Audit.search() or Audit.results()
 
         Raises:
             AuditException: If an audit based api exception happens

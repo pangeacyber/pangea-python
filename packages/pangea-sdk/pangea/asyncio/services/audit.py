@@ -423,7 +423,7 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
         are published on [Arweave](https://arweave.net).
 
         Args:
-            result (SearchOutput): PangeaResponse object from previous call to audit.search()
+            result (SearchResultOutput): Result object from previous call to AuditAsync.search() or AuditAsync.results()
 
         Raises:
             AuditException: If an audit based api exception happens
