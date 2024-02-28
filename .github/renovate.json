@@ -4,9 +4,10 @@
   "ignorePaths": [],
   "packageRules": [
     {
-      "description": "Offer separate minor and patch versions for Python",
+      "description": "Offer only patch updates for Python",
       "matchDepNames": ["python"],
-      "separateMinorPatch": true
+      "matchUpdateTypes": ["major", "minor"],
+      "enabled": false
     }
   ]
 }
