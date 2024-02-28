@@ -6,8 +6,9 @@ from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
 
 import aiohttp
 import requests
-from pangea.utils import format_datetime
 from pydantic import BaseModel
+
+from pangea.utils import format_datetime
 
 T = TypeVar("T")
 
@@ -141,10 +142,12 @@ class PangeaResponse(Generic[T], ResponseHeader):
     result: Optional[T] = None
     pangea_error: Optional[PangeaError] = None
     accepted_result: Optional[AcceptedResult] = None
-    result_class: Type[PangeaResponseResult] = PangeaResponseResult
+    result_class: Union[Type[PangeaResponseResult], Type[dict]] = PangeaResponseResult
     _json: Any
 
-    def __init__(self, response: requests.Response, result_class: Type[PangeaResponseResult], json: dict):
+    def __init__(
+        self, response: requests.Response, result_class: Union[Type[PangeaResponseResult], Type[dict]], json: dict
+    ):
         super(PangeaResponse, self).__init__(**json)
         self._json = json
         self.raw_response = response

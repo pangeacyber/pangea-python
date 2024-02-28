@@ -373,42 +373,6 @@ class SearchEvent(APIResponseModel):
     signature_verification: EventVerification = EventVerification.NONE
 
 
-class SearchOutput(PangeaResponseResult):
-    """
-    Result class after an audit search action
-
-    Arguments:
-    id -- Identifier to supply to search_results API to fetch/paginate through search results. ID is always populated on a successful response.
-    expires_at -- The time when the results will no longer be available to page through via the results API.
-    count -- The total number of results that were returned by the search.
-    events -- A list of matching audit records.
-    root -- Root of a published Merkle Tree.
-    unpublished_root -- Root of a unpublished Merkle Tree
-    """
-
-    count: int
-    events: List[SearchEvent]
-    id: str
-    expires_at: datetime.datetime
-    root: Optional[Root] = None
-    unpublished_root: Optional[Root] = None
-
-
-class SearchResultRequest(APIRequestModel):
-    """
-    Class used to paginate search results
-
-    Arguments:
-    id -- A search results identifier returned by the search call.
-    limit -- Number of audit records to include from the first page of the results.
-    offset -- Offset from the start of the result set to start returning results from.
-    """
-
-    id: str
-    limit: Optional[int] = 20
-    offset: Optional[int] = 0
-
-
 class SearchResultOutput(PangeaResponseResult):
     """
     Return class after a pagination search
@@ -424,3 +388,35 @@ class SearchResultOutput(PangeaResponseResult):
     events: List[SearchEvent]
     root: Optional[Root] = None
     unpublished_root: Optional[Root] = None
+
+
+class SearchOutput(SearchResultOutput):
+    """
+    Result class after an audit search action
+
+    Arguments:
+    id -- Identifier to supply to search_results API to fetch/paginate through search results. ID is always populated on a successful response.
+    expires_at -- The time when the results will no longer be available to page through via the results API.
+    count -- The total number of results that were returned by the search.
+    events -- A list of matching audit records.
+    root -- Root of a published Merkle Tree.
+    unpublished_root -- Root of a unpublished Merkle Tree
+    """
+
+    id: str
+    expires_at: datetime.datetime
+
+
+class SearchResultRequest(APIRequestModel):
+    """
+    Class used to paginate search results
+
+    Arguments:
+    id -- A search results identifier returned by the search call.
+    limit -- Number of audit records to include from the first page of the results.
+    offset -- Offset from the start of the result set to start returning results from.
+    """
+
+    id: str
+    limit: Optional[int] = 20
+    offset: Optional[int] = 0
