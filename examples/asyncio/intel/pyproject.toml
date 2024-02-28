@@ -7,7 +7,7 @@ readme = "README.md"
 packages = [{include = "intel_examples"}]
 
 [tool.poetry.dependencies]
-python = "^3.7.2"
+python = "^3.12.2"
 pangea-sdk = "^3.6.1"
 
 [tool.poetry.group.dev.dependencies]
