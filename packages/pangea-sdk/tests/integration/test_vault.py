@@ -626,8 +626,9 @@ class TestVault(unittest.TestCase):
         for i in list_resp.result.items:
             try:
                 if i.id is not None and i.type != "folder":
-                    del_resp = self.vault.delete(i.id)
-                    self.assertEqual(i.id, del_resp.result.id)
+                    if i.folder != "/service-tokens/":  # Skip service token deletion
+                        del_resp = self.vault.delete(i.id)
+                        self.assertEqual(i.id, del_resp.result.id)
             except pe.PangeaAPIException as e:
                 print(i)
                 print(e)
