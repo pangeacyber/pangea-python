@@ -113,6 +113,10 @@ class AuthN(ServiceBase):
             Examples:
                 response = authn.session.list()
             """
+
+            if isinstance(filter, dict):
+                filter = m.SessionListFilter(**filter)
+
             input = m.SessionListRequest(filter=filter, last=last, order=order, order_by=order_by, size=size)
             return self.request.post("v2/session/list", m.SessionListResults, data=input.dict(exclude_none=True))
 
@@ -267,6 +271,10 @@ class AuthN(ServiceBase):
                         token="ptu_wuk7tvtpswyjtlsx52b7yyi2l7zotv4a",
                     )
                 """
+
+                if isinstance(filter, dict):
+                    filter = m.SessionListFilter(**filter)
+
                 input = m.ClientSessionListRequest(
                     token=token, filter=filter, last=last, order=order, order_by=order_by, size=size
                 )
@@ -589,6 +597,10 @@ class AuthN(ServiceBase):
             Examples:
                 response = authn.user.list()
             """
+
+            if isinstance(filter, dict):
+                filter = m.UserListFilter(**filter)
+
             input = m.UserListRequest(
                 filter=filter,
                 last=last,
@@ -638,6 +650,9 @@ class AuthN(ServiceBase):
                 Examples:
                     response = authn.user.invites.list()
                 """
+                if isinstance(filter, dict):
+                    filter = m.UserInviteListFilter(**filter)
+
                 input = m.UserInviteListRequest(filter=filter, last=last, order=order, order_by=order_by, size=size)
                 return self.request.post(
                     "v2/user/invite/list", m.UserInviteListResult, data=input.dict(exclude_none=True)
@@ -1060,6 +1075,9 @@ class AuthN(ServiceBase):
             Examples:
                 response = authn.agreements.list()
             """
+
+            if isinstance(filter, dict):
+                filter = m.AgreementListFilter(**filter)
 
             input = m.AgreementListRequest(filter=filter, last=last, order=order, order_by=order_by, size=size)
             return self.request.post("v2/agreements/list", m.AgreementListResult, data=input.dict(exclude_none=True))

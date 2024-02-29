@@ -162,14 +162,14 @@ class PangeaResponse(Generic[T], ResponseHeader):
     result: Optional[T] = None
     pangea_error: Optional[PangeaError] = None
     accepted_result: Optional[AcceptedResult] = None
-    result_class: Type[PangeaResponseResult] = PangeaResponseResult
+    result_class: Union[Type[PangeaResponseResult], Type[dict]] = PangeaResponseResult
     _json: Any
     attached_files: List[AttachedFile] = []
 
     def __init__(
         self,
         response: requests.Response,
-        result_class: Type[PangeaResponseResult],
+        result_class: Union[Type[PangeaResponseResult], Type[dict]],
         json: dict,
         attached_files: List[AttachedFile] = [],
     ):

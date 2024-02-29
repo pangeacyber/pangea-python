@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pangea-sdk"
-version = "3.6.1"
+version = "3.7.0"
 description = "Pangea API SDK"
 authors = ["Glenn Gallien <glenn.gallien@pangea.cloud>"]
 license = "MIT"
@@ -19,11 +19,10 @@ packages = [
 [tool.poetry.dependencies]
 python = "^3.7.2"
 requests = "^2.31.0"
-cryptography = "^42.0.2"
-schema = "^0.7.5"
+cryptography = "^42.0.5"
 python-dateutil = "^2.8.2"
-pydantic = "^1.10.2"
-deprecated = "^1.2.13"
+pydantic = "^1.10.14"
+deprecated = "^1.2.14"
 aiohttp = "^3.8.6"
 asyncio = "^3.4.3"
 google-crc32c = "^1.5.0"
@@ -31,8 +30,8 @@ requests-toolbelt = "^1.0.0"
 
 [tool.poetry.dev-dependencies]
 mypy = "^1.4.1"
-black = "^22.1.0"
-docstring-parser = "^0.14.1"
+black = "^23.3.0"
+docstring-parser = "^0.15"
 types-Deprecated = "^1.2.9.3"
 types-requests = "^2.31.0.10"
 types-python-dateutil = "^2.8.19.14"
