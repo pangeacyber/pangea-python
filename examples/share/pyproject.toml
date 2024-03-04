@@ -1,10 +1,10 @@
 [tool.poetry]
-name = "store-examples"
+name = "share-examples"
 version = "2.0.0"
-description = "This is a set of examples about how to use python SDK to communicate with Store service"
+description = "This is a set of examples about how to use python SDK to communicate with Share service"
 authors = ["H. Andres Tournour <andres.tournour@pangea.cloud>"]
 readme = "README.md"
-packages = [{include = "store_examples"}]
+packages = [{include = "share_examples"}]
 
 [tool.poetry.dependencies]
 python = "^3.7.2"

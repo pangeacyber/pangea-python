@@ -5,11 +5,11 @@ import time
 import pangea.exceptions as pe
 from pangea.config import PangeaConfig
 from pangea.response import PangeaResponse, TransferMethod
-from pangea.services import Store
-from pangea.services.store.store import FileUploader, PutResult  # type: ignore
+from pangea.services import Share
+from pangea.services.share.share import FileUploader, PutResult  # type: ignore
 from pangea.utils import get_file_upload_params
 
-token = os.getenv("PANGEA_STORE_TOKEN")
+token = os.getenv("PANGEA_SHARE_TOKEN")
 assert token
 domain = os.getenv("PANGEA_DOMAIN")
 assert domain
@@ -17,10 +17,10 @@ config = PangeaConfig(domain=domain)
 
 # Create a path name
 date = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-filepath = "./store_examples/testfile.pdf"
+filepath = "./share_examples/testfile.pdf"
 
 # Create service object
-store = Store(token, config=config)
+share = Share(token, config=config)
 
 
 def main():
@@ -30,7 +30,7 @@ def main():
         with open(filepath, "rb") as f:
             params = get_file_upload_params(f)
             print("Requesting upload url...")
-            response = store.request_upload_url(
+            response = share.request_upload_url(
                 name=name,
                 transfer_method=TransferMethod.POST_URL,
                 crc32c=params.crc_hex,
@@ -58,7 +58,7 @@ def main():
                 # wait some time to get result ready and poll it
                 print(f"Polling result. Retry: {retry}.")
                 time.sleep(10)
-                response: PangeaResponse[PutResult] = store.poll_result(response=response)
+                response: PangeaResponse[PutResult] = share.poll_result(response=response)
 
                 print(f"Poll result success. Item ID: {response.result.object.id}")
                 break
@@ -68,7 +68,7 @@ def main():
                     print("Error: reached max retry.")
                     break
     except pe.PangeaAPIException as e:
-        print(f"Store request error: {e.response.summary}")
+        print(f"Share request error: {e.response.summary}")
         for err in e.errors:
             print(f"\t{err.detail} \n")
 

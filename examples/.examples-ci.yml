@@ -11,7 +11,7 @@
           - intel
           - redact
           - vault
-          - store
+          - share
   image: python:${PYTHON_VERSION}
   before_script:
     - export PANGEA_AUDIT_CONFIG_ID="${PANGEA_AUDIT_CONFIG_ID_1_LVE_AWS}"

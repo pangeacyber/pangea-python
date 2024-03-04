@@ -3,9 +3,9 @@ import os
 
 import pangea.exceptions as pe
 from pangea.config import PangeaConfig
-from pangea.services import Store
+from pangea.services import Share
 
-token = os.getenv("PANGEA_STORE_TOKEN")
+token = os.getenv("PANGEA_SHARE_TOKEN")
 assert token
 domain = os.getenv("PANGEA_DOMAIN")
 assert domain
@@ -16,22 +16,22 @@ date = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 path = f"/sdk_example/delete/{date}"
 
 # Create service object
-store = Store(token, config=config)
+share = Share(token, config=config)
 
 
 def main():
     try:
         print("Creating folder...")
-        resp_create = store.folder_create(path=path)
+        resp_create = share.folder_create(path=path)
 
         id = resp_create.result.object.id
         print(f"Folder created. ID: {id}")
 
         print("Deleting folder by ID...")
-        resp_delete = store.delete(id=id)
+        resp_delete = share.delete(id=id)
         print(f"Delete success. Deleted {resp_delete.result.count} item/s")
     except pe.PangeaAPIException as e:
-        print(f"Store request error: {e.response.summary}")
+        print(f"Share request error: {e.response.summary}")
         for err in e.errors:
             print(f"\t{err.detail} \n")
 

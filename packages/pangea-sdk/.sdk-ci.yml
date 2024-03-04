@@ -21,7 +21,7 @@
     SERVICE_USER_INTEL_ENV: LVE
     SERVICE_REDACT_ENV: LVE
     SERVICE_VAULT_ENV: LVE
-    SERVICE_STORE_ENV: DEV
+    SERVICE_SHARE_ENV: DEV
 
   before_script:
     - echo ${ENV}
@@ -81,8 +81,8 @@
         ENV: ${SERVICE_VAULT_ENV}
         TEST: test_vault
       - CLOUD: [AWS, GCP]
-        ENV: ${SERVICE_STORE_ENV}
-        TEST: test_store
+        ENV: ${SERVICE_SHARE_ENV}
+        TEST: test_share
 
   rules:
     - if: '$CLOUD == "GCP" && $TEST == "test_file_scan"'
