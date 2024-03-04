@@ -4,20 +4,20 @@ import io
 import logging
 from typing import Dict, List, Optional, Union
 
-import pangea.services.store.store as m
+import pangea.services.share.share as m
 from pangea.asyncio.request import PangeaRequestAsync
 from pangea.request import PangeaConfig
 from pangea.response import PangeaResponse, TransferMethod
-from pangea.services.store.file_format import FileFormat
+from pangea.services.share.file_format import FileFormat
 from pangea.utils import get_file_upload_params
 
 from .base import ServiceBaseAsync
 
 
-class StoreAsync(ServiceBaseAsync):
-    """Store service client."""
+class ShareAsync(ServiceBaseAsync):
+    """Share service client."""
 
-    service_name = "store"
+    service_name = "share"
 
     async def delete(
         self, id: Optional[str] = None, path: Optional[str] = None, force: Optional[bool] = None
@@ -228,7 +228,7 @@ class FileUploaderAsync:
         self._request = PangeaRequestAsync(
             config=PangeaConfig(),
             token="",
-            service="StoreUploaderAsync",
+            service="ShareUploaderAsync",
             logger=self.logger,
         )
 

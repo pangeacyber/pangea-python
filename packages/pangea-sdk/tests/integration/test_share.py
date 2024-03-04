@@ -7,8 +7,8 @@ from http.client import HTTPConnection
 import pangea.exceptions as pe
 from pangea import PangeaConfig
 from pangea.response import PangeaResponse, TransferMethod
-from pangea.services import Store
-from pangea.services.store.store import (
+from pangea.services import Share
+from pangea.services.share.share import (
     ArchiveFormat,
     Authenticator,
     AuthenticatorType,
@@ -47,7 +47,7 @@ def debug_requests_on():
     requests_log.propagate = True
 
 
-class TestStore(unittest.TestCase):
+class TestShare(unittest.TestCase):
     def setUp(self):
         # debug_requests_on()
         token = get_test_token(TEST_ENVIRONMENT)
@@ -55,7 +55,7 @@ class TestStore(unittest.TestCase):
         config = PangeaConfig(
             domain=domain, custom_user_agent="sdk-test", queued_retry_enabled=True, poll_result_timeout=240
         )
-        self.client = Store(token, config=config)
+        self.client = Share(token, config=config)
         logger_set_pangea_config(logger_name=self.client.logger.name)
 
     def test_folder(self):

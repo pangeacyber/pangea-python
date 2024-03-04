@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Share service support
+
+
 ### Fixed
 
 - AuthN list method's filter not being serialized properly.

@@ -338,10 +338,10 @@ class ShareLinkSendResult(PangeaResponseResult):
     share_link_objects: List[ShareLinkItem]
 
 
-class Store(ServiceBase):
-    """Store service client."""
+class Share(ServiceBase):
+    """Share service client."""
 
-    service_name = "store"
+    service_name = "share"
 
     def delete(
         self, id: Optional[str] = None, path: Optional[str] = None, force: Optional[bool] = None
@@ -352,7 +352,7 @@ class Store(ServiceBase):
         Delete object by ID or path.
         If both are supplied, the path must match that of the object represented by the ID.
 
-        OperationId: store_post_v1beta_delete
+        OperationId: share_post_v1beta_delete
 
         Args:
             id (str, optional): The ID of the object to delete.
@@ -360,10 +360,10 @@ class Store(ServiceBase):
             force (bool, optional): If true, delete a folder even if it's not empty.
 
         Returns:
-            A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/store).
+            A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/share).
 
         Examples:
-            response = store.delete(id="pos_3djfmzg2db4c6donarecbyv5begtj2bm")
+            response = share.delete(id="pos_3djfmzg2db4c6donarecbyv5begtj2bm")
         """
         input = DeleteRequest(id=id, path=path, force=force)
         return self.request.post("v1beta/delete", DeleteResult, data=input.dict(exclude_none=True))
@@ -381,7 +381,7 @@ class Store(ServiceBase):
 
         Create a folder, either by name or path and parent_id.
 
-        OperationId: store_post_v1beta_folder_create
+        OperationId: share_post_v1beta_folder_create
 
         Args:
             name (str, optional): The name of an object.
@@ -391,10 +391,10 @@ class Store(ServiceBase):
             tags (Tags, optional): A list of user-defined tags.
 
         Returns:
-            A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/store).
+            A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/share).
 
         Examples:
-            response = store.folder_create(
+            response = share.folder_create(
                 metadata={
                     "created_by": "jim",
                     "priority": "medium",
@@ -416,7 +416,7 @@ class Store(ServiceBase):
         Get object.
         If both ID and Path are supplied, the call will fail if the target object doesn't match both properties.
 
-        OperationId: store_post_v1beta_get
+        OperationId: share_post_v1beta_get
 
         Args:
             id (str, optional): The ID of the object to retrieve.
@@ -424,10 +424,10 @@ class Store(ServiceBase):
             transfer_method (TransferMethod, optional): The requested transfer method for the file data.
 
         Returns:
-            A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/store).
+            A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/share).
 
         Examples:
-            response = store.get(
+            response = share.get(
                 id="pos_3djfmzg2db4c6donarecbyv5begtj2bm",
                 path="/",
             )
@@ -450,7 +450,7 @@ class Store(ServiceBase):
 
         Get an archive file of multiple objects.
 
-        OperationId: store_post_v1beta_get_archive
+        OperationId: share_post_v1beta_get_archive
 
         Args:
             ids (List[str]): The IDs of the objects to include in the archive. Folders include all children.
@@ -458,10 +458,10 @@ class Store(ServiceBase):
             transfer_method (TransferMethod, optional): The requested transfer method for the file data.
 
         Returns:
-            A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/store).
+            A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/share).
 
         Examples:
-            response = store.get_archive(
+            response = share.get_archive(
                 ids=["pos_3djfmzg2db4c6donarecbyv5begtj2bm"],
             )
         """
@@ -488,7 +488,7 @@ class Store(ServiceBase):
 
         List or filter/search records.
 
-        OperationId: store_post_v1beta_list
+        OperationId: share_post_v1beta_list
 
         Args:
             filter (Union[Dict[str, str], FilterList], optional):
@@ -498,10 +498,10 @@ class Store(ServiceBase):
             size (int, optional): Maximum results to include in the response.
 
         Returns:
-            A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/store).
+            A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/share).
 
         Examples:
-            response = store.list()
+            response = share.list()
         """
         input = ListRequest(filter=filter, last=last, order=order, order_by=order_by, size=size)
         return self.request.post("v1beta/list", ListResult, data=input.dict(exclude_none=True))
@@ -529,7 +529,7 @@ class Store(ServiceBase):
 
         Upload a file.
 
-        OperationId: store_post_v1beta_put
+        OperationId: share_post_v1beta_put
 
         Args:
             file (io.BufferedReader):
@@ -549,12 +549,12 @@ class Store(ServiceBase):
             size (str, optional): The size (in bytes) of the file. If the upload doesn't match, the call will fail.
 
         Returns:
-            A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/store).
+            A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/share).
 
         Examples:
             try:
                 with open("./path/to/file.pdf", "rb") as f:
-                    response = store.put(file=f)
+                    response = share.put(file=f)
                     print(f"Response: {response.result}")
             except pe.PangeaAPIException as e:
                 print(f"Request Error: {e.response.summary}")
@@ -610,7 +610,7 @@ class Store(ServiceBase):
 
         Request an upload URL.
 
-        OperationId: store_post_v1beta_put 2
+        OperationId: share_post_v1beta_put 2
 
         Args:
             name (str, optional): The name of the object to store.
@@ -629,10 +629,10 @@ class Store(ServiceBase):
             size (str, optional): The size (in bytes) of the file. If the upload doesn't match, the call will fail.
 
         Returns:
-            A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/store).
+            A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/share).
 
         Examples:
-            response = store.request_upload_url(
+            response = share.request_upload_url(
                 transfer_method=TransferMethod.POST_URL,
                 crc32c="515f7c32",
                 sha256="c0b56b1a154697f79d27d57a3a2aad4c93849aa2239cd23048fc6f45726271cc",
@@ -684,7 +684,7 @@ class Store(ServiceBase):
 
         Update a file.
 
-        OperationId: store_post_v1beta_update
+        OperationId: share_post_v1beta_update
 
         Args:
             id (str, optional): An identifier for the file to update.
@@ -699,10 +699,10 @@ class Store(ServiceBase):
             updated_at (str, optional): The date and time the object was last updated. If included, the update will fail if this doesn't match what's stored.
 
         Returns:
-            A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/store).
+            A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/share).
 
         Examples:
-            response = store.update(
+            response = share.update(
                 id="pos_3djfmzg2db4c6donarecbyv5begtj2bm",
                 remove_metadata={
                     "created_by": "jim",
@@ -731,16 +731,16 @@ class Store(ServiceBase):
 
         Create a share link.
 
-        OperationId: store_post_v1beta_share_link_create
+        OperationId: share_post_v1beta_share_link_create
 
         Args:
             links (List[ShareLinkCreateItem]):
 
         Returns:
-            A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/store).
+            A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/share).
 
         Examples:
-            response = store.share_link_create(
+            response = share.share_link_create(
                 links=[
                     {
                         targets: ["pos_3djfmzg2db4c6donarecbyv5begtj2bm"],
@@ -764,16 +764,16 @@ class Store(ServiceBase):
 
         Get a share link.
 
-        OperationId: store_post_v1beta_share_link_get
+        OperationId: share_post_v1beta_share_link_get
 
         Args:
             id (str, optional): The ID of a share link.
 
         Returns:
-            A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/store).
+            A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/share).
 
         Examples:
-            response = store.share_link_get(
+            response = share.share_link_get(
                 id="psl_3djfmzg2db4c6donarecbyv5begtj2bm"
             )
         """
@@ -793,7 +793,7 @@ class Store(ServiceBase):
 
         Look up share links by filter options.
 
-        OperationId: store_post_v1beta_share_link_list
+        OperationId: share_post_v1beta_share_link_list
 
         Args:
             filter (Union[Dict[str, str], ShareLinkListFilter], optional):
@@ -803,10 +803,10 @@ class Store(ServiceBase):
             size (int, optional): Maximum results to include in the response.
 
         Returns:
-            A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/store).
+            A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/share).
 
         Examples:
-            response = store.share_link_list()
+            response = share.share_link_list()
         """
         input = ShareLinkListRequest(filter=filter, last=last, order=order, order_by=order_by, size=size)
         return self.request.post("v1beta/share/link/list", ShareLinkListResult, data=input.dict(exclude_none=True))
@@ -817,16 +817,16 @@ class Store(ServiceBase):
 
         Delete share links.
 
-        OperationId: store_post_v1beta_share_link_delete
+        OperationId: share_post_v1beta_share_link_delete
 
         Args:
             ids (List[str]): list of the share link's id to delete
 
         Returns:
-            A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/store).
+            A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/share).
 
         Examples:
-            response = store.share_link_delete(
+            response = share.share_link_delete(
                 ids=["psl_3djfmzg2db4c6donarecbyv5begtj2bm"]
             )
         """
@@ -846,7 +846,7 @@ class FileUploader:
         self._request = PangeaRequest(
             config=PangeaConfig(),
             token="",
-            service="StoreUploader",
+            service="ShareUploader",
             logger=self.logger,
         )
 

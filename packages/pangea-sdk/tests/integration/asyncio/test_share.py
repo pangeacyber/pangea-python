@@ -6,10 +6,10 @@ from http.client import HTTPConnection
 
 import pangea.exceptions as pe
 from pangea import PangeaConfig
-from pangea.asyncio.services import StoreAsync
-from pangea.asyncio.services.store import FileUploaderAsync
+from pangea.asyncio.services import ShareAsync
+from pangea.asyncio.services.share import FileUploaderAsync
 from pangea.response import PangeaResponse, TransferMethod
-from pangea.services.store.store import (
+from pangea.services.share.share import (
     ArchiveFormat,
     Authenticator,
     AuthenticatorType,
@@ -47,7 +47,7 @@ def debug_requests_on():
     requests_log.propagate = True
 
 
-class TestStore(unittest.IsolatedAsyncioTestCase):
+class TestShare(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         # debug_requests_on()
         token = get_test_token(TEST_ENVIRONMENT)
@@ -55,7 +55,7 @@ class TestStore(unittest.IsolatedAsyncioTestCase):
         config = PangeaConfig(
             domain=domain, custom_user_agent="sdk-test", queued_retry_enabled=True, poll_result_timeout=240
         )
-        self.client = StoreAsync(token, config=config)
+        self.client = ShareAsync(token, config=config)
         logger_set_pangea_config(logger_name=self.client.logger.name)
 
     async def asyncTearDown(self):
