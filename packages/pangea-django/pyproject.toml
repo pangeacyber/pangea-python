@@ -18,10 +18,10 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.8.0"
-"Django" = "^4.2.10"
+"Django" = "^4.2.11"
 "pangea-sdk" = "^3.7.0"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 black = "^22.12.0"
 
 [build-system]
