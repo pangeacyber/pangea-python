@@ -1,5 +1,5 @@
 default:
-  image: python:3.7-bullseye@sha256:f36f6fe9ddb2622aab9803944cbe7e2bc50be75d624a081f7895e60e7c6b7f0a
+  image: python:3.8.18
   tags:
     - pangea-internal
 

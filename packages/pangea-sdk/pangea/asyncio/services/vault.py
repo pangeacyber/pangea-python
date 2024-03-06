@@ -932,8 +932,8 @@ class VaultAsync(ServiceBaseAsync):
                 version=1,
             )
         """
-        input = EncryptRequest(id=id, plain_text=plain_text, version=version)  # type: ignore[call-arg]
-        return await self.request.post("v1/key/encrypt", EncryptResult, data=input.dict(exclude_none=True))
+        input = EncryptRequest(id=id, plain_text=plain_text, version=version)
+        return await self.request.post("v1/key/encrypt", EncryptResult, data=input.model_dump(exclude_none=True))
 
     # Decrypt
     async def decrypt(self, id: str, cipher_text: str, version: Optional[int] = None) -> PangeaResponse[DecryptResult]:
@@ -964,8 +964,8 @@ class VaultAsync(ServiceBaseAsync):
                 version=1,
             )
         """
-        input = DecryptRequest(id=id, cipher_text=cipher_text, version=version)  # type: ignore[call-arg]
-        return await self.request.post("v1/key/decrypt", DecryptResult, data=input.dict(exclude_none=True))
+        input = DecryptRequest(id=id, cipher_text=cipher_text, version=version)
+        return await self.request.post("v1/key/decrypt", DecryptResult, data=input.model_dump(exclude_none=True))
 
     # Sign
     async def sign(self, id: str, message: str, version: Optional[int] = None) -> PangeaResponse[SignResult]:
