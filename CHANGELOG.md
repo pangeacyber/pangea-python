@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - AuthN list method's filter not being serialized properly.
+- Incorrect docstrings positioning in `PangeaConfig`.
 
 
 ## [3.7.0] - 2024-02-26

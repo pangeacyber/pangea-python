@@ -28,7 +28,7 @@ asyncio = "^3.4.3"
 google-crc32c = "^1.5.0"
 requests-toolbelt = "^1.0.0"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 mypy = "^1.4.1"
 black = "^23.3.0"
 docstring-parser = "^0.15"
