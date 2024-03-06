@@ -91,7 +91,7 @@ class Vault(ServiceBase):
         vault_config = PangeaConfig(domain="pangea.cloud")
 
         # Setup Pangea Vault service
-        vault = Vault(token=PANGEA_VAULT_TOKEN, config=audit_config)
+        vault = Vault(token=PANGEA_VAULT_TOKEN, config=vault_config)
     """
 
     service_name = "vault"
