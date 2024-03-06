@@ -5,7 +5,7 @@ import copy
 import json
 import logging
 import time
-from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Type, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Sequence, Tuple, Type, Union
 
 import requests
 from requests.adapters import HTTPAdapter, Retry
@@ -190,7 +190,7 @@ class PangeaRequestBase(object):
         raise pe.PangeaAPIException(f"{summary} ", response)
 
 
-TResult = TypeVar("TResult", bound=PangeaResponseResult, default=PangeaResponseResult)
+TResult = TypeVar("TResult", bound=PangeaResponseResult)
 
 
 class PangeaRequest(PangeaRequestBase):
@@ -324,7 +324,10 @@ class PangeaRequest(PangeaRequestBase):
         return self.session.post(url, headers=headers, data=data_send, files=files)
 
     def _http_post_process(
-        self, data: Union[str, Dict] = {}, files: Optional[List[Tuple]] = None, multipart_post: bool = True
+        self,
+        data: Union[str, Dict] = {},
+        files: Optional[Sequence[Tuple[str, Tuple[Any, str, str]]]] = None,
+        multipart_post: bool = True,
     ):
         if files:
             if multipart_post is True:

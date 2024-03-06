@@ -102,7 +102,7 @@ class RedactAsync(ServiceBaseAsync):
             return_result=return_result,
             redaction_method_overrides=redaction_method_overrides,
         )
-        return await self.request.post("v1/redact", m.RedactResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v1/redact", m.RedactResult, data=input.model_dump(exclude_none=True))
 
     async def redact_structured(
         self,
@@ -162,7 +162,9 @@ class RedactAsync(ServiceBaseAsync):
             return_result=return_result,
             redaction_method_overrides=redaction_method_overrides,
         )
-        return await self.request.post("v1/redact_structured", m.StructuredResult, data=input.dict(exclude_none=True))
+        return await self.request.post(
+            "v1/redact_structured", m.StructuredResult, data=input.model_dump(exclude_none=True)
+        )
 
     async def unredact(self, redacted_data: m.RedactedData, fpe_context: str) -> PangeaResponse[m.UnredactResult]:
         """
@@ -185,4 +187,4 @@ class RedactAsync(ServiceBaseAsync):
                 [API Documentation](https://pangea.cloud/docs/api/redact#unredact)
         """
         input = m.UnredactRequest(redacted_data=redacted_data, fpe_context=fpe_context)
-        return await self.request.post("v1/unredact", m.UnredactResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v1/unredact", m.UnredactResult, data=input.model_dump(exclude_none=True))

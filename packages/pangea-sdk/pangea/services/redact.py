@@ -265,7 +265,7 @@ class Redact(ServiceBase):
             return_result=return_result,
             redaction_method_overrides=redaction_method_overrides,
         )
-        return self.request.post("v1/redact", RedactResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1/redact", RedactResult, data=input.model_dump(exclude_none=True))
 
     def redact_structured(
         self,
@@ -325,7 +325,7 @@ class Redact(ServiceBase):
             return_result=return_result,
             redaction_method_overrides=redaction_method_overrides,
         )
-        return self.request.post("v1/redact_structured", StructuredResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1/redact_structured", StructuredResult, data=input.model_dump(exclude_none=True))
 
     def unredact(self, redacted_data: RedactedData, fpe_context: str) -> PangeaResponse[UnredactResult]:
         """
@@ -348,4 +348,4 @@ class Redact(ServiceBase):
                 [API Documentation](https://pangea.cloud/docs/api/redact#unredact)
         """
         input = UnredactRequest(redacted_data=redacted_data, fpe_context=fpe_context)
-        return self.request.post("v1/unredact", UnredactResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1/unredact", UnredactResult, data=input.model_dump(exclude_none=True))

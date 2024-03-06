@@ -96,7 +96,7 @@ class AuthNAsync(ServiceBaseAsync):
             """
             input = m.SessionInvalidateRequest(session_id=session_id)
             return await self.request.post(
-                "v2/session/invalidate", m.SessionInvalidateResult, data=input.dict(exclude_none=True)
+                "v2/session/invalidate", m.SessionInvalidateResult, data=input.model_dump(exclude_none=True)
             )
 
         async def list(
@@ -133,7 +133,9 @@ class AuthNAsync(ServiceBaseAsync):
                 filter = m.SessionListFilter(**filter)
 
             input = m.SessionListRequest(filter=filter, last=last, order=order, order_by=order_by, size=size)
-            return await self.request.post("v2/session/list", m.SessionListResults, data=input.dict(exclude_none=True))
+            return await self.request.post(
+                "v2/session/list", m.SessionListResults, data=input.model_dump(exclude_none=True)
+            )
 
         async def logout(self, user_id: str) -> PangeaResponse[m.SessionLogoutResult]:
             """
@@ -156,7 +158,7 @@ class AuthNAsync(ServiceBaseAsync):
             """
             input = m.SessionLogoutRequest(user_id=user_id)
             return await self.request.post(
-                "v2/session/logout", m.SessionLogoutResult, data=input.dict(exclude_none=True)
+                "v2/session/logout", m.SessionLogoutResult, data=input.model_dump(exclude_none=True)
             )
 
     class ClientAsync(ServiceBaseAsync):
@@ -196,7 +198,7 @@ class AuthNAsync(ServiceBaseAsync):
             """
             input = m.ClientUserinfoRequest(code=code)
             return await self.request.post(
-                "v2/client/userinfo", m.ClientUserinfoResult, data=input.dict(exclude_none=True)
+                "v2/client/userinfo", m.ClientUserinfoResult, data=input.model_dump(exclude_none=True)
             )
 
         async def jwks(
@@ -253,7 +255,9 @@ class AuthNAsync(ServiceBaseAsync):
                 """
                 input = m.ClientSessionInvalidateRequest(token=token, session_id=session_id)
                 return await self.request.post(
-                    "v2/client/session/invalidate", m.ClientSessionInvalidateResult, data=input.dict(exclude_none=True)
+                    "v2/client/session/invalidate",
+                    m.ClientSessionInvalidateResult,
+                    data=input.model_dump(exclude_none=True),
                 )
 
             async def list(
@@ -297,7 +301,7 @@ class AuthNAsync(ServiceBaseAsync):
                     token=token, filter=filter, last=last, order=order, order_by=order_by, size=size
                 )
                 return await self.request.post(
-                    "v2/client/session/list", m.ClientSessionListResults, data=input.dict(exclude_none=True)
+                    "v2/client/session/list", m.ClientSessionListResults, data=input.model_dump(exclude_none=True)
                 )
 
             async def logout(self, token: str) -> PangeaResponse[m.ClientSessionLogoutResult]:
@@ -321,7 +325,7 @@ class AuthNAsync(ServiceBaseAsync):
                 """
                 input = m.ClientSessionLogoutRequest(token=token)
                 return await self.request.post(
-                    "v2/client/session/logout", m.ClientSessionLogoutResult, data=input.dict(exclude_none=True)
+                    "v2/client/session/logout", m.ClientSessionLogoutResult, data=input.model_dump(exclude_none=True)
                 )
 
             async def refresh(
@@ -351,7 +355,7 @@ class AuthNAsync(ServiceBaseAsync):
                 """
                 input = m.ClientSessionRefreshRequest(refresh_token=refresh_token, user_token=user_token)
                 return await self.request.post(
-                    "v2/client/session/refresh", m.ClientSessionRefreshResult, data=input.dict(exclude_none=True)
+                    "v2/client/session/refresh", m.ClientSessionRefreshResult, data=input.model_dump(exclude_none=True)
                 )
 
         class PasswordAsync(ServiceBaseAsync):
@@ -392,7 +396,7 @@ class AuthNAsync(ServiceBaseAsync):
                 """
                 input = m.ClientPasswordChangeRequest(token=token, old_password=old_password, new_password=new_password)
                 return await self.request.post(
-                    "v2/client/password/change", m.ClientPasswordChangeResult, data=input.dict(exclude_none=True)
+                    "v2/client/password/change", m.ClientPasswordChangeResult, data=input.model_dump(exclude_none=True)
                 )
 
         class TokenAsync(ServiceBaseAsync):
@@ -429,7 +433,7 @@ class AuthNAsync(ServiceBaseAsync):
                 """
                 input = m.ClientTokenCheckRequest(token=token)
                 return await self.request.post(
-                    "v2/client/token/check", m.ClientTokenCheckResult, data=input.dict(exclude_none=True)
+                    "v2/client/token/check", m.ClientTokenCheckResult, data=input.model_dump(exclude_none=True)
                 )
 
     class UserAsync(ServiceBaseAsync):
@@ -484,7 +488,9 @@ class AuthNAsync(ServiceBaseAsync):
                 profile=profile,
                 username=username,
             )
-            return await self.request.post("v2/user/create", m.UserCreateResult, data=input.dict(exclude_none=True))
+            return await self.request.post(
+                "v2/user/create", m.UserCreateResult, data=input.model_dump(exclude_none=True)
+            )
 
         async def delete(
             self, email: str | None = None, id: str | None = None, *, username: str | None = None
@@ -508,7 +514,9 @@ class AuthNAsync(ServiceBaseAsync):
                 authn.user.delete(email="example@example.com")
             """
             input = m.UserDeleteRequest(email=email, id=id, username=username)
-            return await self.request.post("v2/user/delete", m.UserDeleteResult, data=input.dict(exclude_none=True))
+            return await self.request.post(
+                "v2/user/delete", m.UserDeleteResult, data=input.model_dump(exclude_none=True)
+            )
 
         async def invite(
             self,
@@ -549,7 +557,9 @@ class AuthNAsync(ServiceBaseAsync):
                 callback=callback,
                 state=state,
             )
-            return await self.request.post("v2/user/invite", m.UserInviteResult, data=input.dict(exclude_none=True))
+            return await self.request.post(
+                "v2/user/invite", m.UserInviteResult, data=input.model_dump(exclude_none=True)
+            )
 
         async def update(
             self,
@@ -591,7 +601,9 @@ class AuthNAsync(ServiceBaseAsync):
                 username=username,
             )
 
-            return await self.request.post("v2/user/update", m.UserUpdateResult, data=input.dict(exclude_none=True))
+            return await self.request.post(
+                "v2/user/update", m.UserUpdateResult, data=input.model_dump(exclude_none=True)
+            )
 
         async def list(
             self,
@@ -633,7 +645,7 @@ class AuthNAsync(ServiceBaseAsync):
                 order_by=order_by,
                 size=size,
             )
-            return await self.request.post("v2/user/list", m.UserListResult, data=input.dict(exclude_none=True))
+            return await self.request.post("v2/user/list", m.UserListResult, data=input.model_dump(exclude_none=True))
 
         class InvitesAsync(ServiceBaseAsync):
             service_name = SERVICE_NAME
@@ -680,7 +692,7 @@ class AuthNAsync(ServiceBaseAsync):
 
                 input = m.UserInviteListRequest(filter=filter, last=last, order=order, order_by=order_by, size=size)
                 return await self.request.post(
-                    "v2/user/invite/list", m.UserInviteListResult, data=input.dict(exclude_none=True)
+                    "v2/user/invite/list", m.UserInviteListResult, data=input.model_dump(exclude_none=True)
                 )
 
             async def delete(self, id: str) -> PangeaResponse[m.UserInviteDeleteResult]:
@@ -704,7 +716,7 @@ class AuthNAsync(ServiceBaseAsync):
                 """
                 input = m.UserInviteDeleteRequest(id=id)
                 return await self.request.post(
-                    "v2/user/invite/delete", m.UserInviteDeleteResult, data=input.dict(exclude_none=True)
+                    "v2/user/invite/delete", m.UserInviteDeleteResult, data=input.model_dump(exclude_none=True)
                 )
 
         class AuthenticatorsAsync(ServiceBaseAsync):
@@ -754,7 +766,7 @@ class AuthNAsync(ServiceBaseAsync):
                 return await self.request.post(
                     "v2/user/authenticators/delete",
                     m.UserAuthenticatorsDeleteResult,
-                    data=input.dict(exclude_none=True),
+                    data=input.model_dump(exclude_none=True),
                 )
 
             async def list(
@@ -784,7 +796,9 @@ class AuthNAsync(ServiceBaseAsync):
                 """
                 input = m.UserAuthenticatorsListRequest(email=email, id=id, username=username)
                 return await self.request.post(
-                    "v2/user/authenticators/list", m.UserAuthenticatorsListResult, data=input.dict(exclude_none=True)
+                    "v2/user/authenticators/list",
+                    m.UserAuthenticatorsListResult,
+                    data=input.model_dump(exclude_none=True),
                 )
 
         class ProfileAsync(ServiceBaseAsync):
@@ -825,7 +839,7 @@ class AuthNAsync(ServiceBaseAsync):
                 """
                 input = m.UserProfileGetRequest(id=id, email=email, username=username)
                 return await self.request.post(
-                    "v2/user/profile/get", m.UserProfileGetResult, data=input.dict(exclude_none=True)
+                    "v2/user/profile/get", m.UserProfileGetResult, data=input.model_dump(exclude_none=True)
                 )
 
             async def update(
@@ -869,7 +883,7 @@ class AuthNAsync(ServiceBaseAsync):
                     username=username,
                 )
                 return await self.request.post(
-                    "v2/user/profile/update", m.UserProfileUpdateResult, data=input.dict(exclude_none=True)
+                    "v2/user/profile/update", m.UserProfileUpdateResult, data=input.model_dump(exclude_none=True)
                 )
 
     class FlowAsync(ServiceBaseAsync):
@@ -905,7 +919,9 @@ class AuthNAsync(ServiceBaseAsync):
                 )
             """
             input = m.FlowCompleteRequest(flow_id=flow_id)
-            return await self.request.post("v2/flow/complete", m.FlowCompleteResult, data=input.dict(exclude_none=True))
+            return await self.request.post(
+                "v2/flow/complete", m.FlowCompleteResult, data=input.model_dump(exclude_none=True)
+            )
 
         async def restart(
             self, flow_id: str, choice: m.FlowChoice, data: m.FlowRestartData = {}
@@ -937,7 +953,9 @@ class AuthNAsync(ServiceBaseAsync):
             """
 
             input = m.FlowRestartRequest(flow_id=flow_id, choice=choice, data=data)
-            return await self.request.post("v2/flow/restart", m.FlowRestartResult, data=input.dict(exclude_none=True))
+            return await self.request.post(
+                "v2/flow/restart", m.FlowRestartResult, data=input.model_dump(exclude_none=True)
+            )
 
         async def start(
             self,
@@ -976,7 +994,7 @@ class AuthNAsync(ServiceBaseAsync):
                 )
             """
             input = m.FlowStartRequest(cb_uri=cb_uri, email=email, flow_types=flow_types, invitation=invitation)
-            return await self.request.post("v2/flow/start", m.FlowStartResult, data=input.dict(exclude_none=True))
+            return await self.request.post("v2/flow/start", m.FlowStartResult, data=input.model_dump(exclude_none=True))
 
         async def update(
             self, flow_id: str, choice: m.FlowChoice, data: m.FlowUpdateData = {}
@@ -1010,7 +1028,9 @@ class AuthNAsync(ServiceBaseAsync):
             """
 
             input = m.FlowUpdateRequest(flow_id=flow_id, choice=choice, data=data)
-            return await self.request.post("v2/flow/update", m.FlowUpdateResult, data=input.dict(exclude_none=True))
+            return await self.request.post(
+                "v2/flow/update", m.FlowUpdateResult, data=input.model_dump(exclude_none=True)
+            )
 
     class AgreementsAsync(ServiceBaseAsync):
         service_name = SERVICE_NAME
@@ -1054,7 +1074,7 @@ class AuthNAsync(ServiceBaseAsync):
 
             input = m.AgreementCreateRequest(type=type, name=name, text=text, active=active)
             return await self.request.post(
-                "v2/agreements/create", m.AgreementCreateResult, data=input.dict(exclude_none=True)
+                "v2/agreements/create", m.AgreementCreateResult, data=input.model_dump(exclude_none=True)
             )
 
         async def delete(self, type: m.AgreementType, id: str) -> PangeaResponse[m.AgreementDeleteResult]:
@@ -1081,7 +1101,7 @@ class AuthNAsync(ServiceBaseAsync):
 
             input = m.AgreementDeleteRequest(type=type, id=id)
             return await self.request.post(
-                "v2/agreements/delete", m.AgreementDeleteResult, data=input.dict(exclude_none=True)
+                "v2/agreements/delete", m.AgreementDeleteResult, data=input.model_dump(exclude_none=True)
             )
 
         async def list(
@@ -1119,7 +1139,7 @@ class AuthNAsync(ServiceBaseAsync):
 
             input = m.AgreementListRequest(filter=filter, last=last, order=order, order_by=order_by, size=size)
             return await self.request.post(
-                "v2/agreements/list", m.AgreementListResult, data=input.dict(exclude_none=True)
+                "v2/agreements/list", m.AgreementListResult, data=input.model_dump(exclude_none=True)
             )
 
         async def update(
@@ -1160,5 +1180,5 @@ class AuthNAsync(ServiceBaseAsync):
 
             input = m.AgreementUpdateRequest(type=type, id=id, name=name, text=text, active=active)
             return await self.request.post(
-                "v2/agreements/update", m.AgreementUpdateResult, data=input.dict(exclude_none=True)
+                "v2/agreements/update", m.AgreementUpdateResult, data=input.model_dump(exclude_none=True)
             )
