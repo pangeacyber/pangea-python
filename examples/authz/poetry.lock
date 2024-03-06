@@ -852,7 +852,7 @@ files = []
 develop = true
 
 [package.dependencies]
-aiohttp = "^3.8.6"
+aiohttp = "^3.9.3"
 asyncio = "^3.4.3"
 cryptography = "^42.0.7"
 deprecated = "^1.2.14"
