@@ -219,7 +219,7 @@ class Authenticator(PangeaResponseResult):
     auth_context: str
 
 
-class ShareLinkCreateItem(PangeaResponseResult):
+class ShareLinkItemBase(PangeaResponseResult):
     targets: List[str] = []
     link_type: Optional[LinkType] = None
     expires_at: Optional[str] = None
@@ -227,23 +227,24 @@ class ShareLinkCreateItem(PangeaResponseResult):
     authenticators: List[Authenticator]
     message: Optional[str] = None
     title: Optional[str] = None
+    notify_email: Optional[str] = None
+    tags: Optional[Tags] = None
+
+
+class ShareLinkCreateItem(ShareLinkItemBase):
+    pass
 
 
 class ShareLinkCreateRequest(APIRequestModel):
     links: List[ShareLinkCreateItem] = []
 
 
-class ShareLinkItem(PangeaResponseResult):
+class ShareLinkItem(ShareLinkItemBase):
     id: str
     storage_pool_id: str
-    targets: List[str]
-    link_type: str
     access_count: int
-    max_access_count: int
     created_at: str
-    expires_at: str
     last_accessed_at: Optional[str] = None
-    authenticators: List[Authenticator]
     link: str
 
 
