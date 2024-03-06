@@ -859,8 +859,8 @@ class VaultAsync(ServiceBaseAsync):
 
                 Default is `deactivated`.
             public_key (EncodedPublicKey, optional): The public key (in PEM format)
-            private_key: (EncodedPrivateKey, optional): The private key (in PEM format)
-            key: (EncodedSymmetricKey, optional): The key material (in base64)
+            private_key (EncodedPrivateKey, optional): The private key (in PEM format)
+            key (EncodedSymmetricKey, optional): The key material (in base64)
 
         Raises:
             PangeaAPIException: If an API Error happens
