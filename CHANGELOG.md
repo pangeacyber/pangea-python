@@ -57,6 +57,7 @@ Note that Sanitize and Secure Share did not make it into this release.
 - Support for Python v3.7 has been dropped. Python v3.8 is now the minimum
   supported version.
 - Updated pydantic to v2.6.3.
+- Updated aiohttp to v3.9.3.
 
 ### Removed
 
