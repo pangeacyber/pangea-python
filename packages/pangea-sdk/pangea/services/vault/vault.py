@@ -976,8 +976,8 @@ class Vault(ServiceBase):
                 version=1,
             )
         """
-        input = DecryptRequest(id=id, cipher_text=cipher_text, version=version)  # type: ignore[call-arg]
-        return self.request.post("v1/key/decrypt", DecryptResult, data=input.dict(exclude_none=True))
+        input = DecryptRequest(id=id, cipher_text=cipher_text, version=version)
+        return self.request.post("v1/key/decrypt", DecryptResult, data=input.model_dump(exclude_none=True))
 
     # Sign
     def sign(self, id: str, message: str, version: Optional[int] = None) -> PangeaResponse[SignResult]:

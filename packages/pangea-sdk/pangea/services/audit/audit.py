@@ -519,7 +519,9 @@ class Audit(ServiceBase, AuditBase):
         """
 
         input = self._get_log_request(event, sign_local=sign_local, verify=verify, verbose=verbose)
-        response: PangeaResponse[LogResult] = self.request.post("v1/log", LogResult, data=input.dict(exclude_none=True))
+        response: PangeaResponse[LogResult] = self.request.post(
+            "v1/log", LogResult, data=input.model_dump(exclude_none=True)
+        )
         if response.success and response.result is not None:
             self._process_log_result(response.result, verify=verify)
         return response

@@ -18,8 +18,8 @@ EMAIL_TEST = f"user.email+test{TIME}@pangea.cloud"
 EMAIL_DELETE = f"user.email+delete{TIME}@pangea.cloud"
 PASSWORD_OLD = "My1s+Password"
 PASSWORD_NEW = "My1s+Password_new"
-PROFILE_OLD = {"first_name": "Name", "last_name": "Last"}
-PROFILE_NEW = {"first_name": "NameUpdate"}
+PROFILE_OLD = m.Profile(first_name="Name", last_name="Last")
+PROFILE_NEW = m.Profile(first_name="NameUpdate")
 EMAIL_INVITE_DELETE = f"user.email+invite_del{TIME}@pangea.cloud"
 EMAIL_INVITE_KEEP = f"user.email+invite_keep{TIME}@pangea.cloud"
 USER_ID = None  # Will be set once user is created

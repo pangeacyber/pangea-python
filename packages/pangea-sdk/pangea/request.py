@@ -330,8 +330,8 @@ class PangeaRequest(PangeaRequestBase):
             if multipart_post is True:
                 data_send: str = json.dumps(data, default=default_encoder) if isinstance(data, dict) else data
                 multi = [("request", (None, data_send, "application/json"))]
-                multi.extend(files)  # type: ignore[arg-type]
-                files = multi  # type: ignore[assignment]
+                multi.extend(files)
+                files = multi
                 return None, files
             else:
                 # Post to presigned url as form

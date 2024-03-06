@@ -6,7 +6,7 @@ import json
 from collections import OrderedDict
 from hashlib import new, sha1, sha256, sha512
 
-from google_crc32c import Checksum as CRC32C  # type: ignore[import]
+from google_crc32c import Checksum as CRC32C  # type: ignore[import-untyped]
 from pydantic import BaseModel
 
 

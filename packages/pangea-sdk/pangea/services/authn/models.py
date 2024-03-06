@@ -324,7 +324,7 @@ class UserInviterOrderBy(enum.Enum):
 
 
 class UserInviteListFilter(APIRequestModel):
-    callback: Optional[str]
+    callback: Optional[str] = None
     callback__contains: Optional[List[str]] = None
     callback__in: Optional[List[str]] = None
     created_at: Optional[str] = None
