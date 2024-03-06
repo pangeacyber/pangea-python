@@ -4,7 +4,7 @@
 import asyncio
 import json
 import time
-from typing import Dict, List, Optional, Tuple, Type, Union
+from typing import Dict, List, Optional, Sequence, Tuple, Type, Union
 
 import aiohttp
 from aiohttp import FormData
@@ -15,7 +15,7 @@ from pangea.request import MultipartResponse, PangeaRequestBase
 from pangea.response import AttachedFile, PangeaResponse, PangeaResponseResult, ResponseStatus, TransferMethod
 from pangea.utils import default_encoder
 
-TResult = TypeVar("TResult", bound=PangeaResponseResult, default=PangeaResponseResult)
+TResult = TypeVar("TResult", bound=PangeaResponseResult)
 
 
 class PangeaRequestAsync(PangeaRequestBase):
@@ -160,7 +160,7 @@ class PangeaRequestAsync(PangeaRequestBase):
         if resp.status < 200 or resp.status >= 300:
             raise pe.PresignedUploadError(f"presigned POST failure: {resp.status}", await resp.text())
 
-    async def put_presigned_url(self, url: str, files: List[Tuple]):
+    async def put_presigned_url(self, url: str, files: Sequence[Tuple]):
         # Send put request with file as body
         resp = await self._http_put(url=url, files=files)
         self.logger.debug(
@@ -275,7 +275,7 @@ class PangeaRequestAsync(PangeaRequestBase):
     async def _http_put(
         self,
         url: str,
-        files: List[Tuple],
+        files: Sequence[Tuple],
         headers: Dict = {},
     ) -> aiohttp.ClientResponse:
         self.logger.debug(

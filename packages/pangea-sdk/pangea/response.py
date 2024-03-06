@@ -7,8 +7,8 @@ from typing import Any, Dict, Generic, List, Optional, Type, Union
 
 import aiohttp
 import requests
-from pydantic import BaseModel
-from typing_extensions import TypeVar
+from pydantic import BaseModel, ConfigDict, PlainSerializer
+from typing_extensions import Annotated, TypeVar
 
 from pangea.utils import format_datetime
 
@@ -50,24 +50,17 @@ class TransferMethod(str, enum.Enum):
         return str(self.value)
 
 
+PangeaDateTime = Annotated[datetime.datetime, PlainSerializer(format_datetime)]
+
+
 # API response should accept arbitrary fields to make them accept possible new parameters
 class APIResponseModel(BaseModel):
-    class Config:
-        arbitrary_types_allowed = True
-        # allow parameters despite they are not declared in model. Make SDK accept server new parameters
-        extra = "allow"
+    model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
 
 
 # API request models doesn't not allow arbitrary fields
 class APIRequestModel(BaseModel):
-    class Config:
-        arbitrary_types_allowed = True
-        extra = (
-            "allow"  # allow parameters despite they are not declared in model. Make SDK accept server new parameters
-        )
-        json_encoders = {
-            datetime.datetime: format_datetime,
-        }
+    model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
 
 
 class PangeaResponseResult(APIResponseModel):
@@ -169,10 +162,10 @@ class ResponseHeader(APIResponseModel):
     """
 
 
-T = TypeVar("T", bound=PangeaResponseResult, default=PangeaResponseResult)
+T = TypeVar("T", bound=PangeaResponseResult)
 
 
-class PangeaResponse(Generic[T], ResponseHeader):
+class PangeaResponse(ResponseHeader, Generic[T]):
     raw_result: Optional[Dict[str, Any]] = None
     raw_response: Optional[Union[requests.Response, aiohttp.ClientResponse]] = None
     result: Optional[T] = None

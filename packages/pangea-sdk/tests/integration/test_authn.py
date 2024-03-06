@@ -143,10 +143,10 @@ class TestAuthN(unittest.TestCase):
             self.assertIsNotNone(response.result)
             self.assertEqual(USER_ID, response.result.id)
             self.assertEqual(EMAIL_TEST, response.result.email)
-            final_profile: dict = {}
-            final_profile.update(PROFILE_OLD)
-            final_profile.update(PROFILE_NEW)
-            self.assertEqual(final_profile, response.result.profile)
+            final_profile: dict[str, str] = {}
+            final_profile.update(PROFILE_OLD.model_dump(exclude_none=True))
+            final_profile.update(PROFILE_NEW.model_dump(exclude_none=True))
+            self.assertEqual(m.Profile(**final_profile), response.result.profile)
         except pe.PangeaAPIException as e:
             print(e)
             self.assertTrue(False)
@@ -299,7 +299,7 @@ class TestAuthN(unittest.TestCase):
             print(e)
             self.assertTrue(False)
 
-    def test_authn_z1_user_list(self):
+    def test_authn_z1_user_list(self) -> None:
         response = self.authn.user.list(filter={})
         self.assertEqual(response.status, "Success")
         self.assertIsNotNone(response.result)

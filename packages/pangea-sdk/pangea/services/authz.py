@@ -113,7 +113,7 @@ class CheckRequest(APIRequestModel):
 class DebugPath(APIResponseModel):
     type: str
     id: str
-    action: Optional[str]
+    action: Optional[str] = None
 
 
 class Debug(APIResponseModel):
@@ -202,7 +202,7 @@ class AuthZ(ServiceBase):
         """
 
         input_data = TupleCreateRequest(tuples=tuples)
-        return self.request.post("v1/tuple/create", TupleCreateResult, data=input_data.dict(exclude_none=True))
+        return self.request.post("v1/tuple/create", TupleCreateResult, data=input_data.model_dump(exclude_none=True))
 
     def tuple_list(
         self,
@@ -237,9 +237,9 @@ class AuthZ(ServiceBase):
             authz.tuple_list(TupleListFilter(subject_type="user", subject_id="user_1"))
         """
         input_data = TupleListRequest(
-            filter=filter.dict(exclude_none=True), size=size, last=last, order=order, order_by=order_by
+            filter=filter.model_dump(exclude_none=True), size=size, last=last, order=order, order_by=order_by
         )
-        return self.request.post("v1/tuple/list", TupleListResult, data=input_data.dict(exclude_none=True))
+        return self.request.post("v1/tuple/list", TupleListResult, data=input_data.model_dump(exclude_none=True))
 
     def tuple_delete(self, tuples: List[Tuple]) -> PangeaResponse[TupleDeleteResult]:
         """Delete tuples.
@@ -270,7 +270,7 @@ class AuthZ(ServiceBase):
         """
 
         input_data = TupleDeleteRequest(tuples=tuples)
-        return self.request.post("v1/tuple/delete", TupleDeleteResult, data=input_data.dict(exclude_none=True))
+        return self.request.post("v1/tuple/delete", TupleDeleteResult, data=input_data.model_dump(exclude_none=True))
 
     def check(
         self,
@@ -309,7 +309,7 @@ class AuthZ(ServiceBase):
         """
 
         input_data = CheckRequest(resource=resource, action=action, subject=subject, debug=debug, attributes=attributes)
-        return self.request.post("v1/check", CheckResult, data=input_data.dict(exclude_none=True))
+        return self.request.post("v1/check", CheckResult, data=input_data.model_dump(exclude_none=True))
 
     def list_resources(self, type: str, action: str, subject: Subject) -> PangeaResponse[ListResourcesResult]:
         """List resources.
@@ -339,7 +339,9 @@ class AuthZ(ServiceBase):
         """
 
         input_data = ListResourcesRequest(type=type, action=action, subject=subject)
-        return self.request.post("v1/list-resources", ListResourcesResult, data=input_data.dict(exclude_none=True))
+        return self.request.post(
+            "v1/list-resources", ListResourcesResult, data=input_data.model_dump(exclude_none=True)
+        )
 
     def list_subjects(self, resource: Resource, action: str) -> PangeaResponse[ListSubjectsResult]:
         """List subjects.
@@ -367,4 +369,4 @@ class AuthZ(ServiceBase):
         """
 
         input_data = ListSubjectsRequest(resource=resource, action=action)
-        return self.request.post("v1/list-subjects", ListSubjectsResult, data=input_data.dict(exclude_none=True))
+        return self.request.post("v1/list-subjects", ListSubjectsResult, data=input_data.model_dump(exclude_none=True))

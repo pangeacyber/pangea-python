@@ -6,7 +6,7 @@ import datetime
 import enum
 from typing import Any, Dict, List, Optional, Sequence, Union
 
-from pangea.response import APIRequestModel, APIResponseModel, PangeaResponseResult
+from pangea.response import APIRequestModel, APIResponseModel, PangeaDateTime, PangeaResponseResult
 
 
 class EventVerification(str, enum.Enum):
@@ -126,7 +126,7 @@ class EventEnvelope(APIResponseModel):
     event: Dict[str, Any]
     signature: Optional[str] = None
     public_key: Optional[str] = None
-    received_at: datetime.datetime
+    received_at: PangeaDateTime
 
 
 class LogRequest(APIRequestModel):
@@ -410,7 +410,7 @@ class SearchOutput(SearchResultOutput):
     """
 
     id: str
-    expires_at: datetime.datetime
+    expires_at: PangeaDateTime
 
 
 class SearchResultRequest(APIRequestModel):

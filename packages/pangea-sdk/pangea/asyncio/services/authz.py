@@ -82,7 +82,9 @@ class AuthZAsync(ServiceBaseAsync):
         """
 
         input_data = TupleCreateRequest(tuples=tuples)
-        return await self.request.post("v1/tuple/create", TupleCreateResult, data=input_data.dict(exclude_none=True))
+        return await self.request.post(
+            "v1/tuple/create", TupleCreateResult, data=input_data.model_dump(exclude_none=True)
+        )
 
     async def tuple_list(
         self,
@@ -117,9 +119,9 @@ class AuthZAsync(ServiceBaseAsync):
             await authz.tuple_list(TupleListFilter(subject_type="user", subject_id="user_1"))
         """
         input_data = TupleListRequest(
-            filter=filter.dict(exclude_none=True), size=size, last=last, order=order, order_by=order_by
+            filter=filter.model_dump(exclude_none=True), size=size, last=last, order=order, order_by=order_by
         )
-        return await self.request.post("v1/tuple/list", TupleListResult, data=input_data.dict(exclude_none=True))
+        return await self.request.post("v1/tuple/list", TupleListResult, data=input_data.model_dump(exclude_none=True))
 
     async def tuple_delete(self, tuples: List[Tuple]) -> PangeaResponse[TupleDeleteResult]:
         """Delete tuples.
@@ -150,7 +152,9 @@ class AuthZAsync(ServiceBaseAsync):
         """
 
         input_data = TupleDeleteRequest(tuples=tuples)
-        return await self.request.post("v1/tuple/delete", TupleDeleteResult, data=input_data.dict(exclude_none=True))
+        return await self.request.post(
+            "v1/tuple/delete", TupleDeleteResult, data=input_data.model_dump(exclude_none=True)
+        )
 
     async def check(
         self,
@@ -189,7 +193,7 @@ class AuthZAsync(ServiceBaseAsync):
         """
 
         input_data = CheckRequest(resource=resource, action=action, subject=subject, debug=debug, attributes=attributes)
-        return await self.request.post("v1/check", CheckResult, data=input_data.dict(exclude_none=True))
+        return await self.request.post("v1/check", CheckResult, data=input_data.model_dump(exclude_none=True))
 
     async def list_resources(self, type: str, action: str, subject: Subject) -> PangeaResponse[ListResourcesResult]:
         """List resources.
@@ -220,7 +224,7 @@ class AuthZAsync(ServiceBaseAsync):
 
         input_data = ListResourcesRequest(type=type, action=action, subject=subject)
         return await self.request.post(
-            "v1/list-resources", ListResourcesResult, data=input_data.dict(exclude_none=True)
+            "v1/list-resources", ListResourcesResult, data=input_data.model_dump(exclude_none=True)
         )
 
     async def list_subjects(self, resource: Resource, action: str) -> PangeaResponse[ListSubjectsResult]:
@@ -249,4 +253,6 @@ class AuthZAsync(ServiceBaseAsync):
         """
 
         input_data = ListSubjectsRequest(resource=resource, action=action)
-        return await self.request.post("v1/list-subjects", ListSubjectsResult, data=input_data.dict(exclude_none=True))
+        return await self.request.post(
+            "v1/list-subjects", ListSubjectsResult, data=input_data.model_dump(exclude_none=True)
+        )

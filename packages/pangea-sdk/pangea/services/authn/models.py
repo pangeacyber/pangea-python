@@ -1,9 +1,12 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+
 from __future__ import annotations
 
 import enum
 from typing import Dict, List, NewType, Optional, Union
+
+from pydantic import BaseModel, ConfigDict
 
 import pangea.services.intel as im
 from pangea.response import APIRequestModel, APIResponseModel, PangeaResponseResult
@@ -12,10 +15,12 @@ from pangea.services.vault.models.common import JWK, JWKec, JWKrsa
 Scopes = NewType("Scopes", List[str])
 
 
-class Profile(Dict[str, str]):
+class Profile(BaseModel):
     first_name: str
-    last_name: str
+    last_name: Optional[str] = None
     phone: Optional[str] = None
+
+    model_config = ConfigDict(extra="allow")
 
 
 class ClientPasswordChangeRequest(APIRequestModel):
@@ -70,7 +75,7 @@ class LoginToken(SessionToken):
 
 
 class ClientTokenCheckResult(SessionToken):
-    token: Optional[str]
+    token: Optional[str] = None
 
 
 class IDProvider(str, enum.Enum):

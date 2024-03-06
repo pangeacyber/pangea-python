@@ -109,7 +109,7 @@ class FileScanAsync(ServiceBaseAsync):
             transfer_method=transfer_method,
             source_url=source_url,
         )
-        data = input.dict(exclude_none=True)
+        data = input.model_dump(exclude_none=True)
         return await self.request.post("v1/scan", m.FileScanResult, data=data, files=files, poll_result=sync_call)
 
     async def request_upload_url(
@@ -131,7 +131,7 @@ class FileScanAsync(ServiceBaseAsync):
             input.sha256 = params.sha256_hex
             input.size = params.size
 
-        data = input.dict(exclude_none=True)
+        data = input.model_dump(exclude_none=True)
         return await self.request.request_presigned_url("v1/scan", m.FileScanResult, data=data)
 
 

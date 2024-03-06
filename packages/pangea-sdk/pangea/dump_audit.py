@@ -19,7 +19,7 @@ from pangea.utils import default_encoder
 
 
 def dump_event(output: io.TextIOWrapper, row: SearchEvent, resp: PangeaResponse[SearchOutput]):
-    row_data = filter_deep_none(row.dict())
+    row_data = filter_deep_none(row.model_dump())
     if resp.result and resp.result.root:
         row_data["tree_size"] = resp.result.root.size
     output.write(json.dumps(row_data, default=default_encoder) + "\n")
