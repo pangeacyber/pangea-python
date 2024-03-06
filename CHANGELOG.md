@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Incorrect docstrings positioning in `PangeaConfig`.
 - Incorrect variable name in `Vault` docstring.
 
+### Removed
+
+- An unused binascii import.
 
 ## [3.7.0] - 2024-02-26
 
