@@ -248,3 +248,6 @@ class FileUploaderAsync:
             await self._request.post_presigned_url(url=url, data=file_details, files=files)
         else:
             raise ValueError(f"Transfer method not supported: {transfer_method}")
+
+    async def close(self):
+        await self._request.session.close()
