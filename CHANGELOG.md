@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - An unused binascii import.
+- Unused os imports.
 
 ## [3.7.0] - 2024-02-26
 
