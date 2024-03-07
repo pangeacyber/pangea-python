@@ -142,6 +142,7 @@ class TestShare(unittest.IsolatedAsyncioTestCase):
 
             uploader = FileUploaderAsync()
             await uploader.upload_file(url=url, name=name, file=f, transfer_method=TransferMethod.PUT_URL)
+            await uploader.close()
 
         max_retry = 24
         for retry in range(max_retry):
