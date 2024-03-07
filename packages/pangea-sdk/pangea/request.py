@@ -504,7 +504,8 @@ class PangeaRequest(PangeaRequestBase):
         self.logger.debug(
             json.dumps({"service": self.service, "action": "http_put", "url": url}, default=default_encoder)
         )
-        return self.session.put(url, headers=headers, files=files)
+        _, value = files[0]
+        return self.session.put(url, headers=headers, data=value[1])
 
     def _full_post_presigned_url(
         self,
