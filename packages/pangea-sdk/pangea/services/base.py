@@ -3,13 +3,13 @@
 
 import copy
 import logging
-from typing import Optional, Type, Union
+from typing import Dict, Optional, Type, Union
 
 from pangea.asyncio.request import PangeaRequestAsync
 from pangea.config import PangeaConfig
 from pangea.exceptions import AcceptedRequestException
 from pangea.request import PangeaRequest
-from pangea.response import PangeaResponse, PangeaResponseResult
+from pangea.response import AttachedFile, PangeaResponse, PangeaResponseResult
 
 
 class ServiceBase(object):
@@ -21,12 +21,12 @@ class ServiceBase(object):
         if not token:
             raise Exception("No token provided")
 
-        self.config = config if copy.deepcopy(config) else PangeaConfig()
+        self.config = copy.deepcopy(config) if config is not None else PangeaConfig()
         self.logger = logging.getLogger(logger_name)
         self._token = token
-        self.config_id: Optional[None] = config_id  # type: ignore[assignment]
-        self._request: Union[PangeaRequest, PangeaRequestAsync] = None  # type: ignore[assignment]
-        extra_headers = {}  # type: ignore[var-annotated]
+        self.config_id: Optional[str] = config_id
+        self._request: Optional[Union[PangeaRequest, PangeaRequestAsync]] = None
+        extra_headers: Dict = {}
         self.request.set_extra_headers(extra_headers)
 
     @property
@@ -38,8 +38,8 @@ class ServiceBase(object):
         self._token = value
 
     @property
-    def request(self):
-        if not self._request:
+    def request(self) -> PangeaRequest:
+        if self._request is None or isinstance(self._request, PangeaRequestAsync):
             self._request = PangeaRequest(
                 config=self.config,
                 token=self.token,
@@ -55,7 +55,7 @@ class ServiceBase(object):
         exception: Optional[AcceptedRequestException] = None,
         response: Optional[PangeaResponse] = None,
         request_id: Optional[str] = None,
-        result_class: Union[Type[PangeaResponseResult], dict] = dict,  # type: ignore[assignment]
+        result_class: Union[Type[PangeaResponseResult], Type[Dict]] = dict,
     ) -> PangeaResponse:
         """
         Poll result
@@ -82,3 +82,6 @@ class ServiceBase(object):
             return self.request.poll_result_by_id(request_id=request_id, result_class=result_class, check_response=True)
         else:
             raise AttributeError("Need to set exception, response or request_id")
+
+    def download_file(self, url: str, filename: Optional[str] = None) -> AttachedFile:
+        return self.request.download_file(url=url, filename=filename)

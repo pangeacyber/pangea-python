@@ -1,18 +1,18 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 
-from typing import Optional, Type, Union
+from typing import Dict, Optional, Type, Union
 
 from pangea.asyncio.request import PangeaRequestAsync
 from pangea.exceptions import AcceptedRequestException
-from pangea.response import PangeaResponse, PangeaResponseResult
-from pangea.services.base import ServiceBase
+from pangea.response import AttachedFile, PangeaResponse, PangeaResponseResult
+from pangea.services.base import PangeaRequest, ServiceBase
 
 
 class ServiceBaseAsync(ServiceBase):
     @property
-    def request(self):
-        if not self._request:
+    def request(self) -> PangeaRequestAsync:  # type: ignore[override]
+        if self._request is None or isinstance(self._request, PangeaRequest):
             self._request = PangeaRequestAsync(
                 config=self.config,
                 token=self.token,
@@ -28,7 +28,7 @@ class ServiceBaseAsync(ServiceBase):
         exception: Optional[AcceptedRequestException] = None,
         response: Optional[PangeaResponse] = None,
         request_id: Optional[str] = None,
-        result_class: Union[Type[PangeaResponseResult], dict] = dict,  # type: ignore[assignment]
+        result_class: Union[Type[PangeaResponseResult], Type[Dict]] = dict,
     ) -> PangeaResponse:
         """
         Poll result
@@ -57,6 +57,9 @@ class ServiceBaseAsync(ServiceBase):
             )
         else:
             raise AttributeError("Need to set exception, response or request_id")
+
+    async def download_file(self, url: str, filename: Optional[str] = None) -> AttachedFile:  # type: ignore[override]
+        return await self.request.download_file(url=url, filename=filename)
 
     async def close(self):
         await self.request.session.close()

@@ -4,18 +4,30 @@
 import copy
 import json
 import logging
+import os
 import time
 from typing import Dict, List, Optional, Tuple, Type, Union
 
 import aiohttp
 import requests
 from requests.adapters import HTTPAdapter, Retry
+from requests.structures import CaseInsensitiveDict
+from requests_toolbelt import MultipartDecoder  # type: ignore
 
 import pangea
 import pangea.exceptions as pe
 from pangea.config import PangeaConfig
-from pangea.response import PangeaResponse, PangeaResponseResult, ResponseStatus, TransferMethod
+from pangea.response import AttachedFile, PangeaResponse, PangeaResponseResult, ResponseStatus, TransferMethod
 from pangea.utils import default_encoder
+
+
+class MultipartResponse(object):
+    pangea_json: Dict[str, str]
+    attached_files: List = []
+
+    def __init__(self, pangea_json: Dict[str, str], attached_files: List = []):
+        self.pangea_json = pangea_json
+        self.attached_files = attached_files
 
 
 class PangeaRequestBase(object):
@@ -112,6 +124,16 @@ class PangeaRequestBase(object):
         self._extra_headers.update(headers)
         return self._extra_headers
 
+    def _get_filename_from_content_disposition(self, content_disposition: str) -> Optional[str]:
+        filename_parts = content_disposition.split("name=")
+        if len(filename_parts) > 1:
+            return filename_parts[1].split(";")[0].strip('"')
+        else:
+            return None
+
+    def _get_filename_from_url(self, url: str) -> Optional[str]:
+        return url.split("/")[-1].split("?")[0]
+
     def _check_response(self, response: PangeaResponse) -> PangeaResponse:
         status = response.status
         summary = response.summary
@@ -187,7 +209,7 @@ class PangeaRequest(PangeaRequestBase):
         files: Optional[List[Tuple]] = None,
         poll_result: bool = True,
         url: Optional[str] = None,
-    ) -> PangeaResponse[Type[PangeaResponseResult]]:
+    ) -> PangeaResponse:
         """Makes the POST call to a Pangea Service endpoint.
 
         Args:
@@ -220,14 +242,67 @@ class PangeaRequest(PangeaRequestBase):
             )
 
         self._check_http_errors(requests_response)
-        json_resp = requests_response.json()
-        self.logger.debug(json.dumps({"service": self.service, "action": "post", "url": url, "response": json_resp}))
 
-        pangea_response: PangeaResponse = PangeaResponse(requests_response, result_class=result_class, json=json_resp)
+        if "multipart/form-data" in requests_response.headers.get("content-type", ""):
+            multipart_response = self._process_multipart_response(requests_response)
+            pangea_response: PangeaResponse = PangeaResponse(
+                requests_response,
+                result_class=result_class,
+                json=multipart_response.pangea_json,
+                attached_files=multipart_response.attached_files,
+            )
+        else:
+            try:
+                json_resp = requests_response.json()
+                self.logger.debug(
+                    json.dumps({"service": self.service, "action": "post", "url": url, "response": json_resp})
+                )
+
+                pangea_response = PangeaResponse(requests_response, result_class=result_class, json=json_resp)
+            except requests.exceptions.JSONDecodeError as e:
+                raise pe.PangeaException(f"Failed to decode json response. {e}. Body: {requests_response.text}")
+
         if poll_result:
             pangea_response = self._handle_queued_result(pangea_response)
 
         return self._check_response(pangea_response)
+
+    def _get_pangea_json(self, decoder: MultipartDecoder) -> Optional[Dict]:
+        # Iterate through parts
+        for i, part in enumerate(decoder.parts):
+            if i == 0:
+                json_str = part.content.decode("utf-8")
+                return json.loads(json_str)
+
+        return None
+
+    def _get_attached_files(self, decoder: MultipartDecoder) -> List[AttachedFile]:
+        files = []
+
+        for i, part in enumerate(decoder.parts):
+            content_type = part.headers.get(b"Content-Type", b"").decode("utf-8")
+            # if "application/octet-stream" in content_type:
+            if i > 0:
+                content_disposition = part.headers.get(b"Content-Disposition", b"").decode("utf-8")
+                name = self._get_filename_from_content_disposition(content_disposition)
+                if name is None:
+                    name = f"default_file_name_{i}"
+
+                files.append(AttachedFile(name, part.content, content_type))
+
+        return files
+
+    def _process_multipart_response(self, resp: requests.Response) -> MultipartResponse:
+        # Parse the multipart response
+        decoder = MultipartDecoder.from_response(resp)
+
+        pangea_json = self._get_pangea_json(decoder)
+        self.logger.debug(
+            json.dumps({"service": self.service, "action": "multipart response", "response": pangea_json})
+        )
+
+        attached_files = self._get_attached_files(decoder)
+        return MultipartResponse(pangea_json, attached_files)  # type: ignore
 
     def _check_http_errors(self, resp: requests.Response):
         if resp.status_code == 503:
@@ -314,6 +389,45 @@ class PangeaRequest(PangeaRequestBase):
 
         return self._check_response(pangea_response)
 
+    def download_file(self, url: str, filename: Optional[str] = None) -> AttachedFile:
+        self.logger.debug(
+            json.dumps(
+                {
+                    "service": self.service,
+                    "action": "download_file",
+                    "url": url,
+                    "filename": filename,
+                    "status": "start",
+                }
+            )
+        )
+        response = self.session.get(url, headers={})
+        if response.status_code == 200:
+            if filename is None:
+                content_disposition = response.headers.get(b"Content-Disposition", b"").decode("utf-8")
+                filename = self._get_filename_from_content_disposition(content_disposition)
+                if filename is None:
+                    filename = self._get_filename_from_url(url)
+                    if filename is None:
+                        filename = "default_filename"
+
+            content_type = response.headers.get(b"Content-Type", b"").decode("utf-8")
+
+            self.logger.debug(
+                json.dumps(
+                    {
+                        "service": self.service,
+                        "action": "download_file",
+                        "url": url,
+                        "filename": filename,
+                        "status": "success",
+                    }
+                )
+            )
+            return AttachedFile(filename=filename, file=response.content, content_type=content_type)
+        else:
+            raise pe.DownloadFileError(f"Failed to download file. Status: {response.status_code}", response.text)
+
     def poll_result_by_id(
         self, request_id: str, result_class: Union[Type[PangeaResponseResult], Type[dict]], check_response: bool = True
     ):
@@ -321,7 +435,9 @@ class PangeaRequest(PangeaRequestBase):
         self.logger.debug(json.dumps({"service": self.service, "action": "poll_result_once", "url": path}))
         return self.get(path, result_class, check_response=check_response)  # type: ignore[arg-type]
 
-    def poll_result_once(self, response: PangeaResponse, check_response: bool = True):
+    def poll_result_once(
+        self, response: PangeaResponse, check_response: bool = True
+    ) -> PangeaResponse[Type[PangeaResponseResult]]:
         request_id = response.request_id
         if not request_id:
             raise pe.PangeaException("Poll result error: response did not include a 'request_id'")
@@ -336,7 +452,7 @@ class PangeaRequest(PangeaRequestBase):
         endpoint: str,
         result_class: Type[PangeaResponseResult],
         data: Union[str, Dict] = {},
-    ) -> PangeaResponse[Type[PangeaResponseResult]]:
+    ) -> PangeaResponse:
         # Send request
         try:
             # This should return 202 (AcceptedRequestException)

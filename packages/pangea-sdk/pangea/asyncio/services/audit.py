@@ -8,6 +8,9 @@ from pangea.response import PangeaResponse
 from pangea.services.audit.audit import AuditBase
 from pangea.services.audit.exceptions import AuditException
 from pangea.services.audit.models import (
+    DownloadFormat,
+    DownloadRequest,
+    DownloadResult,
     Event,
     LogBulkResult,
     LogResult,
@@ -177,8 +180,10 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
         """
 
         input = self._get_log_request(event, sign_local=sign_local, verify=verify, verbose=verbose)
-        response = await self.request.post("v1/log", LogResult, data=input.dict(exclude_none=True))
-        if response.success:
+        response: PangeaResponse[LogResult] = await self.request.post(
+            "v1/log", LogResult, data=input.dict(exclude_none=True)
+        )
+        if response.success and response.result is not None:
             self._process_log_result(response.result, verify=verify)
         return response
 
@@ -211,8 +216,10 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
         """
 
         input = self._get_log_request(events, sign_local=sign_local, verify=False, verbose=verbose)
-        response = await self.request.post("v2/log", LogBulkResult, data=input.dict(exclude_none=True))
-        if response.success:
+        response: PangeaResponse[LogBulkResult] = await self.request.post(
+            "v2/log", LogBulkResult, data=input.dict(exclude_none=True)
+        )
+        if response.success and response.result is not None:
             for result in response.result.results:
                 self._process_log_result(result, verify=True)
         return response
@@ -247,12 +254,12 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
 
         input = self._get_log_request(events, sign_local=sign_local, verify=False, verbose=verbose)
         try:
-            response = await self.request.post(
+            response: PangeaResponse[LogBulkResult] = await self.request.post(
                 "v2/log_async", LogBulkResult, data=input.dict(exclude_none=True), poll_result=False
             )
         except pexc.AcceptedRequestException as e:
             return e.response
-        if response.success:
+        if response.success and response.result:
             for result in response.result.results:
                 self._process_log_result(result, verify=True)
         return response
@@ -387,7 +394,7 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
             offset=offset,
         )
         response = await self.request.post("v1/results", SearchResultOutput, data=input.dict(exclude_none=True))
-        if verify_consistency:
+        if verify_consistency and response.result is not None:
             await self.update_published_roots(response.result)
 
         return self.handle_results_response(response, verify_consistency, verify_events)
@@ -415,6 +422,12 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
         """
         input = RootRequest(tree_size=tree_size)
         return await self.request.post("v1/root", RootResult, data=input.dict(exclude_none=True))
+
+    async def download_results(
+        self, result_id: str, format: Optional[DownloadFormat] = None
+    ) -> PangeaResponse[DownloadResult]:
+        input = DownloadRequest(result_id=result_id, format=format)
+        return await self.request.post("v1/download_results", DownloadResult, data=input.dict(exclude_none=True))
 
     async def update_published_roots(self, result: SearchResultOutput):
         """Fetches series of published root hashes from Arweave

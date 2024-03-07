@@ -2,6 +2,7 @@
 # Author: Pangea Cyber Corporation
 import datetime
 import enum
+import os
 from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
 
 import aiohttp
@@ -13,11 +14,35 @@ from pangea.utils import format_datetime
 T = TypeVar("T")
 
 
+class AttachedFile(object):
+    filename: str
+    file: bytes
+    content_type: str
+
+    def __init__(self, filename: str, file: bytes, content_type: str):
+        self.filename = filename
+        self.file = file
+        self.content_type = content_type
+
+    def save(self, dest_folder: str = "./", filename: Optional[str] = None):
+        if filename is None:
+            filename = self.filename if self.filename else "default_save_filename"
+
+        filepath = os.path.join(dest_folder, filename)
+        directory = os.path.dirname(filepath)
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+
+        with open(filepath, "wb") as file:
+            file.write(self.file)
+
+
 class TransferMethod(str, enum.Enum):
     MULTIPART = "multipart"
     POST_URL = "post-url"
     PUT_URL = "put-url"
     SOURCE_URL = "source-url"
+    DEST_URL = "dest-url"
 
     def __str__(self):
         return str(self.value)
@@ -144,15 +169,22 @@ class PangeaResponse(Generic[T], ResponseHeader):
     accepted_result: Optional[AcceptedResult] = None
     result_class: Union[Type[PangeaResponseResult], Type[dict]] = PangeaResponseResult
     _json: Any
+    attached_files: List[AttachedFile] = []
 
     def __init__(
-        self, response: requests.Response, result_class: Union[Type[PangeaResponseResult], Type[dict]], json: dict
+        self,
+        response: requests.Response,
+        result_class: Union[Type[PangeaResponseResult], Type[dict]],
+        json: dict,
+        attached_files: List[AttachedFile] = [],
     ):
         super(PangeaResponse, self).__init__(**json)
         self._json = json
         self.raw_response = response
         self.raw_result = self._json["result"]
         self.result_class = result_class
+        self.attached_files = attached_files
+
         self.result = (
             self.result_class(**self.raw_result)  # type: ignore[assignment]
             if self.raw_result is not None and issubclass(self.result_class, PangeaResponseResult) and self.success

@@ -33,3 +33,11 @@ packages/pangea-sdk/logs/
 python_sdk.json
 pangea_sdk_logs.json*
 packages/pangea-sdk/tests/testdata/dump.json
+
+# downloaded files
+download_file
+payload
+*.tar
+*.zip
+*.gz
+search_results_*.json

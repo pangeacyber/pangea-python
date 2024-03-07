@@ -51,7 +51,7 @@ class Intelligence(PangeaResponseResult):
     user_intel: bool
 
 
-class SessionToken(APIResponseModel):
+class SessionToken(PangeaResponseResult):
     id: str
     type: str
     life: int
@@ -68,8 +68,8 @@ class LoginToken(SessionToken):
     token: str
 
 
-class ClientTokenCheckResult(LoginToken):
-    pass
+class ClientTokenCheckResult(SessionToken):
+    token: Optional[str]
 
 
 class IDProvider(str, enum.Enum):

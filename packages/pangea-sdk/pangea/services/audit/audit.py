@@ -8,6 +8,9 @@ import pangea.exceptions as pexc
 from pangea.response import PangeaResponse
 from pangea.services.audit.exceptions import AuditException, EventCorruption
 from pangea.services.audit.models import (
+    DownloadFormat,
+    DownloadRequest,
+    DownloadResult,
     Event,
     EventEnvelope,
     EventVerification,
@@ -492,8 +495,8 @@ class Audit(ServiceBase, AuditBase):
         """
 
         input = self._get_log_request(event, sign_local=sign_local, verify=verify, verbose=verbose)
-        response = self.request.post("v1/log", LogResult, data=input.dict(exclude_none=True))
-        if response.success:
+        response: PangeaResponse[LogResult] = self.request.post("v1/log", LogResult, data=input.dict(exclude_none=True))
+        if response.success and response.result is not None:
             self._process_log_result(response.result, verify=verify)
         return response
 
@@ -531,9 +534,11 @@ class Audit(ServiceBase, AuditBase):
         """
 
         input = self._get_log_request(events, sign_local=sign_local, verify=False, verbose=verbose)
-        response = self.request.post("v2/log", LogBulkResult, data=input.dict(exclude_none=True))
+        response: PangeaResponse[LogBulkResult] = self.request.post(
+            "v2/log", LogBulkResult, data=input.dict(exclude_none=True)
+        )
 
-        if response.success:
+        if response.success and response.result is not None:
             for result in response.result.results:
                 self._process_log_result(result, verify=True)
         return response
@@ -573,13 +578,13 @@ class Audit(ServiceBase, AuditBase):
 
         try:
             # Calling to v2 methods will return always a 202.
-            response = self.request.post(
+            response: PangeaResponse[LogBulkResult] = self.request.post(
                 "v2/log_async", LogBulkResult, data=input.dict(exclude_none=True), poll_result=False
             )
         except pexc.AcceptedRequestException as e:
             return e.response
 
-        if response.success:
+        if response.success and response.result is not None:
             for result in response.result.results:
                 self._process_log_result(result, verify=True)
         return response
@@ -661,8 +666,10 @@ class Audit(ServiceBase, AuditBase):
             verbose=verbose,
         )
 
-        response = self.request.post("v1/search", SearchOutput, data=input.dict(exclude_none=True))
-        if verify_consistency:
+        response: PangeaResponse[SearchOutput] = self.request.post(
+            "v1/search", SearchOutput, data=input.dict(exclude_none=True)
+        )
+        if verify_consistency and response.result is not None:
             self.update_published_roots(response.result)
         return self.handle_search_response(response, verify_consistency, verify_events)
 
@@ -710,8 +717,10 @@ class Audit(ServiceBase, AuditBase):
             limit=limit,
             offset=offset,
         )
-        response = self.request.post("v1/results", SearchResultOutput, data=input.dict(exclude_none=True))
-        if verify_consistency:
+        response: PangeaResponse[SearchResultOutput] = self.request.post(
+            "v1/results", SearchResultOutput, data=input.dict(exclude_none=True)
+        )
+        if verify_consistency and response.result is not None:
             self.update_published_roots(response.result)
         return self.handle_results_response(response, verify_consistency, verify_events)
 
@@ -738,6 +747,12 @@ class Audit(ServiceBase, AuditBase):
         """
         input = RootRequest(tree_size=tree_size)
         return self.request.post("v1/root", RootResult, data=input.dict(exclude_none=True))
+
+    def download_results(
+        self, result_id: str, format: Optional[DownloadFormat] = None
+    ) -> PangeaResponse[DownloadResult]:
+        input = DownloadRequest(result_id=result_id, format=format)
+        return self.request.post("v1/download_results", DownloadResult, data=input.dict(exclude_none=True))
 
     def update_published_roots(self, result: SearchResultOutput):
         """Fetches series of published root hashes from Arweave
