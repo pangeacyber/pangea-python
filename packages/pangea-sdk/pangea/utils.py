@@ -3,7 +3,6 @@ import copy
 import datetime
 import io
 import json
-from binascii import hexlify
 from collections import OrderedDict
 from hashlib import new, sha1, sha256, sha512
 
