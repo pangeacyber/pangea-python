@@ -22,6 +22,8 @@ class KeyPurpose(str, enum.Enum):
     SIGNING = "signing"
     ENCRYPTION = "encryption"
     JWT = "jwt"
+    FPE = "fpe"
+    """Format-preserving encryption."""
 
     def __str__(self):
         return str(self.value)
@@ -84,6 +86,11 @@ class SymmetricAlgorithm(str, enum.Enum):
     AES128_CBC = "AES-CBC-128"
     AES256_CBC = "AES-CBC-256"
     AES = "AES-CFB-128"  # deprecated, use AES128_CFB instead
+    AES128_FF3_1_BETA = "AES-FF3-1-128-BETA"
+    """128-bit encryption using the FF3-1 algorithm."""
+
+    AES256_FF3_1_BETA = "AES-FF3-1-256-BETA"
+    """256-bit encryption using the FF3-1 algorithm."""
 
     def __str__(self):
         return str(self.value)
@@ -427,3 +434,111 @@ class EncryptStructuredResult(PangeaResponseResult, Generic[TDict]):
 
     structured_data: TDict
     """Encrypted structured data."""
+
+
+class TransformAlphabet(str, enum.Enum):
+    """Set of characters to use for format-preserving encryption (FPE)."""
+
+    NUMERIC = "numeric"
+    """Numeric (0-9)."""
+
+    ALPHA_LOWER = "alphalower"
+    """Lowercase alphabet (a-z)."""
+
+    ALPHA_UPPER = "alphaupper"
+    """Uppercase alphabet (A-Z)."""
+
+    ALPHANUMERIC_LOWER = "alphanumericlower"
+    """Lowercase alphabet with numbers (a-z, 0-9)."""
+
+    ALPHANUMERIC_UPPER = "alphanumericupper"
+    """Uppercase alphabet with numbers (A-Z, 0-9)."""
+
+    ALPHANUMERIC = "alphanumeric"
+    """Alphanumeric (a-z, A-Z, 0-9)."""
+
+    def __str__(self) -> str:
+        return str(self.value)
+
+    def __repr__(self) -> str:
+        return str(self.value)
+
+
+class EncryptTransformRequest(APIRequestModel):
+    id: str
+    """The item ID."""
+
+    plain_text: str
+    """A message to be encrypted."""
+
+    alphabet: TransformAlphabet
+    """Set of characters to use for format-preserving encryption (FPE)."""
+
+    tweak: Optional[str] = None
+    """
+    User provided tweak string. If not provided, a random string will be
+    generated and returned. The user must securely store the tweak source which
+    will be needed to decrypt the data.
+    """
+
+    version: Optional[int] = None
+    """The item version."""
+
+
+class EncryptTransformResult(PangeaResponseResult):
+    id: str
+    """The item ID."""
+
+    version: int
+    """The item version."""
+
+    algorithm: str
+    """The algorithm of the key."""
+
+    cipher_text: str
+    """The encrypted message."""
+
+    tweak: str
+    """
+    User provided tweak string. If not provided, a random string will be
+    generated and returned. The user must securely store the tweak source which
+    will be needed to decrypt the data.
+    """
+
+    alphabet: str
+    """Set of characters to use for format-preserving encryption (FPE)."""
+
+
+class DecryptTransformRequest(APIRequestModel):
+    id: str
+    """The item ID."""
+
+    cipher_text: str
+    """A message encrypted by Vault."""
+
+    tweak: str
+    """
+    User provided tweak string. If not provided, a random string will be
+    generated and returned. The user must securely store the tweak source which
+    will be needed to decrypt the data.
+    """
+
+    alphabet: TransformAlphabet
+    """Set of characters to use for format-preserving encryption (FPE)."""
+
+    version: Optional[int] = None
+    """The item version."""
+
+
+class DecryptTransformResult(PangeaResponseResult):
+    id: str
+    """The item ID."""
+
+    version: int
+    """The item version."""
+
+    algorithm: str
+    """The algorithm of the key."""
+
+    plain_text: str
+    """Decrypted message."""
