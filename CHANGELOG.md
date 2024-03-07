@@ -63,7 +63,7 @@ Note that Sanitize and Secure Share did not make it into this release.
 
 - An unused binascii import.
 - Unused os imports.
-
+- `utils.dict_order_keys()` and `utils.dict_order_keys_recursive()`.
 
 ## [3.7.0] - 2024-02-26
 

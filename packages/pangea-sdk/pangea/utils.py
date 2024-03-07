@@ -3,7 +3,6 @@ import copy
 import datetime
 import io
 import json
-from collections import OrderedDict
 from hashlib import new, sha1, sha256, sha512
 
 from google_crc32c import Checksum as CRC32C  # type: ignore[import-untyped]
@@ -32,22 +31,6 @@ def default_encoder(obj) -> str:
 
 def str2str_b64(data: str, encoding: str = "utf-8") -> str:
     return base64.b64encode(data.encode(encoding)).decode("ascii")
-
-
-def dict_order_keys(data: dict) -> OrderedDict:
-    if isinstance(data, dict):
-        return OrderedDict(sorted(data.items()))
-    else:
-        return data
-
-
-def dict_order_keys_recursive(data: dict) -> OrderedDict:
-    if isinstance(data, dict):
-        for k, v in data.items():
-            if type(v) is dict:
-                data[k] = dict_order_keys_recursive(v)
-
-    return data  # type: ignore[return-value]
 
 
 def canonicalize_nested_json(data: dict) -> dict:
