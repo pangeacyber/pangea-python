@@ -22,6 +22,7 @@ class KeyPurpose(str, enum.Enum):
     SIGNING = "signing"
     ENCRYPTION = "encryption"
     JWT = "jwt"
+    FPE = "fpe"
 
     def __str__(self):
         return str(self.value)
@@ -84,6 +85,8 @@ class SymmetricAlgorithm(str, enum.Enum):
     AES128_CBC = "AES-CBC-128"
     AES256_CBC = "AES-CBC-256"
     AES = "AES-CFB-128"  # deprecated, use AES128_CFB instead
+    AES128_FF3_1_BETA = ("AES-FF3-1-128-BETA",)
+    AES256_FF3_1_BETA = ("AES-FF3-1-256-BETA",)
 
     def __str__(self):
         return str(self.value)
@@ -94,6 +97,7 @@ class SymmetricAlgorithm(str, enum.Enum):
 
 Metadata = NewType("Metadata", Dict[str, str])
 Tags = NewType("Tags", List[str])
+Base64str = NewType("Base64str", str)
 
 
 class ItemOrder(str, enum.Enum):
@@ -427,3 +431,80 @@ class EncryptStructuredResult(PangeaResponseResult, Generic[TDict]):
 
     structured_data: TDict
     """Encrypted structured data."""
+
+
+class TransformAlphabet(str, enum.Enum):
+    NUMERIC = "numeric"
+    ALPHA_LOWER = "alphalower"
+    ALPHA_UPPER = "alphaupper"
+    ALPHANUMERIC_LOWER = "alphanumericlower"
+    ALPHANUMERIC_UPPER = "alphanumericupper"
+    ALPHANUMERIC = "alphanumeric"
+
+    def __str__(self):
+        return str(self.value)
+
+    def __repr__(self):
+        return str(self.value)
+
+
+class EncryptTransformRequest(APIRequestModel):
+    id: str
+    """The item ID"""
+
+    plain_text: str
+    """A message to be encrypted"""
+
+    tweak: Base64str
+    """User provided tweak, which must be a base64-encoded 7-digit string. The user must securely store the tweak source which will be needed to decrypt the data."""
+
+    alphabet: TransformAlphabet
+    """Set of characters to use for format-preserving encryption (FPE)."""
+
+    version: Optional[int] = None
+    """The item version"""
+
+
+class EncryptTransformResult(PangeaResponseResult):
+    id: str
+    """The item ID"""
+
+    cipher_text: str
+    """The encrypted message"""
+
+    version: int
+    """The item version"""
+
+    algorithm: str
+    """The algorithm of the key"""
+
+
+class DecryptTransformRequest(APIRequestModel):
+    id: str
+    """The item ID"""
+
+    cipher_text: str
+    """A message encrypted by Vault"""
+
+    tweak: Base64str
+    """User provided tweak, which must be a base64-encoded 7-digit string. The user must securely store the tweak source which will be needed to decrypt the data."""
+
+    alphabet: TransformAlphabet
+    """Set of characters to use for format-preserving encryption (FPE)."""
+
+    version: Optional[int] = None
+    """The item version"""
+
+
+class DecryptTransformResult(PangeaResponseResult):
+    id: str
+    """The item ID"""
+
+    version: int
+    """The item version"""
+
+    algorithm: str
+    """The algorithm of the key"""
+
+    plain_text: str
+    """Decrypted message"""

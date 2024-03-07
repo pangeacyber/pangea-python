@@ -17,6 +17,9 @@ from pangea.services.vault.models.asymmetric import (
 )
 from pangea.services.vault.models.common import (
     AsymmetricAlgorithm,
+    Base64str,
+    DecryptTransformRequest,
+    DecryptTransformResult,
     DeleteRequest,
     DeleteResult,
     EncodedPrivateKey,
@@ -24,6 +27,8 @@ from pangea.services.vault.models.common import (
     EncodedSymmetricKey,
     EncryptStructuredRequest,
     EncryptStructuredResult,
+    EncryptTransformRequest,
+    EncryptTransformResult,
     FolderCreateRequest,
     FolderCreateResult,
     GetRequest,
@@ -48,8 +53,9 @@ from pangea.services.vault.models.common import (
     StateChangeRequest,
     StateChangeResult,
     SymmetricAlgorithm,
-    TDict,
     Tags,
+    TDict,
+    TransformAlphabet,
     UpdateRequest,
     UpdateResult,
 )
@@ -1292,5 +1298,88 @@ class Vault(ServiceBase):
         return self.request.post(
             "v1/key/decrypt/structured",
             EncryptStructuredResult,
+            data=input.dict(exclude_none=True),
+        )
+
+    def encrypt_transform(
+        self,
+        id: str,
+        plain_text: str,
+        tweak: Base64str,
+        alphabet: TransformAlphabet,
+        version: Optional[int] = None,
+    ) -> PangeaResponse[EncryptTransformResult]:
+        """
+        Encrypt transform
+
+        Encrypt using a format preserving algorithm (FPE).
+
+        OperationId: vault_post_v1_key_encrypt_transform
+
+        Args:
+            id (str): The item ID.
+            plain_text (str): A message to be encrypted.
+            tweak (Base64str): User provided tweak, which must be a base64-encoded 7-digit string. The user must securely store the tweak source which will be needed to decrypt the data.
+            alphabet (TransformAlphabet): Set of characters to use for format-preserving encryption (FPE).
+            version (int, optional): The item version. Defaults to the current version.
+
+        Raises:
+            PangeaAPIException: If an API error happens.
+
+        Returns:
+            A `PangeaResponse` where the decrypted object is returned in the
+            `response.result` field. Available response fields can be found in
+            our [API documentation](https://pangea.cloud/docs/api/vault#decrypt-transform).
+
+        Examples:
+            TODO:
+        """
+
+        input = EncryptTransformRequest(
+            id=id,
+            plain_text=plain_text,
+            tweak=tweak,
+            alphabet=alphabet,
+            version=version,
+        )
+        return self.request.post(
+            "v1/key/encrypt/transform",
+            EncryptTransformResult,
+            data=input.dict(exclude_none=True),
+        )
+
+    def decrypt_transform(
+        self, id: str, cipher_text: str, tweak: Base64str, alphabet: TransformAlphabet, version: Optional[int] = None
+    ) -> PangeaResponse[DecryptTransformResult]:
+        """
+        Decrypt transform
+
+        Decrypt using a format preserving algorithm (FPE).
+
+        OperationId: vault_post_v1_key_decrypt_transform
+
+        Args:
+            id (str): The item ID.
+            cipher_text (str): A message encrypted by Vault.
+            tweak (Base64str): User provided tweak, which must be a base64-encoded 7-digit string. The user must securely store the tweak source which will be needed to decrypt the data.
+            alphabet (TransformAlphabet): Set of characters to use for format-preserving encryption (FPE).
+            version (int, optional): The item version. Defaults to the current version.
+
+        Raises:
+            PangeaAPIException: If an API error happens.
+
+        Returns:
+            A `PangeaResponse` where the decrypted object is returned in the
+            `response.result` field. Available response fields can be found in
+            our [API documentation](https://pangea.cloud/docs/api/vault#decrypt-transform).
+
+        Examples:
+            TODO:
+        """
+
+        input = DecryptTransformRequest(id=id, cipher_text=cipher_text, tweak=tweak, alphabet=alphabet, version=version)
+        return self.request.post(
+            "v1/key/decrypt/transform",
+            DecryptTransformResult,
             data=input.dict(exclude_none=True),
         )

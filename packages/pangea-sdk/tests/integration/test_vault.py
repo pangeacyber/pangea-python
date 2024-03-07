@@ -8,7 +8,7 @@ import pangea.exceptions as pe
 from pangea import PangeaConfig
 from pangea.services.vault.models.asymmetric import AsymmetricAlgorithm, KeyPurpose
 from pangea.services.vault.models.symmetric import SymmetricAlgorithm
-from pangea.services.vault.vault import ItemType, ItemVersionState, Vault
+from pangea.services.vault.vault import ItemType, ItemVersionState, TransformAlphabet, Vault
 from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
 from pangea.utils import format_datetime, str2str_b64
 from tests.test_tools import load_test_environment
@@ -111,6 +111,67 @@ class TestVault(unittest.TestCase):
 
         # Decrypt after deactivated.
         decrypt1_deactivated_resp = self.vault.decrypt(id, cipher_v1, 1)
+        self.assertEqual(data_b64, decrypt1_deactivated_resp.result.plain_text)
+
+    def encrypting_cycle_fpe(self, id: str):
+        msg = "thisisamessagetoencrypt"
+        data_b64 = str2str_b64(msg)
+        tweak = str2str_b64("abcdefg")
+
+        # Encrypt 1
+        encrypt1_resp = self.vault.encrypt_transform(
+            id=id, plain_text=data_b64, tweak=tweak, alphabet=TransformAlphabet.ALPHANUMERIC
+        )
+
+        self.assertEqual(id, encrypt1_resp.result.id)
+        self.assertEqual(1, encrypt1_resp.result.version)
+        cipher_v1 = encrypt1_resp.result.cipher_text
+        self.assertIsNotNone(cipher_v1)
+
+        # Rotate
+        rotate_resp = self.vault.key_rotate(id=id, rotation_state=ItemVersionState.SUSPENDED)
+        self.assertEqual(2, rotate_resp.result.version)
+        self.assertEqual(id, rotate_resp.result.id)
+
+        # Encrypt 2
+        encrypt2_resp = self.vault.encrypt_transform(
+            id=id, plain_text=data_b64, tweak=tweak, alphabet=TransformAlphabet.ALPHANUMERIC
+        )
+        self.assertEqual(id, encrypt2_resp.result.id)
+        self.assertEqual(2, encrypt2_resp.result.version)
+        cipher_v2 = encrypt2_resp.result.cipher_text
+        self.assertIsNotNone(cipher_v2)
+
+        # Decrypt 1
+        decrypt1_resp = self.vault.decrypt_transform(
+            id=id, cipher_text=cipher_v1, tweak=tweak, alphabet=TransformAlphabet.ALPHANUMERIC, version=1
+        )
+        self.assertEqual(data_b64, decrypt1_resp.result.plain_text)
+
+        # Decrypt 2
+        decrypt2_resp = self.vault.decrypt_transform(
+            id=id, cipher_text=cipher_v2, tweak=tweak, alphabet=TransformAlphabet.ALPHANUMERIC, version=2
+        )
+        self.assertTrue(data_b64, decrypt2_resp.result.plain_text)
+
+        # Update
+        update_resp = self.vault.update(id, folder="updated")
+        self.assertEqual(id, update_resp.result.id)
+
+        # Decrypt default version
+        decrypt_default_resp = self.vault.decrypt_transform(
+            id=id, cipher_text=cipher_v2, tweak=tweak, alphabet=TransformAlphabet.ALPHANUMERIC
+        )
+        self.assertEqual(data_b64, decrypt_default_resp.result.plain_text)
+
+        # Deactivate key
+        change_state_resp = self.vault.state_change(id, ItemVersionState.DEACTIVATED, version=1)
+        self.assertEqual(id, change_state_resp.result.id)
+
+        # Decrypt after deactivated.
+        decrypt1_deactivated_resp = self.vault.decrypt_transform(
+            id=id, cipher_text=cipher_v1, tweak=tweak, alphabet=TransformAlphabet.ALPHANUMERIC, version=1
+        )
         self.assertEqual(data_b64, decrypt1_deactivated_resp.result.plain_text)
 
     def signing_cycle(self, id: str):
@@ -538,6 +599,23 @@ class TestVault(unittest.TestCase):
             id = self.sym_generate_default(algorithm=algorithm, purpose=purpose)
             try:
                 self.encrypting_cycle(id)
+                self.vault.delete(id=id)
+            except pe.PangeaAPIException as e:
+                print(f"Failed {get_function_name()} with {algorithm}")
+                print(e)
+                self.vault.delete(id=id)
+                self.fail()
+
+    def test_sym_fpe_encrypting_life_cycle(self):
+        algorithms = [
+            SymmetricAlgorithm.AES128_FF3_1_BETA,
+            SymmetricAlgorithm.AES256_FF3_1_BETA,
+        ]
+        purpose = KeyPurpose.FPE
+        for algorithm in algorithms:
+            id = self.sym_generate_default(algorithm=algorithm, purpose=purpose)
+            try:
+                self.encrypting_cycle_fpe(id)
                 self.vault.delete(id=id)
             except pe.PangeaAPIException as e:
                 print(f"Failed {get_function_name()} with {algorithm}")
