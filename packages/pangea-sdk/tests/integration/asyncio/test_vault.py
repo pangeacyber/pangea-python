@@ -9,13 +9,12 @@ from pangea import PangeaConfig
 from pangea.asyncio.services.vault import VaultAsync
 from pangea.services.vault.models.asymmetric import AsymmetricAlgorithm, KeyPurpose
 from pangea.services.vault.models.symmetric import SymmetricAlgorithm
-from pangea.services.vault.vault import ItemType, ItemVersionState
+from pangea.services.vault.vault import ItemType, ItemVersionState, TransformAlphabet
 from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
 from pangea.utils import format_datetime, str2str_b64
 from tests.test_tools import load_test_environment
 
 TIME = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-THIS_FUNCTION_NAME = lambda: inspect.stack()[1][3]
 FOLDER_VALUE = f"/test_key_folder/{TIME}/"
 METADATA_VALUE = {"test": "True", "field1": "value1", "field2": "value2"}
 TAGS_VALUE = ["test", "symmetric"]
@@ -34,6 +33,10 @@ def get_random_id() -> str:
 def get_name() -> str:
     caller_name = inspect.stack()[1][3]
     return f"{TIME}_{ACTOR}_{caller_name}_{get_random_id()}"
+
+
+def get_function_name() -> str:
+    return inspect.stack()[1][3]
 
 
 TEST_ENVIRONMENT = load_test_environment(VaultAsync.service_name, TestEnvironment.LIVE)
@@ -488,7 +491,7 @@ class TestVault(unittest.IsolatedAsyncioTestCase):
                 await self.signing_cycle(id)
                 await self.vault.delete(id=id)
             except pe.PangeaAPIException as e:
-                print(f"Failed {THIS_FUNCTION_NAME()} with {algorithm}")
+                print(f"Failed {get_function_name()} with {algorithm}")
                 print(e)
                 await self.vault.delete(id=id)
                 self.assertTrue(False)
@@ -508,7 +511,7 @@ class TestVault(unittest.IsolatedAsyncioTestCase):
                 await self.encrypting_cycle(id)
                 await self.vault.delete(id=id)
             except pe.PangeaAPIException as e:
-                print(f"Failed {THIS_FUNCTION_NAME()} with {algorithm}")
+                print(f"Failed {get_function_name()} with {algorithm}")
                 print(e)
                 await self.vault.delete(id=id)
                 self.assertTrue(False)
@@ -562,7 +565,7 @@ class TestVault(unittest.IsolatedAsyncioTestCase):
                 await self.jwt_asym_signing_cycle(id)
                 await self.vault.delete(id=id)
             except pe.PangeaAPIException as e:
-                print(f"Failed {THIS_FUNCTION_NAME()} with {algorithm}")
+                print(f"Failed {get_function_name()} with {algorithm}")
                 print(e)
                 await self.vault.delete(id=id)
                 self.assertTrue(False)
@@ -581,7 +584,7 @@ class TestVault(unittest.IsolatedAsyncioTestCase):
                 await self.jwt_sym_signing_cycle(id)
                 await self.vault.delete(id=id)
             except pe.PangeaAPIException as e:
-                print(f"Failed {THIS_FUNCTION_NAME()} with {algorithm}")
+                print(f"Failed {get_function_name()} with {algorithm}")
                 print(e)
                 await self.vault.delete(id=id)
                 self.assertTrue(False)
@@ -661,3 +664,80 @@ class TestVault(unittest.IsolatedAsyncioTestCase):
 
         decrypted_data = decrypted.result.structured_data
         self.assertDictEqual(data, decrypted_data)
+
+    async def test_sym_fpe_encrypting_life_cycle(self) -> None:
+        algorithms = [
+            SymmetricAlgorithm.AES128_FF3_1_BETA,
+            SymmetricAlgorithm.AES256_FF3_1_BETA,
+        ]
+        purpose = KeyPurpose.FPE
+        for algorithm in algorithms:
+            id = await self.sym_generate_default(algorithm=algorithm, purpose=purpose)
+            try:
+                await self.encrypting_cycle_fpe(id)
+                await self.vault.delete(id=id)
+            except pe.PangeaAPIException as e:
+                print(f"Failed {get_function_name()} with {algorithm}")
+                print(e)
+                await self.vault.delete(id=id)
+                self.fail()
+
+    async def encrypting_cycle_fpe(self, id: str) -> None:
+        msg = "thisisamessagetoencrypt"
+        tweak = str2str_b64("abcdefg")
+
+        # Encrypt 1
+        encrypt1_resp = await self.vault.encrypt_transform(
+            id=id, plain_text=msg, tweak=tweak, alphabet=TransformAlphabet.ALPHANUMERIC
+        )
+
+        self.assertEqual(id, encrypt1_resp.result.id)
+        self.assertEqual(1, encrypt1_resp.result.version)
+        cipher_v1 = encrypt1_resp.result.cipher_text
+        self.assertIsNotNone(cipher_v1)
+
+        # Rotate
+        rotate_resp = await self.vault.key_rotate(id=id, rotation_state=ItemVersionState.SUSPENDED)
+        self.assertEqual(2, rotate_resp.result.version)
+        self.assertEqual(id, rotate_resp.result.id)
+
+        # Encrypt 2
+        encrypt2_resp = await self.vault.encrypt_transform(
+            id=id, plain_text=msg, tweak=tweak, alphabet=TransformAlphabet.ALPHANUMERIC
+        )
+        self.assertEqual(id, encrypt2_resp.result.id)
+        self.assertEqual(2, encrypt2_resp.result.version)
+        cipher_v2 = encrypt2_resp.result.cipher_text
+        self.assertIsNotNone(cipher_v2)
+
+        # Decrypt 1
+        decrypt1_resp = await self.vault.decrypt_transform(
+            id=id, cipher_text=cipher_v1, tweak=tweak, alphabet=TransformAlphabet.ALPHANUMERIC, version=1
+        )
+        self.assertEqual(msg, decrypt1_resp.result.plain_text)
+
+        # Decrypt 2
+        decrypt2_resp = await self.vault.decrypt_transform(
+            id=id, cipher_text=cipher_v2, tweak=tweak, alphabet=TransformAlphabet.ALPHANUMERIC, version=2
+        )
+        self.assertTrue(msg, decrypt2_resp.result.plain_text)
+
+        # Update
+        update_resp = await self.vault.update(id, folder="updated")
+        self.assertEqual(id, update_resp.result.id)
+
+        # Decrypt default version
+        decrypt_default_resp = await self.vault.decrypt_transform(
+            id=id, cipher_text=cipher_v2, tweak=tweak, alphabet=TransformAlphabet.ALPHANUMERIC
+        )
+        self.assertEqual(msg, decrypt_default_resp.result.plain_text)
+
+        # Deactivate key
+        change_state_resp = await self.vault.state_change(id, ItemVersionState.DEACTIVATED, version=1)
+        self.assertEqual(id, change_state_resp.result.id)
+
+        # Decrypt after deactivated.
+        decrypt1_deactivated_resp = await self.vault.decrypt_transform(
+            id=id, cipher_text=cipher_v1, tweak=tweak, alphabet=TransformAlphabet.ALPHANUMERIC, version=1
+        )
+        self.assertEqual(msg, decrypt1_deactivated_resp.result.plain_text)

@@ -20,6 +20,8 @@ from pangea.services.vault.models.asymmetric import (
 )
 from pangea.services.vault.models.common import (
     AsymmetricAlgorithm,
+    DecryptTransformRequest,
+    DecryptTransformResult,
     DeleteRequest,
     DeleteResult,
     EncodedPrivateKey,
@@ -27,6 +29,8 @@ from pangea.services.vault.models.common import (
     EncodedSymmetricKey,
     EncryptStructuredRequest,
     EncryptStructuredResult,
+    EncryptTransformRequest,
+    EncryptTransformResult,
     FolderCreateRequest,
     FolderCreateResult,
     GetRequest,
@@ -53,6 +57,7 @@ from pangea.services.vault.models.common import (
     SymmetricAlgorithm,
     Tags,
     TDict,
+    TransformAlphabet,
     UpdateRequest,
     UpdateResult,
 )
@@ -1309,5 +1314,94 @@ class Vault(ServiceBase):
         return self.request.post(
             "v1/key/decrypt/structured",
             EncryptStructuredResult,
+            data=input.dict(exclude_none=True),
+        )
+
+    def encrypt_transform(
+        self,
+        id: str,
+        plain_text: str,
+        alphabet: TransformAlphabet,
+        tweak: str | None = None,
+        version: int | None = None,
+    ) -> PangeaResponse[EncryptTransformResult]:
+        """
+        Encrypt transform
+
+        Encrypt using a format-preserving algorithm (FPE).
+
+        OperationId: vault_post_v1_key_encrypt_transform
+
+        Args:
+            id: The item ID.
+            plain_text: A message to be encrypted.
+            alphabet: Set of characters to use for format-preserving encryption (FPE).
+            tweak: User provided tweak string. If not provided, a random string will be generated and returned.
+            version: The item version. Defaults to the current version.
+
+        Raises:
+            PangeaAPIException: If an API error happens.
+
+        Returns:
+            A `PangeaResponse` containing the encrypted message.
+
+        Examples:
+            vault.encrypt_transform(
+                id="pvi_[...]",
+                plain_text="message to encrypt",
+                alphabet=TransformAlphabet.ALPHANUMERIC,
+                tweak="MTIzMTIzMT==",
+            )
+        """
+
+        input = EncryptTransformRequest(
+            id=id,
+            plain_text=plain_text,
+            tweak=tweak,
+            alphabet=alphabet,
+            version=version,
+        )
+        return self.request.post(
+            "v1/key/encrypt/transform",
+            EncryptTransformResult,
+            data=input.dict(exclude_none=True),
+        )
+
+    def decrypt_transform(
+        self, id: str, cipher_text: str, tweak: str, alphabet: TransformAlphabet, version: int | None = None
+    ) -> PangeaResponse[DecryptTransformResult]:
+        """
+        Decrypt transform
+
+        Decrypt using a format-preserving algorithm (FPE).
+
+        OperationId: vault_post_v1_key_decrypt_transform
+
+        Args:
+            id: The item ID.
+            cipher_text: A message encrypted by Vault.
+            tweak: User provided tweak string.
+            alphabet: Set of characters to use for format-preserving encryption (FPE).
+            version: The item version. Defaults to the current version.
+
+        Raises:
+            PangeaAPIException: If an API error happens.
+
+        Returns:
+            A `PangeaResponse` containing the decrypted message.
+
+        Examples:
+            vault.decrypt_transform(
+                id="pvi_[...]",
+                cipher_text="encrypted message",
+                tweak="MTIzMTIzMT==",
+                alphabet=TransformAlphabet.ALPHANUMERIC,
+            )
+        """
+
+        input = DecryptTransformRequest(id=id, cipher_text=cipher_text, tweak=tweak, alphabet=alphabet, version=version)
+        return self.request.post(
+            "v1/key/decrypt/transform",
+            DecryptTransformResult,
             data=input.dict(exclude_none=True),
         )
