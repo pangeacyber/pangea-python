@@ -2,12 +2,10 @@
 # Author: Pangea Cyber Corporation
 import enum
 import io
-import logging
 from typing import Dict, List, NewType, Optional, Union
 
-from pangea.request import PangeaConfig, PangeaRequest
 from pangea.response import APIRequestModel, PangeaResponse, PangeaResponseResult, TransferMethod
-from pangea.utils import FileUploadParams, get_file_upload_params
+from pangea.utils import get_file_upload_params
 
 from ..base import ServiceBase
 from .file_format import FileFormat
@@ -839,31 +837,3 @@ class Share(ServiceBase):
     ) -> PangeaResponse[ShareLinkSendResult]:
         input = ShareLinkSendRequest(links=links, sender_email=sender_email, sender_name=sender_name)
         return self.request.post("v1beta/share/link/send", ShareLinkSendResult, data=input.dict(exclude_none=True))
-
-
-class FileUploader:
-    def __init__(self):
-        self.logger = logging.getLogger("pangea")
-        self._request = PangeaRequest(
-            config=PangeaConfig(),
-            token="",
-            service="ShareUploader",
-            logger=self.logger,
-        )
-
-    def upload_file(
-        self,
-        url: str,
-        name: str,
-        file: io.BufferedReader,
-        transfer_method: TransferMethod = TransferMethod.PUT_URL,
-        file_details: Optional[Dict] = None,
-    ):
-        if transfer_method == TransferMethod.PUT_URL:
-            files = [("file", (name, file, "application/octet-stream"))]
-            self._request.put_presigned_url(url=url, files=files)
-        elif transfer_method == TransferMethod.POST_URL:
-            files = [("file", (name, file, "application/octet-stream"))]
-            self._request.post_presigned_url(url=url, data=file_details, files=files)
-        else:
-            raise ValueError(f"Transfer method not supported: {transfer_method}")

@@ -5,14 +5,13 @@ import unittest
 from http.client import HTTPConnection
 
 import pangea.exceptions as pe
-from pangea import PangeaConfig
+from pangea import FileUploader, PangeaConfig
 from pangea.response import PangeaResponse, TransferMethod
 from pangea.services import Share
 from pangea.services.share.share import (
     ArchiveFormat,
     Authenticator,
     AuthenticatorType,
-    FileUploader,
     LinkType,
     PutResult,
     ShareLinkCreateItem,
@@ -115,9 +114,7 @@ class TestShare(unittest.TestCase):
             file_details = response.accepted_result.post_form_data
 
             uploader = FileUploader()
-            uploader.upload_file(
-                url=url, name=name, file=f, transfer_method=TransferMethod.POST_URL, file_details=file_details
-            )
+            uploader.upload_file(url=url, file=f, transfer_method=TransferMethod.POST_URL, file_details=file_details)
 
         max_retry = 24
         for retry in range(max_retry):
@@ -138,7 +135,7 @@ class TestShare(unittest.TestCase):
             url = response.accepted_result.put_url
 
             uploader = FileUploader()
-            uploader.upload_file(url=url, name=name, file=f, transfer_method=TransferMethod.PUT_URL)
+            uploader.upload_file(url=url, file=f, transfer_method=TransferMethod.PUT_URL)
 
         max_retry = 24
         for retry in range(max_retry):

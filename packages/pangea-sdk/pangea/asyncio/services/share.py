@@ -220,34 +220,3 @@ class ShareAsync(ServiceBaseAsync):
         return await self.request.post(
             "v1beta/share/link/send", m.ShareLinkSendResult, data=input.dict(exclude_none=True)
         )
-
-
-class FileUploaderAsync:
-    def __init__(self):
-        self.logger = logging.getLogger("pangea")
-        self._request = PangeaRequestAsync(
-            config=PangeaConfig(),
-            token="",
-            service="ShareUploaderAsync",
-            logger=self.logger,
-        )
-
-    async def upload_file(
-        self,
-        url: str,
-        name: str,
-        file: io.BufferedReader,
-        transfer_method: TransferMethod = TransferMethod.PUT_URL,
-        file_details: Optional[Dict] = None,
-    ):
-        if transfer_method == TransferMethod.PUT_URL:
-            files = [("file", (name, file, "application/octet-stream"))]
-            await self._request.put_presigned_url(url=url, files=files)
-        elif transfer_method == TransferMethod.POST_URL:
-            files = [("file", (name, file, "application/octet-stream"))]
-            await self._request.post_presigned_url(url=url, data=file_details, files=files)
-        else:
-            raise ValueError(f"Transfer method not supported: {transfer_method}")
-
-    async def close(self):
-        await self._request.session.close()
