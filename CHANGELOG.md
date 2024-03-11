@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Incorrect docstrings positioning in `PangeaConfig`.
 - Incorrect variable name in `Vault` docstring.
 - Extraneous colons in `Vault.key_rotate()` docstrings.
+- Put to presigned url. It should just put file in raw, not in form format.
 
 ### Changed
 
