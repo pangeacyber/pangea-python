@@ -280,10 +280,8 @@ class PangeaRequestAsync(PangeaRequestBase):
         self.logger.debug(
             json.dumps({"service": self.service, "action": "http_put", "url": url}, default=default_encoder)
         )
-        form = FormData()
-        name, value = files[0]
-        form.add_field(name, value[1], filename=value[0], content_type=value[2])
-        return await self.session.put(url, headers=headers, data=form)
+        _, value = files[0]
+        return await self.session.put(url, headers=headers, data=value[1])
 
     async def _full_post_presigned_url(
         self,
