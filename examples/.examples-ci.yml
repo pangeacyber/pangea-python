@@ -11,7 +11,7 @@
           - intel
           - redact
           - vault
-  image: python:${PYTHON_VERSION}
+  image: python:${PYTHON_VERSION}-bookworm
   before_script:
     - export PANGEA_AUDIT_CONFIG_ID="${PANGEA_AUDIT_CONFIG_ID_1_LVE_AWS}"
     - export PANGEA_AUDIT_CUSTOM_SCHEMA_TOKEN="${PANGEA_INTEGRATION_CUSTOM_SCHEMA_TOKEN_LVE_AWS}"
