@@ -1,29 +1,29 @@
 # Copyright 2023 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 
-from datetime import datetime
 import os
-import traceback
-import string
 import secrets
+import string
+import traceback
+from datetime import datetime
 
-from django.contrib.auth.backends import BaseBackend
 from django.contrib.auth import get_user_model
+from django.contrib.auth.backends import BaseBackend
 from django.contrib.auth.models import AnonymousUser
-
-from pangea.services.authn.authn import AuthN
 from pangea.config import PangeaConfig
+from pangea.services.authn.authn import AuthN
 
 UserModel = get_user_model()
 
+
 def generate_state_param(request: HttpRequest) -> str:
     alphabet = string.ascii_letters + string.digits
-    state = ''.join(secrets.choice(alphabet) for i in range(12))
+    state = "".join(secrets.choice(alphabet) for i in range(12))
     request.session["PANGEA_LOGIN_STATE"] = state
     return state
 
 
-class PangeaAuthMiddleware():
+class PangeaAuthMiddleware:
     class InvalidSessionException(Exception):
         pass
 
@@ -45,7 +45,7 @@ class PangeaAuthMiddleware():
                 if expires < datetime.utcnow():
                     refresh_token = request.session["PANGEA_REFRESH_TOKEN"]["token"]
                     response = self.authn.client.refresh(refresh_token=refresh_token)
-                    if not response.status == 'Success':
+                    if not response.status == "Success":
                         raise self.InvalidSessionException
                     active_token = response["active_token"]
                     response.session["PANGEA_ACTIVE_TOKEN"] = active_token
@@ -58,6 +58,7 @@ class PangeaAuthMiddleware():
 
         return self.get_response(request)
 
+
 class PangeaAuthentication(BaseBackend):
     def __init__(self):
         token = os.getenv("PANGEA_AUTHN_TOKEN")
@@ -67,8 +68,8 @@ class PangeaAuthentication(BaseBackend):
         super().__init__()
 
     def authenticate(self, request: HttpRequest):
-        code = request.GET.get('code')
-        state = request.GET.get('state')
+        code = request.GET.get("code")
+        state = request.GET.get("state")
         expected_state = request.session.get("PANGEA_LOGIN_STATE")
         user = None
         if not code or not expected_state or state != expected_state:
@@ -76,8 +77,8 @@ class PangeaAuthentication(BaseBackend):
         resp = self.authn.client.userinfo(code=code)
         if resp and resp.status == "Success":
             try:
-                refresh = resp.raw_result['refresh_token']
-                active = resp.raw_result['active_token']
+                refresh = resp.raw_result["refresh_token"]
+                active = resp.raw_result["active_token"]
                 user, created = UserModel.objects.get_or_create(username=active["email"])
                 if created:
                     user.email = active["email"]
