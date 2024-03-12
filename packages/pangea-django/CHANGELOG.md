@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- This changelog file.
+
+### Fixed
+
+- Added missing `HttpRequest` import.
+
 ## 1.0.0 - 2023-12-20
 
 ### Added
