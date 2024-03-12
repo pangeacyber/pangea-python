@@ -1,5 +1,5 @@
 .django-base:
-  image: python:3.8.18
+  image: python:3.8
   before_script:
     - !reference [.setup, update-pip]
     - !reference [.setup, update-poetry]
