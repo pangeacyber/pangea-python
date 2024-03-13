@@ -1,7 +1,7 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 import io
-from typing import Dict, Optional
+from typing import Dict, List, Optional, Tuple
 
 from pangea.response import APIRequestModel, PangeaResponse, PangeaResponseResult, TransferMethod
 from pangea.utils import FileUploadParams, get_file_upload_params
@@ -105,7 +105,7 @@ class Sanitize(ServiceBase):
                 size = params.size if size is None else size
             else:
                 crc32c, sha256, size = None, None, None
-            files = [("upload", ("filename", file, "application/octet-stream"))]
+            files: List[Tuple] = [("upload", ("filename", file, "application/octet-stream"))]
         else:
             raise ValueError("Need to set file_path or file arguments")
 
@@ -123,7 +123,7 @@ class Sanitize(ServiceBase):
         )
         data = input.dict(exclude_none=True)
         response = self.request.post("v1beta/sanitize", SanitizeResult, data=data, files=files, poll_result=sync_call)
-        if file_path:
+        if file_path and file is not None:
             file.close()
         return response
 

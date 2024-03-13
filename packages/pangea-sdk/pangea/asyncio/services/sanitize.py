@@ -1,7 +1,7 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 import io
-from typing import Optional
+from typing import List, Optional, Tuple
 
 import pangea.services.sanitize as m
 from pangea.response import PangeaResponse, TransferMethod
@@ -39,7 +39,7 @@ class SanitizeAsync(ServiceBaseAsync):
                 size = params.size if size is None else size
             else:
                 crc32c, sha256, size = None, None, None
-            files = [("upload", ("filename", file, "application/octet-stream"))]
+            files: List[Tuple] = [("upload", ("filename", file, "application/octet-stream"))]
         else:
             raise ValueError("Need to set file_path or file arguments")
 
@@ -59,7 +59,7 @@ class SanitizeAsync(ServiceBaseAsync):
         response = await self.request.post(
             "v1beta/sanitize", m.SanitizeResult, data=data, files=files, poll_result=sync_call
         )
-        if file_path:
+        if file_path and file is not None:
             file.close()
         return response
 
