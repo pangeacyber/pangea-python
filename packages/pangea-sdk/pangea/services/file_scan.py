@@ -71,7 +71,6 @@ class FileScan(ServiceBase):
     """
 
     service_name = "file-scan"
-    version = "v1"
 
     def file_scan(
         self,
