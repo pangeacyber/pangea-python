@@ -149,6 +149,7 @@ sdk-publish:
   stage: publish
   needs: [sdk-build]
   script:
+    - bash ../../dev/validate_tag.sh
     - poetry publish --username __token__ --password $PYPI_SDK_TOKEN
   rules:
     - if: $CI_COMMIT_TAG =~ /pangea-sdk\/.+/
