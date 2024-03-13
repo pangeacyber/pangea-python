@@ -22,9 +22,15 @@ if [[ ! "$VERSION" == *"v"* ]]; then
    exit 1
 fi
 
+# Move to repo root.
+PARENT_PATH=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd -P)
+pushd "$PARENT_PATH/.."
+
 PYPROJECT_VERSION=v$(poetry version --directory packages/"$PACKAGE_NAME" --dry-run --short)
 
 if [[ ! "$VERSION" == "$PYPROJECT_VERSION" ]]; then
    echo "Git tag version '$VERSION' does not match pyproject.toml version '$PYPROJECT_VERSION'."
    exit 1
 fi
+
+popd
