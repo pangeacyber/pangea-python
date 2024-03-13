@@ -41,3 +41,4 @@ payload
 *.zip
 *.gz
 search_results_*.json
+sanitized.*
