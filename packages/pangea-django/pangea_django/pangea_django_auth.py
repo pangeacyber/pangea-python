@@ -10,6 +10,7 @@ from datetime import datetime
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import BaseBackend
 from django.contrib.auth.models import AnonymousUser
+from django.http import HttpRequest
 from pangea.config import PangeaConfig
 from pangea.services.authn.authn import AuthN
 

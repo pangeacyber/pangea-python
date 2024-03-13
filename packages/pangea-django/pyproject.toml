@@ -15,6 +15,7 @@ classifiers = [
 packages = [
     { include = "pangea_django" }
 ]
+include = ["CHANGELOG.md"]
 
 [tool.poetry.dependencies]
 python = "^3.8.0"
