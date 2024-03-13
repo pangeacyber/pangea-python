@@ -420,3 +420,23 @@ class SearchResultRequest(APIRequestModel):
     id: str
     limit: Optional[int] = 20
     offset: Optional[int] = 0
+
+
+class DownloadFormat(str, enum.Enum):
+    JSON = "json"
+    CSV = "csv"
+
+    def __str__(self):
+        return str(self.value)
+
+    def __repr__(self):
+        return str(self.value)
+
+
+class DownloadRequest(APIRequestModel):
+    result_id: str
+    format: Optional[str] = None
+
+
+class DownloadResult(PangeaResponseResult):
+    dest_url: str

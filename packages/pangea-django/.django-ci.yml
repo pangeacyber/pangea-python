@@ -10,7 +10,7 @@ django_lint:
   extends: .pangea-django-base
   stage: lint
   script:
-    - poetry run black .
+    - poetry run black --check .
 
 pangea-django-publish:
   stage: publish

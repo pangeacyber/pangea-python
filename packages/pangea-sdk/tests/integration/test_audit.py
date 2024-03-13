@@ -8,7 +8,15 @@ from pangea import PangeaConfig
 from pangea.response import PangeaResponse, ResponseStatus
 from pangea.services import Audit
 from pangea.services.audit.exceptions import AuditException
-from pangea.services.audit.models import Event, EventVerification, LogResult, SearchOrder, SearchOrderBy, SearchOutput
+from pangea.services.audit.models import (
+    DownloadFormat,
+    Event,
+    EventVerification,
+    LogResult,
+    SearchOrder,
+    SearchOrderBy,
+    SearchOutput,
+)
 from pangea.tools import (
     TestEnvironment,
     get_config_id,
@@ -723,3 +731,28 @@ class TestAudit(unittest.TestCase):
         response = self.audit_general.log_bulk_async(events=events, verbose=True)
         self.assertEqual(202, response.http_status)
         self.assertIsNone(response.result)
+
+    def test_download(self):
+        limit = 2
+        max_result = 3
+        response_search = self.audit_general.search(
+            query="message:" + MSG_SIGNED_LOCAL,
+            order=SearchOrder.ASC,
+            limit=limit,
+            max_results=max_result,
+            verbose=True,
+            start="21d",
+        )
+        self.assertEqual(response_search.status, ResponseStatus.SUCCESS)
+        self.assertIsNotNone(response_search.result.id)
+        self.assertEqual(len(response_search.result.events), limit)
+        self.assertEqual(response_search.result.count, max_result)
+
+        response_download = self.audit_general.download_results(
+            result_id=response_search.result.id, format=DownloadFormat.JSON
+        )
+        self.assertEqual(response_download.status, ResponseStatus.SUCCESS)
+        self.assertIsNotNone(response_download.result.dest_url)
+
+        file = self.audit_general.download_file(url=response_download.result.dest_url)
+        file.save(dest_folder="./")

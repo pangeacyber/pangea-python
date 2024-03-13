@@ -2,7 +2,7 @@
 # Author: Pangea Cyber Corporation
 import io
 import logging
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 from pangea.request import PangeaConfig, PangeaRequest
 from pangea.response import APIRequestModel, PangeaResponse, PangeaResponseResult, TransferMethod
@@ -129,7 +129,7 @@ class FileScan(ServiceBase):
                 size = params.size
             else:
                 crc, sha, size = None, None, None
-            files = [("upload", ("filename", file, "application/octet-stream"))]
+            files: List[Tuple] = [("upload", ("filename", file, "application/octet-stream"))]
         else:
             raise ValueError("Need to set file_path or file arguments")
 

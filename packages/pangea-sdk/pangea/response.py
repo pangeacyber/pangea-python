@@ -2,6 +2,7 @@
 # Author: Pangea Cyber Corporation
 import datetime
 import enum
+import os
 from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
 
 import aiohttp
@@ -25,9 +26,13 @@ class AttachedFile(object):
 
     def save(self, dest_folder: str = "./", filename: Optional[str] = None):
         if filename is None:
-            filename = self.filename
+            filename = self.filename if self.filename else "default_save_filename"
 
-        filepath = dest_folder + filename
+        filepath = os.path.join(dest_folder, filename)
+        directory = os.path.dirname(filepath)
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+
         with open(filepath, "wb") as file:
             file.write(self.file)
 

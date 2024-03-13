@@ -39,3 +39,5 @@ download_file
 payload
 *.tar
 *.zip
+*.gz
+search_results_*.json
