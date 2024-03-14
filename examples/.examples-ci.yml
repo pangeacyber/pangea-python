@@ -27,6 +27,7 @@
     - export PANGEA_REDACT_MULTICONFIG_TOKEN="${PANGEA_INTEGRATION_MULTI_CONFIG_TOKEN_LVE_AWS}"
     - export PANGEA_REDACT_TOKEN="${PANGEA_INTEGRATION_TOKEN_LVE_AWS}"
     - export PANGEA_VAULT_TOKEN="${PANGEA_INTEGRATION_TOKEN_LVE_AWS}"
+    - export PANGEA_SHARE_TOKEN="${PANGEA_INTEGRATION_TOKEN_LVE_AWS}"
     - pip install --upgrade pip
     - pip --version
     - pip install --upgrade poetry

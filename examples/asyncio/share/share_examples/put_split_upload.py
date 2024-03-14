@@ -1,12 +1,13 @@
+import asyncio
 import datetime
 import os
 import time
 
 import pangea.exceptions as pe
-from pangea import FileUploader
+from pangea.asyncio import FileUploaderAsync
+from pangea.asyncio.services import ShareAsync
 from pangea.config import PangeaConfig
 from pangea.response import PangeaResponse, TransferMethod
-from pangea.services import Share
 from pangea.services.share.share import PutResult  # type: ignore
 from pangea.utils import get_file_upload_params
 
@@ -21,17 +22,17 @@ date = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 filepath = "./share_examples/testfile.pdf"
 
 # Create service object
-share = Share(token, config=config)
+share = ShareAsync(token, config=config)
 
 
-def main():
+async def main():
     try:
         print("Uploading file with multipart method...")
         name = f"{date}_file_split_post_url"
         with open(filepath, "rb") as f:
             params = get_file_upload_params(f)
             print("Requesting upload url...")
-            response = share.request_upload_url(
+            response = await share.request_upload_url(
                 name=name,
                 transfer_method=TransferMethod.POST_URL,
                 crc32c=params.crc_hex,
@@ -42,8 +43,8 @@ def main():
             file_details = response.accepted_result.post_form_data
 
             print("Request URL success. Uploading file...")
-            uploader = FileUploader()
-            uploader.upload_file(
+            uploader = FileUploaderAsync()
+            await uploader.upload_file(
                 url=url,
                 file=f,
                 transfer_method=TransferMethod.POST_URL,
@@ -58,7 +59,7 @@ def main():
                 # wait some time to get result ready and poll it
                 print(f"Polling result. Retry: {retry}.")
                 time.sleep(10)
-                response: PangeaResponse[PutResult] = share.poll_result(response=response)
+                response: PangeaResponse[PutResult] = await share.poll_result(response=response)
 
                 print(f"Poll result success. Item ID: {response.result.object.id}")
                 break
@@ -67,6 +68,8 @@ def main():
                 if retry >= max_retry:
                     print("Error: reached max retry.")
                     break
+        await share.close()
+        await uploader.close()
     except pe.PangeaAPIException as e:
         print(f"Share request error: {e.response.summary}")
         for err in e.errors:
@@ -74,4 +77,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

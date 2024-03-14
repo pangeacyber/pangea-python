@@ -1,10 +1,11 @@
+import asyncio
 import datetime
 import os
 
 import pangea.exceptions as pe
+from pangea.asyncio.services import ShareAsync
 from pangea.config import PangeaConfig
 from pangea.response import TransferMethod
-from pangea.services import Share
 from pangea.services.share.share import (  # type: ignore
     ArchiveFormat,
     Authenticator,
@@ -26,14 +27,14 @@ path = f"/sdk_example/files/{date}"
 filepath_upload = "./share_examples/testfile.pdf"
 
 # Create service object
-share = Share(token, config=config)
+share = ShareAsync(token, config=config)
 
 
-def main():
+async def main():
     try:
         # Create a folder
         print("\nCreating folder...")
-        resp_create = share.folder_create(path=path)
+        resp_create = await share.folder_create(path=path)
         folder_id = resp_create.result.object.id
         print(f"Folder create success. Folder ID: {folder_id}.")
 
@@ -41,7 +42,7 @@ def main():
         print("\nUploading file with path...")
         with open(filepath_upload, "rb") as f:
             filepath_put = path + f"/{date}_file_multipart_1"
-            resp_put_path = share.put(file=f, path=filepath_put, transfer_method=TransferMethod.MULTIPART)
+            resp_put_path = await share.put(file=f, path=filepath_put, transfer_method=TransferMethod.MULTIPART)
 
         print(
             f"Put success.\n\tItem ID: {resp_put_path.result.object.id}\n\tParent ID: {resp_put_path.result.object.parent_id}"
@@ -55,7 +56,7 @@ def main():
 
         with open(filepath_upload, "rb") as f:
             name = f"{date}_file_multipart_2"
-            resp_put_id = share.put(
+            resp_put_id = await share.put(
                 file=f,
                 parent_id=folder_id,
                 name=name,
@@ -71,7 +72,7 @@ def main():
 
         # Update file. full metadata and tags
         print(f"\nUpdating item ID: {resp_put_path.result.object.id}")
-        resp_update = share.update(id=resp_put_path.result.object.id, metadata=metadata, tags=tags)
+        resp_update = await share.update(id=resp_put_path.result.object.id, metadata=metadata, tags=tags)
         print(f"Update success. Item ID: {resp_update.result.object.id}")
         print(f"Metadata: {resp_update.result.object.metadata}. Tags: {resp_update.result.object.tags}")
 
@@ -79,7 +80,7 @@ def main():
         add_metadata = {"field3": "value3"}
         add_tags = ["tag3"]
         print(f"\nUpdating item ID: {resp_put_path.result.object.id}")
-        resp_update_add = share.update(
+        resp_update_add = await share.update(
             id=resp_put_path.result.object.id,
             add_metadata=add_metadata,
             add_tags=add_tags,
@@ -89,7 +90,7 @@ def main():
 
         # Get archive
         print("\nGetting archive with multipart transfer method...")
-        resp_get_archive = share.get_archive(
+        resp_get_archive = await share.get_archive(
             ids=[folder_id],
             format=ArchiveFormat.ZIP,
             transfer_method=TransferMethod.MULTIPART,
@@ -101,7 +102,7 @@ def main():
             af.save("./")
 
         print("\nGetting archive with dest-url transfer method...")
-        resp_get_archive = share.get_archive(
+        resp_get_archive = await share.get_archive(
             ids=[folder_id],
             format=ArchiveFormat.TAR,
             transfer_method=TransferMethod.DEST_URL,
@@ -111,8 +112,8 @@ def main():
 
         # Download file
         print("\nDownloading file...")
-        attached_file = share.download_file(url=resp_get_archive.result.dest_url)
-        attached_file.save("./download/")
+        attached_file = await share.download_file(url=resp_get_archive.result.dest_url)
+        attached_file.save("./download")
 
         # Create share link
         print("\nCreating share link...")
@@ -131,7 +132,7 @@ def main():
         ]
 
         # Send request to create links
-        resp_create_link = share.share_link_create(links=link_list)
+        resp_create_link = await share.share_link_create(links=link_list)
 
         links = resp_create_link.result.share_link_objects
         print(f"Created {len(links)} link(s)")
@@ -140,19 +141,19 @@ def main():
 
         # Get share link
         print("\nGetting already created link by id...")
-        resp_get_link = share.share_link_get(id=link.id)
+        resp_get_link = await share.share_link_get(id=link.id)
         print(
             f"Got link ID: {resp_get_link.result.share_link_object.id}. Link: {resp_get_link.result.share_link_object.link}"
         )
 
         # List share link
         print("\nListing links...")
-        resp_list_link = share.share_link_list()
+        resp_list_link = await share.share_link_list()
         print(f"Got {resp_list_link.result.count} link(s).")
 
         # Delete share link
         print("\nDeleting links...")
-        resp_delete_link = share.share_link_delete(ids=[link.id])
+        resp_delete_link = await share.share_link_delete(ids=[link.id])
         print(f"Deleted {len(resp_delete_link.result.share_link_objects)} link(s)")
 
         # List files in folder
@@ -160,8 +161,9 @@ def main():
         list_filter: FilterList = {
             "folder": path,
         }
-        resp_list = share.list(filter=list_filter)
+        resp_list = await share.list(filter=list_filter)
         print(f"Got {resp_list.result.count} item(s)")
+        await share.close()
     except pe.PangeaAPIException as e:
         print(f"Share request error: {e.response.summary}")
         for err in e.errors:
@@ -169,4 +171,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
