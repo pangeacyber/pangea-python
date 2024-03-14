@@ -1,7 +1,7 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 import io
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 import pangea.services.share.share as m
 from pangea.response import PangeaResponse, TransferMethod
@@ -88,7 +88,7 @@ class ShareAsync(ServiceBaseAsync):
         sha512: Optional[str] = None,
         size: Optional[int] = None,
     ) -> PangeaResponse[m.PutResult]:
-        files = [("upload", (name, file, "application/octet-stream"))]
+        files: List[Tuple] = [("upload", (name, file, "application/octet-stream"))]
 
         if transfer_method == TransferMethod.POST_URL:
             params = get_file_upload_params(file)

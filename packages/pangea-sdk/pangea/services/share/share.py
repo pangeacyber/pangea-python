@@ -2,7 +2,7 @@
 # Author: Pangea Cyber Corporation
 import enum
 import io
-from typing import Dict, List, NewType, Optional, Union
+from typing import Dict, List, NewType, Optional, Tuple, Union
 
 from pangea.response import APIRequestModel, PangeaResponse, PangeaResponseResult, TransferMethod
 from pangea.utils import get_file_size, get_file_upload_params
@@ -560,7 +560,7 @@ class Share(ServiceBase):
                 for err in e.errors:
                     print(f"\\t{err.detail} \\n")
         """
-        files = [("upload", (name, file, "application/octet-stream"))]
+        files: List[Tuple] = [("upload", (name, file, "application/octet-stream"))]
 
         if transfer_method == TransferMethod.POST_URL:
             params = get_file_upload_params(file)
