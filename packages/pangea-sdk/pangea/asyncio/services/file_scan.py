@@ -6,11 +6,10 @@ from typing import Dict, List, Optional, Tuple
 
 import pangea.services.file_scan as m
 from pangea.asyncio.request import PangeaRequestAsync
+from pangea.asyncio.services.base import ServiceBaseAsync
 from pangea.request import PangeaConfig
 from pangea.response import PangeaResponse, TransferMethod
 from pangea.utils import FileUploadParams, get_file_upload_params
-
-from .base import ServiceBaseAsync
 
 
 class FileScanAsync(ServiceBaseAsync):

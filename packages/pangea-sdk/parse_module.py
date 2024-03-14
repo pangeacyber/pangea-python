@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import inspect
 import json
 import logging
@@ -171,7 +173,7 @@ def _parse_class(klass: type, class_cache=set()) -> t.Optional[dict]:
 
     doc = klass.__doc__ or ""
     parsed_doc = docstring_parser.parse(doc)
-    ret = {
+    ret: dict[str, t.Any] = {
         "name": klass.__name__,
         "summary": parsed_doc.short_description,
         "description": parsed_doc.long_description,
@@ -200,7 +202,7 @@ def _parse_module(module: types.ModuleType, module_cache=set()) -> dict:
     if module in module_cache:
         raise Exception("Why are we parsing the same module twice?")
 
-    this_module = {}
+    this_module: dict[str, t.Any] = {}
 
     # TODO: Maybe require doc string to be present?
     doc = module.__doc__ or ""
