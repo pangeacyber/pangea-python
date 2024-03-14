@@ -22,6 +22,7 @@ from pangea.utils import get_file_upload_params
 
 TEST_ENVIRONMENT = TestEnvironment.DEVELOP
 PDF_FILEPATH = "./tests/testdata/testfile.pdf"
+ZEROBYTES_FILEPATH = "./tests/testdata/zerobytes.txt"
 TIME = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 FOLDER_DELETE = f"/sdk_tests/delete/{TIME}"
 FOLDER_FILES = f"/sdk_tests/files/{TIME}"
@@ -33,6 +34,10 @@ ADD_TAGS = ["tag3"]
 
 def get_test_file():
     return open(PDF_FILEPATH, "rb")
+
+
+def get_zero_bytes_test_file():
+    return open(ZEROBYTES_FILEPATH, "rb")
 
 
 def debug_requests_on():
@@ -87,6 +92,30 @@ class TestShare(unittest.TestCase):
             print(type(e))
             self.assertTrue(False)
 
+    def test_put_transfer_method_post_url_zero_bytes_file(self):
+        try:
+            with get_zero_bytes_test_file() as f:
+                name = f"{TIME}_file_zero_bytes_post_url"
+                response = self.client.put(file=f, name=name, transfer_method=TransferMethod.POST_URL)
+                self.assertEqual(response.status, "Success")
+
+            # Get file. Transfer method dest-url
+            resp_get = self.client.get(id=response.result.object.id, transfer_method=TransferMethod.DEST_URL)
+            self.assertEqual(len(resp_get.attached_files), 0)
+            self.assertIsNone(resp_get.result.dest_url)
+
+            # Get file. Transfer method multipart
+            resp_get = self.client.get(id=response.result.object.id, transfer_method=TransferMethod.MULTIPART)
+            self.assertEqual(len(resp_get.attached_files), 1)
+            self.assertIsNone(resp_get.result.dest_url)
+            self.assertEqual(len(resp_get.attached_files[0].file), 0)
+            resp_get.attached_files[0].save("./download/")
+
+        except pe.PangeaAPIException as e:
+            print(e)
+            print(type(e))
+            self.assertTrue(False)
+
     def test_put_transfer_method_multipart(self):
         try:
             with get_test_file() as f:
@@ -94,6 +123,34 @@ class TestShare(unittest.TestCase):
                 response = self.client.put(file=f, name=name, transfer_method=TransferMethod.MULTIPART)
                 self.assertEqual(response.status, "Success")
                 self.assertEqual(response.result.object.name, name)
+        except pe.PangeaAPIException as e:
+            print(e)
+            print(type(e))
+            self.assertTrue(False)
+
+    def test_put_transfer_method_multipart_zero_bytes_file(self):
+        try:
+            with get_zero_bytes_test_file() as f:
+                name = f"{TIME}_file_zero_bytes_multipart"
+                response = self.client.put(file=f, name=name, transfer_method=TransferMethod.MULTIPART)
+                self.assertEqual(response.status, "Success")
+                self.assertEqual(response.result.object.name, name)
+
+            # Get file. Transfer method dest-url
+            resp_get = self.client.get(id=response.result.object.id, transfer_method=TransferMethod.DEST_URL)
+            self.assertEqual(len(resp_get.attached_files), 0)
+            self.assertIsNone(resp_get.result.dest_url)
+
+            # Get file. Transfer method multipart
+            resp_get = self.client.get(id=response.result.object.id, transfer_method=TransferMethod.MULTIPART)
+            self.assertEqual(len(resp_get.attached_files), 1)
+            self.assertIsNone(resp_get.result.dest_url)
+            self.assertEqual(len(resp_get.attached_files[0].file), 0)
+            resp_get.attached_files[0].save("./download/")
+
+            # Check save twice
+            resp_get.attached_files[0].save("./download/")
+
         except pe.PangeaAPIException as e:
             print(e)
             print(type(e))
@@ -193,6 +250,21 @@ class TestShare(unittest.TestCase):
         self.assertEqual(METADATA, resp_update.result.object.metadata)
         self.assertEqual(TAGS, resp_update.result.object.tags)
 
+        # Get file. Transfer method dest-url
+        resp_get = self.client.get(id=resp_update.result.object.id, transfer_method=TransferMethod.DEST_URL)
+        self.assertEqual(len(resp_get.attached_files), 0)
+        self.assertIsNotNone(resp_get.result.dest_url)
+
+        # Download file.
+        attached_file = self.client.download_file(url=resp_get.result.dest_url)
+        attached_file.save("./download/")
+
+        # Get file. Transfer method multipart
+        resp_get = self.client.get(id=resp_update.result.object.id, transfer_method=TransferMethod.MULTIPART)
+        self.assertEqual(len(resp_get.attached_files), 1)
+        self.assertIsNone(resp_get.result.dest_url)
+        resp_get.attached_files[0].save("./download/")
+
         # Update file. add metadata and tags
         resp_update_add = self.client.update(
             id=resp_put_path.result.object.id, add_metadata=ADD_METADATA, add_tags=ADD_TAGS
@@ -214,7 +286,7 @@ class TestShare(unittest.TestCase):
         self.assertTrue(resp_get_archive.success)
         self.assertEqual(len(resp_get_archive.attached_files), 1)
         for af in resp_get_archive.attached_files:
-            af.save("./")
+            af.save("./download/")
 
         resp_get_archive = self.client.get_archive(
             ids=[folder_id], format=ArchiveFormat.TAR, transfer_method=TransferMethod.DEST_URL
@@ -224,12 +296,11 @@ class TestShare(unittest.TestCase):
         self.assertIsNotNone(resp_get_archive.result.dest_url)
 
         # Download file
-        self.client.download_file(url=resp_get_archive.result.dest_url)
-        self.client.download_file(url=resp_get_archive.result.dest_url, filename="download.tar")
-        self.client.download_file(url=resp_get_archive.result.dest_url, dest_folder="./download/")
-        self.client.download_file(
-            url=resp_get_archive.result.dest_url, filename="download.tar", dest_folder="./download/"
-        )
+        attached_file = self.client.download_file(url=resp_get_archive.result.dest_url)
+        attached_file.save("./download/")
+
+        attached_file = self.client.download_file(url=resp_get_archive.result.dest_url, filename="download.tar")
+        attached_file.save("./download/")
 
         # Create share link
         authenticators = [Authenticator(auth_type=AuthenticatorType.PASSWORD, auth_context="somepassword")]

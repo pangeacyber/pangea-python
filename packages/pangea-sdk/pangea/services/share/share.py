@@ -5,7 +5,7 @@ import io
 from typing import Dict, List, NewType, Optional, Union
 
 from pangea.response import APIRequestModel, PangeaResponse, PangeaResponseResult, TransferMethod
-from pangea.utils import get_file_upload_params
+from pangea.utils import get_file_size, get_file_upload_params
 
 from ..base import ServiceBase
 from .file_format import FileFormat
@@ -567,6 +567,9 @@ class Share(ServiceBase):
             crc32c = params.crc_hex
             sha256 = params.sha256_hex
             size = params.size
+        elif size is None and get_file_size(file=file) == 0:
+            # Needed to upload zero byte files
+            size = 0
 
         input = PutRequest(
             name=name,

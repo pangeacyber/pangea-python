@@ -1,15 +1,12 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 import io
-import logging
 from typing import Dict, List, Optional, Union
 
 import pangea.services.share.share as m
-from pangea.asyncio.request import PangeaRequestAsync
-from pangea.request import PangeaConfig
 from pangea.response import PangeaResponse, TransferMethod
 from pangea.services.share.file_format import FileFormat
-from pangea.utils import get_file_upload_params
+from pangea.utils import get_file_size, get_file_upload_params
 
 from .base import ServiceBaseAsync
 
@@ -98,6 +95,9 @@ class ShareAsync(ServiceBaseAsync):
             crc32c = params.crc_hex
             sha256 = params.sha256_hex
             size = params.size
+        elif size is None and get_file_size(file=file) == 0:
+            # Needed to upload zero byte files
+            size = 0
 
         input = m.PutRequest(
             name=name,

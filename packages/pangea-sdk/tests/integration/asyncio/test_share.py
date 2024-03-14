@@ -23,6 +23,7 @@ from pangea.utils import get_file_upload_params
 
 TEST_ENVIRONMENT = TestEnvironment.DEVELOP
 PDF_FILEPATH = "./tests/testdata/testfile.pdf"
+ZEROBYTES_FILEPATH = "./tests/testdata/zerobytes.txt"
 TIME = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 FOLDER_DELETE = f"/sdk_tests/delete/{TIME}"
 FOLDER_FILES = f"/sdk_tests/files/{TIME}"
@@ -34,6 +35,10 @@ ADD_TAGS = ["tag3"]
 
 def get_test_file():
     return open(PDF_FILEPATH, "rb")
+
+
+def get_zero_bytes_test_file():
+    return open(ZEROBYTES_FILEPATH, "rb")
 
 
 def debug_requests_on():
@@ -91,6 +96,30 @@ class TestShare(unittest.IsolatedAsyncioTestCase):
             print(type(e))
             self.assertTrue(False)
 
+    async def test_put_transfer_method_post_url_zero_bytes_file(self):
+        try:
+            with get_zero_bytes_test_file() as f:
+                name = f"{TIME}_file_zero_bytes_post_url"
+                response = await self.client.put(file=f, name=name, transfer_method=TransferMethod.POST_URL)
+                self.assertEqual(response.status, "Success")
+
+            # Get file. Transfer method dest-url
+            resp_get = await self.client.get(id=response.result.object.id, transfer_method=TransferMethod.DEST_URL)
+            self.assertEqual(len(resp_get.attached_files), 0)
+            self.assertIsNone(resp_get.result.dest_url)
+
+            # Get file. Transfer method multipart
+            resp_get = await self.client.get(id=response.result.object.id, transfer_method=TransferMethod.MULTIPART)
+            self.assertEqual(len(resp_get.attached_files), 1)
+            self.assertIsNone(resp_get.result.dest_url)
+            self.assertEqual(len(resp_get.attached_files[0].file), 0)
+            resp_get.attached_files[0].save("./download/")
+
+        except pe.PangeaAPIException as e:
+            print(e)
+            print(type(e))
+            self.assertTrue(False)
+
     async def test_put_transfer_method_multipart(self):
         try:
             with get_test_file() as f:
@@ -98,6 +127,31 @@ class TestShare(unittest.IsolatedAsyncioTestCase):
                 response = await self.client.put(file=f, name=name, transfer_method=TransferMethod.MULTIPART)
                 self.assertEqual(response.status, "Success")
                 self.assertEqual(response.result.object.name, name)
+        except pe.PangeaAPIException as e:
+            print(e)
+            print(type(e))
+            self.assertTrue(False)
+
+    async def test_put_transfer_method_multipart_zero_bytes_file(self):
+        try:
+            with get_zero_bytes_test_file() as f:
+                name = f"{TIME}_file_zero_bytes_multipart"
+                response = await self.client.put(file=f, name=name, transfer_method=TransferMethod.MULTIPART)
+                self.assertEqual(response.status, "Success")
+                self.assertEqual(response.result.object.name, name)
+
+            # Get file. Transfer method dest-url
+            resp_get = await self.client.get(id=response.result.object.id, transfer_method=TransferMethod.DEST_URL)
+            self.assertEqual(len(resp_get.attached_files), 0)
+            self.assertIsNone(resp_get.result.dest_url)
+
+            # Get file. Transfer method multipart
+            resp_get = await self.client.get(id=response.result.object.id, transfer_method=TransferMethod.MULTIPART)
+            self.assertEqual(len(resp_get.attached_files), 1)
+            self.assertIsNone(resp_get.result.dest_url)
+            self.assertEqual(len(resp_get.attached_files[0].file), 0)
+            resp_get.attached_files[0].save("./download/")
+
         except pe.PangeaAPIException as e:
             print(e)
             print(type(e))
@@ -121,6 +175,7 @@ class TestShare(unittest.IsolatedAsyncioTestCase):
             await uploader.upload_file(
                 url=url, file=f, transfer_method=TransferMethod.POST_URL, file_details=file_details
             )
+            await uploader.close()
 
         max_retry = 24
         for retry in range(max_retry):
@@ -200,6 +255,21 @@ class TestShare(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(METADATA, resp_update.result.object.metadata)
         self.assertEqual(TAGS, resp_update.result.object.tags)
 
+        # Get file. Transfer method dest-url
+        resp_get = await self.client.get(id=resp_update.result.object.id, transfer_method=TransferMethod.DEST_URL)
+        self.assertEqual(len(resp_get.attached_files), 0)
+        self.assertIsNotNone(resp_get.result.dest_url)
+
+        # Download file.
+        attached_file = await self.client.download_file(url=resp_get.result.dest_url)
+        attached_file.save("./download/")
+
+        # Get file. Transfer method multipart
+        resp_get = await self.client.get(id=resp_update.result.object.id, transfer_method=TransferMethod.MULTIPART)
+        self.assertEqual(len(resp_get.attached_files), 1)
+        self.assertIsNone(resp_get.result.dest_url)
+        resp_get.attached_files[0].save("./download/")
+
         # Update file. add metadata and tags
         resp_update_add = await self.client.update(
             id=resp_put_path.result.object.id, add_metadata=ADD_METADATA, add_tags=ADD_TAGS
@@ -221,7 +291,7 @@ class TestShare(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(resp_get_archive.success)
         self.assertEqual(len(resp_get_archive.attached_files), 1)
         for af in resp_get_archive.attached_files:
-            af.save("./")
+            af.save("./download/")
 
         resp_get_archive = await self.client.get_archive(
             ids=[folder_id], format=ArchiveFormat.TAR, transfer_method=TransferMethod.DEST_URL
@@ -231,12 +301,11 @@ class TestShare(unittest.IsolatedAsyncioTestCase):
         self.assertIsNotNone(resp_get_archive.result.dest_url)
 
         # Download file
-        await self.client.download_file(url=resp_get_archive.result.dest_url)
-        await self.client.download_file(url=resp_get_archive.result.dest_url, filename="download.tar")
-        await self.client.download_file(url=resp_get_archive.result.dest_url, dest_folder="./download/")
-        await self.client.download_file(
-            url=resp_get_archive.result.dest_url, filename="download.tar", dest_folder="./download/"
-        )
+        attached_file = await self.client.download_file(url=resp_get_archive.result.dest_url)
+        attached_file.save("./download/")
+
+        attached_file = await self.client.download_file(url=resp_get_archive.result.dest_url, filename="download.tar")
+        attached_file.save("./download/")
 
         # Create share link
         authenticators = [Authenticator(auth_type=AuthenticatorType.PASSWORD, auth_context="somepassword")]

@@ -197,3 +197,10 @@ def get_file_upload_params(file: io.BufferedReader) -> FileUploadParams:
 
     file.seek(0)  # restart reading
     return FileUploadParams(crc_hex=crc.hexdigest().decode("utf-8"), sha256_hex=sha.hexdigest(), size=size)
+
+
+def get_file_size(file: io.BufferedReader) -> int:
+    file.seek(0, io.SEEK_END)
+    size = file.tell()
+    file.seek(0)  # restart reading
+    return size
