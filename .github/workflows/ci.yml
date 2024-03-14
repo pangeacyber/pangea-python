@@ -82,8 +82,6 @@ jobs:
         uses: actions/setup-python@v5.0.0
         with:
           python-version: 3.11.7
-          cache: poetry
-          cache-dependency-path: '**/poetry.lock'
 
       - uses: pre-commit/action@v3.0.1
 
