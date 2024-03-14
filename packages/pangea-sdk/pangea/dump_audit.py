@@ -10,6 +10,7 @@ from datetime import datetime
 from typing import Tuple
 
 import dateutil.parser
+
 from pangea.response import PangeaResponse
 from pangea.services import Audit
 from pangea.services.audit.models import SearchEvent, SearchOrder, SearchOrderBy, SearchOutput, SearchResultOutput

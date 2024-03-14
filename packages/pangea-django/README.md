@@ -32,4 +32,3 @@ Modify the following values in the settings.py of your Django project
     - You can log the user out with `PangeaAuthentication().logout(request)`
     - The `authenticate` call will create a user based on the email(username) address in Pangea if that user does not exist, it will also populate basic info (first name, last name, email address and last login time).
     - The user will be logged out automatically once the user's active token has expired and their refresh token can no longer refresh the session.
-

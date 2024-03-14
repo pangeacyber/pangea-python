@@ -127,7 +127,7 @@ class TestFileIntel(unittest.TestCase):
 
     def test_file_reputation_from_filepath(self):
         response = self.intel_file.filepath_reputation(
-            filepath="./README.md",
+            filepath="./tests/testdata/a.txt",
             provider="reversinglabs",
             verbose=True,
             raw=True,
@@ -136,7 +136,7 @@ class TestFileIntel(unittest.TestCase):
 
     def test_file_reputation_from_filepath_bulk(self):
         response = self.intel_file.filepath_reputation_bulk(
-            filepaths=["./README.md", "./CONTRIBUTING.md"],
+            filepaths=["./tests/testdata/a.txt", "./tests/testdata/b.txt"],
             provider="reversinglabs",
             verbose=True,
             raw=True,

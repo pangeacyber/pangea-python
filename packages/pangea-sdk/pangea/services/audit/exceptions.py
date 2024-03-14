@@ -1,6 +1,5 @@
 from pangea.exceptions import PangeaException
-
-from .models import EventEnvelope
+from pangea.services.audit.models import EventEnvelope
 
 
 # Audit SDK Specific Exceptions

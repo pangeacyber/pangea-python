@@ -7,6 +7,7 @@ from cryptography import exceptions
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ed25519
 from cryptography.hazmat.primitives.asymmetric.types import PrivateKeyTypes, PublicKeyTypes
+
 from pangea.exceptions import PangeaException
 from pangea.services.audit.util import b64decode, b64decode_ascii, b64encode_ascii
 from pangea.services.vault.models.common import AsymmetricAlgorithm

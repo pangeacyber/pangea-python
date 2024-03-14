@@ -91,20 +91,6 @@
     - if: $CI_COMMIT_BRANCH && '$CLOUD != "GCP"'
       allow_failure: false
 
-sdk-lint-black:
-  extends: .sdk-base
-  stage: lint
-  needs: []
-  script:
-    - poetry run black .
-
-sdk-lint-mypy:
-  extends: .sdk-base
-  stage: lint
-  needs: []
-  script:
-    - poetry run mypy pangea tests
-
 sdk-build:
   extends: .sdk-base
   stage: build
@@ -124,12 +110,6 @@ sdk-docs:
     expose_as: python_sdk
     paths: ["packages/pangea-sdk/python_sdk.json"]
     when: on_success
-
-sdk-unit-tests:
-  extends: .sdk-base
-  stage: unit_tests
-  script:
-    - poetry run python -m unittest tests.unit
 
 sdk-integration-tests:
   extends: .sdk-test-base

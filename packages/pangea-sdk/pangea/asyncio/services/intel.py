@@ -4,10 +4,9 @@ import hashlib
 from typing import List, Optional
 
 import pangea.services.intel as m
+from pangea.asyncio.services.base import ServiceBaseAsync
 from pangea.response import PangeaResponse
 from pangea.utils import hash_256_filepath
-
-from .base import ServiceBaseAsync
 
 
 class FileIntelAsync(ServiceBaseAsync):
