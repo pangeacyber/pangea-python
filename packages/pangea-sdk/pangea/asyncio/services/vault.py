@@ -3,6 +3,7 @@
 import datetime
 from typing import Dict, Optional, Union
 
+from pangea.asyncio.services.base import ServiceBaseAsync
 from pangea.response import PangeaResponse
 from pangea.services.vault.models.asymmetric import (
     AsymmetricGenerateRequest,
@@ -47,8 +48,8 @@ from pangea.services.vault.models.common import (
     StateChangeRequest,
     StateChangeResult,
     SymmetricAlgorithm,
-    TDict,
     Tags,
+    TDict,
     UpdateRequest,
     UpdateResult,
 )
@@ -68,8 +69,6 @@ from pangea.services.vault.models.symmetric import (
     SymmetricStoreRequest,
     SymmetricStoreResult,
 )
-
-from .base import ServiceBaseAsync
 
 
 class VaultAsync(ServiceBaseAsync):
@@ -1222,7 +1221,7 @@ class VaultAsync(ServiceBaseAsync):
             )
         """
 
-        input = EncryptStructuredRequest(
+        input: EncryptStructuredRequest[TDict] = EncryptStructuredRequest(
             id=id, structured_data=structured_data, filter=filter, version=version, additional_data=additional_data
         )
         return await self.request.post(
@@ -1271,7 +1270,7 @@ class VaultAsync(ServiceBaseAsync):
             )
         """
 
-        input = EncryptStructuredRequest(
+        input: EncryptStructuredRequest[TDict] = EncryptStructuredRequest(
             id=id, structured_data=structured_data, filter=filter, version=version, additional_data=additional_data
         )
         return await self.request.post(

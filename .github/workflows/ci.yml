@@ -71,7 +71,114 @@ jobs:
           cache: poetry
           cache-dependency-path: '**/poetry.lock'
 
-  test-unit:
+  pre-commit:
+    # Skip pre-commit on `main` because the `no-commit-to-branch` hook won't
+    # allow it.
+    if: ${{ github.ref != 'refs/heads/main' }}
+    needs: [prefetch]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.1.1
+
+      - name: Setup Python
+        uses: actions/setup-python@v5.0.0
+        with:
+          python-version: 3.11.7
+
+      - uses: pre-commit/action@v3.0.1
+
+  sdk-lint-black:
+    needs: [prefetch]
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./packages/pangea-sdk
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.1.1
+
+      - name: Install poetry
+        run: |
+          pip install --upgrade poetry==${{ env.POETRY_VERSION }}
+          poetry --version
+
+      - name: Setup Python
+        uses: actions/setup-python@v5.0.0
+        with:
+          python-version: 3.7.17
+          cache: poetry
+          cache-dependency-path: ./packages/pangea-sdk/poetry.lock
+
+      - name: Install dependencies
+        run: |
+          poetry check
+          poetry install
+
+      - name: black
+        run: poetry run black --check .
+
+  sdk-lint-isort:
+    needs: [prefetch]
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./packages/pangea-sdk
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.1.1
+
+      - name: Install poetry
+        run: |
+          pip install --upgrade poetry==${{ env.POETRY_VERSION }}
+          poetry --version
+
+      - name: Setup Python
+        uses: actions/setup-python@v5.0.0
+        with:
+          python-version: 3.7.17
+          cache: poetry
+          cache-dependency-path: ./packages/pangea-sdk/poetry.lock
+
+      - name: Install dependencies
+        run: |
+          poetry check
+          poetry install
+
+      - name: isort
+        run: poetry run isort --check .
+
+  sdk-lint-mypy:
+    needs: [prefetch]
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./packages/pangea-sdk
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.1.1
+
+      - name: Install poetry
+        run: |
+          pip install --upgrade poetry==${{ env.POETRY_VERSION }}
+          poetry --version
+
+      - name: Setup Python
+        uses: actions/setup-python@v5.0.0
+        with:
+          python-version: 3.7.17
+          cache: poetry
+          cache-dependency-path: ./packages/pangea-sdk/poetry.lock
+
+      - name: Install dependencies
+        run: |
+          poetry check
+          poetry install
+
+      - name: mypy
+        run: poetry run mypy .
+
+  sdk-test-unit:
     needs: [prefetch]
     runs-on: ubuntu-latest
     strategy:

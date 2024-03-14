@@ -48,8 +48,8 @@ from pangea.services.vault.models.common import (
     StateChangeRequest,
     StateChangeResult,
     SymmetricAlgorithm,
-    TDict,
     Tags,
+    TDict,
     UpdateRequest,
     UpdateResult,
 )
@@ -1237,7 +1237,7 @@ class Vault(ServiceBase):
             )
         """
 
-        input = EncryptStructuredRequest(
+        input: EncryptStructuredRequest[TDict] = EncryptStructuredRequest(
             id=id, structured_data=structured_data, filter=filter, version=version, additional_data=additional_data
         )
         return self.request.post(
@@ -1286,7 +1286,7 @@ class Vault(ServiceBase):
             )
         """
 
-        input = EncryptStructuredRequest(
+        input: EncryptStructuredRequest[TDict] = EncryptStructuredRequest(
             id=id, structured_data=structured_data, filter=filter, version=version, additional_data=additional_data
         )
         return self.request.post(

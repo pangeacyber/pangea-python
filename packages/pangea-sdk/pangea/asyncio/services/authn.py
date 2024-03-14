@@ -4,9 +4,8 @@
 from typing import Dict, List, Optional, Union
 
 import pangea.services.authn.models as m
+from pangea.asyncio.services.base import ServiceBaseAsync
 from pangea.response import PangeaResponse
-
-from .base import ServiceBaseAsync
 
 SERVICE_NAME = "authn"
 
