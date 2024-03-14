@@ -4,6 +4,7 @@ import datetime
 from typing import Any, Dict, List, Optional, Union
 
 import pangea.exceptions as pexc
+from pangea.asyncio.services.base import ServiceBaseAsync
 from pangea.response import PangeaResponse
 from pangea.services.audit.audit import AuditBase
 from pangea.services.audit.exceptions import AuditException
@@ -26,8 +27,6 @@ from pangea.services.audit.models import (
     SearchResultRequest,
 )
 from pangea.services.audit.util import format_datetime
-
-from .base import ServiceBaseAsync
 
 
 class AuditAsync(ServiceBaseAsync, AuditBase):

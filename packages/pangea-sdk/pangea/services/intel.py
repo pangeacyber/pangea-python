@@ -6,9 +6,8 @@ from typing import Dict, List, Optional
 
 from pangea.exceptions import PangeaException
 from pangea.response import APIRequestModel, PangeaResponse, PangeaResponseResult
+from pangea.services.base import ServiceBase
 from pangea.utils import hash_256_filepath
-
-from .base import ServiceBase
 
 
 class IntelCommonRequest(APIRequestModel):

@@ -8,7 +8,7 @@ trim_trailing_whitespace = true
 end_of_line = lf
 charset = utf-8
 
-[*.{cfg,ini,json,toml,yml}]
+[*.{cfg,ini,json,toml,yaml,yml}]
 indent_size = 2
 
 [*.md]

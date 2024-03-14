@@ -3,8 +3,7 @@
 from typing import Any, Dict, List
 
 from pangea.response import APIRequestModel, APIResponseModel, PangeaResponse, PangeaResponseResult
-
-from .base import ServiceBase
+from pangea.services.base import ServiceBase
 
 
 class IPCheckRequest(APIRequestModel):

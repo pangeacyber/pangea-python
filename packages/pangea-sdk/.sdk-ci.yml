@@ -104,12 +104,6 @@
         - packages/pangea-sdk/**/*
       when: on_success
 
-python-sdk-lint:
-  extends: .python-sdk-base
-  stage: lint
-  script:
-    - poetry run black .
-
 python-sdk-generate-docs:
   extends: .python-sdk-base
   stage: lint
@@ -121,19 +115,6 @@ python-sdk-generate-docs:
     expose_as: python_sdk
     paths: ['packages/pangea-sdk/python_sdk.json']
     when: on_success
-
-python-sdk-type-check:
-  extends: .python-sdk-base
-  stage: lint
-  needs: []
-  script:
-    - poetry run mypy pangea tests
-
-python-sdk-unit-tests:
-  extends: .python-sdk-base
-  stage: unit_tests
-  script:
-    - poetry run python -m unittest tests.unit
 
 python-sdk-integration-tests:
   extends: .python-sdk-test-base

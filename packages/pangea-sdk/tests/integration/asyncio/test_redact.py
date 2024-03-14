@@ -1,7 +1,8 @@
 import unittest
 
-import pangea.exceptions as pe
 import pydantic
+
+import pangea.exceptions as pe
 from pangea import PangeaConfig
 from pangea.asyncio.services.redact import RedactAsync
 from pangea.response import ResponseStatus
