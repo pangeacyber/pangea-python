@@ -72,6 +72,9 @@ jobs:
           cache-dependency-path: '**/poetry.lock'
 
   pre-commit:
+    # Skip pre-commit on `main` because the `no-commit-to-branch` hook won't
+    # allow it.
+    if: ${{ github.ref != 'refs/heads/main' }}
     needs: [prefetch]
     runs-on: ubuntu-latest
     steps:
