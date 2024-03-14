@@ -751,6 +751,31 @@ class Audit(ServiceBase, AuditBase):
     def download_results(
         self, result_id: str, format: Optional[DownloadFormat] = None
     ) -> PangeaResponse[DownloadResult]:
+        """
+        Download search results
+
+        Get all search results as a compressed (gzip) CSV file.
+
+        OperationId: audit_post_v1_download_results
+
+        Args:
+            result_id: ID returned by the search API.
+            format: Format for the records.
+
+        Returns:
+            URL where search results can be downloaded.
+
+        Raises:
+            AuditException: If an Audit-based API exception occurs.
+            PangeaAPIException: If an API exception occurs.
+
+        Examples:
+            response = audit.download_results(
+                result_id="pas_[...]",
+                format=DownloadFormat.JSON,
+            )
+        """
+
         input = DownloadRequest(result_id=result_id, format=format)
         return self.request.post("v1/download_results", DownloadResult, data=input.dict(exclude_none=True))
 
