@@ -4,11 +4,10 @@ import io
 from typing import Dict, List, Optional, Tuple, Union
 
 import pangea.services.share.share as m
+from .base import ServiceBaseAsync
 from pangea.response import PangeaResponse, TransferMethod
 from pangea.services.share.file_format import FileFormat
 from pangea.utils import get_file_size, get_file_upload_params
-
-from .base import ServiceBaseAsync
 
 
 class ShareAsync(ServiceBaseAsync):

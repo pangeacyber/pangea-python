@@ -4,11 +4,10 @@ import enum
 import io
 from typing import Dict, List, NewType, Optional, Tuple, Union
 
-from pangea.response import APIRequestModel, PangeaResponse, PangeaResponseResult, TransferMethod
-from pangea.utils import get_file_size, get_file_upload_params
-
 from ..base import ServiceBase
 from .file_format import FileFormat
+from pangea.response import APIRequestModel, PangeaResponse, PangeaResponseResult, TransferMethod
+from pangea.utils import get_file_size, get_file_upload_params
 
 Metadata = NewType("Metadata", Dict[str, str])
 Tags = NewType("Tags", List[str])
