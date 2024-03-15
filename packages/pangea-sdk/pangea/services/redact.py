@@ -171,7 +171,7 @@ class Redact(ServiceBase):
         """
 
         input = RedactRequest(text=text, debug=debug, rules=rules, rulesets=rulesets, return_result=return_result)
-        return self.request.post("v1/redact", RedactResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1/redact", RedactResult, data=input.model_dump(exclude_none=True))
 
     def redact_structured(
         self,
@@ -228,4 +228,4 @@ class Redact(ServiceBase):
             rulesets=rulesets,
             return_result=return_result,
         )
-        return self.request.post("v1/redact_structured", StructuredResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1/redact_structured", StructuredResult, data=input.model_dump(exclude_none=True))

@@ -57,7 +57,7 @@ class EmbargoAsync(ServiceBaseAsync):
             response = embargo.ip_check("190.6.64.94")
         """
         input = e.IPCheckRequest(ip=ip)
-        return await self.request.post("v1/ip/check", e.EmbargoResult, data=input.dict())
+        return await self.request.post("v1/ip/check", e.EmbargoResult, data=input.model_dump())
 
     async def iso_check(self, iso_code: str) -> PangeaResponse[e.EmbargoResult]:
         """
@@ -84,4 +84,4 @@ class EmbargoAsync(ServiceBaseAsync):
             response = embargo.iso_check("CU")
         """
         input = e.ISOCheckRequest(iso_code=iso_code)
-        return await self.request.post("v1/iso/check", result_class=e.EmbargoResult, data=input.dict())
+        return await self.request.post("v1/iso/check", result_class=e.EmbargoResult, data=input.model_dump())

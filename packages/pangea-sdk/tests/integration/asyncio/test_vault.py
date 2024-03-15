@@ -412,7 +412,7 @@ class TestVault(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(1, len(get_resp.result.keys))
 
         # Get version 1
-        get_resp = await self.vault.jwk_get(id, 1)
+        get_resp = await self.vault.jwk_get(id, "1")
         self.assertEqual(1, len(get_resp.result.keys))
 
         # Get all

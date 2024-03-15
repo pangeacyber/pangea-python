@@ -78,7 +78,7 @@ class AuditBase:
             input = LogRequest(event=log.event, signature=log.signature, public_key=log.public_key)  # type: ignore[assignment]
             input.verbose = True if verify else verbose
             if verify and self.prev_unpublished_root_hash:
-                input.prev_root = self.prev_unpublished_root_hash  # type: ignore[attr-defined]
+                input.prev_root = self.prev_unpublished_root_hash
 
         else:
             raise AttributeError(f"events should be a dict or a list[dict] and it is {type(events)}")
@@ -495,7 +495,9 @@ class Audit(ServiceBase, AuditBase):
         """
 
         input = self._get_log_request(event, sign_local=sign_local, verify=verify, verbose=verbose)
-        response: PangeaResponse[LogResult] = self.request.post("v1/log", LogResult, data=input.dict(exclude_none=True))
+        response: PangeaResponse[LogResult] = self.request.post(
+            "v1/log", LogResult, data=input.model_dump(exclude_none=True)
+        )
         if response.success and response.result is not None:
             self._process_log_result(response.result, verify=verify)
         return response
@@ -535,7 +537,7 @@ class Audit(ServiceBase, AuditBase):
 
         input = self._get_log_request(events, sign_local=sign_local, verify=False, verbose=verbose)
         response: PangeaResponse[LogBulkResult] = self.request.post(
-            "v2/log", LogBulkResult, data=input.dict(exclude_none=True)
+            "v2/log", LogBulkResult, data=input.model_dump(exclude_none=True)
         )
 
         if response.success and response.result is not None:
@@ -579,7 +581,7 @@ class Audit(ServiceBase, AuditBase):
         try:
             # Calling to v2 methods will return always a 202.
             response: PangeaResponse[LogBulkResult] = self.request.post(
-                "v2/log_async", LogBulkResult, data=input.dict(exclude_none=True), poll_result=False
+                "v2/log_async", LogBulkResult, data=input.model_dump(exclude_none=True), poll_result=False
             )
         except pexc.AcceptedRequestException as e:
             return e.response
@@ -667,7 +669,7 @@ class Audit(ServiceBase, AuditBase):
         )
 
         response: PangeaResponse[SearchOutput] = self.request.post(
-            "v1/search", SearchOutput, data=input.dict(exclude_none=True)
+            "v1/search", SearchOutput, data=input.model_dump(exclude_none=True)
         )
         if verify_consistency and response.result is not None:
             self.update_published_roots(response.result)
@@ -718,7 +720,7 @@ class Audit(ServiceBase, AuditBase):
             offset=offset,
         )
         response: PangeaResponse[SearchResultOutput] = self.request.post(
-            "v1/results", SearchResultOutput, data=input.dict(exclude_none=True)
+            "v1/results", SearchResultOutput, data=input.model_dump(exclude_none=True)
         )
         if verify_consistency and response.result is not None:
             self.update_published_roots(response.result)
@@ -746,7 +748,7 @@ class Audit(ServiceBase, AuditBase):
             response = audit.root(tree_size=7)
         """
         input = RootRequest(tree_size=tree_size)
-        return self.request.post("v1/root", RootResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1/root", RootResult, data=input.model_dump(exclude_none=True))
 
     def download_results(
         self, result_id: str, format: Optional[DownloadFormat] = None
@@ -777,12 +779,12 @@ class Audit(ServiceBase, AuditBase):
         for tree_size in tree_sizes:
             pub_root = None
             if tree_size in arweave_roots:
-                pub_root = PublishedRoot(**arweave_roots[tree_size].dict(exclude_none=True))
+                pub_root = PublishedRoot(**arweave_roots[tree_size].model_dump(exclude_none=True))
                 pub_root.source = RootSource.ARWEAVE
             elif self.allow_server_roots:
                 resp = self.root(tree_size=tree_size)
                 if resp.success and resp.result is not None:
-                    pub_root = PublishedRoot(**resp.result.data.dict(exclude_none=True))
+                    pub_root = PublishedRoot(**resp.result.data.model_dump(exclude_none=True))
                     pub_root.source = RootSource.PANGEA
             if pub_root is not None:
                 self.pub_roots[tree_size] = pub_root

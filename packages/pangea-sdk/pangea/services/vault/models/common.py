@@ -1,10 +1,10 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
-import datetime
+
 import enum
 from typing import Dict, Generic, List, NewType, Optional, TypeVar, Union
 
-from pangea.response import APIRequestModel, PangeaResponseResult
+from pangea.response import APIRequestModel, PangeaDateTime, PangeaResponseResult
 
 # EncodedPublicKey is a PEM public key, with no further encoding (i.e. no base64)
 # It may be used for example in openssh with no further processing
@@ -174,7 +174,7 @@ class CommonStoreRequest(APIRequestModel):
     tags: Optional[Tags] = None
     rotation_frequency: Optional[str] = None
     rotation_state: Optional[ItemVersionState] = None
-    expiration: Optional[datetime.datetime] = None
+    expiration: Optional[PangeaDateTime] = None
 
 
 class CommonStoreResult(PangeaResponseResult):
@@ -191,7 +191,7 @@ class CommonGenerateRequest(APIRequestModel):
     tags: Optional[Tags] = None
     rotation_frequency: Optional[str] = None
     rotation_state: Optional[ItemVersionState] = None
-    expiration: Optional[datetime.datetime] = None
+    expiration: Optional[PangeaDateTime] = None
 
 
 class CommonGenerateResult(PangeaResponseResult):
@@ -254,7 +254,7 @@ class ListItemData(ItemData):
 class ListResult(PangeaResponseResult):
     items: List[ListItemData] = []
     count: int
-    last: Optional[str]
+    last: Optional[str] = None
 
 
 class ListRequest(APIRequestModel):
@@ -305,7 +305,7 @@ class UpdateRequest(APIRequestModel):
     rotation_frequency: Optional[str] = None
     rotation_state: Optional[ItemVersionState] = None
     rotation_grace_period: Optional[str] = None
-    expiration: Optional[datetime.datetime] = None
+    expiration: Optional[PangeaDateTime] = None
     item_state: Optional[ItemState] = None
 
 

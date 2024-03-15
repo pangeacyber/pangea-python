@@ -18,8 +18,8 @@ EMAIL_TEST = f"user.email+test{TIME}@pangea.cloud"
 EMAIL_DELETE = f"user.email+delete{TIME}@pangea.cloud"
 PASSWORD_OLD = "My1s+Password"
 PASSWORD_NEW = "My1s+Password_new"
-PROFILE_OLD = {"first_name": "Name", "last_name": "Last"}
-PROFILE_NEW = {"first_name": "NameUpdate"}
+PROFILE_OLD = m.Profile(first_name="Name", last_name="Last")
+PROFILE_NEW = m.Profile(first_name="NameUpdate")
 EMAIL_INVITE_DELETE = f"user.email+invite_del{TIME}@pangea.cloud"
 EMAIL_INVITE_KEEP = f"user.email+invite_keep{TIME}@pangea.cloud"
 USER_ID = None  # Will be set once user is created
@@ -143,10 +143,10 @@ class TestAuthN(unittest.TestCase):
             self.assertIsNotNone(response.result)
             self.assertEqual(USER_ID, response.result.id)
             self.assertEqual(EMAIL_TEST, response.result.email)
-            final_profile: dict = {}
-            final_profile.update(PROFILE_OLD)
-            final_profile.update(PROFILE_NEW)
-            self.assertEqual(final_profile, response.result.profile)
+            final_profile: dict[str, str] = {}
+            final_profile.update(PROFILE_OLD.model_dump(exclude_none=True))
+            final_profile.update(PROFILE_NEW.model_dump(exclude_none=True))
+            self.assertEqual(m.Profile(**final_profile), response.result.profile)
         except pe.PangeaAPIException as e:
             print(e)
             self.assertTrue(False)
@@ -299,7 +299,7 @@ class TestAuthN(unittest.TestCase):
             print(e)
             self.assertTrue(False)
 
-    def test_authn_z1_user_list(self):
+    def test_authn_z1_user_list(self) -> None:
         response = self.authn.user.list(filter={})
         self.assertEqual(response.status, "Success")
         self.assertIsNotNone(response.result)

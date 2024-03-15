@@ -7,7 +7,7 @@ readme = "README.md"
 packages = [{include = "embargo_examples"}]
 
 [tool.poetry.dependencies]
-python = "^3.7.2"
+python = "^3.8.18"
 pangea-sdk = "^3.7.0"
 
 [tool.poetry.group.dev.dependencies]

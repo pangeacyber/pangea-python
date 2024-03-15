@@ -5,12 +5,11 @@ import copy
 import json
 import logging
 import time
-from typing import Dict, List, Optional, Tuple, Type, Union
+from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple, Type, Union
 
 import aiohttp
 import requests
 from requests.adapters import HTTPAdapter, Retry
-from requests.structures import CaseInsensitiveDict
 from requests_toolbelt import MultipartDecoder  # type: ignore
 
 import pangea
@@ -319,14 +318,17 @@ class PangeaRequest(PangeaRequestBase):
         return self.session.post(url, headers=headers, data=data_send, files=files)
 
     def _http_post_process(
-        self, data: Union[str, Dict] = {}, files: Optional[List[Tuple]] = None, multipart_post: bool = True
+        self,
+        data: Union[str, Dict] = {},
+        files: Optional[Sequence[Tuple[str, Tuple[Any, str, str]]]] = None,
+        multipart_post: bool = True,
     ):
         if files:
             if multipart_post is True:
                 data_send: str = json.dumps(data, default=default_encoder) if isinstance(data, dict) else data
                 multi = [("request", (None, data_send, "application/json"))]
-                multi.extend(files)  # type: ignore[arg-type]
-                files = multi  # type: ignore[assignment]
+                multi.extend(files)
+                files = multi
                 return None, files
             else:
                 # Post to presigned url as form

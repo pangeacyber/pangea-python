@@ -71,7 +71,7 @@ def _merge_with_type_annotations(function, function_section: dict):
 Commenting this out because:
 1) the function isn't actually used
 2) it uses python 3.10 syntax which doesn't currently work in our gitlab pipeline
-   at this moment, only 3.7 is supported
+   at this moment, only 3.8 is supported
 """
 # def _parse_long_description(description: str | None) -> tuple[str | None, t.List[str]]:
 #     if description is None:

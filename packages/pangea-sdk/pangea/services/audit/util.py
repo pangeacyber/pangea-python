@@ -61,7 +61,7 @@ def verify_hash(hash1: str, hash2: str) -> bool:
 
 
 def verify_envelope_hash(envelope: EventEnvelope, hash: str):
-    return verify_hash(hash_dict(normalize_log(envelope.dict(exclude_none=True))), hash)
+    return verify_hash(hash_dict(normalize_log(envelope.model_dump(exclude_none=True))), hash)
 
 
 def canonicalize_event(event: Event) -> bytes:

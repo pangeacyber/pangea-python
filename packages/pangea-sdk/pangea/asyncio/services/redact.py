@@ -74,7 +74,7 @@ class RedactAsync(ServiceBaseAsync):
         """
 
         input = m.RedactRequest(text=text, debug=debug, rules=rules, rulesets=rulesets, return_result=return_result)
-        return await self.request.post("v1/redact", m.RedactResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v1/redact", m.RedactResult, data=input.model_dump(exclude_none=True))
 
     async def redact_structured(
         self,
@@ -131,4 +131,6 @@ class RedactAsync(ServiceBaseAsync):
             rulesets=rulesets,
             return_result=return_result,
         )
-        return await self.request.post("v1/redact_structured", m.StructuredResult, data=input.dict(exclude_none=True))
+        return await self.request.post(
+            "v1/redact_structured", m.StructuredResult, data=input.model_dump(exclude_none=True)
+        )

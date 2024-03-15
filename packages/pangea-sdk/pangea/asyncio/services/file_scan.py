@@ -109,7 +109,7 @@ class FileScanAsync(ServiceBaseAsync):
             transfer_method=transfer_method,
             source_url=source_url,
         )
-        data = input.dict(exclude_none=True)
+        data = input.model_dump(exclude_none=True)
         return await self.request.post("v1/scan", m.FileScanResult, data=data, files=files, poll_result=sync_call)
 
     async def request_upload_url(
@@ -131,7 +131,7 @@ class FileScanAsync(ServiceBaseAsync):
             input.sha256 = params.sha256_hex
             input.size = params.size
 
-        data = input.dict(exclude_none=True)
+        data = input.model_dump(exclude_none=True)
         return await self.request.request_presigned_url("v1/scan", m.FileScanResult, data=data)
 
 
@@ -154,7 +154,7 @@ class FileUploaderAsync:
     ) -> None:
         if transfer_method == TransferMethod.PUT_URL:
             files = [("file", ("filename", file, "application/octet-stream"))]
-            await self._request.put_presigned_url(url=url, files=files)  # type: ignore[arg-type]
+            await self._request.put_presigned_url(url=url, files=files)
         elif transfer_method == TransferMethod.POST_URL:
             files = [("file", ("filename", file, "application/octet-stream"))]
             await self._request.post_presigned_url(url=url, data=file_details, files=files)  # type: ignore[arg-type]

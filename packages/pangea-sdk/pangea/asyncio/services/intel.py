@@ -67,7 +67,9 @@ class FileIntelAsync(ServiceBaseAsync):
 
         """
         input = m.FileReputationRequest(hash=hash, hash_type=hash_type, verbose=verbose, raw=raw, provider=provider)
-        return await self.request.post("v1/reputation", m.FileReputationResult, data=input.dict(exclude_none=True))
+        return await self.request.post(
+            "v1/reputation", m.FileReputationResult, data=input.model_dump(exclude_none=True)
+        )
 
     async def hash_reputation_bulk(
         self,
@@ -103,7 +105,9 @@ class FileIntelAsync(ServiceBaseAsync):
         input = m.FileReputationBulkRequest(  # type: ignore[call-arg]
             hashes=hashes, hash_type=hash_type, verbose=verbose, raw=raw, provider=provider
         )
-        return await self.request.post("v2/reputation", m.FileReputationBulkResult, data=input.dict(exclude_none=True))
+        return await self.request.post(
+            "v2/reputation", m.FileReputationBulkResult, data=input.model_dump(exclude_none=True)
+        )
 
     async def filepath_reputation(
         self,
@@ -144,7 +148,9 @@ class FileIntelAsync(ServiceBaseAsync):
         hash = hashlib.sha256(data.read()).hexdigest()
 
         input = m.FileReputationRequest(hash=hash, hash_type="sha256", verbose=verbose, raw=raw, provider=provider)
-        return await self.request.post("v1/reputation", m.FileReputationResult, data=input.dict(exclude_none=True))
+        return await self.request.post(
+            "v1/reputation", m.FileReputationResult, data=input.model_dump(exclude_none=True)
+        )
 
     async def filepath_reputation_bulk(
         self,
@@ -243,7 +249,9 @@ class DomainIntelAsync(ServiceBaseAsync):
             )
         """
         input = m.DomainReputationRequest(domain=domain, verbose=verbose, provider=provider, raw=raw)
-        return await self.request.post("v1/reputation", m.DomainReputationResult, data=input.dict(exclude_none=True))
+        return await self.request.post(
+            "v1/reputation", m.DomainReputationResult, data=input.model_dump(exclude_none=True)
+        )
 
     async def reputation_bulk(
         self,
@@ -277,7 +285,7 @@ class DomainIntelAsync(ServiceBaseAsync):
         """
         input = m.DomainReputationBulkRequest(domains=domains, verbose=verbose, provider=provider, raw=raw)
         return await self.request.post(
-            "v2/reputation", m.DomainReputationBulkResult, data=input.dict(exclude_none=True)
+            "v2/reputation", m.DomainReputationBulkResult, data=input.model_dump(exclude_none=True)
         )
 
     async def who_is(
@@ -310,7 +318,7 @@ class DomainIntelAsync(ServiceBaseAsync):
             )
         """
         input = m.DomainWhoIsRequest(domain=domain, verbose=verbose, provider=provider, raw=raw)  # type: ignore[call-arg]
-        return await self.request.post("v1/whois", m.DomainWhoIsResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v1/whois", m.DomainWhoIsResult, data=input.model_dump(exclude_none=True))
 
 
 class IpIntelAsync(ServiceBaseAsync):
@@ -369,7 +377,7 @@ class IpIntelAsync(ServiceBaseAsync):
             )
         """
         input = m.IPReputationRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
-        return await self.request.post("v1/reputation", m.IPReputationResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v1/reputation", m.IPReputationResult, data=input.model_dump(exclude_none=True))
 
     async def reputation_bulk(
         self, ips: List[str], verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
@@ -398,7 +406,9 @@ class IpIntelAsync(ServiceBaseAsync):
             FIXME:
         """
         input = m.IPReputationBulkRequest(ips=ips, verbose=verbose, raw=raw, provider=provider)
-        return await self.request.post("v2/reputation", m.IPReputationBulkResult, data=input.dict(exclude_none=True))
+        return await self.request.post(
+            "v2/reputation", m.IPReputationBulkResult, data=input.model_dump(exclude_none=True)
+        )
 
     async def geolocate(
         self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
@@ -430,7 +440,7 @@ class IpIntelAsync(ServiceBaseAsync):
             )
         """
         input = m.IPGeolocateRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
-        return await self.request.post("v1/geolocate", m.IPGeolocateResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v1/geolocate", m.IPGeolocateResult, data=input.model_dump(exclude_none=True))
 
     async def geolocate_bulk(
         self, ips: List[str], verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
@@ -459,7 +469,9 @@ class IpIntelAsync(ServiceBaseAsync):
             FIXME:
         """
         input = m.IPGeolocateBulkRequest(ips=ips, verbose=verbose, raw=raw, provider=provider)
-        return await self.request.post("v2/geolocate", m.IPGeolocateBulkResult, data=input.dict(exclude_none=True))
+        return await self.request.post(
+            "v2/geolocate", m.IPGeolocateBulkResult, data=input.model_dump(exclude_none=True)
+        )
 
     async def get_domain(
         self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
@@ -491,7 +503,7 @@ class IpIntelAsync(ServiceBaseAsync):
             )
         """
         input = m.IPDomainRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
-        return await self.request.post("v1/domain", m.IPDomainResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v1/domain", m.IPDomainResult, data=input.model_dump(exclude_none=True))
 
     async def get_domain_bulk(
         self, ips: List[str], verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
@@ -520,7 +532,7 @@ class IpIntelAsync(ServiceBaseAsync):
             FIXME:
         """
         input = m.IPDomainBulkRequest(ips=ips, verbose=verbose, raw=raw, provider=provider)
-        return await self.request.post("v2/domain", m.IPDomainBulkResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v2/domain", m.IPDomainBulkResult, data=input.model_dump(exclude_none=True))
 
     async def is_vpn(
         self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
@@ -552,7 +564,7 @@ class IpIntelAsync(ServiceBaseAsync):
             )
         """
         input = m.IPVPNRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
-        return await self.request.post("v1/vpn", m.IPVPNResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v1/vpn", m.IPVPNResult, data=input.model_dump(exclude_none=True))
 
     async def is_vpn_bulk(
         self, ips: List[str], verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
@@ -581,7 +593,7 @@ class IpIntelAsync(ServiceBaseAsync):
             FIXME:
         """
         input = m.IPVPNBulkRequest(ips=ips, verbose=verbose, raw=raw, provider=provider)
-        return await self.request.post("v2/vpn", m.IPVPNBulkResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v2/vpn", m.IPVPNBulkResult, data=input.model_dump(exclude_none=True))
 
     async def is_proxy(
         self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
@@ -613,7 +625,7 @@ class IpIntelAsync(ServiceBaseAsync):
             )
         """
         input = m.IPProxyRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
-        return await self.request.post("v1/proxy", m.IPProxyResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v1/proxy", m.IPProxyResult, data=input.model_dump(exclude_none=True))
 
     async def is_proxy_bulk(
         self, ips: List[str], verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
@@ -642,7 +654,7 @@ class IpIntelAsync(ServiceBaseAsync):
             FIXME:
         """
         input = m.IPProxyBulkRequest(ips=ips, verbose=verbose, raw=raw, provider=provider)
-        return await self.request.post("v2/proxy", m.IPProxyBulkResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v2/proxy", m.IPProxyBulkResult, data=input.model_dump(exclude_none=True))
 
 
 class UrlIntelAsync(ServiceBaseAsync):
@@ -702,7 +714,7 @@ class UrlIntelAsync(ServiceBaseAsync):
         """
 
         input = m.URLReputationRequest(url=url, provider=provider, verbose=verbose, raw=raw)
-        return await self.request.post("v1/reputation", m.URLReputationResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v1/reputation", m.URLReputationResult, data=input.model_dump(exclude_none=True))
 
     async def reputation_bulk(
         self,
@@ -736,7 +748,9 @@ class UrlIntelAsync(ServiceBaseAsync):
         """
 
         input = m.URLReputationBulkRequest(urls=urls, provider=provider, verbose=verbose, raw=raw)
-        return await self.request.post("v2/reputation", m.URLReputationBulkResult, data=input.dict(exclude_none=True))
+        return await self.request.post(
+            "v2/reputation", m.URLReputationBulkResult, data=input.model_dump(exclude_none=True)
+        )
 
 
 class UserIntelAsync(ServiceBaseAsync):
@@ -822,7 +836,9 @@ class UserIntelAsync(ServiceBaseAsync):
             verbose=verbose,
             raw=raw,
         )
-        return await self.request.post("v1/user/breached", m.UserBreachedResult, data=input.dict(exclude_none=True))
+        return await self.request.post(
+            "v1/user/breached", m.UserBreachedResult, data=input.model_dump(exclude_none=True)
+        )
 
     async def user_breached_bulk(
         self,
@@ -876,7 +892,9 @@ class UserIntelAsync(ServiceBaseAsync):
             verbose=verbose,
             raw=raw,
         )
-        return await self.request.post("v2/user/breached", m.UserBreachedBulkResult, data=input.dict(exclude_none=True))
+        return await self.request.post(
+            "v2/user/breached", m.UserBreachedBulkResult, data=input.model_dump(exclude_none=True)
+        )
 
     async def password_breached(
         self,
@@ -919,7 +937,7 @@ class UserIntelAsync(ServiceBaseAsync):
             hash_type=hash_type, hash_prefix=hash_prefix, provider=provider, verbose=verbose, raw=raw
         )
         return await self.request.post(
-            "v1/password/breached", m.UserPasswordBreachedResult, data=input.dict(exclude_none=True)
+            "v1/password/breached", m.UserPasswordBreachedResult, data=input.model_dump(exclude_none=True)
         )
 
     async def password_breached_bulk(
@@ -959,5 +977,5 @@ class UserIntelAsync(ServiceBaseAsync):
             hash_type=hash_type, hash_prefixes=hash_prefixes, provider=provider, verbose=verbose, raw=raw
         )
         return await self.request.post(
-            "v2/password/breached", m.UserPasswordBreachedBulkResult, data=input.dict(exclude_none=True)
+            "v2/password/breached", m.UserPasswordBreachedBulkResult, data=input.model_dump(exclude_none=True)
         )

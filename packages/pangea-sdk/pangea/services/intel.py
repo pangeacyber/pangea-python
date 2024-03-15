@@ -524,7 +524,7 @@ class FileIntel(ServiceBase):
             )
         """
         input = FileReputationRequest(hash=hash, hash_type=hash_type, verbose=verbose, raw=raw, provider=provider)
-        return self.request.post("v1/reputation", FileReputationResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1/reputation", FileReputationResult, data=input.model_dump(exclude_none=True))
 
     def hash_reputation_bulk(
         self,
@@ -563,7 +563,7 @@ class FileIntel(ServiceBase):
         input = FileReputationBulkRequest(  # type: ignore[call-arg]
             hashes=hashes, hash_type=hash_type, verbose=verbose, raw=raw, provider=provider
         )
-        return self.request.post("v2/reputation", FileReputationBulkResult, data=input.dict(exclude_none=True))
+        return self.request.post("v2/reputation", FileReputationBulkResult, data=input.model_dump(exclude_none=True))
 
     def filepath_reputation(
         self,
@@ -708,7 +708,7 @@ class DomainIntel(ServiceBase):
             )
         """
         input = DomainReputationRequest(domain=domain, verbose=verbose, provider=provider, raw=raw)
-        return self.request.post("v1/reputation", DomainReputationResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1/reputation", DomainReputationResult, data=input.model_dump(exclude_none=True))
 
     def reputation_bulk(
         self,
@@ -744,7 +744,7 @@ class DomainIntel(ServiceBase):
             )
         """
         input = DomainReputationBulkRequest(domains=domains, verbose=verbose, provider=provider, raw=raw)
-        return self.request.post("v2/reputation", DomainReputationBulkResult, data=input.dict(exclude_none=True))
+        return self.request.post("v2/reputation", DomainReputationBulkResult, data=input.model_dump(exclude_none=True))
 
     def who_is(
         self, domain: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
@@ -776,7 +776,7 @@ class DomainIntel(ServiceBase):
             )
         """
         input = DomainWhoIsRequest(domain=domain, verbose=verbose, provider=provider, raw=raw)  # type: ignore[call-arg]
-        return self.request.post("v1/whois", DomainWhoIsResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1/whois", DomainWhoIsResult, data=input.model_dump(exclude_none=True))
 
 
 class IpIntel(ServiceBase):
@@ -835,7 +835,7 @@ class IpIntel(ServiceBase):
             )
         """
         input = IPReputationRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
-        return self.request.post("v1/reputation", IPReputationResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1/reputation", IPReputationResult, data=input.model_dump(exclude_none=True))
 
     def reputation_bulk(
         self, ips: List[str], verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
@@ -867,7 +867,7 @@ class IpIntel(ServiceBase):
             )
         """
         input = IPReputationBulkRequest(ips=ips, verbose=verbose, raw=raw, provider=provider)
-        return self.request.post("v2/reputation", IPReputationBulkResult, data=input.dict(exclude_none=True))
+        return self.request.post("v2/reputation", IPReputationBulkResult, data=input.model_dump(exclude_none=True))
 
     def geolocate(
         self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
@@ -899,7 +899,7 @@ class IpIntel(ServiceBase):
             )
         """
         input = IPGeolocateRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
-        return self.request.post("v1/geolocate", IPGeolocateResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1/geolocate", IPGeolocateResult, data=input.model_dump(exclude_none=True))
 
     def geolocate_bulk(
         self, ips: List[str], verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
@@ -931,7 +931,7 @@ class IpIntel(ServiceBase):
             )
         """
         input = IPGeolocateBulkRequest(ips=ips, verbose=verbose, raw=raw, provider=provider)
-        return self.request.post("v2/geolocate", IPGeolocateBulkResult, data=input.dict(exclude_none=True))
+        return self.request.post("v2/geolocate", IPGeolocateBulkResult, data=input.model_dump(exclude_none=True))
 
     def get_domain(
         self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
@@ -963,7 +963,7 @@ class IpIntel(ServiceBase):
             )
         """
         input = IPDomainRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
-        return self.request.post("v1/domain", IPDomainResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1/domain", IPDomainResult, data=input.model_dump(exclude_none=True))
 
     def get_domain_bulk(
         self, ips: List[str], verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
@@ -995,7 +995,7 @@ class IpIntel(ServiceBase):
             )
         """
         input = IPDomainBulkRequest(ips=ips, verbose=verbose, raw=raw, provider=provider)
-        return self.request.post("v2/domain", IPDomainBulkResult, data=input.dict(exclude_none=True))
+        return self.request.post("v2/domain", IPDomainBulkResult, data=input.model_dump(exclude_none=True))
 
     def is_vpn(
         self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
@@ -1027,7 +1027,7 @@ class IpIntel(ServiceBase):
             )
         """
         input = IPVPNRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
-        return self.request.post("v1/vpn", IPVPNResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1/vpn", IPVPNResult, data=input.model_dump(exclude_none=True))
 
     def is_vpn_bulk(
         self, ips: List[str], verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
@@ -1059,7 +1059,7 @@ class IpIntel(ServiceBase):
             )
         """
         input = IPVPNBulkRequest(ips=ips, verbose=verbose, raw=raw, provider=provider)
-        return self.request.post("v2/vpn", IPVPNBulkResult, data=input.dict(exclude_none=True))
+        return self.request.post("v2/vpn", IPVPNBulkResult, data=input.model_dump(exclude_none=True))
 
     def is_proxy(
         self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
@@ -1091,7 +1091,7 @@ class IpIntel(ServiceBase):
             )
         """
         input = IPProxyRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
-        return self.request.post("v1/proxy", IPProxyResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1/proxy", IPProxyResult, data=input.model_dump(exclude_none=True))
 
     def is_proxy_bulk(
         self, ips: List[str], verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
@@ -1123,7 +1123,7 @@ class IpIntel(ServiceBase):
             )
         """
         input = IPProxyBulkRequest(ips=ips, verbose=verbose, raw=raw, provider=provider)
-        return self.request.post("v2/proxy", IPProxyBulkResult, data=input.dict(exclude_none=True))
+        return self.request.post("v2/proxy", IPProxyBulkResult, data=input.model_dump(exclude_none=True))
 
 
 class UrlIntel(ServiceBase):
@@ -1187,7 +1187,7 @@ class UrlIntel(ServiceBase):
         """
 
         input = URLReputationRequest(url=url, provider=provider, verbose=verbose, raw=raw)
-        return self.request.post("v1/reputation", URLReputationResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1/reputation", URLReputationResult, data=input.model_dump(exclude_none=True))
 
     def reputation_bulk(
         self,
@@ -1224,7 +1224,7 @@ class UrlIntel(ServiceBase):
         """
 
         input = URLReputationBulkRequest(urls=urls, provider=provider, verbose=verbose, raw=raw)
-        return self.request.post("v2/reputation", URLReputationBulkResult, data=input.dict(exclude_none=True))
+        return self.request.post("v2/reputation", URLReputationBulkResult, data=input.model_dump(exclude_none=True))
 
 
 class UserBreachedRequest(IntelCommonRequest):
@@ -1431,7 +1431,7 @@ class UserIntel(ServiceBase):
             verbose=verbose,
             raw=raw,
         )
-        return self.request.post("v1/user/breached", UserBreachedResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1/user/breached", UserBreachedResult, data=input.model_dump(exclude_none=True))
 
     def user_breached_bulk(
         self,
@@ -1490,7 +1490,7 @@ class UserIntel(ServiceBase):
             verbose=verbose,
             raw=raw,
         )
-        return self.request.post("v2/user/breached", UserBreachedBulkResult, data=input.dict(exclude_none=True))
+        return self.request.post("v2/user/breached", UserBreachedBulkResult, data=input.model_dump(exclude_none=True))
 
     def password_breached(
         self,
@@ -1532,7 +1532,9 @@ class UserIntel(ServiceBase):
         input = UserPasswordBreachedRequest(
             hash_type=hash_type, hash_prefix=hash_prefix, provider=provider, verbose=verbose, raw=raw
         )
-        return self.request.post("v1/password/breached", UserPasswordBreachedResult, data=input.dict(exclude_none=True))
+        return self.request.post(
+            "v1/password/breached", UserPasswordBreachedResult, data=input.model_dump(exclude_none=True)
+        )
 
     def password_breached_bulk(
         self,
@@ -1575,7 +1577,7 @@ class UserIntel(ServiceBase):
             hash_type=hash_type, hash_prefixes=hash_prefixes, provider=provider, verbose=verbose, raw=raw
         )
         return self.request.post(
-            "v2/password/breached", UserPasswordBreachedBulkResult, data=input.dict(exclude_none=True)
+            "v2/password/breached", UserPasswordBreachedBulkResult, data=input.model_dump(exclude_none=True)
         )
 
     class PasswordStatus(enum.Enum):

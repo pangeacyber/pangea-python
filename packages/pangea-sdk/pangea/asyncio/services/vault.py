@@ -129,7 +129,7 @@ class VaultAsync(ServiceBaseAsync):
         input = DeleteRequest(
             id=id,
         )
-        return await self.request.post("v1/delete", DeleteResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v1/delete", DeleteResult, data=input.model_dump(exclude_none=True))
 
     # Get endpoint
     async def get(
@@ -176,7 +176,7 @@ class VaultAsync(ServiceBaseAsync):
             verbose=verbose,
             version_state=version_state,
         )
-        return await self.request.post("v1/get", GetResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v1/get", GetResult, data=input.model_dump(exclude_none=True))
 
     # List endpoint
     async def list(
@@ -232,7 +232,7 @@ class VaultAsync(ServiceBaseAsync):
             )
         """
         input = ListRequest(filter=filter, last=last, order=order, order_by=order_by, size=size)
-        return await self.request.post("v1/list", ListResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v1/list", ListResult, data=input.model_dump(exclude_none=True))
 
     # Update endpoint
     async def update(
@@ -313,7 +313,7 @@ class VaultAsync(ServiceBaseAsync):
             expiration=expiration,
             item_state=item_state,
         )
-        return await self.request.post("v1/update", UpdateResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v1/update", UpdateResult, data=input.model_dump(exclude_none=True))
 
     async def secret_store(
         self,
@@ -383,7 +383,7 @@ class VaultAsync(ServiceBaseAsync):
             rotation_state=rotation_state,
             expiration=expiration,
         )
-        return await self.request.post("v1/secret/store", SecretStoreResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v1/secret/store", SecretStoreResult, data=input.model_dump(exclude_none=True))
 
     async def pangea_token_store(
         self,
@@ -453,7 +453,7 @@ class VaultAsync(ServiceBaseAsync):
             rotation_state=rotation_state,
             expiration=expiration,
         )
-        return await self.request.post("v1/secret/store", SecretStoreResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v1/secret/store", SecretStoreResult, data=input.model_dump(exclude_none=True))
 
     # Rotate endpoint
     async def secret_rotate(
@@ -493,7 +493,7 @@ class VaultAsync(ServiceBaseAsync):
             )
         """
         input = SecretRotateRequest(id=id, secret=secret, rotation_state=rotation_state)
-        return await self.request.post("v1/secret/rotate", SecretRotateResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v1/secret/rotate", SecretRotateResult, data=input.model_dump(exclude_none=True))
 
     # Rotate endpoint
     async def pangea_token_rotate(self, id: str) -> PangeaResponse[SecretRotateResult]:
@@ -521,7 +521,7 @@ class VaultAsync(ServiceBaseAsync):
             )
         """
         input = SecretRotateRequest(id=id)  # type: ignore[call-arg]
-        return await self.request.post("v1/secret/rotate", SecretRotateResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v1/secret/rotate", SecretRotateResult, data=input.model_dump(exclude_none=True))
 
     async def symmetric_generate(
         self,
@@ -595,7 +595,9 @@ class VaultAsync(ServiceBaseAsync):
             rotation_state=rotation_state,
             expiration=expiration,
         )
-        return await self.request.post("v1/key/generate", SymmetricGenerateResult, data=input.dict(exclude_none=True))
+        return await self.request.post(
+            "v1/key/generate", SymmetricGenerateResult, data=input.model_dump(exclude_none=True)
+        )
 
     async def asymmetric_generate(
         self,
@@ -669,7 +671,9 @@ class VaultAsync(ServiceBaseAsync):
             rotation_state=rotation_state,
             expiration=expiration,
         )
-        return await self.request.post("v1/key/generate", AsymmetricGenerateResult, data=input.dict(exclude_none=True))
+        return await self.request.post(
+            "v1/key/generate", AsymmetricGenerateResult, data=input.model_dump(exclude_none=True)
+        )
 
     # Store endpoints
     async def asymmetric_store(
@@ -752,7 +756,7 @@ class VaultAsync(ServiceBaseAsync):
             rotation_state=rotation_state,
             expiration=expiration,
         )
-        return await self.request.post("v1/key/store", AsymmetricStoreResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v1/key/store", AsymmetricStoreResult, data=input.model_dump(exclude_none=True))
 
     async def symmetric_store(
         self,
@@ -830,7 +834,7 @@ class VaultAsync(ServiceBaseAsync):
             rotation_state=rotation_state,
             expiration=expiration,
         )
-        return await self.request.post("v1/key/store", SymmetricStoreResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v1/key/store", SymmetricStoreResult, data=input.model_dump(exclude_none=True))
 
     # Rotate endpoint
     async def key_rotate(
@@ -879,7 +883,7 @@ class VaultAsync(ServiceBaseAsync):
         input = KeyRotateRequest(
             id=id, public_key=public_key, private_key=private_key, key=key, rotation_state=rotation_state
         )
-        return await self.request.post("v1/key/rotate", KeyRotateResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v1/key/rotate", KeyRotateResult, data=input.model_dump(exclude_none=True))
 
     # Encrypt
     async def encrypt(self, id: str, plain_text: str, version: Optional[int] = None) -> PangeaResponse[EncryptResult]:
@@ -910,8 +914,8 @@ class VaultAsync(ServiceBaseAsync):
                 version=1,
             )
         """
-        input = EncryptRequest(id=id, plain_text=plain_text, version=version)  # type: ignore[call-arg]
-        return await self.request.post("v1/key/encrypt", EncryptResult, data=input.dict(exclude_none=True))
+        input = EncryptRequest(id=id, plain_text=plain_text, version=version)
+        return await self.request.post("v1/key/encrypt", EncryptResult, data=input.model_dump(exclude_none=True))
 
     # Decrypt
     async def decrypt(self, id: str, cipher_text: str, version: Optional[int] = None) -> PangeaResponse[DecryptResult]:
@@ -942,8 +946,8 @@ class VaultAsync(ServiceBaseAsync):
                 version=1,
             )
         """
-        input = DecryptRequest(id=id, cipher_text=cipher_text, version=version)  # type: ignore[call-arg]
-        return await self.request.post("v1/key/decrypt", DecryptResult, data=input.dict(exclude_none=True))
+        input = DecryptRequest(id=id, cipher_text=cipher_text, version=version)
+        return await self.request.post("v1/key/decrypt", DecryptResult, data=input.model_dump(exclude_none=True))
 
     # Sign
     async def sign(self, id: str, message: str, version: Optional[int] = None) -> PangeaResponse[SignResult]:
@@ -975,7 +979,7 @@ class VaultAsync(ServiceBaseAsync):
             )
         """
         input = SignRequest(id=id, message=message, version=version)
-        return await self.request.post("v1/key/sign", SignResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v1/key/sign", SignResult, data=input.model_dump(exclude_none=True))
 
     # Verify
     async def verify(
@@ -1016,7 +1020,7 @@ class VaultAsync(ServiceBaseAsync):
             signature=signature,
             version=version,
         )
-        return await self.request.post("v1/key/verify", VerifyResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v1/key/verify", VerifyResult, data=input.model_dump(exclude_none=True))
 
     async def jwt_verify(self, jws: str) -> PangeaResponse[JWTVerifyResult]:
         """
@@ -1043,7 +1047,7 @@ class VaultAsync(ServiceBaseAsync):
             )
         """
         input = JWTVerifyRequest(jws=jws)
-        return await self.request.post("v1/key/verify/jwt", JWTVerifyResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v1/key/verify/jwt", JWTVerifyResult, data=input.model_dump(exclude_none=True))
 
     async def jwt_sign(self, id: str, payload: str) -> PangeaResponse[JWTSignResult]:
         """
@@ -1072,7 +1076,7 @@ class VaultAsync(ServiceBaseAsync):
             )
         """
         input = JWTSignRequest(id=id, payload=payload)
-        return await self.request.post("v1/key/sign/jwt", JWTSignResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v1/key/sign/jwt", JWTSignResult, data=input.model_dump(exclude_none=True))
 
     # Get endpoint
     async def jwk_get(self, id: str, version: Optional[str] = None) -> PangeaResponse[JWKGetResult]:
@@ -1103,7 +1107,7 @@ class VaultAsync(ServiceBaseAsync):
             )
         """
         input = JWKGetRequest(id=id, version=version)
-        return await self.request.post("v1/get/jwk", JWKGetResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v1/get/jwk", JWKGetResult, data=input.model_dump(exclude_none=True))
 
     # State change
     async def state_change(
@@ -1142,7 +1146,7 @@ class VaultAsync(ServiceBaseAsync):
             )
         """
         input = StateChangeRequest(id=id, state=state, version=version, destroy_period=destroy_period)
-        return await self.request.post("v1/state/change", StateChangeResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v1/state/change", StateChangeResult, data=input.model_dump(exclude_none=True))
 
     # Folder create
     async def folder_create(
@@ -1179,7 +1183,7 @@ class VaultAsync(ServiceBaseAsync):
             )
         """
         input = FolderCreateRequest(name=name, folder=folder, metadata=metadata, tags=tags)
-        return await self.request.post("v1/folder/create", FolderCreateResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v1/folder/create", FolderCreateResult, data=input.model_dump(exclude_none=True))
 
     # Encrypt structured
     async def encrypt_structured(
@@ -1227,7 +1231,7 @@ class VaultAsync(ServiceBaseAsync):
         return await self.request.post(
             "v1/key/encrypt/structured",
             EncryptStructuredResult,
-            data=input.dict(exclude_none=True),
+            data=input.model_dump(exclude_none=True),
         )
 
     # Decrypt structured
@@ -1276,5 +1280,5 @@ class VaultAsync(ServiceBaseAsync):
         return await self.request.post(
             "v1/key/decrypt/structured",
             EncryptStructuredResult,
-            data=input.dict(exclude_none=True),
+            data=input.model_dump(exclude_none=True),
         )

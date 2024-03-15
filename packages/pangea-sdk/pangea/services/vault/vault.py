@@ -129,7 +129,7 @@ class Vault(ServiceBase):
         input = DeleteRequest(
             id=id,
         )
-        return self.request.post("v1/delete", DeleteResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1/delete", DeleteResult, data=input.model_dump(exclude_none=True))
 
     # Get endpoint
     def get(
@@ -176,7 +176,7 @@ class Vault(ServiceBase):
             verbose=verbose,
             version_state=version_state,
         )
-        return self.request.post("v1/get", GetResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1/get", GetResult, data=input.model_dump(exclude_none=True))
 
     # List endpoint
     def list(
@@ -232,7 +232,7 @@ class Vault(ServiceBase):
             )
         """
         input = ListRequest(filter=filter, last=last, order=order, order_by=order_by, size=size)
-        return self.request.post("v1/list", ListResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1/list", ListResult, data=input.model_dump(exclude_none=True))
 
     # Update endpoint
     def update(
@@ -313,7 +313,7 @@ class Vault(ServiceBase):
             expiration=expiration,
             item_state=item_state,
         )
-        return self.request.post("v1/update", UpdateResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1/update", UpdateResult, data=input.model_dump(exclude_none=True))
 
     def secret_store(
         self,
@@ -383,7 +383,7 @@ class Vault(ServiceBase):
             rotation_state=rotation_state,
             expiration=expiration,
         )
-        return self.request.post("v1/secret/store", SecretStoreResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1/secret/store", SecretStoreResult, data=input.model_dump(exclude_none=True))
 
     def pangea_token_store(
         self,
@@ -453,7 +453,7 @@ class Vault(ServiceBase):
             rotation_state=rotation_state,
             expiration=expiration,
         )
-        return self.request.post("v1/secret/store", SecretStoreResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1/secret/store", SecretStoreResult, data=input.model_dump(exclude_none=True))
 
     # Rotate endpoint
     def secret_rotate(
@@ -493,7 +493,7 @@ class Vault(ServiceBase):
             )
         """
         input = SecretRotateRequest(id=id, secret=secret, rotation_state=rotation_state)
-        return self.request.post("v1/secret/rotate", SecretRotateResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1/secret/rotate", SecretRotateResult, data=input.model_dump(exclude_none=True))
 
     # Rotate endpoint
     def pangea_token_rotate(self, id: str) -> PangeaResponse[SecretRotateResult]:
@@ -521,7 +521,7 @@ class Vault(ServiceBase):
             )
         """
         input = SecretRotateRequest(id=id)  # type: ignore[call-arg]
-        return self.request.post("v1/secret/rotate", SecretRotateResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1/secret/rotate", SecretRotateResult, data=input.model_dump(exclude_none=True))
 
     def symmetric_generate(
         self,
@@ -598,7 +598,7 @@ class Vault(ServiceBase):
         return self.request.post(
             "v1/key/generate",
             SymmetricGenerateResult,
-            data=input.dict(exclude_none=True),
+            data=input.model_dump(exclude_none=True),
         )
 
     def asymmetric_generate(
@@ -676,7 +676,7 @@ class Vault(ServiceBase):
         return self.request.post(
             "v1/key/generate",
             AsymmetricGenerateResult,
-            data=input.dict(exclude_none=True),
+            data=input.model_dump(exclude_none=True),
         )
 
     # Store endpoints
@@ -760,7 +760,7 @@ class Vault(ServiceBase):
             rotation_state=rotation_state,
             expiration=expiration,
         )
-        return self.request.post("v1/key/store", AsymmetricStoreResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1/key/store", AsymmetricStoreResult, data=input.model_dump(exclude_none=True))
 
     def symmetric_store(
         self,
@@ -838,7 +838,7 @@ class Vault(ServiceBase):
             rotation_state=rotation_state,
             expiration=expiration,
         )
-        return self.request.post("v1/key/store", SymmetricStoreResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1/key/store", SymmetricStoreResult, data=input.model_dump(exclude_none=True))
 
     # Rotate endpoint
     def key_rotate(
@@ -891,7 +891,7 @@ class Vault(ServiceBase):
             key=key,
             rotation_state=rotation_state,
         )
-        return self.request.post("v1/key/rotate", KeyRotateResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1/key/rotate", KeyRotateResult, data=input.model_dump(exclude_none=True))
 
     # Encrypt
     def encrypt(self, id: str, plain_text: str, version: Optional[int] = None) -> PangeaResponse[EncryptResult]:
@@ -922,8 +922,8 @@ class Vault(ServiceBase):
                 version=1,
             )
         """
-        input = EncryptRequest(id=id, plain_text=plain_text, version=version)  # type: ignore[call-arg]
-        return self.request.post("v1/key/encrypt", EncryptResult, data=input.dict(exclude_none=True))
+        input = EncryptRequest(id=id, plain_text=plain_text, version=version)
+        return self.request.post("v1/key/encrypt", EncryptResult, data=input.model_dump(exclude_none=True))
 
     # Decrypt
     def decrypt(self, id: str, cipher_text: str, version: Optional[int] = None) -> PangeaResponse[DecryptResult]:
@@ -954,8 +954,8 @@ class Vault(ServiceBase):
                 version=1,
             )
         """
-        input = DecryptRequest(id=id, cipher_text=cipher_text, version=version)  # type: ignore[call-arg]
-        return self.request.post("v1/key/decrypt", DecryptResult, data=input.dict(exclude_none=True))
+        input = DecryptRequest(id=id, cipher_text=cipher_text, version=version)
+        return self.request.post("v1/key/decrypt", DecryptResult, data=input.model_dump(exclude_none=True))
 
     # Sign
     def sign(self, id: str, message: str, version: Optional[int] = None) -> PangeaResponse[SignResult]:
@@ -987,7 +987,7 @@ class Vault(ServiceBase):
             )
         """
         input = SignRequest(id=id, message=message, version=version)
-        return self.request.post("v1/key/sign", SignResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1/key/sign", SignResult, data=input.model_dump(exclude_none=True))
 
     # Verify
     def verify(
@@ -1028,7 +1028,7 @@ class Vault(ServiceBase):
             signature=signature,
             version=version,
         )
-        return self.request.post("v1/key/verify", VerifyResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1/key/verify", VerifyResult, data=input.model_dump(exclude_none=True))
 
     def jwt_verify(self, jws: str) -> PangeaResponse[JWTVerifyResult]:
         """
@@ -1055,7 +1055,7 @@ class Vault(ServiceBase):
             )
         """
         input = JWTVerifyRequest(jws=jws)
-        return self.request.post("v1/key/verify/jwt", JWTVerifyResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1/key/verify/jwt", JWTVerifyResult, data=input.model_dump(exclude_none=True))
 
     def jwt_sign(self, id: str, payload: str) -> PangeaResponse[JWTSignResult]:
         """
@@ -1084,7 +1084,7 @@ class Vault(ServiceBase):
             )
         """
         input = JWTSignRequest(id=id, payload=payload)
-        return self.request.post("v1/key/sign/jwt", JWTSignResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1/key/sign/jwt", JWTSignResult, data=input.model_dump(exclude_none=True))
 
     # Get endpoint
     def jwk_get(self, id: str, version: Optional[str] = None) -> PangeaResponse[JWKGetResult]:
@@ -1115,7 +1115,7 @@ class Vault(ServiceBase):
             )
         """
         input = JWKGetRequest(id=id, version=version)
-        return self.request.post("v1/get/jwk", JWKGetResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1/get/jwk", JWKGetResult, data=input.model_dump(exclude_none=True))
 
     # State change
     def state_change(
@@ -1158,7 +1158,7 @@ class Vault(ServiceBase):
             )
         """
         input = StateChangeRequest(id=id, state=state, version=version, destroy_period=destroy_period)
-        return self.request.post("v1/state/change", StateChangeResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1/state/change", StateChangeResult, data=input.model_dump(exclude_none=True))
 
     # Folder create
     def folder_create(
@@ -1195,7 +1195,7 @@ class Vault(ServiceBase):
             )
         """
         input = FolderCreateRequest(name=name, folder=folder, metadata=metadata, tags=tags)
-        return self.request.post("v1/folder/create", FolderCreateResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1/folder/create", FolderCreateResult, data=input.model_dump(exclude_none=True))
 
     # Encrypt structured
     def encrypt_structured(
@@ -1243,7 +1243,7 @@ class Vault(ServiceBase):
         return self.request.post(
             "v1/key/encrypt/structured",
             EncryptStructuredResult,
-            data=input.dict(exclude_none=True),
+            data=input.model_dump(exclude_none=True),
         )
 
     # Decrypt structured
@@ -1292,5 +1292,5 @@ class Vault(ServiceBase):
         return self.request.post(
             "v1/key/decrypt/structured",
             EncryptStructuredResult,
-            data=input.dict(exclude_none=True),
+            data=input.model_dump(exclude_none=True),
         )

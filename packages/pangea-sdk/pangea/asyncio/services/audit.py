@@ -180,7 +180,7 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
 
         input = self._get_log_request(event, sign_local=sign_local, verify=verify, verbose=verbose)
         response: PangeaResponse[LogResult] = await self.request.post(
-            "v1/log", LogResult, data=input.dict(exclude_none=True)
+            "v1/log", LogResult, data=input.model_dump(exclude_none=True)
         )
         if response.success and response.result is not None:
             self._process_log_result(response.result, verify=verify)
@@ -216,7 +216,7 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
 
         input = self._get_log_request(events, sign_local=sign_local, verify=False, verbose=verbose)
         response: PangeaResponse[LogBulkResult] = await self.request.post(
-            "v2/log", LogBulkResult, data=input.dict(exclude_none=True)
+            "v2/log", LogBulkResult, data=input.model_dump(exclude_none=True)
         )
         if response.success and response.result is not None:
             for result in response.result.results:
@@ -254,7 +254,7 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
         input = self._get_log_request(events, sign_local=sign_local, verify=False, verbose=verbose)
         try:
             response: PangeaResponse[LogBulkResult] = await self.request.post(
-                "v2/log_async", LogBulkResult, data=input.dict(exclude_none=True), poll_result=False
+                "v2/log_async", LogBulkResult, data=input.model_dump(exclude_none=True), poll_result=False
             )
         except pexc.AcceptedRequestException as e:
             return e.response
@@ -335,7 +335,7 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
         )
 
         response: PangeaResponse[SearchOutput] = await self.request.post(
-            "v1/search", SearchOutput, data=input.dict(exclude_none=True)
+            "v1/search", SearchOutput, data=input.model_dump(exclude_none=True)
         )
         if verify_consistency:
             await self.update_published_roots(response.result)  # type: ignore[arg-type]
@@ -392,7 +392,7 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
             limit=limit,
             offset=offset,
         )
-        response = await self.request.post("v1/results", SearchResultOutput, data=input.dict(exclude_none=True))
+        response = await self.request.post("v1/results", SearchResultOutput, data=input.model_dump(exclude_none=True))
         if verify_consistency and response.result is not None:
             await self.update_published_roots(response.result)
 
@@ -420,7 +420,7 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
             response = audit.root(tree_size=7)
         """
         input = RootRequest(tree_size=tree_size)
-        return await self.request.post("v1/root", RootResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v1/root", RootResult, data=input.model_dump(exclude_none=True))
 
     async def download_results(
         self, result_id: str, format: Optional[DownloadFormat] = None
@@ -451,12 +451,12 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
         for tree_size in tree_sizes:
             pub_root = None
             if tree_size in arweave_roots:
-                pub_root = PublishedRoot(**arweave_roots[tree_size].dict(exclude_none=True))
+                pub_root = PublishedRoot(**arweave_roots[tree_size].model_dump(exclude_none=True))
                 pub_root.source = RootSource.ARWEAVE
             elif self.allow_server_roots:
                 resp = await self.root(tree_size=tree_size)
                 if resp.success and resp.result is not None:
-                    pub_root = PublishedRoot(**resp.result.data.dict(exclude_none=True))
+                    pub_root = PublishedRoot(**resp.result.data.model_dump(exclude_none=True))
                     pub_root.source = RootSource.PANGEA
             if pub_root is not None:
                 self.pub_roots[tree_size] = pub_root

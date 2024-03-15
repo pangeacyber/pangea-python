@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import datetime
 import inspect
 import json
@@ -373,7 +375,7 @@ class TestVault(unittest.TestCase):
         verify1_deactivated_resp = self.vault.jwt_verify(jws_v1)
         self.assertTrue(verify1_deactivated_resp.result.valid_signature)
 
-    def jwt_asym_signing_cycle(self, id: str):
+    def jwt_asym_signing_cycle(self, id: str) -> None:
         data = {"message": "message to sign", "data": "Some extra data"}
         payload = json.dumps(data)
 
@@ -409,7 +411,7 @@ class TestVault(unittest.TestCase):
         self.assertEqual(1, len(get_resp.result.keys))
 
         # Get version 1
-        get_resp = self.vault.jwk_get(id, 1)
+        get_resp = self.vault.jwk_get(id, "1")
         self.assertEqual(1, len(get_resp.result.keys))
 
         # Get all
@@ -666,13 +668,13 @@ class TestVault(unittest.TestCase):
         delete_resp = self.vault.delete(id=create_parent_resp.result.id)
         self.assertEqual(delete_resp.result.id, create_parent_resp.result.id)
 
-    def test_encrypt_structured(self):
+    def test_encrypt_structured(self) -> None:
         key = self.vault.symmetric_generate(
             algorithm=SymmetricAlgorithm.AES256_CFB, purpose=KeyPurpose.ENCRYPTION, name=get_name()
         )
         self.assertIsNotNone(key.result)
 
-        data: dict[str, str | list[bool | str]] = {"field1": [1, 2, "true", "false"], "field2": "data2"}
+        data: dict[str, str | list[int | str]] = {"field1": [1, 2, "true", "false"], "field2": "data2"}
 
         encrypted = self.vault.encrypt_structured(id=key.result.id, structured_data=data, filter="$.field1[2:4]")
         self.assertIsNotNone(encrypted.result)
