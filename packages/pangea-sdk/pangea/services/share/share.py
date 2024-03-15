@@ -347,8 +347,8 @@ class Share(ServiceBase):
         """
         Delete
 
-        Delete object by ID or path.
-        If both are supplied, the path must match that of the object represented by the ID.
+        Delete object by ID or path. If both are supplied, the path must match
+        that of the object represented by the ID. Beta API.
 
         OperationId: share_post_v1beta_delete
 
@@ -377,7 +377,7 @@ class Share(ServiceBase):
         """
         Create a folder
 
-        Create a folder, either by name or path and parent_id.
+        Create a folder, either by name or path and parent_id. Beta API.
 
         OperationId: share_post_v1beta_folder_create
 
@@ -411,8 +411,8 @@ class Share(ServiceBase):
         """
         Get an object
 
-        Get object.
-        If both ID and Path are supplied, the call will fail if the target object doesn't match both properties.
+        Get object. If both ID and Path are supplied, the call will fail if the
+        target object doesn't match both properties. Beta API.
 
         OperationId: share_post_v1beta_get
 
@@ -446,7 +446,7 @@ class Share(ServiceBase):
         """
         Get archive
 
-        Get an archive file of multiple objects.
+        Get an archive file of multiple objects. Beta API.
 
         OperationId: share_post_v1beta_get_archive
 
@@ -484,7 +484,7 @@ class Share(ServiceBase):
         """
         List
 
-        List or filter/search records.
+        List or filter/search records. Beta API.
 
         OperationId: share_post_v1beta_list
 
@@ -523,9 +523,9 @@ class Share(ServiceBase):
         size: Optional[int] = None,
     ) -> PangeaResponse[PutResult]:
         """
-        Upload a file [beta]
+        Upload a file
 
-        Upload a file.
+        Upload a file. Beta API.
 
         OperationId: share_post_v1beta_put
 
@@ -609,7 +609,7 @@ class Share(ServiceBase):
         """
         Request upload URL
 
-        Request an upload URL.
+        Request an upload URL. Beta API.
 
         OperationId: share_post_v1beta_put 2
 
@@ -683,7 +683,7 @@ class Share(ServiceBase):
         """
         Update a file
 
-        Update a file.
+        Update a file. Beta API.
 
         OperationId: share_post_v1beta_update
 
@@ -730,7 +730,7 @@ class Share(ServiceBase):
         """
         Create share links
 
-        Create a share link.
+        Create a share link. Beta API.
 
         OperationId: share_post_v1beta_share_link_create
 
@@ -763,7 +763,7 @@ class Share(ServiceBase):
         """
         Get share link
 
-        Get a share link.
+        Get a share link. Beta API.
 
         OperationId: share_post_v1beta_share_link_get
 
@@ -792,7 +792,7 @@ class Share(ServiceBase):
         """
         List share links
 
-        Look up share links by filter options.
+        Look up share links by filter options. Beta API.
 
         OperationId: share_post_v1beta_share_link_list
 
@@ -816,7 +816,7 @@ class Share(ServiceBase):
         """
         Delete share links
 
-        Delete share links.
+        Delete share links. Beta API.
 
         OperationId: share_post_v1beta_share_link_delete
 
@@ -837,5 +837,28 @@ class Share(ServiceBase):
     def share_link_send(
         self, links: List[ShareLinkSendItem], sender_email: str, sender_name: Optional[str] = None
     ) -> PangeaResponse[ShareLinkSendResult]:
+        """
+        Send share links
+
+        Send a secure share-link notification to a set of email addresses. The
+        notification email will contain an Open button that the recipient can
+        use to follow the secured share-link to authenticate and then access the
+        shared content. Beta API.
+
+        OperationId: share_post_v1beta_share_link_send
+
+        Args:
+            sender_email: An email address.
+
+        Returns:
+            A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/share).
+
+        Examples:
+            response = share.share_link_send(
+                links=[ShareLinkSendItem(id=link.id, email="foo@example.org")],
+                sender_email="sender@example.org",
+            )
+        """
+
         input = ShareLinkSendRequest(links=links, sender_email=sender_email, sender_name=sender_name)
         return self.request.post("v1beta/share/link/send", ShareLinkSendResult, data=input.dict(exclude_none=True))
