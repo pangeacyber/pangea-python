@@ -88,6 +88,16 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
+
+<a name="beta-releases"></a>
+
+## Beta releases
+
+Pre-release versions may be available with the `beta` denotation in the version
+number. These releases serve to preview beta services and APIs. Per Semantic
+Versioning, they are considered unstable and do not carry the same compatibility
+guarantees as stable releases.
+
 ## Secure Audit Log - Integrity Tools
 
 The Python Pangea SDK also includes some extra features to validate Audit Service log's integrity. Here we explain how to run them.
