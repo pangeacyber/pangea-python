@@ -1,8 +1,8 @@
-.python-sdk-examples-base:
+.sdk-examples-base:
   stage: examples
   parallel:
     matrix:
-      - PYTHON_VERSION: ['3.7', '3.8', '3.9', '3.10', '3.11']
+      - PYTHON_VERSION: ["3.7", "3.8", "3.9", "3.10", "3.11"]
         EXAMPLE_FOLDER:
           - audit
           - authn
@@ -12,7 +12,7 @@
           - redact
           - vault
           - share
-  image: python:${PYTHON_VERSION}
+  image: python:${PYTHON_VERSION}-bookworm
   before_script:
     - export PANGEA_AUDIT_CONFIG_ID="${PANGEA_AUDIT_CONFIG_ID_1_LVE_AWS}"
     - export PANGEA_AUDIT_CUSTOM_SCHEMA_TOKEN="${PANGEA_INTEGRATION_CUSTOM_SCHEMA_TOKEN_LVE_AWS}"
@@ -28,21 +28,21 @@
     - export PANGEA_REDACT_TOKEN="${PANGEA_INTEGRATION_TOKEN_LVE_AWS}"
     - export PANGEA_VAULT_TOKEN="${PANGEA_INTEGRATION_TOKEN_LVE_AWS}"
     - export PANGEA_SHARE_TOKEN="${PANGEA_INTEGRATION_TOKEN_LVE_AWS}"
-    - pip install --upgrade pip
-    - pip --version
-    - pip install --upgrade poetry
-    - poetry --version
+    - !reference [.setup, update-pip]
+    - !reference [.setup, update-poetry]
+  rules:
+    - if: $CI_COMMIT_BRANCH
 
-python-sdk-examples:
-  extends: .python-sdk-examples-base
+sdk-examples:
+  extends: .sdk-examples-base
   script:
     - cd examples/${EXAMPLE_FOLDER}/
     - poetry check
     - poetry install
     - bash ../../dev/run_examples.sh
 
-python-sdk-examples-asyncio:
-  extends: .python-sdk-examples-base
+sdk-examples-asyncio:
+  extends: .sdk-examples-base
   script:
     - cd examples/asyncio/${EXAMPLE_FOLDER}/
     - poetry check
