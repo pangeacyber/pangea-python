@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import time
 from typing import Any, Dict, List, Optional, Sequence, Tuple, Type, Union
 
@@ -189,6 +190,7 @@ class PangeaRequestAsync(PangeaRequestBase):
                     "service": self.service,
                     "action": "download_file",
                     "url": url,
+                    "filename": filename,
                     "status": "start",
                 }
             )
@@ -303,6 +305,9 @@ class PangeaRequestAsync(PangeaRequestBase):
             raise AttributeError("files attribute should have at least 1 file")
 
         response = await self.request_presigned_url(endpoint=endpoint, result_class=result_class, data=data)
+        if response.success:  # This should only happen when uploading a zero bytes file
+            return response.raw_response
+
         if response.accepted_result is None:
             raise pe.PangeaException("No accepted_result field when requesting presigned url")
         if response.accepted_result.post_url is None:
@@ -322,9 +327,8 @@ class PangeaRequestAsync(PangeaRequestBase):
     ) -> PangeaResponse:
         # Send request
         try:
-            # This should return 202 (AcceptedRequestException)
-            resp = await self.post(endpoint=endpoint, result_class=result_class, data=data, poll_result=False)
-            raise pe.PresignedURLException("Should return 202", resp)
+            # This should return 202 (AcceptedRequestException) at least zero size file is sent
+            return await self.post(endpoint=endpoint, result_class=result_class, data=data, poll_result=False)
         except pe.AcceptedRequestException as e:
             accepted_exception = e
         except Exception as e:
