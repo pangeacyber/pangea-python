@@ -28,12 +28,24 @@ class AttachedFile(object):
             filename = self.filename if self.filename else "default_save_filename"
 
         filepath = os.path.join(dest_folder, filename)
+        filepath = self._find_available_file(filepath)
         directory = os.path.dirname(filepath)
         if not os.path.exists(directory):
             os.makedirs(directory)
 
         with open(filepath, "wb") as file:
             file.write(self.file)
+
+    def _find_available_file(self, file_path):
+        base_name, ext = os.path.splitext(file_path)
+        counter = 1
+        while os.path.exists(file_path):
+            if ext:
+                file_path = f"{base_name}_{counter}{ext}"
+            else:
+                file_path = f"{base_name}_{counter}"
+            counter += 1
+        return file_path
 
 
 class TransferMethod(str, enum.Enum):
