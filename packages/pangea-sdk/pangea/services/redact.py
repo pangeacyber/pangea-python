@@ -5,8 +5,7 @@ import enum
 from typing import Dict, List, Optional, Union
 
 from pangea.response import APIRequestModel, APIResponseModel, PangeaResponse, PangeaResponseResult
-
-from .base import ServiceBase
+from pangea.services.base import ServiceBase
 
 
 class RedactFormat(str, enum.Enum):

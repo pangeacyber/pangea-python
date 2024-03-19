@@ -5,12 +5,22 @@ default:
 
 stages:
   - lint
+  - build
   - unit_tests
   - integration_tests
   - examples
   - publish
 
+.setup:
+  update-pip:
+    - pip install --upgrade pip
+    - pip --version
+
+  update-poetry:
+    - pip install --upgrade poetry
+    - poetry --version
+
 include:
-  - /packages/pangea-sdk/.sdk-ci.yml
-  - /packages/pangea-django/.django-ci.yml
   - /examples/.examples-ci.yml
+  - /packages/pangea-django/.django-ci.yml
+  - /packages/pangea-sdk/.sdk-ci.yml

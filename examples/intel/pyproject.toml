@@ -20,6 +20,7 @@ line-length = 120
 
 [tool.isort]
 profile = "black"
+known_local_folder = ["intel_examples"]
 
 [build-system]
 requires = ["poetry-core"]

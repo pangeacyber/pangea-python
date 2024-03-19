@@ -206,7 +206,7 @@ class SearchRestriction(APIResponseModel):
     Arguments:
     actor -- List of actors to include in search. If empty include all.
     action -- List of action to include in search. If empty include all.
-    source -- List of sourcers to include in search. If empty include all.
+    source -- List of sources to include in search. If empty include all.
     status -- List of status to include in search. If empty include all.
     target -- List of targets to include in search. If empty include all.
     """
@@ -424,7 +424,10 @@ class SearchResultRequest(APIRequestModel):
 
 class DownloadFormat(str, enum.Enum):
     JSON = "json"
+    """JSON."""
+
     CSV = "csv"
+    """CSV."""
 
     def __str__(self):
         return str(self.value)
@@ -435,8 +438,12 @@ class DownloadFormat(str, enum.Enum):
 
 class DownloadRequest(APIRequestModel):
     result_id: str
+    """ID returned by the search API."""
+
     format: Optional[str] = None
+    """Format for the records."""
 
 
 class DownloadResult(PangeaResponseResult):
     dest_url: str
+    """URL where search results can be downloaded."""

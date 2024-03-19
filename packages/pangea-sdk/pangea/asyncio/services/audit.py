@@ -4,6 +4,7 @@ import datetime
 from typing import Any, Dict, List, Optional, Union
 
 import pangea.exceptions as pexc
+from pangea.asyncio.services.base import ServiceBaseAsync
 from pangea.response import PangeaResponse
 from pangea.services.audit.audit import AuditBase
 from pangea.services.audit.exceptions import AuditException
@@ -26,8 +27,6 @@ from pangea.services.audit.models import (
     SearchResultRequest,
 )
 from pangea.services.audit.util import format_datetime
-
-from .base import ServiceBaseAsync
 
 
 class AuditAsync(ServiceBaseAsync, AuditBase):
@@ -426,6 +425,31 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
     async def download_results(
         self, result_id: str, format: Optional[DownloadFormat] = None
     ) -> PangeaResponse[DownloadResult]:
+        """
+        Download search results
+
+        Get all search results as a compressed (gzip) CSV file.
+
+        OperationId: audit_post_v1_download_results
+
+        Args:
+            result_id: ID returned by the search API.
+            format: Format for the records.
+
+        Returns:
+            URL where search results can be downloaded.
+
+        Raises:
+            AuditException: If an Audit-based API exception occurs.
+            PangeaAPIException: If an API exception occurs.
+
+        Examples:
+            response = await audit.download_results(
+                result_id="pas_[...]",
+                format=DownloadFormat.JSON,
+            )
+        """
+
         input = DownloadRequest(result_id=result_id, format=format)
         return await self.request.post("v1/download_results", DownloadResult, data=input.dict(exclude_none=True))
 
