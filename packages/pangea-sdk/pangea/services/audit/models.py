@@ -415,11 +415,13 @@ class SearchResultRequest(APIRequestModel):
     id -- A search results identifier returned by the search call.
     limit -- Number of audit records to include from the first page of the results.
     offset -- Offset from the start of the result set to start returning results from.
+    assert_search_restriction -- A list of keys to check against the original search request. Ensuring the requested search results followed the same expected search restrictions.
     """
 
     id: str
     limit: Optional[int] = 20
     offset: Optional[int] = 0
+    assert_search_restriction: Optional[dict] = None
 
 
 class DownloadFormat(str, enum.Enum):

@@ -678,6 +678,7 @@ class Audit(ServiceBase, AuditBase):
         id: str,
         limit: Optional[int] = 20,
         offset: Optional[int] = 0,
+        assert_search_restriction: Optional[dict] = None,
         verify_consistency: bool = False,
         verify_events: bool = True,
     ) -> PangeaResponse[SearchResultOutput]:
@@ -692,6 +693,7 @@ class Audit(ServiceBase, AuditBase):
             id (string): the id of a search action, found in `response.result.id`
             limit (integer, optional): the maximum number of results to return, default is 20
             offset (integer, optional): the position of the first result to return, default is 0
+            assert_search_restriction (dict, optional): A list of keys to check against the original search request. Ensuring the requested search results followed the same expected search restrictions.
             verify_consistency (bool): True to verify logs consistency
             verify_events (bool): True to verify hash events and signatures
         Raises:
@@ -716,6 +718,7 @@ class Audit(ServiceBase, AuditBase):
             id=id,
             limit=limit,
             offset=offset,
+            assert_search_restriction=assert_search_restriction,
         )
         response: PangeaResponse[SearchResultOutput] = self.request.post(
             "v1/results", SearchResultOutput, data=input.dict(exclude_none=True)
