@@ -4,10 +4,9 @@ import io
 from typing import List, Optional, Tuple
 
 import pangea.services.sanitize as m
+from pangea.asyncio.services.base import ServiceBaseAsync
 from pangea.response import PangeaResponse, TransferMethod
 from pangea.utils import FileUploadParams, get_file_upload_params
-
-from .base import ServiceBaseAsync
 
 
 class SanitizeAsync(ServiceBaseAsync):
