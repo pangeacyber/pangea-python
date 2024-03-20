@@ -279,7 +279,7 @@ class SearchRequest(APIRequestModel):
     end: Optional[str] = None
     limit: Optional[int] = None
     max_results: Optional[int] = None
-    search_restriction: Optional[dict[str, Sequence[str]]] = None
+    search_restriction: Optional[Dict[str, Sequence[str]]] = None
     verbose: Optional[bool] = None
 
 
@@ -421,7 +421,7 @@ class SearchResultRequest(APIRequestModel):
     id: str
     limit: Optional[int] = 20
     offset: Optional[int] = 0
-    assert_search_restriction: Optional[dict[str, Sequence[str]]] = None
+    assert_search_restriction: Optional[Dict[str, Sequence[str]]] = None
 
 
 class DownloadFormat(str, enum.Enum):
