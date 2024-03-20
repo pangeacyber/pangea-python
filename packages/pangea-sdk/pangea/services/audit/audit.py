@@ -2,7 +2,7 @@
 # Author: Pangea Cyber Corporation
 import datetime
 import json
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from typing import Any, Dict, List, Optional, Sequence, Set, Tuple, Union
 
 import pangea.exceptions as pexc
 from pangea.response import PangeaResponse
@@ -598,7 +598,7 @@ class Audit(ServiceBase, AuditBase):
         end: Optional[Union[datetime.datetime, str]] = None,
         limit: Optional[int] = None,
         max_results: Optional[int] = None,
-        search_restriction: Optional[dict] = None,
+        search_restriction: Optional[Dict[str, Sequence[str]]] = None,
         verbose: Optional[bool] = None,
         verify_consistency: bool = False,
         verify_events: bool = True,
@@ -627,7 +627,7 @@ class Audit(ServiceBase, AuditBase):
             end (datetime, optional): An RFC-3339 formatted timestamp, or relative time adjustment from the current time.
             limit (int, optional): Optional[int] = None,
             max_results (int, optional): Maximum number of results to return.
-            search_restriction (dict, optional): A list of keys to restrict the search results to. Useful for partitioning data available to the query string.
+            search_restriction (Dict[str, Sequence[str]], optional): A list of keys to restrict the search results to. Useful for partitioning data available to the query string.
             verbose (bool, optional): If true, response include root and membership and consistency proofs.
             verify_consistency (bool): True to verify logs consistency
             verify_events (bool): True to verify hash events and signatures
@@ -678,6 +678,7 @@ class Audit(ServiceBase, AuditBase):
         id: str,
         limit: Optional[int] = 20,
         offset: Optional[int] = 0,
+        assert_search_restriction: Optional[Dict[str, Sequence[str]]] = None,
         verify_consistency: bool = False,
         verify_events: bool = True,
     ) -> PangeaResponse[SearchResultOutput]:
@@ -692,6 +693,7 @@ class Audit(ServiceBase, AuditBase):
             id (string): the id of a search action, found in `response.result.id`
             limit (integer, optional): the maximum number of results to return, default is 20
             offset (integer, optional): the position of the first result to return, default is 0
+            assert_search_restriction (Dict[str, Sequence[str]], optional): Assert the requested search results were queried with the exact same search restrictions, to ensure the results comply to the expected restrictions.
             verify_consistency (bool): True to verify logs consistency
             verify_events (bool): True to verify hash events and signatures
         Raises:
@@ -716,6 +718,7 @@ class Audit(ServiceBase, AuditBase):
             id=id,
             limit=limit,
             offset=offset,
+            assert_search_restriction=assert_search_restriction,
         )
         response: PangeaResponse[SearchResultOutput] = self.request.post(
             "v1/results", SearchResultOutput, data=input.dict(exclude_none=True)

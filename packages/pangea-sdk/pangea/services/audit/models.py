@@ -2,7 +2,7 @@
 # Author: Pangea Cyber Corporation
 import datetime
 import enum
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Sequence, Union
 
 from pangea.response import APIRequestModel, APIResponseModel, PangeaResponseResult
 
@@ -279,7 +279,7 @@ class SearchRequest(APIRequestModel):
     end: Optional[str] = None
     limit: Optional[int] = None
     max_results: Optional[int] = None
-    search_restriction: Optional[dict] = None
+    search_restriction: Optional[Dict[str, Sequence[str]]] = None
     verbose: Optional[bool] = None
 
 
@@ -415,11 +415,13 @@ class SearchResultRequest(APIRequestModel):
     id -- A search results identifier returned by the search call.
     limit -- Number of audit records to include from the first page of the results.
     offset -- Offset from the start of the result set to start returning results from.
+    assert_search_restriction -- Assert the requested search results were queried with the exact same search restrictions, to ensure the results comply to the expected restrictions.
     """
 
     id: str
     limit: Optional[int] = 20
     offset: Optional[int] = 0
+    assert_search_restriction: Optional[Dict[str, Sequence[str]]] = None
 
 
 class DownloadFormat(str, enum.Enum):
