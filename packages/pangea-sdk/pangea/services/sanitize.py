@@ -181,7 +181,8 @@ class Sanitize(ServiceBase):
         """
         Sanitize
 
-        Apply file sanitization actions according to specified rules. Beta API.
+        Apply file sanitization actions according to specified rules.
+        [**Beta API**](https://pangea.cloud/docs/sdk/python/#beta-releases).
 
         OperationId: sanitize_post_v1beta_sanitize
 
@@ -264,7 +265,8 @@ class Sanitize(ServiceBase):
         Sanitize via presigned URL
 
         Apply file sanitization actions according to specified rules via a
-        [presigned URL](https://pangea.cloud/docs/api/presigned-urls). Beta API.
+        [presigned URL](https://pangea.cloud/docs/api/presigned-urls).
+        [**Beta API**](https://pangea.cloud/docs/sdk/python/#beta-releases).
 
         OperationId: sanitize_post_v1beta_sanitize 2
 
