@@ -7,8 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.7.1] - 2024-03-20
+
 ### Added
 
+- Audit assert_search_restriction added as a keyword argument to the results method
 - Audit /download_results endpoint support
 
 ### Fixed
