@@ -1,7 +1,7 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 import datetime
-from typing import Any, Dict, List, Optional, Union, Sequence
+from typing import Any, Dict, List, Optional, Sequence, Union
 
 import pangea.exceptions as pexc
 from pangea.asyncio.services.base import ServiceBaseAsync

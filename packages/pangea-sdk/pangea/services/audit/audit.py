@@ -2,7 +2,7 @@
 # Author: Pangea Cyber Corporation
 import datetime
 import json
-from typing import Any, Dict, List, Optional, Set, Tuple, Union, Sequence
+from typing import Any, Dict, List, Optional, Set, Tuple, Sequence, Union
 
 import pangea.exceptions as pexc
 from pangea.response import PangeaResponse

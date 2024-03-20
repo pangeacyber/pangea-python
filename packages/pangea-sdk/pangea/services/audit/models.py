@@ -2,7 +2,7 @@
 # Author: Pangea Cyber Corporation
 import datetime
 import enum
-from typing import Any, Dict, List, Optional, Union, Sequence
+from typing import Any, Dict, List, Optional, Sequence, Union
 
 from pangea.response import APIRequestModel, APIResponseModel, PangeaResponseResult
 
