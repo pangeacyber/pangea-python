@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "sanitize-examples"
+version = "2.0.0"
+description = "This is a set of examples about how to use python SDK to communicate with Sanitize service"
+authors = ["H. Andres Tournour <andres.tournour@pangea.cloud>"]
+readme = "README.md"
+packages = [{include = "sanitize_examples"}]
+
+[tool.poetry.dependencies]
+python = "^3.8.18"
+pangea-sdk = { path = "../../../packages/pangea-sdk", develop = true }
+
+[tool.poetry.group.dev.dependencies]
+black = "^24.8.0"
+isort = "^5.13.2"
+mypy = "^1.11.2"
+
+[tool.black]
+line-length = 120
+
+[tool.isort]
+profile = "black"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
