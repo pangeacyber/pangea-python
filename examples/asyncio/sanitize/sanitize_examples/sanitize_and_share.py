@@ -1,5 +1,6 @@
 import asyncio
 import os
+import sys
 
 import pangea.exceptions as pe
 from pangea.asyncio.services import SanitizeAsync
@@ -54,6 +55,10 @@ async def main() -> None:
             )
 
             print("Sanitize request success")
+            if response.result is None:
+                print("Failed to get response")
+                sys.exit(1)
+
             print(f"\tFile share id: {response.result.dest_share_id}")
             print(f"\tRedact data: {response.result.data.redact}")
             print(f"\tDefang data: {response.result.data.defang}")

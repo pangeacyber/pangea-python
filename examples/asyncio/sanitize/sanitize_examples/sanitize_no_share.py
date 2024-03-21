@@ -1,5 +1,6 @@
 import asyncio
 import os
+import sys
 
 import pangea.exceptions as pe
 from pangea.asyncio.services import SanitizeAsync
@@ -53,6 +54,10 @@ async def main() -> None:
             )
 
             print("Sanitize request success")
+            if response.result is None:
+                print("Failed to get response")
+                sys.exit(1)
+
             print(f"\tRedact data: {response.result.data.redact}")
             print(f"\tDefang data: {response.result.data.defang}")
             print(f"\tCDR data: {response.result.data.cdr}")
@@ -62,11 +67,16 @@ async def main() -> None:
             else:
                 print("File is NOT malicious")
 
-            print(f"\tDownload URL: {response.result.dest_url}")
+            if response.result.dest_url is None:
+                print("Failed to get dest url")
+                sys.exit(1)
+
+            url = response.result.dest_url
+            print(f"\tDownload URL: {url}")
 
             # Download file
             print("Downloading file...")
-            attached_file = await client.download_file(response.result.dest_url)
+            attached_file = await client.download_file(url)
 
             # Saving file
             print("Saving file...")

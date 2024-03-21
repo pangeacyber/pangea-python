@@ -1,4 +1,5 @@
 import os
+import sys
 
 import pangea.exceptions as pe
 from pangea.config import PangeaConfig
@@ -51,6 +52,10 @@ def main() -> None:
                 share_output=share_output,
                 uploaded_file_name="uploaded_file",
             )
+
+            if response.result is None:
+                print("Failed to get response")
+                sys.exit(1)
 
             print("Sanitize request success")
             print(f"\tFile share id: {response.result.dest_share_id}")

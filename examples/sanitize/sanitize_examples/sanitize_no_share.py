@@ -1,4 +1,5 @@
 import os
+import sys
 
 import pangea.exceptions as pe
 from pangea.config import PangeaConfig
@@ -51,6 +52,10 @@ def main() -> None:
                 uploaded_file_name="uploaded_file",
             )
 
+            if response.result is None:
+                print("Failed to get response")
+                sys.exit(1)
+
             print("Sanitize request success")
             print(f"\tRedact data: {response.result.data.redact}")
             print(f"\tDefang data: {response.result.data.defang}")
@@ -60,6 +65,10 @@ def main() -> None:
                 print("File IS malicious")
             else:
                 print("File is NOT malicious")
+
+            if response.result.dest_url is None:
+                print("Failed to get dest url")
+                sys.exit(1)
 
             print(f"\tDownload URL: {response.result.dest_url}")
 

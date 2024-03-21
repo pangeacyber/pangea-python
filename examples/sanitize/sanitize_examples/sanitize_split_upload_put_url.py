@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 
 import pangea.exceptions as pe
@@ -56,7 +57,12 @@ def main() -> None:
                 share_output=share_output,
                 uploaded_file_name="uploaded_file",
             )
+
             # Get put url to upload the file
+            if response_url.accepted_result is None or response_url.accepted_result.put_url is None:
+                print("Failed to get put url")
+                sys.exit(1)
+
             url = response_url.accepted_result.put_url
             print(f"\nGot presigned url: {url}")
 
@@ -71,7 +77,11 @@ def main() -> None:
             try:
                 # wait some time to get result ready and poll it
                 time.sleep(10)
-                response: PangeaResponse[SanitizeResult] = client.poll_result(response=response)
+                response: PangeaResponse[SanitizeResult] = client.poll_result(response=response_url)
+
+                if response.result is None:
+                    print("Failed to get response")
+                    sys.exit(1)
 
                 print("Poll result success")
                 print(f"\tFile share id: {response.result.dest_share_id}")
