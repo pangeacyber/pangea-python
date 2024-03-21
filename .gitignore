@@ -43,4 +43,4 @@ payload
 search_results_*.json
 prq_*
 packages/pangea-sdk/download/
-sanitized.*
+sanitized*
