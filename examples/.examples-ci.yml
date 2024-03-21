@@ -12,6 +12,7 @@
           - redact
           - vault
           - share
+          - sanitize
   image: python:${PYTHON_VERSION}-bookworm
   before_script:
     - export PANGEA_AUDIT_CONFIG_ID="${PANGEA_AUDIT_CONFIG_ID_1_LVE_AWS}"
@@ -28,6 +29,7 @@
     - export PANGEA_REDACT_TOKEN="${PANGEA_INTEGRATION_TOKEN_LVE_AWS}"
     - export PANGEA_VAULT_TOKEN="${PANGEA_INTEGRATION_TOKEN_LVE_AWS}"
     - export PANGEA_SHARE_TOKEN="${PANGEA_INTEGRATION_TOKEN_LVE_AWS}"
+    - export PANGEA_SANITIZE_TOKEN="${PANGEA_INTEGRATION_TOKEN_LVE_AWS}"
     - !reference [.setup, update-pip]
     - !reference [.setup, update-poetry]
   rules:
