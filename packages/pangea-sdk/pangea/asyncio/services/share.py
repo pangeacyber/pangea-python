@@ -19,11 +19,11 @@ class ShareAsync(ServiceBaseAsync):
         self, id: Optional[str] = None, path: Optional[str] = None, force: Optional[bool] = None
     ) -> PangeaResponse[m.DeleteResult]:
         """
-        Delete
+        Delete (Beta)
 
         Delete object by ID or path. If both are supplied, the path must match
         that of the object represented by the ID.
-        [**Beta API**](https://pangea.cloud/docs/sdk/python/#beta-releases).
+        How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
 
         OperationId: share_post_v1beta_delete
 
@@ -51,10 +51,10 @@ class ShareAsync(ServiceBaseAsync):
         tags: Optional[m.Tags] = None,
     ) -> PangeaResponse[m.FolderCreateResult]:
         """
-        Create a folder
+        Create a folder (Beta)
 
         Create a folder, either by name or path and parent_id.
-        [**Beta API**](https://pangea.cloud/docs/sdk/python/#beta-releases).
+        How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
 
         OperationId: share_post_v1beta_folder_create
 
@@ -87,11 +87,11 @@ class ShareAsync(ServiceBaseAsync):
         self, id: Optional[str] = None, path: Optional[str] = None, transfer_method: Optional[TransferMethod] = None
     ) -> PangeaResponse[m.GetResult]:
         """
-        Get an object
+        Get an object (Beta)
 
         Get object. If both ID and Path are supplied, the call will fail if the
         target object doesn't match both properties.
-        [**Beta API**](https://pangea.cloud/docs/sdk/python/#beta-releases).
+        How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
 
         OperationId: share_post_v1beta_get
 
@@ -124,10 +124,10 @@ class ShareAsync(ServiceBaseAsync):
         transfer_method: Optional[TransferMethod] = None,
     ) -> PangeaResponse[m.GetArchiveResult]:
         """
-        Get archive
+        Get archive (Beta)
 
         Get an archive file of multiple objects.
-        [**Beta API**](https://pangea.cloud/docs/sdk/python/#beta-releases).
+        How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
 
         OperationId: share_post_v1beta_get_archive
 
@@ -164,10 +164,10 @@ class ShareAsync(ServiceBaseAsync):
         size: Optional[int] = None,
     ) -> PangeaResponse[m.ListResult]:
         """
-        List
+        List (Beta)
 
         List or filter/search records.
-        [**Beta API**](https://pangea.cloud/docs/sdk/python/#beta-releases).
+        How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
 
         OperationId: share_post_v1beta_list
 
@@ -207,10 +207,10 @@ class ShareAsync(ServiceBaseAsync):
         size: Optional[int] = None,
     ) -> PangeaResponse[m.PutResult]:
         """
-        Upload a file
+        Upload a file (Beta)
 
         Upload a file.
-        [**Beta API**](https://pangea.cloud/docs/sdk/python/#beta-releases).
+        How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
 
         OperationId: share_post_v1beta_put
 
@@ -293,10 +293,10 @@ class ShareAsync(ServiceBaseAsync):
         size: Optional[int] = None,
     ) -> PangeaResponse[m.PutResult]:
         """
-        Request upload URL
+        Request upload URL (Beta)
 
         Request an upload URL.
-        [**Beta API**](https://pangea.cloud/docs/sdk/python/#beta-releases).
+        How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
 
         OperationId: share_post_v1beta_put 2
 
@@ -369,10 +369,10 @@ class ShareAsync(ServiceBaseAsync):
         updated_at: Optional[str] = None,
     ) -> PangeaResponse[m.UpdateResult]:
         """
-        Update a file
+        Update a file (Beta)
 
         Update a file.
-        [**Beta API**](https://pangea.cloud/docs/sdk/python/#beta-releases).
+        How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
 
         OperationId: share_post_v1beta_update
 
@@ -418,10 +418,10 @@ class ShareAsync(ServiceBaseAsync):
 
     async def share_link_create(self, links: List[m.ShareLinkCreateItem]) -> PangeaResponse[m.ShareLinkCreateResult]:
         """
-        Create share links
+        Create share links (Beta)
 
         Create a share link.
-        [**Beta API**](https://pangea.cloud/docs/sdk/python/#beta-releases).
+        How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
 
         OperationId: share_post_v1beta_share_link_create
 
@@ -455,10 +455,10 @@ class ShareAsync(ServiceBaseAsync):
 
     async def share_link_get(self, id: str) -> PangeaResponse[m.ShareLinkGetResult]:
         """
-        Get share link
+        Get share link (Beta)
 
         Get a share link.
-        [**Beta API**](https://pangea.cloud/docs/sdk/python/#beta-releases).
+        How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
 
         OperationId: share_post_v1beta_share_link_get
 
@@ -488,10 +488,10 @@ class ShareAsync(ServiceBaseAsync):
         size: Optional[int] = None,
     ) -> PangeaResponse[m.ShareLinkListResult]:
         """
-        List share links
+        List share links (Beta)
 
         Look up share links by filter options.
-        [**Beta API**](https://pangea.cloud/docs/sdk/python/#beta-releases).
+        How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
 
         OperationId: share_post_v1beta_share_link_list
 
@@ -516,10 +516,10 @@ class ShareAsync(ServiceBaseAsync):
 
     async def share_link_delete(self, ids: List[str]) -> PangeaResponse[m.ShareLinkDeleteResult]:
         """
-        Delete share links
+        Delete share links (Beta)
 
         Delete share links.
-        [**Beta API**](https://pangea.cloud/docs/sdk/python/#beta-releases).
+        How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
 
         OperationId: share_post_v1beta_share_link_delete
 
@@ -544,13 +544,13 @@ class ShareAsync(ServiceBaseAsync):
         self, links: List[m.ShareLinkSendItem], sender_email: str, sender_name: Optional[str] = None
     ) -> PangeaResponse[m.ShareLinkSendResult]:
         """
-        Send share links
+        Send share links (Beta)
 
         Send a secure share-link notification to a set of email addresses. The
         notification email will contain an Open button that the recipient can
         use to follow the secured share-link to authenticate and then access the
         shared content.
-        [**Beta API**](https://pangea.cloud/docs/sdk/python/#beta-releases).
+        How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
 
         OperationId: share_post_v1beta_share_link_send
 
