@@ -20,7 +20,7 @@ include = ["CHANGELOG.md"]
 [tool.poetry.dependencies]
 python = "^3.8.0"
 "Django" = "^4.2.11"
-"pangea-sdk" = "^3.7.0"
+"pangea-sdk" = "^3.7.1"
 
 [tool.poetry.group.dev.dependencies]
 black = "^22.12.0"
