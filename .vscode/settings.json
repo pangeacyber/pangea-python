@@ -1,6 +1,5 @@
 {
   "editor.formatOnSave": false,
-  "python.formatting.provider": "black",
 
   "python.linting.enabled": true,
   "python.linting.pylintEnabled": false,
@@ -16,5 +15,9 @@
     "*test*.py"
   ],
   "python.testing.pytestEnabled": false,
-  "python.testing.unittestEnabled": true
+  "python.testing.unittestEnabled": true,
+
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter"
+  }
 }
