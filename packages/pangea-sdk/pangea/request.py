@@ -10,7 +10,6 @@ from typing import Dict, List, Optional, Tuple, Type, Union
 import aiohttp
 import requests
 from requests.adapters import HTTPAdapter, Retry
-from requests.structures import CaseInsensitiveDict
 from requests_toolbelt import MultipartDecoder  # type: ignore
 
 import pangea
@@ -454,10 +453,8 @@ class PangeaRequest(PangeaRequestBase):
     ) -> PangeaResponse:
         # Send request
         try:
-            # This should return 202 (AcceptedRequestException)
-            resp = self.post(endpoint=endpoint, result_class=result_class, data=data, poll_result=False)
-            raise pe.PresignedURLException("Should return 202", resp)
-
+            # This should return 202 (AcceptedRequestException) at least zero size file is sent
+            return self.post(endpoint=endpoint, result_class=result_class, data=data, poll_result=False)
         except pe.AcceptedRequestException as e:
             accepted_exception = e
         except Exception as e:
@@ -515,6 +512,9 @@ class PangeaRequest(PangeaRequestBase):
             raise AttributeError("files attribute should have at least 1 file")
 
         response = self.request_presigned_url(endpoint=endpoint, result_class=result_class, data=data)
+
+        if response.success:  # This should only happen when uploading a zero bytes file
+            return response.raw_response
         if response.accepted_result is None:
             raise pe.PangeaException("No accepted_result field when requesting presigned url")
         if response.accepted_result.post_url is None:

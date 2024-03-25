@@ -23,6 +23,8 @@
     SERVICE_USER_INTEL_ENV: LVE
     SERVICE_REDACT_ENV: LVE
     SERVICE_VAULT_ENV: LVE
+    SERVICE_SHARE_ENV: LVE
+    SERVICE_SANITIZE_ENV: LVE
     SERVICE_AUTHZ_ENV: DEV
 
   before_script:
@@ -85,14 +87,16 @@
         ENV: ${SERVICE_VAULT_ENV}
         TEST: test_vault
       - CLOUD: [AWS, GCP]
+        ENV: ${SERVICE_SHARE_ENV}
+        TEST: test_share
+      - CLOUD: [AWS]  # FIXME: Add GCP when supported
+        ENV: ${SERVICE_SANITIZE_ENV}
+        TEST: test_sanitize
+      - CLOUD: [AWS, GCP]
         ENV: ${SERVICE_AUTHZ_ENV}
         TEST: test_authz
   rules:
-    - if: $CI_COMMIT_BRANCH && '$CLOUD == "GCP" && $TEST == "test_file_scan"'
-      allow_failure: true
-    - if: $CI_COMMIT_BRANCH && '$CLOUD == "GCP" && $TEST != "test_file_scan"'
-      allow_failure: false
-    - if: $CI_COMMIT_BRANCH && '$CLOUD != "GCP"'
+    - if: $CI_COMMIT_BRANCH
       allow_failure: false
 
 sdk-build:

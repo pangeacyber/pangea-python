@@ -14,6 +14,8 @@ above.
 
 ## Installation
 
+#### GA releases
+
 Via pip:
 
 ```bash
@@ -26,10 +28,32 @@ Via poetry:
 $ poetry add pangea-sdk
 ```
 
+<a name="beta-releases"></a>
+
+#### Beta releases
+
+Pre-release versions may be available with the `b` (beta) denotation in the
+version number. These releases serve to preview beta services and APIs. Per
+Semantic Versioning, they are considered unstable and do not carry the same
+compatibility guarantees as stable releases. [Beta changelog](https://github.com/pangeacyber/pangea-python/blob/beta/CHANGELOG.md).
+
+Via pip:
+
+```bash
+$ pip3 install pangea-sdk==3.8.0b2
+```
+
+Via poetry:
+
+```bash
+$ poetry add pangea-sdk==3.8.0b2
+```
+
 ## Usage
 
 - [Documentation][]
-- [Examples][]
+- [GA Examples][]
+- [Beta Examples][]
 
 General usage would be to create a token for a service through the
 [Pangea Console][] and then construct an API client for that respective service.
@@ -183,7 +207,8 @@ It accepts multiple file formats:
 
 
    [Documentation]: https://pangea.cloud/docs/sdk/python/
-   [Examples]: https://github.com/pangeacyber/pangea-python/tree/main/examples
+   [GA Examples]: https://github.com/pangeacyber/pangea-python/tree/main/examples
+   [Beta Examples]: https://github.com/pangeacyber/pangea-python/tree/beta/examples
    [Pangea Console]: https://console.pangea.cloud/
    [Slack]: https://pangea.cloud/join-slack/
    [Secure Audit Log]: https://pangea.cloud/docs/audit
