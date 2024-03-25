@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- AuthZ service support.
+
 ## 3.8.0beta2 - 2024-03-20
 
 ### Added
@@ -19,7 +23,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Share service support
 - Audit /download_results endpoint support
-- AuthZ support
 
 ### Fixed
 
