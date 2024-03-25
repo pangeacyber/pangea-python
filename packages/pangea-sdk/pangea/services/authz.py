@@ -152,11 +152,11 @@ class AuthZ(ServiceBase):
 
     Provides methods to interact with the Pangea AuthZ Service.
     Documentation for the AuthZ Service API can be found at:
-    [https://pangea.cloud/docs/api/authz](https://pangea.cloud/docs/api/authz)
+    <https://pangea.cloud/docs/api/authz>
 
     The following information is needed:
         PANGEA_TOKEN - service token which can be found on the Pangea User
-            Console at [https://console.pangea.cloud/project/tokens](https://console.pangea.cloud/project/tokens)
+            Console at <https://console.pangea.cloud/project/tokens>
 
     Examples:
         import os
@@ -191,10 +191,18 @@ class AuthZ(ServiceBase):
         Returns:
             Pangea Response with empty result.
             Available response fields can be found in our
-            [API Documentation](https://pangea.cloud/docs/api/authz#tuple-create).
+            [API Documentation](https://pangea.cloud/docs/api/authz#/v1beta/tuple/create).
 
         Examples:
-            # TODO: complete
+            response = authz.tuple_create(
+                tuples=[
+                    Tuple(
+                        resource=Resource(namespace="file", id="file_1"),
+                        relation="owner",
+                        subject=Subject(namespace="user", id="user_1"),
+                    )
+                ]
+            )
         """
 
         input_data = TupleCreateRequest(tuples=tuples)
@@ -210,8 +218,9 @@ class AuthZ(ServiceBase):
     ) -> PangeaResponse[TupleListResult]:
         """List tuples.
 
-        Return a paginated list of filtered tuples. The filter is given in terms of a tuple.
-        Fill out the fields that you want to filter. If the filter is empty it will return all the tuples.
+        Return a paginated list of filtered tuples. The filter is given in terms
+        of a tuple. Fill out the fields that you want to filter. If the filter
+        is empty it will return all the tuples.
 
         Args:
             filter (TupleListFilter): The filter for listing tuples.
@@ -226,10 +235,10 @@ class AuthZ(ServiceBase):
         Returns:
             Pangea Response with a list of tuples and the last token.
             Available response fields can be found in our
-            [API Documentation](https://pangea.cloud/docs/api/authz#tuple-list).
+            [API Documentation](https://pangea.cloud/docs/api/authz#/v1beta/tuple/list).
 
         Examples:
-            # TODO: Complete
+            authz.tuple_list(TupleListFilter(subject_namespace="user", subject_id="user_1"))
         """
         input_data = TupleListRequest(
             filter=filter.dict(exclude_none=True), size=size, last=last, order=order, order_by=order_by
@@ -250,10 +259,18 @@ class AuthZ(ServiceBase):
         Returns:
             Pangea Response with empty result.
             Available response fields can be found in our
-            [API Documentation](https://pangea.cloud/docs/api/authz#tuple-delete).
+            [API Documentation](https://pangea.cloud/docs/api/authz#/v1beta/tuple/delete).
 
         Examples:
-            # TODO: Complete
+            response = authz.tuple_delete(
+                tuples=[
+                    Tuple(
+                        resource=Resource(namespace="file", id="file_1"),
+                        relation="owner",
+                        subject=Subject(namespace="user", id="user_1"),
+                    )
+                ]
+            )
         """
 
         input_data = TupleDeleteRequest(tuples=tuples)
@@ -284,10 +301,15 @@ class AuthZ(ServiceBase):
         Returns:
             Pangea Response with the result of the check.
             Available response fields can be found in our
-            [API Documentation](https://pangea.cloud/docs/api/authz#check).
+            [API Documentation](https://pangea.cloud/docs/api/authz#/v1beta/check).
 
         Examples:
-            # TODO: Complete
+            response = authz.check(
+                resource=Resource(namespace="file", id="file_1"),
+                action="update",
+                subject=Subject(namespace="user", id="user_1"),
+                debug=True,
+            )
         """
 
         input_data = CheckRequest(resource=resource, action=action, subject=subject, debug=debug, attributes=attributes)
@@ -296,8 +318,8 @@ class AuthZ(ServiceBase):
     def list_resources(self, namespace: str, action: str, subject: Subject) -> PangeaResponse[ListResourcesResult]:
         """List resources.
 
-        Given a namespace, action, and subject, list all the resources in the namespace
-        that the subject has the action with.
+        Given a namespace, action, and subject, list all the resources in the
+        namespace that the subject has access to the action with.
 
         Args:
             namespace (str): The namespace to filter resources.
@@ -310,10 +332,14 @@ class AuthZ(ServiceBase):
         Returns:
             Pangea Response with a list of resource IDs.
             Available response fields can be found in our
-            [API Documentation](https://pangea.cloud/docs/api/authz#list-resources).
+            [API Documentation](https://pangea.cloud/docs/api/authz#/v1beta/list-resources).
 
         Examples:
-            # TODO: Complete
+            authz.list_resources(
+                namespace="file",
+                action="update",
+                subject=Subject(namespace="user", id="user_1"),
+            )
         """
 
         input_data = ListResourcesRequest(namespace=namespace, action=action, subject=subject)
@@ -322,7 +348,8 @@ class AuthZ(ServiceBase):
     def list_subjects(self, resource: Resource, action: str) -> PangeaResponse[ListSubjectsResult]:
         """List subjects.
 
-        Given a resource and an action, return the list of subjects who have the given action to the given resource.
+        Given a resource and an action, return the list of subjects who have
+        access to the action for the given resource.
 
         Args:
             resource (Resource): The resource to filter subjects.
@@ -334,10 +361,13 @@ class AuthZ(ServiceBase):
         Returns:
             Pangea Response with a list of subjects.
             Available response fields can be found in our
-            [API Documentation](https://pangea.cloud/docs/api/authz#list-subjects).
+            [API Documentation](https://pangea.cloud/docs/api/authz#/v1beta/list-subjects).
 
         Examples:
-            # TODO: Complete
+            response = authz.list_subjects(
+                resource=Resource(namespace="file", id="file_1"),
+                action="update",
+            )
         """
 
         input_data = ListSubjectsRequest(resource=resource, action=action)
