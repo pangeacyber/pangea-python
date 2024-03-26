@@ -10,6 +10,7 @@
     - if: $CI_PIPELINE_SOURCE == "push"
 
 .sdk-test-base:
+  retry: 2
   variables:
     # Set each service test environment
     SERVICE_AUDIT_ENV: LVE
