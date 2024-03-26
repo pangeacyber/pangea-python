@@ -23,6 +23,7 @@ from tests.test_tools import load_test_environment
 
 TEST_ENVIRONMENT = load_test_environment(Share.service_name, TestEnvironment.LIVE)
 PDF_FILEPATH = "./tests/testdata/testfile.pdf"
+PDF_FILEPATH_18MB = "./tests/testdata/interactive3.pdf"
 ZEROBYTES_FILEPATH = "./tests/testdata/zerobytes.txt"
 TIME = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 FOLDER_DELETE = f"/sdk_tests/delete/{TIME}"
@@ -87,6 +88,17 @@ class TestShare(unittest.TestCase):
             with get_test_file() as f:
                 name = f"{TIME}_file_post_url"
                 response = self.client.put(file=f, name=name, transfer_method=TransferMethod.POST_URL)
+                self.assertEqual(response.status, "Success")
+        except pe.PangeaAPIException as e:
+            print(e)
+            print(type(e))
+            self.assertTrue(False)
+
+    def test_put_transfer_method_post_url_with_path(self):
+        try:
+            with open(PDF_FILEPATH_18MB, "rb") as f:
+                path = f"/sdk/test/python/{TIME}_file_post_url_18mb"
+                response = self.client.put(file=f, path=path, transfer_method=TransferMethod.POST_URL)
                 self.assertEqual(response.status, "Success")
         except pe.PangeaAPIException as e:
             print(e)

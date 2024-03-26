@@ -120,7 +120,7 @@ class TestSanitize(unittest.TestCase):
                 self.assertFalse(response.result.data.malicious_file)
 
             attached_file = self.client.download_file(response.result.dest_url)
-            attached_file.save("./")
+            attached_file.save("./download/")
 
         except pe.PangeaAPIException as e:
             print(e)
