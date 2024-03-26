@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Share service: post file bigger than 2.6MB to GCP presigned URL failed if `name` field is not set. 
+
+
 ## 3.8.0beta3 - 2024-03-25
 
 ### Added

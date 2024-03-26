@@ -245,7 +245,7 @@ class ShareAsync(ServiceBaseAsync):
                     print(f"\\t{err.detail} \\n")
         """
 
-        files: List[Tuple] = [("upload", (name, file, "application/octet-stream"))]
+        files: List[Tuple] = [("upload", ("file", file, "application/octet-stream"))]
 
         if transfer_method == TransferMethod.POST_URL:
             params = get_file_upload_params(file)
