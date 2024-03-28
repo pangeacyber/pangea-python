@@ -82,6 +82,15 @@ class SanitizeAsync(ServiceBaseAsync):
                 )
         """
 
+        if transfer_method == TransferMethod.SOURCE_URL and source_url is None:
+            raise ValueError("`source_url` argument is required when using `TransferMethod.SOURCE_URL`.")
+
+        if source_url is not None and transfer_method != TransferMethod.SOURCE_URL:
+            raise ValueError(
+                "`transfer_method` should be `TransferMethod.SOURCE_URL` when using the `source_url` argument."
+            )
+
+        files: Optional[List[Tuple]] = None
         if file or file_path:
             if file_path:
                 file = open(file_path, "rb")
@@ -92,9 +101,9 @@ class SanitizeAsync(ServiceBaseAsync):
                 size = params.size if size is None else size
             else:
                 crc32c, sha256, size = None, None, None
-            files: List[Tuple] = [("upload", ("filename", file, "application/octet-stream"))]
-        else:
-            raise ValueError("Need to set file_path or file arguments")
+            files = [("upload", ("filename", file, "application/octet-stream"))]
+        elif source_url is None:
+            raise ValueError("Need to set one of `file_path`, `file`, or `source_url` arguments.")
 
         input = m.SanitizeRequest(
             transfer_method=transfer_method,
@@ -109,12 +118,13 @@ class SanitizeAsync(ServiceBaseAsync):
             uploaded_file_name=uploaded_file_name,
         )
         data = input.model_dump(exclude_none=True)
-        response = await self.request.post(
-            "v1beta/sanitize", m.SanitizeResult, data=data, files=files, poll_result=sync_call
-        )
-        if file_path and file is not None:
-            file.close()
-        return response
+        try:
+            return await self.request.post(
+                "v1beta/sanitize", m.SanitizeResult, data=data, files=files, poll_result=sync_call
+            )
+        finally:
+            if file_path and file is not None:
+                file.close()
 
     async def request_upload_url(
         self,
