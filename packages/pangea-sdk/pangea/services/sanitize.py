@@ -57,7 +57,11 @@ class SanitizeShareOutput(APIRequestModel):
 
 class SanitizeRequest(APIRequestModel):
     transfer_method: TransferMethod = TransferMethod.POST_URL
+    """The transfer method used to upload the file data."""
+
     source_url: Optional[str] = None
+    """A URL where the file to be sanitized can be downloaded."""
+
     share_id: Optional[str] = None
     """A Pangea Secure Share ID where the file to be Sanitized is stored."""
 
@@ -217,19 +221,32 @@ class Sanitize(ServiceBase):
                 )
         """
 
+        if transfer_method == TransferMethod.SOURCE_URL and source_url is None:
+            raise ValueError("`source_url` argument is required when using `TransferMethod.SOURCE_URL`.")
+
+        if source_url is not None and transfer_method != TransferMethod.SOURCE_URL:
+            raise ValueError(
+                "`transfer_method` should be `TransferMethod.SOURCE_URL` when using the `source_url` argument."
+            )
+
+        files: Optional[List[Tuple]] = None
         if file or file_path:
             if file_path:
                 file = open(file_path, "rb")
-            if transfer_method == TransferMethod.POST_URL and (sha256 is None or crc32c is None or size is None):
-                params = get_file_upload_params(file)  # type: ignore[arg-type]
+            if (
+                transfer_method == TransferMethod.POST_URL
+                and file
+                and (sha256 is None or crc32c is None or size is None)
+            ):
+                params = get_file_upload_params(file)
                 crc32c = params.crc_hex if crc32c is None else crc32c
                 sha256 = params.sha256_hex if sha256 is None else sha256
                 size = params.size if size is None else size
             else:
                 crc32c, sha256, size = None, None, None
-            files: List[Tuple] = [("upload", ("filename", file, "application/octet-stream"))]
-        else:
-            raise ValueError("Need to set file_path or file arguments")
+            files = [("upload", ("filename", file, "application/octet-stream"))]
+        elif source_url is None:
+            raise ValueError("Need to set one of `file_path`, `file`, or `source_url` arguments.")
 
         input = SanitizeRequest(
             transfer_method=transfer_method,
@@ -244,9 +261,13 @@ class Sanitize(ServiceBase):
             uploaded_file_name=uploaded_file_name,
         )
         data = input.model_dump(exclude_none=True)
-        response = self.request.post("v1beta/sanitize", SanitizeResult, data=data, files=files, poll_result=sync_call)
-        if file_path and file is not None:
-            file.close()
+        try:
+            response = self.request.post(
+                "v1beta/sanitize", SanitizeResult, data=data, files=files, poll_result=sync_call
+            )
+        finally:
+            if file_path and file is not None:
+                file.close()
         return response
 
     def request_upload_url(
