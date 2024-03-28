@@ -30,7 +30,7 @@ class PangeaRequestAsync(PangeaRequestBase):
         endpoint: str,
         result_class: Type[PangeaResponseResult],
         data: Union[str, Dict] = {},
-        files: Optional[List[Tuple]] = [],
+        files: Optional[List[Tuple]] = None,
         poll_result: bool = True,
         url: Optional[str] = None,
     ) -> PangeaResponse:
