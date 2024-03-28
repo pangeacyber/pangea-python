@@ -11,22 +11,25 @@ from pangea.utils import FileUploadParams, get_file_upload_params
 
 
 class FileScanRequest(APIRequestModel):
-    """
-    File Scan request data
-
-    provider (str, optional): Provider of the information. Default provider defined by the configuration.
-    verbose (bool, optional): Echo back the parameters of the API in the response
-    raw (bool, optional): Return additional details from the provider.
-    """
+    """File Scan request data."""
 
     verbose: Optional[bool] = None
+    """Echo back the parameters of the API in the response."""
+
     raw: Optional[bool] = None
+    """Return additional details from the provider."""
+
     provider: Optional[str] = None
+    """Provider of the information. Default provider defined by the configuration."""
+
     size: Optional[int] = None
     crc32c: Optional[str] = None
     sha256: Optional[str] = None
     source_url: Optional[str] = None
+    """A URL where the file to be scanned can be downloaded."""
+
     transfer_method: TransferMethod = TransferMethod.POST_URL
+    """The transfer method used to upload the file data."""
 
 
 class FileScanData(PangeaResponseResult):
@@ -92,12 +95,14 @@ class FileScan(ServiceBase):
         OperationId: file_scan_post_v1_scan
 
         Args:
-            file (io.BufferedReader, optional): file to be scanned (should be opened with read permissions and in binary format)
             file_path (str, optional): filepath to be opened and scanned
+            file (io.BufferedReader, optional): file to be scanned (should be opened with read permissions and in binary format)
             verbose (bool, optional): Echo the API parameters in the response
             raw (bool, optional): Include raw data from this provider
             provider (str, optional): Scan file using this provider
             sync_call (bool, optional): True to wait until server returns a result, False to return immediately and retrieve result asynchronously
+            transfer_method (TransferMethod, optional): Transfer method used to upload the file data.
+            source_url (str, optional): A URL where the Pangea APIs can fetch the contents of the input file.
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -118,6 +123,15 @@ class FileScan(ServiceBase):
                     print(f"\\t{err.detail} \\n")
         """
 
+        if transfer_method == TransferMethod.SOURCE_URL and source_url is None:
+            raise ValueError("`source_url` argument is required when using `TransferMethod.SOURCE_URL`.")
+
+        if source_url is not None and transfer_method != TransferMethod.SOURCE_URL:
+            raise ValueError(
+                "`transfer_method` should be `TransferMethod.SOURCE_URL` when using the `source_url` argument."
+            )
+
+        files: Optional[List[Tuple]] = None
         if file or file_path:
             if file_path:
                 file = open(file_path, "rb")
@@ -128,9 +142,9 @@ class FileScan(ServiceBase):
                 size = params.size
             else:
                 crc, sha, size = None, None, None
-            files: List[Tuple] = [("upload", ("filename", file, "application/octet-stream"))]
-        else:
-            raise ValueError("Need to set file_path or file arguments")
+            files = [("upload", ("filename", file, "application/octet-stream"))]
+        elif source_url is None:
+            raise ValueError("Need to set one of `file_path`, `file`, or `source_url` arguments.")
 
         input = FileScanRequest(
             verbose=verbose,
@@ -143,7 +157,11 @@ class FileScan(ServiceBase):
             source_url=source_url,
         )
         data = input.model_dump(exclude_none=True)
-        return self.request.post("v1/scan", FileScanResult, data=data, files=files, poll_result=sync_call)
+        try:
+            return self.request.post("v1/scan", FileScanResult, data=data, files=files, poll_result=sync_call)
+        finally:
+            if file_path and file:
+                file.close()
 
     def request_upload_url(
         self,

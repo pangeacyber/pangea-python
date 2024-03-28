@@ -32,7 +32,7 @@ class PangeaRequestAsync(PangeaRequestBase):
         endpoint: str,
         result_class: Type[TResult],
         data: Union[str, Dict] = {},
-        files: List[Tuple] = [],
+        files: Optional[List[Tuple]] = None,
         poll_result: bool = True,
         url: Optional[str] = None,
     ) -> PangeaResponse[TResult]:
@@ -250,7 +250,7 @@ class PangeaRequestAsync(PangeaRequestBase):
         url: str,
         headers: Dict = {},
         data: Union[str, Dict] = {},
-        files: List[Tuple] = [],
+        files: Optional[List[Tuple]] = [],
         presigned_url_post: bool = False,
     ) -> aiohttp.ClientResponse:
         if files:
