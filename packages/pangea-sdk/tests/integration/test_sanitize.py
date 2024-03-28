@@ -2,6 +2,7 @@ import logging
 import time
 import unittest
 from http.client import HTTPConnection
+from io import BufferedReader
 
 import pangea.exceptions as pe
 from pangea import FileUploader, PangeaConfig
@@ -16,11 +17,11 @@ TEST_ENVIRONMENT = load_test_environment(Sanitize.service_name, TestEnvironment.
 PDF_FILEPATH = "./tests/testdata/ds11.pdf"
 
 
-def get_test_file():
+def get_test_file() -> BufferedReader:
     return open(PDF_FILEPATH, "rb")
 
 
-def debug_requests_on():
+def debug_requests_on() -> None:
     """Switches on logging of the requests module."""
     HTTPConnection.debuglevel = 1
 
@@ -32,7 +33,7 @@ def debug_requests_on():
 
 
 class TestSanitize(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         # debug_requests_on()
         token = get_test_token(TEST_ENVIRONMENT)
         domain = get_test_domain(TEST_ENVIRONMENT)
