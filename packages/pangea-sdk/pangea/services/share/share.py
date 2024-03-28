@@ -221,7 +221,7 @@ class ShareLinkItemBase(PangeaResponseResult):
     link_type: Optional[LinkType] = None
     expires_at: Optional[str] = None
     max_access_count: Optional[int] = None
-    authenticators: List[Authenticator]
+    authenticators: Optional[List[Authenticator]] = None
     message: Optional[str] = None
     title: Optional[str] = None
     notify_email: Optional[str] = None

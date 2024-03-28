@@ -50,10 +50,24 @@ class AttachedFile(object):
 
 
 class TransferMethod(str, enum.Enum):
+    """Transfer methods for uploading file data."""
+
     MULTIPART = "multipart"
     POST_URL = "post-url"
     PUT_URL = "put-url"
     SOURCE_URL = "source-url"
+    """
+    A `source-url` is a caller-specified URL where the Pangea APIs can fetch the
+    contents of the input file. When calling a Pangea API with a
+    `transfer_method` of `source-url`, you must also specify a `source_url`
+    input parameter that provides a URL to the input file. The source URL can be
+    a presigned URL created by the caller, and it will be used to download the
+    content of the input file. The `source-url` transfer method is useful when
+    you already have a file in your storage and can provide a URL from which
+    Pangea API can fetch the input file—there is no need to transfer it to
+    Pangea with a separate POST or PUT request.
+    """
+
     DEST_URL = "dest-url"
 
     def __str__(self):
