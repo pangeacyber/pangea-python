@@ -839,7 +839,7 @@ class IpIntel(ServiceBase):
 
     def reputation_bulk(
         self, ips: List[str], verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
-    ) -> PangeaResponse[IPReputationResult]:
+    ) -> PangeaResponse[IPReputationBulkResult]:
         """
         Reputation V2
 
@@ -1195,7 +1195,7 @@ class UrlIntel(ServiceBase):
         verbose: Optional[bool] = None,
         raw: Optional[bool] = None,
         provider: Optional[str] = None,
-    ) -> PangeaResponse[URLReputationResult]:
+    ) -> PangeaResponse[URLReputationBulkResult]:
         """
         Reputation V2
 
