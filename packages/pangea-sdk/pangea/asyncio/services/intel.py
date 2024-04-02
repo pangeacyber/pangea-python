@@ -76,7 +76,7 @@ class FileIntelAsync(ServiceBaseAsync):
         provider: Optional[str] = None,
         verbose: Optional[bool] = None,
         raw: Optional[bool] = None,
-    ) -> PangeaResponse[m.FileReputationResult]:
+    ) -> PangeaResponse[m.FileReputationBulkResult]:
         """
         Reputation check
 
@@ -182,7 +182,7 @@ class FileIntelAsync(ServiceBaseAsync):
             hash = hash_256_filepath(filepath)
             hashes.append(hash)
 
-        return await self.hash_reputation_bulk(  # type: ignore[return-value]
+        return await self.hash_reputation_bulk(
             hashes=hashes, hash_type="sha256", verbose=verbose, raw=raw, provider=provider
         )
 
@@ -251,7 +251,7 @@ class DomainIntelAsync(ServiceBaseAsync):
         verbose: Optional[bool] = None,
         raw: Optional[bool] = None,
         provider: Optional[str] = None,
-    ) -> PangeaResponse[m.DomainReputationResult]:
+    ) -> PangeaResponse[m.DomainReputationBulkResult]:
         """
         Reputation
 
@@ -373,7 +373,7 @@ class IpIntelAsync(ServiceBaseAsync):
 
     async def reputation_bulk(
         self, ips: List[str], verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
-    ) -> PangeaResponse[m.IPReputationResult]:
+    ) -> PangeaResponse[m.IPReputationBulkResult]:
         """
         Reputation
 
