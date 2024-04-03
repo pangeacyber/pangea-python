@@ -8,11 +8,14 @@ from typing import Dict, List, Optional, Tuple, Type, Union
 
 import aiohttp
 from aiohttp import FormData
+from typing_extensions import TypeVar
 
 import pangea.exceptions as pe
 from pangea.request import MultipartResponse, PangeaRequestBase
 from pangea.response import AttachedFile, PangeaResponse, PangeaResponseResult, ResponseStatus, TransferMethod
 from pangea.utils import default_encoder
+
+TResult = TypeVar("TResult", bound=PangeaResponseResult, default=PangeaResponseResult)
 
 
 class PangeaRequestAsync(PangeaRequestBase):
@@ -27,12 +30,12 @@ class PangeaRequestAsync(PangeaRequestBase):
     async def post(
         self,
         endpoint: str,
-        result_class: Type[PangeaResponseResult],
+        result_class: Type[TResult],
         data: Union[str, Dict] = {},
         files: List[Tuple] = [],
         poll_result: bool = True,
         url: Optional[str] = None,
-    ) -> PangeaResponse:
+    ) -> PangeaResponse[TResult]:
         """Makes the POST call to a Pangea Service endpoint.
 
         Args:
@@ -90,9 +93,7 @@ class PangeaRequestAsync(PangeaRequestBase):
 
         return self._check_response(pangea_response)
 
-    async def get(
-        self, path: str, result_class: Type[PangeaResponseResult], check_response: bool = True
-    ) -> PangeaResponse[Type[PangeaResponseResult]]:
+    async def get(self, path: str, result_class: Type[TResult], check_response: bool = True) -> PangeaResponse[TResult]:
         """Makes the GET call to a Pangea Service endpoint.
 
         Args:
@@ -109,7 +110,7 @@ class PangeaRequestAsync(PangeaRequestBase):
 
         async with self.session.get(url, headers=self._headers()) as requests_response:
             await self._check_http_errors(requests_response)
-            pangea_response = PangeaResponse(  # type: ignore[var-annotated]
+            pangea_response = PangeaResponse(
                 requests_response, result_class=result_class, json=await requests_response.json()
             )
 
@@ -130,11 +131,11 @@ class PangeaRequestAsync(PangeaRequestBase):
             raise pe.ServiceTemporarilyUnavailable(await resp.json())
 
     async def poll_result_by_id(
-        self, request_id: str, result_class: Union[Type[PangeaResponseResult], Type[dict]], check_response: bool = True
-    ):
+        self, request_id: str, result_class: Type[TResult], check_response: bool = True
+    ) -> PangeaResponse[TResult]:
         path = self._get_poll_path(request_id)
         self.logger.debug(json.dumps({"service": self.service, "action": "poll_result_once", "url": path}))
-        return await self.get(path, result_class, check_response=check_response)  # type: ignore[arg-type]
+        return await self.get(path, result_class, check_response=check_response)
 
     async def poll_result_once(self, response: PangeaResponse, check_response: bool = True):
         request_id = response.request_id
@@ -324,9 +325,7 @@ class PangeaRequestAsync(PangeaRequestBase):
         # Receive 202
         return await self._poll_presigned_url(accepted_exception.response)
 
-    async def _poll_presigned_url(
-        self, response: PangeaResponse[Type[PangeaResponseResult]]
-    ) -> PangeaResponse[Type[PangeaResponseResult]]:
+    async def _poll_presigned_url(self, response: PangeaResponse[TResult]) -> PangeaResponse[TResult]:
         if response.http_status != 202:
             raise AttributeError("Response should be 202")
 

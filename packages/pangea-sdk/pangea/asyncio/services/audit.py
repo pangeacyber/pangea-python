@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional, Sequence, Union
 
 import pangea.exceptions as pexc
 from pangea.asyncio.services.base import ServiceBaseAsync
-from pangea.response import PangeaResponse
+from pangea.response import PangeaResponse, PangeaResponseResult
 from pangea.services.audit.audit import AuditBase
 from pangea.services.audit.exceptions import AuditException
 from pangea.services.audit.models import (
@@ -13,6 +13,7 @@ from pangea.services.audit.models import (
     DownloadRequest,
     DownloadResult,
     Event,
+    ExportRequest,
     LogBulkResult,
     LogResult,
     PublishedRoot,
@@ -402,6 +403,67 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
 
         return self.handle_results_response(response, verify_consistency, verify_events)
 
+    async def export(
+        self,
+        *,
+        format: DownloadFormat = DownloadFormat.CSV,
+        start: Optional[datetime.datetime] = None,
+        end: Optional[datetime.datetime] = None,
+        order: Optional[SearchOrder] = None,
+        order_by: Optional[str] = None,
+        verbose: bool = True,
+    ) -> PangeaResponse[PangeaResponseResult]:
+        """
+        Export from the audit log
+
+        Bulk export of data from the Secure Audit Log, with optional filtering.
+
+        OperationId: audit_post_v1_export
+
+        Args:
+            format: Format for the records.
+            start: The start of the time range to perform the search on.
+            end: The end of the time range to perform the search on. If omitted,
+                then all records up to the latest will be searched.
+            order: Specify the sort order of the response.
+            order_by: Name of column to sort the results by.
+            verbose: Whether or not to include the root hash of the tree and the
+                membership proof for each record.
+
+        Raises:
+            AuditException: If an audit based api exception happens
+            PangeaAPIException: If an API Error happens
+
+        Examples:
+            export_res = await audit.export(verbose=False)
+
+            # Export may take several dozens of minutes, so polling for the result
+            # should be done in a loop. That is omitted here for brevity's sake.
+            try:
+                await audit.poll_result(request_id=export_res.request_id)
+            except AcceptedRequestException:
+                # Retry later.
+
+            # Download the result when it's ready.
+            download_res = await audit.download_results(request_id=export_res.request_id)
+            download_res.result.dest_url
+            # => https://pangea-runtime.s3.amazonaws.com/audit/xxxxx/search_results_[...]
+        """
+        input = ExportRequest(
+            format=format,
+            start=start,
+            end=end,
+            order=order,
+            order_by=order_by,
+            verbose=verbose,
+        )
+        try:
+            return await self.request.post(
+                "v1/export", PangeaResponseResult, data=input.dict(exclude_none=True), poll_result=False
+            )
+        except pexc.AcceptedRequestException as e:
+            return e.response
+
     async def root(self, tree_size: Optional[int] = None) -> PangeaResponse[RootResult]:
         """
         Tamperproof verification
@@ -427,7 +489,10 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
         return await self.request.post("v1/root", RootResult, data=input.dict(exclude_none=True))
 
     async def download_results(
-        self, result_id: str, format: Optional[DownloadFormat] = None
+        self,
+        result_id: Optional[str] = None,
+        format: DownloadFormat = DownloadFormat.CSV,
+        request_id: Optional[str] = None,
     ) -> PangeaResponse[DownloadResult]:
         """
         Download search results
@@ -439,6 +504,7 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
         Args:
             result_id: ID returned by the search API.
             format: Format for the records.
+            request_id: ID returned by the search API.
 
         Returns:
             URL where search results can be downloaded.
@@ -454,7 +520,10 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
             )
         """
 
-        input = DownloadRequest(result_id=result_id, format=format)
+        if request_id is None and result_id is None:
+            raise ValueError("must pass one of `request_id` or `result_id`")
+
+        input = DownloadRequest(request_id=request_id, result_id=result_id, format=format)
         return await self.request.post("v1/download_results", DownloadResult, data=input.dict(exclude_none=True))
 
     async def update_published_roots(self, result: SearchResultOutput):

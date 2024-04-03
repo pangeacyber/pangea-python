@@ -439,7 +439,10 @@ class DownloadFormat(str, enum.Enum):
 
 
 class DownloadRequest(APIRequestModel):
-    result_id: str
+    request_id: Optional[str] = None
+    """ID returned by the search API."""
+
+    result_id: Optional[str] = None
     """ID returned by the search API."""
 
     format: Optional[str] = None
@@ -449,3 +452,35 @@ class DownloadRequest(APIRequestModel):
 class DownloadResult(PangeaResponseResult):
     dest_url: str
     """URL where search results can be downloaded."""
+
+    expires_at: str
+    """
+    The time when the results will no longer be available to page through via
+    the results API.
+    """
+
+
+class ExportRequest(APIRequestModel):
+    format: DownloadFormat = DownloadFormat.CSV
+    """Format for the records."""
+
+    start: Optional[datetime.datetime] = None
+    """The start of the time range to perform the search on."""
+
+    end: Optional[datetime.datetime] = None
+    """
+    The end of the time range to perform the search on. If omitted, then all
+    records up to the latest will be searched.
+    """
+
+    order_by: Optional[str] = None
+    """Name of column to sort the results by."""
+
+    order: Optional[SearchOrder] = None
+    """Specify the sort order of the response."""
+
+    verbose: bool = True
+    """
+    Whether or not to include the root hash of the tree and the membership proof
+    for each record.
+    """

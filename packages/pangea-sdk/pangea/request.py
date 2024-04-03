@@ -5,19 +5,21 @@ import copy
 import json
 import logging
 import time
-from typing import Dict, List, Optional, Tuple, Type, Union
+from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Type, Union
 
-import aiohttp
 import requests
 from requests.adapters import HTTPAdapter, Retry
-from requests.structures import CaseInsensitiveDict
 from requests_toolbelt import MultipartDecoder  # type: ignore
+from typing_extensions import TypeVar
 
 import pangea
 import pangea.exceptions as pe
 from pangea.config import PangeaConfig
 from pangea.response import AttachedFile, PangeaResponse, PangeaResponseResult, ResponseStatus, TransferMethod
 from pangea.utils import default_encoder
+
+if TYPE_CHECKING:
+    import aiohttp
 
 
 class MultipartResponse(object):
@@ -188,6 +190,9 @@ class PangeaRequestBase(object):
         raise pe.PangeaAPIException(f"{summary} ", response)
 
 
+TResult = TypeVar("TResult", bound=PangeaResponseResult, default=PangeaResponseResult)
+
+
 class PangeaRequest(PangeaRequestBase):
     """An object that makes direct calls to Pangea Service APIs.
 
@@ -203,12 +208,12 @@ class PangeaRequest(PangeaRequestBase):
     def post(
         self,
         endpoint: str,
-        result_class: Type[PangeaResponseResult],
+        result_class: Type[TResult],
         data: Union[str, Dict] = {},
         files: Optional[List[Tuple]] = None,
         poll_result: bool = True,
         url: Optional[str] = None,
-    ) -> PangeaResponse:
+    ) -> PangeaResponse[TResult]:
         """Makes the POST call to a Pangea Service endpoint.
 
         Args:
@@ -344,7 +349,7 @@ class PangeaRequest(PangeaRequestBase):
 
         return data, files
 
-    def _handle_queued_result(self, response: PangeaResponse) -> PangeaResponse[Type[PangeaResponseResult]]:
+    def _handle_queued_result(self, response: PangeaResponse[TResult]) -> PangeaResponse[TResult]:
         if self._queued_retry_enabled and response.http_status == 202:
             self.logger.debug(
                 json.dumps(
@@ -356,7 +361,7 @@ class PangeaRequest(PangeaRequestBase):
 
         return response
 
-    def get(self, path: str, result_class: Type[PangeaResponseResult], check_response: bool = True) -> PangeaResponse:
+    def get(self, path: str, result_class: Type[TResult], check_response: bool = True) -> PangeaResponse[TResult]:
         """Makes the GET call to a Pangea Service endpoint.
 
         Args:
@@ -428,21 +433,21 @@ class PangeaRequest(PangeaRequestBase):
             raise pe.DownloadFileError(f"Failed to download file. Status: {response.status_code}", response.text)
 
     def poll_result_by_id(
-        self, request_id: str, result_class: Union[Type[PangeaResponseResult], Type[dict]], check_response: bool = True
-    ):
+        self, request_id: str, result_class: Type[TResult], check_response: bool = True
+    ) -> PangeaResponse[TResult]:
         path = self._get_poll_path(request_id)
         self.logger.debug(json.dumps({"service": self.service, "action": "poll_result_once", "url": path}))
-        return self.get(path, result_class, check_response=check_response)  # type: ignore[arg-type]
+        return self.get(path, result_class, check_response=check_response)
 
     def poll_result_once(
-        self, response: PangeaResponse, check_response: bool = True
-    ) -> PangeaResponse[Type[PangeaResponseResult]]:
+        self, response: PangeaResponse[TResult], check_response: bool = True
+    ) -> PangeaResponse[TResult]:
         request_id = response.request_id
         if not request_id:
             raise pe.PangeaException("Poll result error: response did not include a 'request_id'")
 
         if response.status != ResponseStatus.ACCEPTED.value:
-            raise pe.PangeaException("Response already proccesed")
+            raise pe.PangeaException("Response already processed")
 
         return self.poll_result_by_id(request_id, response.result_class, check_response=check_response)
 
@@ -526,7 +531,7 @@ class PangeaRequest(PangeaRequestBase):
         self.post_presigned_url(url=presigned_url, data=data_to_presigned, files=files)
         return response.raw_response
 
-    def _poll_result_retry(self, response: PangeaResponse) -> PangeaResponse[Type[PangeaResponseResult]]:
+    def _poll_result_retry(self, response: PangeaResponse[TResult]) -> PangeaResponse[TResult]:
         retry_count = 1
         start = time.time()
 
@@ -538,9 +543,7 @@ class PangeaRequest(PangeaRequestBase):
         self.logger.debug(json.dumps({"service": self.service, "action": "poll_result_retry", "step": "exit"}))
         return self._check_response(response)
 
-    def _poll_presigned_url(
-        self, response: PangeaResponse[Type[PangeaResponseResult]]
-    ) -> PangeaResponse[Type[PangeaResponseResult]]:
+    def _poll_presigned_url(self, response: PangeaResponse[TResult]) -> PangeaResponse[TResult]:
         if response.http_status != 202:
             raise AttributeError("Response should be 202")
 
