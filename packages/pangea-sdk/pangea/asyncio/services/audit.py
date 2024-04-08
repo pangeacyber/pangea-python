@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional, Sequence, Union
 
 import pangea.exceptions as pexc
 from pangea.asyncio.services.base import ServiceBaseAsync
-from pangea.response import PangeaResponse
+from pangea.response import PangeaResponse, PangeaResponseResult
 from pangea.services.audit.audit import AuditBase
 from pangea.services.audit.exceptions import AuditException
 from pangea.services.audit.models import (
@@ -401,6 +401,46 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
             await self.update_published_roots(response.result)
 
         return self.handle_results_response(response, verify_consistency, verify_events)
+
+    async def log_stream(self, data: dict) -> PangeaResponse[PangeaResponseResult]:
+        """
+        Log streaming endpoint
+
+        This API allows 3rd party vendors (like Auth0) to stream events to this
+        endpoint where the structure of the payload varies across different
+        vendors.
+
+        OperationId: audit_post_v1_log_stream
+
+        Args:
+            data: Event data. The exact schema of this will vary by vendor.
+
+        Raises:
+            AuditException: If an audit based api exception happens
+            PangeaAPIException: If an API Error happens
+
+        Examples:
+            data = {
+                "logs": [
+                    {
+                        "log_id": "some log ID",
+                        "data": {
+                            "date": "2024-03-29T17:26:50.193Z",
+                            "type": "sapi",
+                            "description": "Create a log stream",
+                            "client_id": "some client ID",
+                            "ip": "127.0.0.1",
+                            "user_agent": "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0",
+                            "user_id": "some user ID",
+                        },
+                    }
+                    # ...
+                ]
+            }
+
+            response = await audit.log_stream(data)
+        """
+        return await self.request.post("v1/log_stream", PangeaResponseResult, data=data)
 
     async def root(self, tree_size: Optional[int] = None) -> PangeaResponse[RootResult]:
         """

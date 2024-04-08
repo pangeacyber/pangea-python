@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Support for Secure Audit Log's log stream API.
+
 ### Fixed
 
 - Incorrect return types in Intel bulk APIs.
