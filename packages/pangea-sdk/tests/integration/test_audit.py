@@ -2,6 +2,7 @@ import datetime
 import json
 import time
 import unittest
+from secrets import token_hex
 
 import pangea.exceptions as pe
 from pangea import PangeaConfig
@@ -756,3 +757,27 @@ class TestAudit(unittest.TestCase):
 
         file = self.audit_general.download_file(url=response_download.result.dest_url)
         file.save(dest_folder="./")
+
+    def test_log_stream(self) -> None:
+        data = {
+            "logs": [
+                {
+                    "log_id": token_hex(16),
+                    "data": {
+                        "date": "2024-03-29T17:26:50.193Z",
+                        "type": "some_type",
+                        "description": "Create a log stream",
+                        "client_id": token_hex(16),
+                        "ip": "127.0.0.1",
+                        "user_agent": "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0",
+                        "user_id": token_hex(16),
+                    },
+                }
+            ]
+        }
+
+        config_id = get_config_id(TEST_ENVIRONMENT, "audit", 3)
+        config = PangeaConfig(domain=self.domain)
+        client = Audit(self.multi_config_token, config=config, config_id=config_id)
+        response = client.log_stream(data)
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)

@@ -40,6 +40,7 @@
     # Config IDs
     - export PANGEA_AUDIT_CONFIG_ID_1_${ENV}="$(eval echo \$PANGEA_AUDIT_CONFIG_ID_1_${ENV}_${CLOUD})"
     - export PANGEA_AUDIT_CONFIG_ID_2_${ENV}="$(eval echo \$PANGEA_AUDIT_CONFIG_ID_2_${ENV}_${CLOUD})"
+    - export PANGEA_AUDIT_CONFIG_ID_3_${ENV}="$(eval echo \$PANGEA_AUDIT_CONFIG_ID_3_${ENV}_${CLOUD})"
     - export PANGEA_REDACT_CONFIG_ID_1_${ENV}="$(eval echo \$PANGEA_REDACT_CONFIG_ID_1_${ENV}_${CLOUD})"
     - export PANGEA_REDACT_CONFIG_ID_2_${ENV}="$(eval echo \$PANGEA_REDACT_CONFIG_ID_2_${ENV}_${CLOUD})"
 
@@ -85,11 +86,11 @@
         ENV: ${SERVICE_VAULT_ENV}
         TEST: test_vault
   rules:
-    - if: $CI_COMMIT_BRANCH && '$CLOUD == "GCP" && $TEST == "test_file_scan"'
+    - if: '$CI_COMMIT_BRANCH && $CLOUD == "GCP" && $TEST == "test_file_scan"'
       allow_failure: true
-    - if: $CI_COMMIT_BRANCH && '$CLOUD == "GCP" && $TEST != "test_file_scan"'
+    - if: '$CI_COMMIT_BRANCH && $CLOUD == "GCP" && $TEST != "test_file_scan"'
       allow_failure: false
-    - if: $CI_COMMIT_BRANCH && '$CLOUD != "GCP"'
+    - if: '$CI_COMMIT_BRANCH && $CLOUD != "GCP"'
       allow_failure: false
 
 sdk-build:
