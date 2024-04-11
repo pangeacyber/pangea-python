@@ -102,17 +102,6 @@ sdk-build:
     paths: ["packages/pangea-sdk/dist"]
     when: on_success
 
-sdk-docs:
-  extends: .sdk-base
-  stage: build
-  script:
-    - poetry run python parse_module.py > python_sdk.json
-  artifacts:
-    expire_in: 1 month
-    expose_as: python_sdk
-    paths: ["packages/pangea-sdk/python_sdk.json"]
-    when: on_success
-
 sdk-integration-tests:
   extends: .sdk-test-base
   stage: integration_tests
