@@ -108,12 +108,12 @@ sdk-integration-tests:
   script:
     - poetry run python -m unittest tests.integration.${TEST}
 
-# TODO: Add asyncio tests when upgrade python 3.8
-# sdk-asyncio-integration-tests:
-#   extends: .sdk-test-base
-#   stage: integration_tests
-#   script:
-#     - poetry run python -m unittest tests.integration.asyncio.${TEST}
+sdk-asyncio-integration-tests:
+  extends: .sdk-test-base
+  image: python:3.8-bullseye
+  stage: integration_tests
+  script:
+    - poetry run python -m unittest tests.integration.asyncio.${TEST}
 
 sdk-publish:
   extends: .sdk-base
