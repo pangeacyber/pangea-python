@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Incorrect return types in Intel bulk APIs.
+- `str2str_b64()` now supports non-ASCII strings.
 
 ## [3.7.1] - 2024-03-20
 

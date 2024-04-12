@@ -7,6 +7,15 @@ from pangea.utils import default_encoder, get_prefix, hash_sha1, hash_sha256, st
 
 
 class TestUtils(unittest.TestCase):
+    def test_str2str_b64(self) -> None:
+        self.assertEqual(str2str_b64(""), "")
+        self.assertEqual(str2str_b64("a"), "YQ==")
+        self.assertEqual(str2str_b64("ab"), "YWI=")
+        self.assertEqual(str2str_b64("abc"), "YWJj")
+        self.assertEqual(str2str_b64("message"), "bWVzc2FnZQ==")
+        self.assertEqual(str2str_b64("message", "ascii"), "bWVzc2FnZQ==")
+        self.assertEqual(str2str_b64("👍"), "8J+RjQ==")
+
     def test_base64(self):
         msg = "message"
         msg_b64 = str2str_b64(msg)
