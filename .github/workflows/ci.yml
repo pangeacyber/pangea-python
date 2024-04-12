@@ -25,7 +25,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  POETRY_VERSION: 1.7.1
+  POETRY_VERSION: 1.8.2 # renovate: datasource=pypi depName=poetry
 
 jobs:
   setup:
@@ -68,7 +68,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5.1.0
         with:
-          python-version: 3.11.7
+          python-version: 3.11.7 # renovate: datasource=docker depName=python
           cache: poetry
           cache-dependency-path: '**/poetry.lock'
 
@@ -85,7 +85,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5.1.0
         with:
-          python-version: 3.11.7
+          python-version: 3.11.7 # renovate: datasource=docker depName=python
 
       - uses: pre-commit/action@v3.0.1
 
@@ -107,7 +107,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5.1.0
         with:
-          python-version: 3.7.17
+          python-version: 3.7.17 # renovate: datasource=docker depName=python
           cache: poetry
           cache-dependency-path: ./packages/pangea-sdk/poetry.lock
 
@@ -137,7 +137,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5.1.0
         with:
-          python-version: 3.7.17
+          python-version: 3.7.17 # renovate: datasource=docker depName=python
           cache: poetry
           cache-dependency-path: ./packages/pangea-sdk/poetry.lock
 
@@ -167,7 +167,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5.1.0
         with:
-          python-version: 3.7.17
+          python-version: 3.7.17 # renovate: datasource=docker depName=python
           cache: poetry
           cache-dependency-path: ./packages/pangea-sdk/poetry.lock
 
@@ -274,7 +274,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5.1.0
         with:
-          python-version: 3.11.7
+          python-version: 3.11.7 # renovate: datasource=docker depName=python
           cache: poetry
           cache-dependency-path: ./examples/${{ matrix.example }}/poetry.lock
 
