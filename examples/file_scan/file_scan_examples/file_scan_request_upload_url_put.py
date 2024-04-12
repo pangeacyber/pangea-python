@@ -9,6 +9,7 @@ from pangea.services.file_scan import FileScanResult, FileUploader
 from pangea.tools import logger_set_pangea_config
 
 token = os.getenv("PANGEA_FILE_SCAN_TOKEN")
+assert token
 domain = os.getenv("PANGEA_DOMAIN")
 assert domain
 

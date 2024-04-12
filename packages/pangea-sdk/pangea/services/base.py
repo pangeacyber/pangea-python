@@ -16,7 +16,11 @@ class ServiceBase(object):
     service_name: str = "base"
 
     def __init__(
-        self, token, config: Optional[PangeaConfig] = None, logger_name: str = "pangea", config_id: Optional[str] = None
+        self,
+        token: str,
+        config: Optional[PangeaConfig] = None,
+        logger_name: str = "pangea",
+        config_id: Optional[str] = None,
     ):
         if not token:
             raise Exception("No token provided")
@@ -30,11 +34,11 @@ class ServiceBase(object):
         self.request.set_extra_headers(extra_headers)
 
     @property
-    def token(self):
+    def token(self) -> str:
         return self._token
 
     @token.setter
-    def token(self, value):
+    def token(self, value: str) -> None:
         self._token = value
 
     @property

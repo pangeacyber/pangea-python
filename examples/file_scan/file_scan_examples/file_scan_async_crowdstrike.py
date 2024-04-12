@@ -7,6 +7,7 @@ from pangea.services import FileScan
 from pangea.tools import logger_set_pangea_config
 
 token = os.getenv("PANGEA_FILE_SCAN_TOKEN")
+assert token
 domain = os.getenv("PANGEA_DOMAIN")
 assert domain
 
@@ -19,7 +20,7 @@ logger_set_pangea_config(logger_name=client.logger.name)
 FILEPATH = "./file_scan_examples/testfile.pdf"
 
 
-def main():
+def main() -> None:
     print("Checking file...")
     exception = None
     try:
