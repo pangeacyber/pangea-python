@@ -5,8 +5,9 @@ import json
 import logging
 import re
 import types
-from dataclasses import dataclass, field, replace
+from dataclasses import asdict, dataclass, field, is_dataclass, replace
 from inspect import _empty
+from typing import Any
 
 import docstring_parser
 
@@ -76,6 +77,11 @@ class DocumentationModule:
     variables: list[Function] = field(default_factory=list)
 
 
+class DocsJsonEncoder(json.JSONEncoder):
+    def default(self, o: Any) -> Any:
+        return asdict(o) if is_dataclass(o) else super().default(o)
+
+
 def _format_annotation(annotation: object, base_module: str | None = None) -> str:
     if isinstance(annotation, str):
         return annotation
@@ -113,16 +119,9 @@ def _merge_with_type_annotations(function, function_section: Function) -> None:
         ptype = _format_annotation(annotation)
         section = next(x for x in function_section.parameters if x.name == pname)
 
-        # This is no longer worth warning about, it is fine for the types to not
-        # be in the docstring because we pull that from the real type annotation
-        # anyways.
-        # if section.type is None:
-        #     logger.warning(
-        #         f"In function {function.__qualname__}: "
-        #         f"Parameter '{pname}' has no type in docstring, but has an annotation. "
-        #         f"Will be using its annotation type: {ptype}"
-        #     )
-        #     section.type = ptype
+        # Add type from type annotation if it isn't present in docstring.
+        if section.type is None:
+            section.type = ptype
 
         # This is finnicky because of how the types are qualified. For example,
         # this warns on differences like 'm.AgreementType' vs 'pangea.services.authn.models.AgreementType'
@@ -346,4 +345,4 @@ def parse_pangea() -> dict[str, DocumentationModule]:
 
 if __name__ == "__main__":
     docs = parse_pangea()
-    print(json.dumps(docs, default=lambda o: o.__dict__, indent=2))
+    print(json.dumps(docs, cls=DocsJsonEncoder, indent=2, sort_keys=True))
