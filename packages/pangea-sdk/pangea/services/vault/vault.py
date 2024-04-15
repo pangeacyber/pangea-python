@@ -1,8 +1,11 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+from __future__ import annotations
+
 import datetime
 from typing import Dict, Optional, Union
 
+from pangea.config import PangeaConfig
 from pangea.response import PangeaResponse
 from pangea.services.base import ServiceBase
 from pangea.services.vault.models.asymmetric import (
@@ -98,10 +101,24 @@ class Vault(ServiceBase):
 
     def __init__(
         self,
-        token,
-        config=None,
-        logger_name="pangea",
-    ):
+        token: str,
+        config: PangeaConfig | None = None,
+        logger_name: str = "pangea",
+    ) -> None:
+        """
+        Vault client
+
+        Initializes a new Vault client.
+
+        Args:
+            token: Pangea API token.
+            config: Configuration.
+            logger_name: Logger name.
+
+        Examples:
+             config = PangeaConfig(domain="pangea_domain")
+             vault = Vault(token="pangea_token", config=audit_config)
+        """
         super().__init__(token, config, logger_name)
 
     # Delete endpoint
@@ -1216,7 +1233,7 @@ class Vault(ServiceBase):
         Args:
             id (str): The item ID.
             structured_data (dict): Structured data for applying bulk operations.
-            filter (str, optional): A filter expression for applying bulk operations to the data field.
+            filter (str): A filter expression for applying bulk operations to the data field.
             version (int, optional): The item version. Defaults to the current version.
             additional_data (str, optional): User provided authentication data.
 
@@ -1265,7 +1282,7 @@ class Vault(ServiceBase):
         Args:
             id (str): The item ID.
             structured_data (dict): Structured data to decrypt.
-            filter (str, optional): A filter expression for applying bulk operations to the data field.
+            filter (str): A filter expression for applying bulk operations to the data field.
             version (int, optional): The item version. Defaults to the current version.
             additional_data (str, optional): User provided authentication data.
 
