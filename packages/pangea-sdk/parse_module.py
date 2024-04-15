@@ -12,7 +12,7 @@ import docstring_parser
 
 logger = logging.Logger(__file__)
 
-OID_REGEX = re.compile(r"OperationId:\s+(.*)^")
+OID_REGEX = re.compile(r"OperationId:\s+(.*)$", re.MULTILINE)
 
 
 @dataclass()
