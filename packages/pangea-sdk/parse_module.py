@@ -281,13 +281,15 @@ def _parse_module(module: types.ModuleType | types.FunctionType | type) -> Docum
         # Supposedly, this check doesn't work for c python functions
         #  that should be okay though
         elif isinstance(obj, types.FunctionType):
-            if parsed_func := _parse_function(obj):
+            parsed_func = _parse_function(obj)
+            if parsed_func:
                 this_module.functions.append(parsed_func)
 
         # This check will fail for metaclasses -- let's cross that
         #  bridge when we get there, though
         elif isinstance(obj, type):
-            if parsed_class := _parse_class(obj):
+            parsed_class = _parse_class(obj)
+            if parsed_class:
                 this_module.classes.append(parsed_class)
 
         # Assume constants either str or int
