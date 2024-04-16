@@ -1,9 +1,12 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+from __future__ import annotations
+
 import datetime
 from typing import Dict, Optional, Union
 
 from pangea.asyncio.services.base import ServiceBaseAsync
+from pangea.config import PangeaConfig
 from pangea.response import PangeaResponse
 from pangea.services.vault.models.asymmetric import (
     AsymmetricGenerateRequest,
@@ -98,10 +101,24 @@ class VaultAsync(ServiceBaseAsync):
 
     def __init__(
         self,
-        token,
-        config=None,
-        logger_name="pangea",
-    ):
+        token: str,
+        config: PangeaConfig | None = None,
+        logger_name: str = "pangea",
+    ) -> None:
+        """
+        Vault client
+
+        Initializes a new Vault client.
+
+        Args:
+            token: Pangea API token.
+            config: Configuration.
+            logger_name: Logger name.
+
+        Examples:
+             config = PangeaConfig(domain="pangea_domain")
+             vault = VaultAsync(token="pangea_token", config=config)
+        """
         super().__init__(token, config, logger_name)
 
     # Delete endpoint

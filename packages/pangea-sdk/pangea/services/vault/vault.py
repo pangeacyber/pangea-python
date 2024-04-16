@@ -117,7 +117,7 @@ class Vault(ServiceBase):
 
         Examples:
              config = PangeaConfig(domain="pangea_domain")
-             vault = Vault(token="pangea_token", config=audit_config)
+             vault = Vault(token="pangea_token", config=config)
         """
         super().__init__(token, config, logger_name)
 

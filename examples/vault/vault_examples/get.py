@@ -28,6 +28,7 @@ def main() -> None:
         assert create_response.result
         assert create_response.result.current_version
         audit_token = create_response.result.current_version.secret
+        assert audit_token
 
         # Use that token to log a message.
         msg = "Hello, World!"

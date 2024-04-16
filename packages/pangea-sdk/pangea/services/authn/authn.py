@@ -1,9 +1,11 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+from __future__ import annotations
 
 from typing import Dict, List, Optional, Union
 
 import pangea.services.authn.models as m
+from pangea.config import PangeaConfig
 from pangea.response import PangeaResponse
 from pangea.services.base import ServiceBase
 
@@ -37,10 +39,24 @@ class AuthN(ServiceBase):
 
     def __init__(
         self,
-        token,
-        config=None,
-        logger_name="pangea",
-    ):
+        token: str,
+        config: PangeaConfig | None = None,
+        logger_name: str = "pangea",
+    ) -> None:
+        """
+        AuthN client
+
+        Initializes a new AuthN client.
+
+        Args:
+            token: Pangea API token.
+            config: Configuration.
+            logger_name: Logger name.
+
+        Examples:
+             config = PangeaConfig(domain="pangea_domain")
+             authn = AuthN(token="pangea_token", config=config)
+        """
         super().__init__(token, config, logger_name=logger_name)
         self.user = AuthN.User(token, config, logger_name=logger_name)
         self.flow = AuthN.Flow(token, config, logger_name=logger_name)
