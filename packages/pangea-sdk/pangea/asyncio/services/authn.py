@@ -1,10 +1,12 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+from __future__ import annotations
 
 from typing import Dict, List, Optional, Union
 
 import pangea.services.authn.models as m
 from pangea.asyncio.services.base import ServiceBaseAsync
+from pangea.config import PangeaConfig
 from pangea.response import PangeaResponse
 
 SERVICE_NAME = "authn"
@@ -37,10 +39,24 @@ class AuthNAsync(ServiceBaseAsync):
 
     def __init__(
         self,
-        token,
-        config=None,
-        logger_name="pangea",
-    ):
+        token: str,
+        config: PangeaConfig | None = None,
+        logger_name: str = "pangea",
+    ) -> None:
+        """
+        AuthN client
+
+        Initializes a new AuthN client.
+
+        Args:
+            token: Pangea API token.
+            config: Configuration.
+            logger_name: Logger name.
+
+        Examples:
+             config = PangeaConfig(domain="pangea_domain")
+             authn = AuthNAsync(token="pangea_token", config=config)
+        """
         super().__init__(token, config, logger_name=logger_name)
         self.user = AuthNAsync.UserAsync(token, config, logger_name=logger_name)
         self.flow = AuthNAsync.FlowAsync(token, config, logger_name=logger_name)
@@ -53,10 +69,10 @@ class AuthNAsync(ServiceBaseAsync):
 
         def __init__(
             self,
-            token,
-            config=None,
-            logger_name="pangea",
-        ):
+            token: str,
+            config: PangeaConfig | None = None,
+            logger_name: str = "pangea",
+        ) -> None:
             super().__init__(token, config, logger_name=logger_name)
 
         async def invalidate(self, session_id: str) -> PangeaResponse[m.SessionInvalidateResult]:
@@ -148,10 +164,10 @@ class AuthNAsync(ServiceBaseAsync):
 
         def __init__(
             self,
-            token,
-            config=None,
-            logger_name="pangea",
-        ):
+            token: str,
+            config: PangeaConfig | None = None,
+            logger_name: str = "pangea",
+        ) -> None:
             super().__init__(token, config, logger_name=logger_name)
             self.session = AuthNAsync.ClientAsync.SessionAsync(token, config, logger_name=logger_name)
             self.password = AuthNAsync.ClientAsync.PasswordAsync(token, config, logger_name=logger_name)
@@ -208,10 +224,10 @@ class AuthNAsync(ServiceBaseAsync):
 
             def __init__(
                 self,
-                token,
-                config=None,
-                logger_name="pangea",
-            ):
+                token: str,
+                config: PangeaConfig | None = None,
+                logger_name: str = "pangea",
+            ) -> None:
                 super().__init__(token, config, logger_name=logger_name)
 
             async def invalidate(self, token: str, session_id: str) -> PangeaResponse[m.ClientSessionInvalidateResult]:
@@ -343,10 +359,10 @@ class AuthNAsync(ServiceBaseAsync):
 
             def __init__(
                 self,
-                token,
-                config=None,
-                logger_name="pangea",
-            ):
+                token: str,
+                config: PangeaConfig | None = None,
+                logger_name: str = "pangea",
+            ) -> None:
                 super().__init__(token, config, logger_name=logger_name)
 
             async def change(
@@ -384,10 +400,10 @@ class AuthNAsync(ServiceBaseAsync):
 
             def __init__(
                 self,
-                token,
-                config=None,
-                logger_name="pangea",
-            ):
+                token: str,
+                config: PangeaConfig | None = None,
+                logger_name: str = "pangea",
+            ) -> None:
                 super().__init__(token, config, logger_name=logger_name)
 
             async def check(self, token: str) -> PangeaResponse[m.ClientTokenCheckResult]:
@@ -421,10 +437,10 @@ class AuthNAsync(ServiceBaseAsync):
 
         def __init__(
             self,
-            token,
-            config=None,
-            logger_name="pangea",
-        ):
+            token: str,
+            config: PangeaConfig | None = None,
+            logger_name: str = "pangea",
+        ) -> None:
             super().__init__(token, config, logger_name=logger_name)
             self.profile = AuthNAsync.UserAsync.ProfileAsync(token, config, logger_name=logger_name)
             self.authenticators = AuthNAsync.UserAsync.AuthenticatorsAsync(token, config, logger_name=logger_name)
@@ -615,10 +631,10 @@ class AuthNAsync(ServiceBaseAsync):
 
             def __init__(
                 self,
-                token,
-                config=None,
-                logger_name="pangea",
-            ):
+                token: str,
+                config: PangeaConfig | None = None,
+                logger_name: str = "pangea",
+            ) -> None:
                 super().__init__(token, config, logger_name=logger_name)
 
             async def list(
@@ -687,10 +703,10 @@ class AuthNAsync(ServiceBaseAsync):
 
             def __init__(
                 self,
-                token,
-                config=None,
-                logger_name="pangea",
-            ):
+                token: str,
+                config: PangeaConfig | None = None,
+                logger_name: str = "pangea",
+            ) -> None:
                 super().__init__(token, config, logger_name=logger_name)
 
             async def delete(
@@ -758,10 +774,10 @@ class AuthNAsync(ServiceBaseAsync):
 
             def __init__(
                 self,
-                token,
-                config=None,
-                logger_name="pangea",
-            ):
+                token: str,
+                config: PangeaConfig | None = None,
+                logger_name: str = "pangea",
+            ) -> None:
                 super().__init__(token, config, logger_name=logger_name)
 
             async def get(
@@ -838,10 +854,10 @@ class AuthNAsync(ServiceBaseAsync):
 
         def __init__(
             self,
-            token,
-            config=None,
-            logger_name="pangea",
-        ):
+            token: str,
+            config: PangeaConfig | None = None,
+            logger_name: str = "pangea",
+        ) -> None:
             super().__init__(token, config, logger_name=logger_name)
 
         async def complete(self, flow_id: str) -> PangeaResponse[m.FlowCompleteResult]:
@@ -978,10 +994,10 @@ class AuthNAsync(ServiceBaseAsync):
 
         def __init__(
             self,
-            token,
-            config=None,
-            logger_name="pangea",
-        ):
+            token: str,
+            config: PangeaConfig | None = None,
+            logger_name: str = "pangea",
+        ) -> None:
             super().__init__(token, config, logger_name=logger_name)
 
         async def create(

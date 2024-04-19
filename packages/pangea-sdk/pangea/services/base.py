@@ -1,5 +1,6 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+from __future__ import annotations
 
 import copy
 import logging
@@ -18,10 +19,18 @@ class ServiceBase(object):
     def __init__(
         self,
         token: str,
-        config: Optional[PangeaConfig] = None,
+        config: PangeaConfig | None = None,
         logger_name: str = "pangea",
-        config_id: Optional[str] = None,
-    ):
+        config_id: str | None = None,
+    ) -> None:
+        """
+        Initializes a new Pangea service client.
+
+        Args:
+            token: Pangea API token.
+            config: Configuration.
+            logger_name: Logger name.
+        """
         if not token:
             raise Exception("No token provided")
 

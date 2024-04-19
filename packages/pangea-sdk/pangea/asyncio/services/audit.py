@@ -1,10 +1,13 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+from __future__ import annotations
+
 import datetime
 from typing import Any, Dict, List, Optional, Sequence, Union
 
 import pangea.exceptions as pexc
 from pangea.asyncio.services.base import ServiceBaseAsync
+from pangea.config import PangeaConfig
 from pangea.response import PangeaResponse, PangeaResponseResult
 from pangea.services.audit.audit import AuditBase
 from pangea.services.audit.exceptions import AuditException
@@ -56,14 +59,33 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
 
     def __init__(
         self,
-        token,
-        config=None,
+        token: str,
+        config: PangeaConfig | None = None,
         private_key_file: str = "",
-        public_key_info: Dict[str, str] = {},
-        tenant_id: Optional[str] = None,
-        logger_name="pangea",
-        config_id: Optional[str] = None,
-    ):
+        public_key_info: dict[str, str] = {},
+        tenant_id: str | None = None,
+        logger_name: str = "pangea",
+        config_id: str | None = None,
+    ) -> None:
+        """
+        Audit client
+
+        Initializes a new Audit client.
+
+        Args:
+            token: Pangea API token.
+            config: Configuration.
+            private_key_file: Private key filepath.
+            public_key_info: Public key information.
+            tenant_id: Tenant ID.
+            logger_name: Logger name.
+            config_id: Configuration ID.
+
+        Examples:
+             config = PangeaConfig(domain="pangea_domain")
+             audit = AuditAsync(token="pangea_token", config=config)
+        """
+
         # FIXME: Temporary check to deprecate config_id from PangeaConfig.
         # Delete it when deprecate PangeaConfig.config_id
         if config_id and config is not None and config.config_id is not None:

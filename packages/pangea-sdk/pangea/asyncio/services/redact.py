@@ -1,10 +1,12 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+from __future__ import annotations
 
 from typing import Dict, List, Optional, Union
 
 import pangea.services.redact as m
 from pangea.asyncio.services.base import ServiceBaseAsync
+from pangea.config import PangeaConfig
 from pangea.response import PangeaResponse
 
 
@@ -35,7 +37,24 @@ class RedactAsync(ServiceBaseAsync):
 
     service_name = "redact"
 
-    def __init__(self, token, config=None, logger_name="pangea", config_id: Optional[str] = None):
+    def __init__(
+        self, token: str, config: PangeaConfig | None = None, logger_name: str = "pangea", config_id: str | None = None
+    ) -> None:
+        """
+        Redact client
+
+        Initializes a new Redact client.
+
+        Args:
+            token: Pangea API token.
+            config: Configuration.
+            logger_name: Logger name.
+
+        Examples:
+             config = PangeaConfig(domain="pangea_domain")
+             redact = RedactAsync(token="pangea_token", config=config)
+        """
+
         super().__init__(token, config, logger_name, config_id=config_id)
 
     async def redact(
