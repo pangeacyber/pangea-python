@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pangea-django"
-version = "1.0.0"
+version = "1.0.1"
 description = "Pangea Authentication Addon for Django"
 authors = ["Govind Salinas <govind.salinas@pangea.cloud>"]
 license = "MIT"
