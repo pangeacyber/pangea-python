@@ -1,0 +1,1 @@
+# Pangea Django Example
