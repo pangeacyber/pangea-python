@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from pangea_django import PangeaAuthentication, generate_state_param
+import os
 
 # Create your views here.
 
@@ -8,7 +9,10 @@ def landing(request):
     if request.user.is_authenticated:
         return redirect("/home")
 
-    return redirect(f"https://pdn-dhkrualgjlcc43hh3mrvwggh3gjuxn6e.login.dev.aws.pangea.cloud?state={generate_state_param(request)}")
+    hosted_login = os.getenv("PANGEA_HOSTED_LOGIN")
+    redirect_url = hosted_login + "?state={generate_state_param(request)}"
+    
+    return redirect(redirect_url)
 
 def post_login(request):
     user = PangeaAuthentication().authenticate(request=request)
