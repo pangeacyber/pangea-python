@@ -30,8 +30,8 @@ def default_encoder(obj) -> str:
         return str(obj)
 
 
-def str2str_b64(data: str):
-    return base64.b64encode(data.encode("ascii")).decode("ascii")
+def str2str_b64(data: str, encoding: str = "utf-8") -> str:
+    return base64.b64encode(data.encode(encoding)).decode("ascii")
 
 
 def dict_order_keys(data: dict) -> OrderedDict:

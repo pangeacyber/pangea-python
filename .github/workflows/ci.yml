@@ -25,7 +25,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  POETRY_VERSION: 1.7.1
+  POETRY_VERSION: 1.8.2 # renovate: datasource=pypi depName=poetry
 
 jobs:
   setup:
@@ -36,7 +36,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.1.1
+        uses: actions/checkout@v4.1.4
 
       - name: Calculate `examples-matrix` output
         id: examples-matrix
@@ -53,7 +53,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.1.1
+        uses: actions/checkout@v4.1.4
 
       - name: Update pip
         run: |
@@ -68,7 +68,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5.1.0
         with:
-          python-version: 3.11.7
+          python-version: 3.11.7 # renovate: datasource=docker depName=python
           cache: poetry
           cache-dependency-path: '**/poetry.lock'
 
@@ -80,12 +80,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.1.1
+        uses: actions/checkout@v4.1.4
 
       - name: Setup Python
         uses: actions/setup-python@v5.1.0
         with:
-          python-version: 3.11.7
+          python-version: 3.11.7 # renovate: datasource=docker depName=python
 
       - uses: pre-commit/action@v3.0.1
 
@@ -97,7 +97,7 @@ jobs:
         working-directory: ./packages/pangea-sdk
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.1.1
+        uses: actions/checkout@v4.1.4
 
       - name: Install poetry
         run: |
@@ -107,7 +107,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5.1.0
         with:
-          python-version: 3.7.17
+          python-version: 3.7.17 # renovate: datasource=docker depName=python
           cache: poetry
           cache-dependency-path: ./packages/pangea-sdk/poetry.lock
 
@@ -127,7 +127,7 @@ jobs:
         working-directory: ./packages/pangea-sdk
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.1.1
+        uses: actions/checkout@v4.1.4
 
       - name: Install poetry
         run: |
@@ -137,7 +137,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5.1.0
         with:
-          python-version: 3.7.17
+          python-version: 3.7.17 # renovate: datasource=docker depName=python
           cache: poetry
           cache-dependency-path: ./packages/pangea-sdk/poetry.lock
 
@@ -157,7 +157,7 @@ jobs:
         working-directory: ./packages/pangea-sdk
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.1.1
+        uses: actions/checkout@v4.1.4
 
       - name: Install poetry
         run: |
@@ -167,7 +167,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5.1.0
         with:
-          python-version: 3.7.17
+          python-version: 3.7.17 # renovate: datasource=docker depName=python
           cache: poetry
           cache-dependency-path: ./packages/pangea-sdk/poetry.lock
 
@@ -190,7 +190,7 @@ jobs:
         working-directory: ./packages/pangea-sdk
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.1.1
+        uses: actions/checkout@v4.1.4
 
       - name: Install poetry
         run: |
@@ -212,6 +212,42 @@ jobs:
       - name: Unit test
         run: poetry run python -m unittest tests.unit
 
+  sdk-docs:
+    needs: [prefetch]
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./packages/pangea-sdk
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.1.4
+
+      - name: Install poetry
+        run: |
+          pip install --upgrade poetry==${{ env.POETRY_VERSION }}
+          poetry --version
+
+      - name: Setup Python
+        uses: actions/setup-python@v5.1.0
+        with:
+          python-version: 3.11.9 # renovate: datasource=docker depName=python
+          cache: poetry
+          cache-dependency-path: ./packages/pangea-sdk/poetry.lock
+
+      - name: Install dependencies
+        run: |
+          poetry check
+          poetry install
+
+      - name: Generate docs
+        run: poetry run python parse_module.py > python_sdk.json
+
+      - name: Upload
+        uses: actions/upload-artifact@v4.3.3
+        with:
+          name: python_sdk.json
+          path: ./packages/pangea-sdk/python_sdk.json
+
   examples:
     needs: [setup, prefetch]
     runs-on: ubuntu-latest
@@ -223,7 +259,7 @@ jobs:
         working-directory: ./examples/${{ matrix.example }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.1.1
+        uses: actions/checkout@v4.1.4
 
       - name: Update pip
         run: |
@@ -238,7 +274,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5.1.0
         with:
-          python-version: 3.11.7
+          python-version: 3.11.7 # renovate: datasource=docker depName=python
           cache: poetry
           cache-dependency-path: ./examples/${{ matrix.example }}/poetry.lock
 

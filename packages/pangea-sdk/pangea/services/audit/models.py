@@ -1,5 +1,7 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+from __future__ import annotations
+
 import datetime
 import enum
 from typing import Any, Dict, List, Optional, Sequence, Union
@@ -19,14 +21,14 @@ class EventVerification(str, enum.Enum):
         return str(self.value)
 
 
-class Event(dict):
+class Event(Dict[str, Any]):
     """
     Event to perform an auditable activity
 
     Auxiliary class to be compatible with older SDKs
     """
 
-    def __init__(self, **data):
+    def __init__(self, **data) -> None:
         super().__init__(**data)
 
     @property

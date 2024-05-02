@@ -1,10 +1,13 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+from __future__ import annotations
+
 import datetime
 import json
 from typing import Any, Dict, List, Optional, Sequence, Set, Tuple, Union
 
 import pangea.exceptions as pexc
+from pangea.config import PangeaConfig
 from pangea.response import PangeaResponse, PangeaResponseResult
 from pangea.services.audit.exceptions import AuditException, EventCorruption
 from pangea.services.audit.models import (
@@ -52,8 +55,8 @@ from pangea.utils import canonicalize_nested_json
 
 class AuditBase:
     def __init__(
-        self, private_key_file: str = "", public_key_info: Dict[str, str] = {}, tenant_id: Optional[str] = None
-    ):
+        self, private_key_file: str = "", public_key_info: dict[str, str] = {}, tenant_id: str | None = None
+    ) -> None:
         self.pub_roots: Dict[int, PublishedRoot] = {}
         self.buffer_data: Optional[str] = None
         self.signer: Optional[Signer] = Signer(private_key_file) if private_key_file else None
@@ -333,7 +336,9 @@ class AuditBase:
         if audit_envelope and audit_envelope.signature and public_key:
             v = Verifier()
             verification = v.verify_signature(
-                audit_envelope.signature, canonicalize_event(audit_envelope.event), public_key  # type: ignore[arg-type]
+                audit_envelope.signature,
+                canonicalize_event(Event(**audit_envelope.event)),
+                public_key,
             )
             if verification is not None:
                 return EventVerification.PASS if verification else EventVerification.FAIL
@@ -375,14 +380,32 @@ class Audit(ServiceBase, AuditBase):
 
     def __init__(
         self,
-        token,
-        config=None,
+        token: str,
+        config: PangeaConfig | None = None,
         private_key_file: str = "",
-        public_key_info: Dict[str, str] = {},
-        tenant_id: Optional[str] = None,
-        logger_name="pangea",
-        config_id: Optional[str] = None,
-    ):
+        public_key_info: dict[str, str] = {},
+        tenant_id: str | None = None,
+        logger_name: str = "pangea",
+        config_id: str | None = None,
+    ) -> None:
+        """
+        Audit client
+
+        Initializes a new Audit client.
+
+        Args:
+            token: Pangea API token.
+            config: Configuration.
+            private_key_file: Private key filepath.
+            public_key_info: Public key information.
+            tenant_id: Tenant ID.
+            logger_name: Logger name.
+            config_id: Configuration ID.
+
+        Examples:
+             config = PangeaConfig(domain="pangea_domain")
+             audit = Audit(token="pangea_token", config=config)
+        """
         # FIXME: Temporary check to deprecate config_id from PangeaConfig.
         # Delete it when deprecate PangeaConfig.config_id
         if config_id and config is not None and config.config_id is not None:
@@ -788,6 +811,46 @@ class Audit(ServiceBase, AuditBase):
             )
         except pexc.AcceptedRequestException as e:
             return e.response
+
+    def log_stream(self, data: dict) -> PangeaResponse[PangeaResponseResult]:
+        """
+        Log streaming endpoint
+
+        This API allows 3rd party vendors (like Auth0) to stream events to this
+        endpoint where the structure of the payload varies across different
+        vendors.
+
+        OperationId: audit_post_v1_log_stream
+
+        Args:
+            data: Event data. The exact schema of this will vary by vendor.
+
+        Raises:
+            AuditException: If an audit based api exception happens
+            PangeaAPIException: If an API Error happens
+
+        Examples:
+            data = {
+                "logs": [
+                    {
+                        "log_id": "some log ID",
+                        "data": {
+                            "date": "2024-03-29T17:26:50.193Z",
+                            "type": "sapi",
+                            "description": "Create a log stream",
+                            "client_id": "some client ID",
+                            "ip": "127.0.0.1",
+                            "user_agent": "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0",
+                            "user_id": "some user ID",
+                        },
+                    }
+                    # ...
+                ]
+            }
+
+            response = audit.log_stream(data)
+        """
+        return self.request.post("v1/log_stream", PangeaResponseResult, data=data)
 
     def root(self, tree_size: Optional[int] = None) -> PangeaResponse[RootResult]:
         """

@@ -9,11 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Support for Secure Audit Log's log stream API.
 - Support for Secure Audit Log's export API.
 
 ### Fixed
 
 - Incorrect return types in Intel bulk APIs.
+- `str2str_b64()` now supports non-ASCII strings.
 
 ## [3.7.1] - 2024-03-20
 
