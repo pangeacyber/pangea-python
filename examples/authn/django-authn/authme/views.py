@@ -10,7 +10,7 @@ def landing(request):
         return redirect("/home")
 
     hosted_login = os.getenv("PANGEA_HOSTED_LOGIN")
-    redirect_url = hosted_login + "?state={generate_state_param(request)}"
+    redirect_url = hosted_login + "?state=" + generate_state_param(request)
     
     return redirect(redirect_url)
 
@@ -23,7 +23,7 @@ def post_login(request):
 @login_required(login_url="/")
 def logout(request):
     user = PangeaAuthentication().logout(request)
-    return redirect("/")
+    return redirect("/logout")
 
 @login_required(login_url="/")
 def home(request):
