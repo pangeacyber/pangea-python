@@ -142,7 +142,7 @@ class SanitizeAsync(ServiceBaseAsync):
         Sanitize via presigned URL (Beta)
 
         Apply file sanitization actions according to specified rules via a
-        [presigned URL](https://pangea.cloud/docs/api/presigned-urls).
+        [presigned URL](https://pangea.cloud/docs/api/transfer-methods).
         How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
 
         OperationId: sanitize_post_v1beta_sanitize 2
