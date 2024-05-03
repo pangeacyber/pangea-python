@@ -2,6 +2,7 @@ import datetime
 import json
 import time
 import unittest
+from asyncio import sleep
 
 import pangea.exceptions as pe
 from pangea import PangeaConfig
@@ -760,22 +761,27 @@ class TestAuditAsync(unittest.IsolatedAsyncioTestCase):
         file.save("./")
 
     async def test_export_download(self) -> None:
-        export_res = await self.audit_general.export(verbose=False)
+        export_res = await self.audit_general.export(
+            start=datetime.datetime.now(tz=datetime.timezone.utc) - datetime.timedelta(days=1),
+            end=datetime.datetime.now(tz=datetime.timezone.utc),
+            verbose=False,
+        )
         self.assertEqual(export_res.status, "Accepted")
 
-        # Note that the export can easily take dozens of minutes, if not longer,
-        # so we don't actually wait for the results on CI. Instead we just poll
-        # it once and then attempt the download, even when we know it isn't
-        # ready yet, just to verify that the core of the functions are working.
-        try:
-            await self.audit_general.poll_result(request_id=export_res.request_id)
-        except pe.AcceptedRequestException as e:
-            self.assertEqual(e.response.status, "Accepted")
+        max_retries = 10
+        for retry in range(max_retries):
+            try:
+                response = await self.audit_general.poll_result(request_id=export_res.request_id)
+                if response.status == "Success":
+                    break
+            except pe.AcceptedRequestException:
+                pass
+            except pe.NotFound:
+                pass
 
-        try:
-            await self.audit_general.download_results(request_id=export_res.request_id)
-        except pe.NotFound as e:
-            # This may be thrown if this test runs while an export is already in
-            # progress, since the request ID from the current run does not match
-            # the original request ID that started the export in a previous run.
-            self.assertEqual(e.response.status, "NotFound")
+            self.assertLess(retry, max_retries - 1, "exceeded maximum retries")
+            await sleep(3)
+
+        download_res = await self.audit_general.download_results(request_id=export_res.request_id)
+        self.assertEqual(download_res.status, "Success")
+        self.assertIsNotNone(download_res.result.dest_url)

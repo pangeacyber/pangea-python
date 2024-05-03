@@ -442,7 +442,7 @@ class DownloadFormat(str, enum.Enum):
 
 class DownloadRequest(APIRequestModel):
     request_id: Optional[str] = None
-    """ID returned by the search API."""
+    """ID returned by the export API."""
 
     result_id: Optional[str] = None
     """ID returned by the search API."""

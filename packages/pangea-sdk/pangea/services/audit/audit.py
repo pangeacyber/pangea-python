@@ -892,7 +892,7 @@ class Audit(ServiceBase, AuditBase):
         Args:
             result_id: ID returned by the search API.
             format: Format for the records.
-            request_id: ID returned by the search API.
+            request_id: ID returned by the export API.
 
         Returns:
             URL where search results can be downloaded.
