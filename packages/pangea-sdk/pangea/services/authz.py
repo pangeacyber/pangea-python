@@ -20,10 +20,10 @@ class ItemOrder(str, enum.Enum):
 
 
 class TupleOrderBy(str, enum.Enum):
-    RESOURCE_NAMESPACE = "resource_namespace"
+    RESOURCE_TYPE = "resource_type"
     RESOURCE_ID = "resource_id"
     RELATION = "relation"
-    SUBJECT_NAMESPACE = "subject_namespace"
+    SUBJECT_TYPE = "subject_type"
     SUBJECT_ID = "subject_id"
     SUBJECT_ACTION = "subject_action"
 
@@ -35,12 +35,12 @@ class TupleOrderBy(str, enum.Enum):
 
 
 class Resource(PangeaResponseResult):
-    namespace: str
+    type: str
     id: Optional[str] = None
 
 
 class Subject(PangeaResponseResult):
-    namespace: str
+    type: str
     id: Optional[str] = None
     action: Optional[str] = None
 
@@ -60,18 +60,18 @@ class TupleCreateResult(PangeaResponseResult):
 
 
 class TupleListFilter(APIRequestModel):
-    resource_namespace: Optional[str] = None
-    resource_namespace__contains: Optional[List[str]] = None
-    resource_namespace__in: Optional[List[str]] = None
+    resource_type: Optional[str] = None
+    resource_type__contains: Optional[List[str]] = None
+    resource_type__in: Optional[List[str]] = None
     resource_id: Optional[str] = None
     resource_id__contains: Optional[List[str]] = None
     resource_id__in: Optional[List[str]] = None
     relation: Optional[str] = None
     relation__contains: Optional[List[str]] = None
     relation__in: Optional[List[str]] = None
-    subject_namespace: Optional[str] = None
-    subject_namespace__contains: Optional[List[str]] = None
-    subject_namespace__in: Optional[List[str]] = None
+    subject_type: Optional[str] = None
+    subject_type__contains: Optional[List[str]] = None
+    subject_type__in: Optional[List[str]] = None
     subject_id: Optional[str] = None
     subject_id__contains: Optional[List[str]] = None
     subject_id__in: Optional[List[str]] = None
@@ -111,7 +111,7 @@ class CheckRequest(APIRequestModel):
 
 
 class DebugPath(APIResponseModel):
-    namespace: str
+    type: str
     id: str
     action: Optional[str]
 
@@ -129,7 +129,7 @@ class CheckResult(PangeaResponseResult):
 
 
 class ListResourcesRequest(APIRequestModel):
-    namespace: str
+    type: str
     action: str
     subject: Subject
 
@@ -189,22 +189,22 @@ class AuthZ(ServiceBase):
         Returns:
             Pangea Response with empty result.
             Available response fields can be found in our
-            [API Documentation](https://pangea.cloud/docs/api/authz#/v1beta/tuple/create).
+            [API Documentation](https://pangea.cloud/docs/api/authz#/v1/tuple/create).
 
         Examples:
             response = authz.tuple_create(
                 tuples=[
                     Tuple(
-                        resource=Resource(namespace="file", id="file_1"),
+                        resource=Resource(type="file", id="file_1"),
                         relation="owner",
-                        subject=Subject(namespace="user", id="user_1"),
+                        subject=Subject(type="user", id="user_1"),
                     )
                 ]
             )
         """
 
         input_data = TupleCreateRequest(tuples=tuples)
-        return self.request.post("v1beta/tuple/create", TupleCreateResult, data=input_data.dict(exclude_none=True))
+        return self.request.post("v1/tuple/create", TupleCreateResult, data=input_data.dict(exclude_none=True))
 
     def tuple_list(
         self,
@@ -234,15 +234,15 @@ class AuthZ(ServiceBase):
         Returns:
             Pangea Response with a list of tuples and the last token.
             Available response fields can be found in our
-            [API Documentation](https://pangea.cloud/docs/api/authz#/v1beta/tuple/list).
+            [API Documentation](https://pangea.cloud/docs/api/authz#/v1/tuple/list).
 
         Examples:
-            authz.tuple_list(TupleListFilter(subject_namespace="user", subject_id="user_1"))
+            authz.tuple_list(TupleListFilter(subject_type="user", subject_id="user_1"))
         """
         input_data = TupleListRequest(
             filter=filter.dict(exclude_none=True), size=size, last=last, order=order, order_by=order_by
         )
-        return self.request.post("v1beta/tuple/list", TupleListResult, data=input_data.dict(exclude_none=True))
+        return self.request.post("v1/tuple/list", TupleListResult, data=input_data.dict(exclude_none=True))
 
     def tuple_delete(self, tuples: List[Tuple]) -> PangeaResponse[TupleDeleteResult]:
         """Delete tuples. (Beta)
@@ -259,22 +259,22 @@ class AuthZ(ServiceBase):
         Returns:
             Pangea Response with empty result.
             Available response fields can be found in our
-            [API Documentation](https://pangea.cloud/docs/api/authz#/v1beta/tuple/delete).
+            [API Documentation](https://pangea.cloud/docs/api/authz#/v1/tuple/delete).
 
         Examples:
             response = authz.tuple_delete(
                 tuples=[
                     Tuple(
-                        resource=Resource(namespace="file", id="file_1"),
+                        resource=Resource(type="file", id="file_1"),
                         relation="owner",
-                        subject=Subject(namespace="user", id="user_1"),
+                        subject=Subject(type="user", id="user_1"),
                     )
                 ]
             )
         """
 
         input_data = TupleDeleteRequest(tuples=tuples)
-        return self.request.post("v1beta/tuple/delete", TupleDeleteResult, data=input_data.dict(exclude_none=True))
+        return self.request.post("v1/tuple/delete", TupleDeleteResult, data=input_data.dict(exclude_none=True))
 
     def check(
         self,
@@ -302,29 +302,29 @@ class AuthZ(ServiceBase):
         Returns:
             Pangea Response with the result of the check.
             Available response fields can be found in our
-            [API Documentation](https://pangea.cloud/docs/api/authz#/v1beta/check).
+            [API Documentation](https://pangea.cloud/docs/api/authz#/v1/check).
 
         Examples:
             response = authz.check(
-                resource=Resource(namespace="file", id="file_1"),
+                resource=Resource(type="file", id="file_1"),
                 action="update",
-                subject=Subject(namespace="user", id="user_1"),
+                subject=Subject(type="user", id="user_1"),
                 debug=True,
             )
         """
 
         input_data = CheckRequest(resource=resource, action=action, subject=subject, debug=debug, attributes=attributes)
-        return self.request.post("v1beta/check", CheckResult, data=input_data.dict(exclude_none=True))
+        return self.request.post("v1/check", CheckResult, data=input_data.dict(exclude_none=True))
 
-    def list_resources(self, namespace: str, action: str, subject: Subject) -> PangeaResponse[ListResourcesResult]:
+    def list_resources(self, type: str, action: str, subject: Subject) -> PangeaResponse[ListResourcesResult]:
         """List resources. (Beta)
 
-        Given a namespace, action, and subject, list all the resources in the
-        namespace that the subject has access to the action with.
+        Given a type, action, and subject, list all the resources in the
+        type that the subject has access to the action with.
         How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
 
         Args:
-            namespace (str): The namespace to filter resources.
+            type (str): The type to filter resources.
             action (str): The action to filter resources.
             subject (Subject): The subject to filter resources.
 
@@ -334,18 +334,18 @@ class AuthZ(ServiceBase):
         Returns:
             Pangea Response with a list of resource IDs.
             Available response fields can be found in our
-            [API Documentation](https://pangea.cloud/docs/api/authz#/v1beta/list-resources).
+            [API Documentation](https://pangea.cloud/docs/api/authz#/v1/list-resources).
 
         Examples:
             authz.list_resources(
-                namespace="file",
+                type="file",
                 action="update",
-                subject=Subject(namespace="user", id="user_1"),
+                subject=Subject(type="user", id="user_1"),
             )
         """
 
-        input_data = ListResourcesRequest(namespace=namespace, action=action, subject=subject)
-        return self.request.post("v1beta/list-resources", ListResourcesResult, data=input_data.dict(exclude_none=True))
+        input_data = ListResourcesRequest(type=type, action=action, subject=subject)
+        return self.request.post("v1/list-resources", ListResourcesResult, data=input_data.dict(exclude_none=True))
 
     def list_subjects(self, resource: Resource, action: str) -> PangeaResponse[ListSubjectsResult]:
         """List subjects. (Beta)
@@ -364,14 +364,14 @@ class AuthZ(ServiceBase):
         Returns:
             Pangea Response with a list of subjects.
             Available response fields can be found in our
-            [API Documentation](https://pangea.cloud/docs/api/authz#/v1beta/list-subjects).
+            [API Documentation](https://pangea.cloud/docs/api/authz#/v1/list-subjects).
 
         Examples:
             response = authz.list_subjects(
-                resource=Resource(namespace="file", id="file_1"),
+                resource=Resource(type="file", id="file_1"),
                 action="update",
             )
         """
 
         input_data = ListSubjectsRequest(resource=resource, action=action)
-        return self.request.post("v1beta/list-subjects", ListSubjectsResult, data=input_data.dict(exclude_none=True))
+        return self.request.post("v1/list-subjects", ListSubjectsResult, data=input_data.dict(exclude_none=True))

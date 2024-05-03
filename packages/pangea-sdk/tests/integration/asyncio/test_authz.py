@@ -16,8 +16,8 @@ folder2 = f"folder_2_{rand_str}"
 user1 = f"user_1_{rand_str}"
 user2 = f"user_2_{rand_str}"
 
-namespace_folder = "folder"
-namespace_user = "user"
+type_folder = "folder"
+type_user = "user"
 relation_owner = "owner"
 relation_editor = "editor"
 relation_reader = "reader"
@@ -36,24 +36,24 @@ class TestAuthZIntegration(TestCase):
         r_create = await self.authz.tuple_create(
             [
                 Tuple(
-                    resource=Resource(namespace=namespace_folder, id=folder1),
+                    resource=Resource(type=type_folder, id=folder1),
                     relation=relation_reader,
-                    subject=Subject(namespace=namespace_user, id=user1),
+                    subject=Subject(type=type_user, id=user1),
                 ),
                 Tuple(
-                    resource=Resource(namespace=namespace_folder, id=folder1),
+                    resource=Resource(type=type_folder, id=folder1),
                     relation=relation_editor,
-                    subject=Subject(namespace=namespace_user, id=user2),
+                    subject=Subject(type=type_user, id=user2),
                 ),
                 Tuple(
-                    resource=Resource(namespace=namespace_folder, id=folder2),
+                    resource=Resource(type=type_folder, id=folder2),
                     relation=relation_editor,
-                    subject=Subject(namespace=namespace_user, id=user1),
+                    subject=Subject(type=type_user, id=user1),
                 ),
                 Tuple(
-                    resource=Resource(namespace=namespace_folder, id=folder2),
+                    resource=Resource(type=type_folder, id=folder2),
                     relation=relation_owner,
-                    subject=Subject(namespace=namespace_user, id=user2),
+                    subject=Subject(type=type_user, id=user2),
                 ),
             ]
         )
@@ -62,7 +62,7 @@ class TestAuthZIntegration(TestCase):
 
         # Tuple list with resource
         r_list_with_resource = await self.authz.tuple_list(
-            filter=TupleListFilter(resource_namespace=namespace_folder, resource_id=folder1)
+            filter=TupleListFilter(resource_type=type_folder, resource_id=folder1)
         )
 
         self.assertIsNotNone(r_list_with_resource.result)
@@ -71,7 +71,7 @@ class TestAuthZIntegration(TestCase):
 
         # Tuple list with subject
         r_list_with_subject = await self.authz.tuple_list(
-            filter=TupleListFilter(subject_namespace=namespace_user, subject_id=user1)
+            filter=TupleListFilter(subject_type=type_user, subject_id=user1)
         )
 
         self.assertIsNotNone(r_list_with_subject.result)
@@ -82,9 +82,9 @@ class TestAuthZIntegration(TestCase):
         r_delete = await self.authz.tuple_delete(
             tuples=[
                 Tuple(
-                    resource=Resource(namespace=namespace_folder, id=folder1),
+                    resource=Resource(type=type_folder, id=folder1),
                     relation=relation_reader,
-                    subject=Subject(namespace=namespace_user, id=user1),
+                    subject=Subject(type=type_user, id=user1),
                 )
             ]
         )
@@ -93,9 +93,9 @@ class TestAuthZIntegration(TestCase):
 
         # Check no debug
         r_check = await self.authz.check(
-            resource=Resource(namespace=namespace_folder, id=folder1),
+            resource=Resource(type=type_folder, id=folder1),
             action="reader",
-            subject=Subject(namespace=namespace_user, id=user2),
+            subject=Subject(type=type_user, id=user2),
         )
 
         self.assertIsNotNone(r_check.result)
@@ -107,9 +107,9 @@ class TestAuthZIntegration(TestCase):
 
         # Check debug
         r_check = await self.authz.check(
-            resource=Resource(namespace=namespace_folder, id=folder1),
+            resource=Resource(type=type_folder, id=folder1),
             action="editor",
-            subject=Subject(namespace=namespace_user, id=user2),
+            subject=Subject(type=type_user, id=user2),
             debug=True,
         )
 
@@ -121,9 +121,9 @@ class TestAuthZIntegration(TestCase):
         self.assertIsNotNone(r_check.result.schema_version)
 
         r_check = await self.authz.check(
-            resource=Resource(namespace=namespace_folder, id=folder1),
+            resource=Resource(type=type_folder, id=folder1),
             action="editor",
-            subject=Subject(namespace=namespace_user, id=user2),
+            subject=Subject(type=type_user, id=user2),
             debug=True,
         )
 
@@ -136,7 +136,7 @@ class TestAuthZIntegration(TestCase):
 
         # List resources
         r_list_resources = await self.authz.list_resources(
-            namespace=namespace_folder, action=relation_editor, subject=Subject(namespace=namespace_user, id=user2)
+            type=type_folder, action=relation_editor, subject=Subject(type=type_user, id=user2)
         )
 
         self.assertIsNotNone(r_list_resources.result)
@@ -145,7 +145,7 @@ class TestAuthZIntegration(TestCase):
 
         # List subjects
         r_list_subjects = await self.authz.list_subjects(
-            resource=Resource(namespace=namespace_folder, id=folder2), action=relation_editor
+            resource=Resource(type=type_folder, id=folder2), action=relation_editor
         )
 
         self.assertIsNotNone(r_list_subjects.result)
