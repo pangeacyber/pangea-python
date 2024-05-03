@@ -2,6 +2,7 @@ import datetime
 import json
 import time
 import unittest
+from asyncio import sleep
 
 import pangea.exceptions as pe
 from pangea import PangeaConfig
@@ -758,3 +759,29 @@ class TestAuditAsync(unittest.IsolatedAsyncioTestCase):
 
         file = await self.audit_general.download_file(url=response_download.result.dest_url)
         file.save("./")
+
+    async def test_export_download(self) -> None:
+        export_res = await self.audit_general.export(
+            start=datetime.datetime.now(tz=datetime.timezone.utc) - datetime.timedelta(days=1),
+            end=datetime.datetime.now(tz=datetime.timezone.utc),
+            verbose=False,
+        )
+        self.assertEqual(export_res.status, "Accepted")
+
+        max_retries = 10
+        for retry in range(max_retries):
+            try:
+                response = await self.audit_general.poll_result(request_id=export_res.request_id)
+                if response.status == "Success":
+                    break
+            except pe.AcceptedRequestException:
+                pass
+            except pe.NotFound:
+                pass
+
+            self.assertLess(retry, max_retries - 1, "exceeded maximum retries")
+            await sleep(3)
+
+        download_res = await self.audit_general.download_results(request_id=export_res.request_id)
+        self.assertEqual(download_res.status, "Success")
+        self.assertIsNotNone(download_res.result.dest_url)

@@ -6,11 +6,15 @@ import copy
 import logging
 from typing import Dict, Optional, Type, Union
 
+from typing_extensions import TypeVar
+
 from pangea.asyncio.request import PangeaRequestAsync
 from pangea.config import PangeaConfig
 from pangea.exceptions import AcceptedRequestException
 from pangea.request import PangeaRequest
 from pangea.response import AttachedFile, PangeaResponse, PangeaResponseResult
+
+TResult = TypeVar("TResult", bound=PangeaResponseResult, default=PangeaResponseResult)
 
 
 class ServiceBase(object):
@@ -68,8 +72,8 @@ class ServiceBase(object):
         exception: Optional[AcceptedRequestException] = None,
         response: Optional[PangeaResponse] = None,
         request_id: Optional[str] = None,
-        result_class: Union[Type[PangeaResponseResult], Type[Dict]] = dict,
-    ) -> PangeaResponse:
+        result_class: Type[TResult] = PangeaResponseResult,  # type: ignore[assignment]
+    ) -> PangeaResponse[TResult]:
         """
         Poll result
 
