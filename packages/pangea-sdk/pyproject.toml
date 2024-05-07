@@ -19,7 +19,7 @@ packages = [
 [tool.poetry.dependencies]
 python = "^3.7.2"
 requests = "^2.31.0"
-cryptography = "^42.0.5"
+cryptography = "^42.0.6"
 python-dateutil = "^2.9.0"
 pydantic = "^1.10.15"
 deprecated = "^1.2.14"
