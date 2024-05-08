@@ -71,7 +71,17 @@ class PangeaAuthentication(BaseBackend):
     def authenticate(self, request: HttpRequest):
         code = request.GET.get("code")
         state = request.GET.get("state")
+        
+        # this call is meant to swap states. Sometimes this gets NONE
+        #Your server may have refreshed etc
+
         expected_state = request.session.get("PANGEA_LOGIN_STATE")
+
+         #ERR LOGs and some information as to why
+        #Django has a hot reload so due to the server functionality this may cause an issue
+
+        #break out this code below
+
         user = None
         if not code or not expected_state or state != expected_state:
             return None
@@ -84,8 +94,8 @@ class PangeaAuthentication(BaseBackend):
                 if created:
                     user.email = active["email"]
                     user.first_name = active["profile"]["first_name"]
-                    user.last_name = active["profile"]["last_name"]
-                    user.last_login = active["profile"]["Last-Login-Time"]
+                    user.last_name = active["profile"]["last_name"]                    
+                    user.last_login = active.get("profile", {}).get("Last-Login-Time") #WRAP IN GETS
                     user.is_active = True
                     user.save()
                 else:
