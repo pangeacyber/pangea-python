@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+
+- Beta tags from AuthZ.
+
 ## [3.8.0] - 2024-05-10
 
 Note that Sanitize and Secure Share did not make it into this release.

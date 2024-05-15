@@ -148,12 +148,11 @@ class ListSubjectsResult(PangeaResponseResult):
 
 
 class AuthZ(ServiceBase):
-    """AuthZ service client. (Beta)
+    """AuthZ service client.
 
     Provides methods to interact with the Pangea AuthZ Service.
     Documentation for the AuthZ Service API can be found at
-    <https://pangea.cloud/docs/api/authz>. Note that this service is in Beta and
-    is subject to change.
+    <https://pangea.cloud/docs/api/authz>.
 
     Examples:
         import os
@@ -174,11 +173,10 @@ class AuthZ(ServiceBase):
         super().__init__(token, config, logger_name, config_id=config_id)
 
     def tuple_create(self, tuples: List[Tuple]) -> PangeaResponse[TupleCreateResult]:
-        """Create tuples. (Beta)
+        """Create tuples.
 
         Create tuples in the AuthZ Service. The request will fail if there is no schema
         or the tuples do not validate against the schema.
-        How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
 
         Args:
             tuples (List[Tuple]): List of tuples to be created.
@@ -214,12 +212,11 @@ class AuthZ(ServiceBase):
         order: Optional[ItemOrder] = None,
         order_by: Optional[TupleOrderBy] = None,
     ) -> PangeaResponse[TupleListResult]:
-        """List tuples. (Beta)
+        """List tuples.
 
         Return a paginated list of filtered tuples. The filter is given in terms
         of a tuple. Fill out the fields that you want to filter. If the filter
         is empty it will return all the tuples.
-        How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
 
         Args:
             filter (TupleListFilter): The filter for listing tuples.
@@ -245,10 +242,9 @@ class AuthZ(ServiceBase):
         return self.request.post("v1/tuple/list", TupleListResult, data=input_data.dict(exclude_none=True))
 
     def tuple_delete(self, tuples: List[Tuple]) -> PangeaResponse[TupleDeleteResult]:
-        """Delete tuples. (Beta)
+        """Delete tuples.
 
         Delete tuples in the AuthZ Service.
-        How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
 
         Args:
             tuples (List[Tuple]): List of tuples to be deleted.
@@ -284,10 +280,9 @@ class AuthZ(ServiceBase):
         debug: Optional[bool] = None,
         attributes: Optional[Dict[str, Union[int, str]]] = None,
     ) -> PangeaResponse[CheckResult]:
-        """Perform a check request. (Beta)
+        """Perform a check request.
 
         Check if a subject has permission to perform an action on the resource.
-        How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
 
         Args:
             resource (Resource): The resource to check.
@@ -317,11 +312,10 @@ class AuthZ(ServiceBase):
         return self.request.post("v1/check", CheckResult, data=input_data.dict(exclude_none=True))
 
     def list_resources(self, type: str, action: str, subject: Subject) -> PangeaResponse[ListResourcesResult]:
-        """List resources. (Beta)
+        """List resources.
 
         Given a type, action, and subject, list all the resources in the
         type that the subject has access to the action with.
-        How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
 
         Args:
             type (str): The type to filter resources.
@@ -348,11 +342,10 @@ class AuthZ(ServiceBase):
         return self.request.post("v1/list-resources", ListResourcesResult, data=input_data.dict(exclude_none=True))
 
     def list_subjects(self, resource: Resource, action: str) -> PangeaResponse[ListSubjectsResult]:
-        """List subjects. (Beta)
+        """List subjects.
 
         Given a resource and an action, return the list of subjects who have
         access to the action for the given resource.
-        How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
 
         Args:
             resource (Resource): The resource to filter subjects.
