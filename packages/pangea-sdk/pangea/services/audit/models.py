@@ -271,6 +271,7 @@ class SearchRequest(APIRequestModel):
     max_results -- Maximum number of results to return.
     search_restriction -- A list of keys to restrict the search results to. Useful for partitioning data available to the query string.
     verbose -- If true, include root, membership and consistency proofs in response.
+    return_context -- Return the context data needed to decrypt secure audit events that have been redacted with format preserving encryption.
     """
 
     query: str
@@ -283,6 +284,7 @@ class SearchRequest(APIRequestModel):
     max_results: Optional[int] = None
     search_restriction: Optional[Dict[str, Sequence[str]]] = None
     verbose: Optional[bool] = None
+    return_context: Optional[bool] = None
 
 
 class RootRequest(APIRequestModel):
@@ -363,6 +365,7 @@ class SearchEvent(APIResponseModel):
     consistency_verification -- Consistency verification calculated if required.
     membership_verification -- Membership verification calculated if required.
     signature_verification -- Signature verification calculated if required.
+    fpe_context -- The context data needed to decrypt secure audit events that have been redacted with format preserving encryption.
     """
 
     envelope: EventEnvelope
@@ -373,6 +376,7 @@ class SearchEvent(APIResponseModel):
     consistency_verification: EventVerification = EventVerification.NONE
     membership_verification: EventVerification = EventVerification.NONE
     signature_verification: EventVerification = EventVerification.NONE
+    fpe_context: Optional[str] = None
 
 
 class SearchResultOutput(PangeaResponseResult):
@@ -418,12 +422,14 @@ class SearchResultRequest(APIRequestModel):
     limit -- Number of audit records to include from the first page of the results.
     offset -- Offset from the start of the result set to start returning results from.
     assert_search_restriction -- Assert the requested search results were queried with the exact same search restrictions, to ensure the results comply to the expected restrictions.
+    return_context -- Return the context data needed to decrypt secure audit events that have been redacted with format preserving encryption.
     """
 
     id: str
     limit: Optional[int] = 20
     offset: Optional[int] = 0
     assert_search_restriction: Optional[Dict[str, Sequence[str]]] = None
+    return_context: Optional[bool] = None
 
 
 class DownloadFormat(str, enum.Enum):
@@ -449,6 +455,9 @@ class DownloadRequest(APIRequestModel):
 
     format: Optional[str] = None
     """Format for the records."""
+
+    return_context: Optional[bool] = None
+    """Return the context data needed to decrypt secure audit events that have been redacted with format preserving encryption."""
 
 
 class DownloadResult(PangeaResponseResult):

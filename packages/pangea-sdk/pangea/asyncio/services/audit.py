@@ -299,6 +299,7 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
         verbose: Optional[bool] = None,
         verify_consistency: bool = False,
         verify_events: bool = True,
+        return_context: Optional[bool] = None,
     ) -> PangeaResponse[SearchOutput]:
         """
         Search the log
@@ -328,6 +329,7 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
             verbose (bool, optional): If true, response include root and membership and consistency proofs.
             verify_consistency (bool): True to verify logs consistency
             verify_events (bool): True to verify hash events and signatures
+            return_context (bool): Return the context data needed to decrypt secure audit events that have been redacted with format preserving encryption.
 
         Raises:
             AuditException: If an audit based api exception happens
@@ -355,6 +357,7 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
             max_results=max_results,
             search_restriction=search_restriction,
             verbose=verbose,
+            return_context=return_context,
         )
 
         response: PangeaResponse[SearchOutput] = await self.request.post(
@@ -373,6 +376,7 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
         assert_search_restriction: Optional[Dict[str, Sequence[str]]] = None,
         verify_consistency: bool = False,
         verify_events: bool = True,
+        return_context: Optional[bool] = None,
     ) -> PangeaResponse[SearchResultOutput]:
         """
         Results of a search
@@ -388,6 +392,8 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
             assert_search_restriction (Dict[str, Sequence[str]], optional): Assert the requested search results were queried with the exact same search restrictions, to ensure the results comply to the expected restrictions.
             verify_consistency (bool): True to verify logs consistency
             verify_events (bool): True to verify hash events and signatures
+            return_context (bool): Return the context data needed to decrypt secure audit events that have been redacted with format preserving encryption.
+
         Raises:
             AuditException: If an audit based api exception happens
             PangeaAPIException: If an API Error happens
@@ -418,6 +424,7 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
             limit=limit,
             offset=offset,
             assert_search_restriction=assert_search_restriction,
+            return_context=return_context,
         )
         response = await self.request.post("v1/results", SearchResultOutput, data=input.dict(exclude_none=True))
         if verify_consistency and response.result is not None:
@@ -555,6 +562,7 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
         result_id: Optional[str] = None,
         format: DownloadFormat = DownloadFormat.CSV,
         request_id: Optional[str] = None,
+        return_context: Optional[bool] = None,
     ) -> PangeaResponse[DownloadResult]:
         """
         Download search results
@@ -567,6 +575,7 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
             result_id: ID returned by the search API.
             format: Format for the records.
             request_id: ID returned by the export API.
+            return_context (bool): Return the context data needed to decrypt secure audit events that have been redacted with format preserving encryption.
 
         Returns:
             URL where search results can be downloaded.
@@ -585,7 +594,9 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
         if request_id is None and result_id is None:
             raise ValueError("must pass one of `request_id` or `result_id`")
 
-        input = DownloadRequest(request_id=request_id, result_id=result_id, format=format)
+        input = DownloadRequest(
+            request_id=request_id, result_id=result_id, format=format, return_context=return_context
+        )
         return await self.request.post("v1/download_results", DownloadResult, data=input.dict(exclude_none=True))
 
     async def update_published_roots(self, result: SearchResultOutput):
