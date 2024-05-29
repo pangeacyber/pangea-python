@@ -28,6 +28,7 @@ from pangea.tools import (
     get_vault_signature_test_token,
     logger_set_pangea_config,
 )
+from tests.test_tools import load_test_environment
 
 ACTOR = "python-sdk"
 MSG_NO_SIGNED = "test-message"
@@ -42,7 +43,7 @@ STATUS_NO_SIGNED = "no-signed"
 STATUS_SIGNED = "signed"
 LONG_FIELD = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed lacinia, orci eget commodo commodo non."
 
-TEST_ENVIRONMENT = TestEnvironment.LIVE
+TEST_ENVIRONMENT = load_test_environment(AuditAsync.service_name, TestEnvironment.LIVE)
 
 custom_schema_event = {
     "message": MSG_CUSTOM_SCHEMA_NO_SIGNED,
