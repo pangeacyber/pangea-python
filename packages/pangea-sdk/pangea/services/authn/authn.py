@@ -448,6 +448,8 @@ class AuthN(ServiceBase):
             self,
             email: str,
             profile: m.Profile,
+            *,
+            username: str | None = None,
         ) -> PangeaResponse[m.UserCreateResult]:
             """
             Create User
@@ -457,8 +459,9 @@ class AuthN(ServiceBase):
             OperationId: authn_post_v2_user_create
 
             Args:
-                email (str): An email address
-                profile (m.Profile): A user profile as a collection of string properties
+                email: An email address.
+                profile: A user profile as a collection of string properties.
+                username: A username.
 
             Returns:
                 A PangeaResponse with a user and its information in the response.result field.
@@ -477,10 +480,13 @@ class AuthN(ServiceBase):
             input = m.UserCreateRequest(
                 email=email,
                 profile=profile,
+                username=username,
             )
             return self.request.post("v2/user/create", m.UserCreateResult, data=input.dict(exclude_none=True))
 
-        def delete(self, email: Optional[str] = None, id: Optional[str] = None) -> PangeaResponse[m.UserDeleteResult]:
+        def delete(
+            self, email: str | None = None, id: str | None = None, *, username: str | None = None
+        ) -> PangeaResponse[m.UserDeleteResult]:
             """
             Delete User
 
@@ -489,8 +495,9 @@ class AuthN(ServiceBase):
             OperationId: authn_post_v2_user_delete
 
             Args:
-                email (str, optional): An email address
-                id (str, optional): The id of a user or a service
+                email: An email address.
+                id: The id of a user or a service.
+                username: A username.
 
             Returns:
                 A PangeaResponse with an empty object in the response.result field.
@@ -498,7 +505,7 @@ class AuthN(ServiceBase):
             Examples:
                 authn.user.delete(email="example@example.com")
             """
-            input = m.UserDeleteRequest(email=email, id=id)
+            input = m.UserDeleteRequest(email=email, id=id, username=username)
             return self.request.post("v2/user/delete", m.UserDeleteResult, data=input.dict(exclude_none=True))
 
         def invite(
@@ -544,10 +551,12 @@ class AuthN(ServiceBase):
 
         def update(
             self,
-            disabled: Optional[bool] = None,
-            id: Optional[str] = None,
-            email: Optional[str] = None,
-            unlock: Optional[bool] = None,
+            disabled: bool | None = None,
+            id: str | None = None,
+            email: str | None = None,
+            unlock: bool | None = None,
+            *,
+            username: str | None = None,
         ) -> PangeaResponse[m.UserUpdateResult]:
             """
             Update user's settings
@@ -557,11 +566,12 @@ class AuthN(ServiceBase):
             OperationId: authn_post_v2_user_update
 
             Args:
-                disabled (bool): New disabled value.
+                disabled: New disabled value.
                     Disabling a user account will prevent them from logging in.
-                unlock (bool): Unlock a user account if it has been locked out due to failed Authentication attempts.
-                id (str, optional): The identity of a user or a service
-                email (str, optional): An email address
+                unlock: Unlock a user account if it has been locked out due to failed authentication attempts.
+                id: The identity of a user or a service.
+                email: An email address.
+                username: A username.
 
             Returns:
                 A PangeaResponse with a user and its information in the response.result field.
@@ -579,6 +589,7 @@ class AuthN(ServiceBase):
                 email=email,
                 disabled=disabled,
                 unlock=unlock,
+                username=username,
             )
 
             return self.request.post("v2/user/update", m.UserUpdateResult, data=input.dict(exclude_none=True))
@@ -710,7 +721,12 @@ class AuthN(ServiceBase):
                 super().__init__(token, config, logger_name=logger_name)
 
             def delete(
-                self, authenticator_id: str, id: Optional[str] = None, email: Optional[str] = None
+                self,
+                authenticator_id: str,
+                id: str | None = None,
+                email: str | None = None,
+                *,
+                username: str | None = None,
             ) -> PangeaResponse[m.UserAuthenticatorsDeleteResult]:
                 """
                 Delete user authenticator
@@ -720,9 +736,10 @@ class AuthN(ServiceBase):
                 OperationId: authn_post_v2_user_authenticators_delete
 
                 Args:
-                    authenticator_id (str): An ID for an authenticator
-                    id (str, optional): The identity of a user or a service
-                    email (str, optional): An email address
+                    authenticator_id: An ID for an authenticator.
+                    id: The identity of a user or a service.
+                    email: An email address.
+                    username: A username.
 
                 Returns:
                     A PangeaResponse with an empty object in the response.result field.
@@ -733,7 +750,9 @@ class AuthN(ServiceBase):
                         id="pui_xpkhwpnz2cmegsws737xbsqnmnuwtbm5",
                     )
                 """
-                input = m.UserAuthenticatorsDeleteRequest(authenticator_id=authenticator_id, email=email, id=id)
+                input = m.UserAuthenticatorsDeleteRequest(
+                    authenticator_id=authenticator_id, email=email, id=id, username=username
+                )
                 return self.request.post(
                     "v2/user/authenticators/delete",
                     m.UserAuthenticatorsDeleteResult,
@@ -741,7 +760,7 @@ class AuthN(ServiceBase):
                 )
 
             def list(
-                self, email: Optional[str] = None, id: Optional[str] = None
+                self, email: str | None = None, id: str | None = None, *, username: str | None = None
             ) -> PangeaResponse[m.UserAuthenticatorsListResult]:
                 """
                 Get user authenticators
@@ -751,8 +770,9 @@ class AuthN(ServiceBase):
                 OperationId: authn_post_v2_user_authenticators_list
 
                 Args:
-                    email (str, optional): An email address
-                    id (str, optional): The identity of a user or a service
+                    email: An email address.
+                    id: The identity of a user or a service.
+                    username: A username.
 
                 Returns:
                     A PangeaResponse with a list of authenticators in the response.result field.
@@ -764,7 +784,7 @@ class AuthN(ServiceBase):
                         id="pui_xpkhwpnz2cmegsws737xbsqnmnuwtbm5",
                     )
                 """
-                input = m.UserAuthenticatorsListRequest(email=email, id=id)
+                input = m.UserAuthenticatorsListRequest(email=email, id=id, username=username)
                 return self.request.post(
                     "v2/user/authenticators/list", m.UserAuthenticatorsListResult, data=input.dict(exclude_none=True)
                 )
@@ -781,7 +801,7 @@ class AuthN(ServiceBase):
                 super().__init__(token, config, logger_name=logger_name)
 
             def get(
-                self, id: Optional[str] = None, email: Optional[str] = None
+                self, id: str | None = None, email: str | None = None, *, username: str | None = None
             ) -> PangeaResponse[m.UserProfileGetResult]:
                 """
                 Get user
@@ -791,8 +811,9 @@ class AuthN(ServiceBase):
                 OperationId: authn_post_v2_user_profile_get
 
                 Args:
-                    id (str, optional): The identity of a user or a service
-                    email (str, optional): An email address
+                    id: The identity of a user or a service.
+                    email: An email address.
+                    username: A username.
 
                 Returns:
                     A PangeaResponse with a user and its information in the response.result field.
@@ -804,7 +825,7 @@ class AuthN(ServiceBase):
                         email="joe.user@email.com",
                     )
                 """
-                input = m.UserProfileGetRequest(id=id, email=email)
+                input = m.UserProfileGetRequest(id=id, email=email, username=username)
                 return self.request.post(
                     "v2/user/profile/get", m.UserProfileGetResult, data=input.dict(exclude_none=True)
                 )
@@ -812,8 +833,10 @@ class AuthN(ServiceBase):
             def update(
                 self,
                 profile: m.Profile,
-                id: Optional[str] = None,
-                email: Optional[str] = None,
+                id: str | None = None,
+                email: str | None = None,
+                *,
+                username: str | None = None,
             ) -> PangeaResponse[m.UserProfileUpdateResult]:
                 """
                 Update user
@@ -823,9 +846,10 @@ class AuthN(ServiceBase):
                 OperationId: authn_post_v2_user_profile_update
 
                 Args:
-                    profile (m.Profile): Updates to a user profile
-                    id (str, optional): The identity of a user or a service
-                    email (str, optional): An email address
+                    profile: Updates to a user profile.
+                    id: The identity of a user or a service.
+                    email: An email address.
+                    username: A username.
 
                 Returns:
                     A PangeaResponse with a user and its information in the response.result field.
@@ -844,6 +868,7 @@ class AuthN(ServiceBase):
                     id=id,
                     email=email,
                     profile=profile,
+                    username=username,
                 )
                 return self.request.post(
                     "v2/user/profile/update", m.UserProfileUpdateResult, data=input.dict(exclude_none=True)
