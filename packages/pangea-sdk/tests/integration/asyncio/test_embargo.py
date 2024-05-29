@@ -4,8 +4,9 @@ import pangea.exceptions as pe
 from pangea import PangeaConfig
 from pangea.asyncio.services import EmbargoAsync
 from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
+from tests.test_tools import load_test_environment
 
-TEST_ENVIRONMENT = TestEnvironment.LIVE
+TEST_ENVIRONMENT = load_test_environment(EmbargoAsync.service_name, TestEnvironment.LIVE)
 
 
 class TestEmbargo(unittest.IsolatedAsyncioTestCase):

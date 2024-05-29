@@ -9,8 +9,9 @@ import pangea.services.authn.models as m
 from pangea import PangeaConfig, PangeaResponse
 from pangea.asyncio.services import AuthNAsync
 from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
+from tests.test_tools import load_test_environment
 
-TEST_ENVIRONMENT = TestEnvironment.LIVE
+TEST_ENVIRONMENT = load_test_environment(AuthNAsync.service_name, TestEnvironment.LIVE)
 
 TIME = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 EMAIL_TEST = f"user.email+test{TIME}@pangea.cloud"
