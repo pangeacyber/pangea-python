@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `fpe_context` field in Audit search events
+- `return_context` support in Audit `/search`, `/results` and `/download` endpoints
+
 ### Removed
 
 - Beta tags from AuthZ.
