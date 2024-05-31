@@ -157,7 +157,7 @@ class UnredactRequest(APIRequestModel):
 
     """
 
-    redacted_data: Union[Dict, str]
+    redacted_data: RedactedData
     fpe_context: str
 
 
