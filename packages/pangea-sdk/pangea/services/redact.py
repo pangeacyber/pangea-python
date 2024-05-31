@@ -27,6 +27,45 @@ class RedactRequest(APIRequestModel):
     rules: Optional[List[str]] = None
     rulesets: Optional[List[str]] = None
     return_result: Optional[bool] = None
+    redaction_method_overrides: Optional[RedactionMethodOverrides] = None
+
+
+class RedactType(str, enum.Enum):
+    MASK = "mask"
+    PARTIAL_MASKING = "partial_masking"
+    REPLACEMENT = "replacement"
+    DETECT_ONLY = "detect_only"
+    HASH = "hash"
+    FPE = "fpe"
+
+
+class FPEAlphabet(str, enum.Enum):
+    NUMERIC = "numeric"
+    ALPHANUMERICLOWER = "alphanumericlower"
+    ALPHANUMERIC = "alphanumeric"
+
+
+class MaskingType(str, enum.Enum):
+    MASK = "mask"
+    UNMASK = "unmask"
+
+
+class PartialMasking(APIRequestModel):
+    masking_type: Optional[MaskingType] = None
+    unmasked_from_left: Optional[int] = None
+    unmasked_from_right: Optional[int] = None
+    masked_from_left: Optional[int] = None
+    masked_from_right: Optional[int] = None
+    chars_to_ignore: Optional[List[str]] = None
+    masking_char: Optional[List[str]] = None
+
+
+class RedactionMethodOverrides(APIRequestModel):
+    redaction_type: RedactType
+    hash: Optional[Dict] = None
+    fpe_alphabet: Optional[FPEAlphabet] = None
+    partial_masking: Optional[PartialMasking] = None
+    redaction_value: Optional[str] = None
 
 
 class RecognizerResult(APIResponseModel):
@@ -94,6 +133,7 @@ class StructuredRequest(APIRequestModel):
     rules: Optional[List[str]] = None
     rulesets: Optional[List[str]] = None
     return_result: Optional[bool] = None
+    redaction_method_overrides: Optional[RedactionMethodOverrides] = None
 
 
 class StructuredResult(PangeaResponseResult):
@@ -105,6 +145,32 @@ class StructuredResult(PangeaResponseResult):
     redacted_data: Optional[Union[Dict, str]] = None
     count: int
     report: Optional[DebugReport] = None
+
+
+class UnredactRequest(APIRequestModel):
+    """
+    Class input to unredact data request
+
+    Arguments:
+    redacted_data: Data to unredact
+    fpe_context (base64): FPE context used to decrypt and unredact data
+
+    """
+
+    redacted_data: Union[Dict, str]
+    fpe_context: str
+
+
+RedactedData = Union[str, Dict]
+
+
+class UnredactResult(PangeaResponseResult):
+    """
+    Result class after an unredact request
+
+    """
+
+    data: RedactedData
 
 
 class Redact(ServiceBase):
@@ -161,6 +227,7 @@ class Redact(ServiceBase):
         rules: Optional[List[str]] = None,
         rulesets: Optional[List[str]] = None,
         return_result: Optional[bool] = None,
+        redaction_method_overrides: Optional[RedactionMethodOverrides] = None,
     ) -> PangeaResponse[RedactResult]:
         """
         Redact
@@ -176,6 +243,7 @@ class Redact(ServiceBase):
             rules (list[str], optional): An array of redact rule short names
             rulesets (list[str], optional): An array of redact rulesets short names
             return_result(bool, optional): Setting this value to false will omit the redacted result only returning count
+            redaction_method_overrides: A set of redaction method overrides for any enabled rule. These methods override the config declared methods
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -189,7 +257,14 @@ class Redact(ServiceBase):
             response = redact.redact(text="Jenny Jenny... 555-867-5309")
         """
 
-        input = RedactRequest(text=text, debug=debug, rules=rules, rulesets=rulesets, return_result=return_result)
+        input = RedactRequest(
+            text=text,
+            debug=debug,
+            rules=rules,
+            rulesets=rulesets,
+            return_result=return_result,
+            redaction_method_overrides=redaction_method_overrides,
+        )
         return self.request.post("v1/redact", RedactResult, data=input.dict(exclude_none=True))
 
     def redact_structured(
@@ -201,6 +276,7 @@ class Redact(ServiceBase):
         rules: Optional[List[str]] = None,
         rulesets: Optional[List[str]] = None,
         return_result: Optional[bool] = None,
+        redaction_method_overrides: Optional[RedactionMethodOverrides] = None,
     ) -> PangeaResponse[StructuredResult]:
         """
         Redact structured
@@ -220,6 +296,7 @@ class Redact(ServiceBase):
             rules (list[str], optional): An array of redact rule short names
             rulesets (list[str], optional): An array of redact rulesets short names
             return_result(bool, optional): Setting this value to false will omit the redacted result only returning count
+            redaction_method_overrides: A set of redaction method overrides for any enabled rule. These methods override the config declared methods
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -246,5 +323,29 @@ class Redact(ServiceBase):
             rules=rules,
             rulesets=rulesets,
             return_result=return_result,
+            redaction_method_overrides=redaction_method_overrides,
         )
         return self.request.post("v1/redact_structured", StructuredResult, data=input.dict(exclude_none=True))
+
+    def unredact(self, redacted_data: RedactedData, fpe_context: str) -> PangeaResponse[UnredactResult]:
+        """
+        Unredact
+
+        Decrypt or unredact fpe redactions
+
+        OperationId: redact_post_v1_unredact
+
+        Args:
+            redacted_data: Data to unredact
+            fpe_context (base64): FPE context used to decrypt and unredact data
+
+        Raises:
+            PangeaAPIException: If an API Error happens
+
+        Returns:
+            Pangea Response with redacted data in the response.result field,
+                available response fields can be found in our
+                [API Documentation](https://pangea.cloud/docs/api/redact#unredact)
+        """
+        input = UnredactRequest(redacted_data=redacted_data, fpe_context=fpe_context)
+        return self.request.post("v1/unredact", UnredactResult, data=input.dict(exclude_none=True))
