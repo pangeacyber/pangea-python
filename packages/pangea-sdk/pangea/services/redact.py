@@ -17,19 +17,6 @@ class RedactFormat(str, enum.Enum):
     """JSON format."""
 
 
-class RedactRequest(APIRequestModel):
-    """
-    Input class to make a redact request
-    """
-
-    text: str
-    debug: Optional[bool] = None
-    rules: Optional[List[str]] = None
-    rulesets: Optional[List[str]] = None
-    return_result: Optional[bool] = None
-    redaction_method_overrides: Optional[RedactionMethodOverrides] = None
-
-
 class RedactType(str, enum.Enum):
     MASK = "mask"
     PARTIAL_MASKING = "partial_masking"
@@ -66,6 +53,19 @@ class RedactionMethodOverrides(APIRequestModel):
     fpe_alphabet: Optional[FPEAlphabet] = None
     partial_masking: Optional[PartialMasking] = None
     redaction_value: Optional[str] = None
+
+
+class RedactRequest(APIRequestModel):
+    """
+    Input class to make a redact request
+    """
+
+    text: str
+    debug: Optional[bool] = None
+    rules: Optional[List[str]] = None
+    rulesets: Optional[List[str]] = None
+    return_result: Optional[bool] = None
+    redaction_method_overrides: Optional[RedactionMethodOverrides] = None
 
 
 class RecognizerResult(APIResponseModel):
