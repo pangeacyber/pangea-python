@@ -449,7 +449,7 @@ class ExportRequest(APIRequestModel):
     encryption_key: Optional[str] = None
     """Public key in pem format used to encrypt exported key(s)."""
 
-    encryption_algorithm: Optional[str] = None
+    encryption_algorithm: Optional[ExportEncryptionAlgorithm] = None
     """The algorithm of the public key."""
 
 
