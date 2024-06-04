@@ -27,6 +27,9 @@ from pangea.services.vault.models.common import (
     EncodedSymmetricKey,
     EncryptStructuredRequest,
     EncryptStructuredResult,
+    ExportEncryptionAlgorithm,
+    ExportRequest,
+    ExportResult,
     FolderCreateRequest,
     FolderCreateResult,
     GetRequest,
@@ -551,6 +554,7 @@ class Vault(ServiceBase):
         rotation_frequency: Optional[str] = None,
         rotation_state: Optional[ItemVersionState] = None,
         expiration: Optional[datetime.datetime] = None,
+        exportable: Optional[bool] = None,
     ) -> PangeaResponse[SymmetricGenerateResult]:
         """
         Symmetric generate
@@ -572,6 +576,7 @@ class Vault(ServiceBase):
                 - `deactivated`
                 - `destroyed`
             expiration (str, optional): Expiration timestamp
+            exportable (bool, optional): Whether the key is exportable or not
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -611,6 +616,7 @@ class Vault(ServiceBase):
             rotation_frequency=rotation_frequency,
             rotation_state=rotation_state,
             expiration=expiration,
+            exportable=exportable,
         )
         return self.request.post(
             "v1/key/generate",
@@ -629,6 +635,7 @@ class Vault(ServiceBase):
         rotation_frequency: Optional[str] = None,
         rotation_state: Optional[ItemVersionState] = None,
         expiration: Optional[datetime.datetime] = None,
+        exportable: Optional[bool] = None,
     ) -> PangeaResponse[AsymmetricGenerateResult]:
         """
         Asymmetric generate
@@ -650,6 +657,7 @@ class Vault(ServiceBase):
                 - `deactivated`
                 - `destroyed`
             expiration (str, optional): Expiration timestamp
+            exportable (bool, optional): Whether the key is exportable or not
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -689,6 +697,7 @@ class Vault(ServiceBase):
             rotation_frequency=rotation_frequency,
             rotation_state=rotation_state,
             expiration=expiration,
+            exportable=exportable,
         )
         return self.request.post(
             "v1/key/generate",
@@ -710,6 +719,7 @@ class Vault(ServiceBase):
         rotation_frequency: Optional[str] = None,
         rotation_state: Optional[ItemVersionState] = None,
         expiration: Optional[datetime.datetime] = None,
+        exportable: Optional[bool] = None,
     ) -> PangeaResponse[AsymmetricStoreResult]:
         """
         Asymmetric store
@@ -733,6 +743,7 @@ class Vault(ServiceBase):
                 - `deactivated`
                 - `destroyed`
             expiration (str, optional): Expiration timestamp
+            exportable (bool, optional): Whether the key is exportable or not
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -776,6 +787,7 @@ class Vault(ServiceBase):
             rotation_frequency=rotation_frequency,
             rotation_state=rotation_state,
             expiration=expiration,
+            exportable=exportable,
         )
         return self.request.post("v1/key/store", AsymmetricStoreResult, data=input.dict(exclude_none=True))
 
@@ -791,6 +803,7 @@ class Vault(ServiceBase):
         rotation_frequency: Optional[str] = None,
         rotation_state: Optional[ItemVersionState] = None,
         expiration: Optional[datetime.datetime] = None,
+        exportable: Optional[bool] = None,
     ) -> PangeaResponse[SymmetricStoreResult]:
         """
         Symmetric store
@@ -813,6 +826,7 @@ class Vault(ServiceBase):
                 - `deactivated`
                 - `destroyed`
             expiration (str, optional): Expiration timestamp
+            exportable (bool, optional): Whether the key is exportable or not
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -854,6 +868,7 @@ class Vault(ServiceBase):
             rotation_frequency=rotation_frequency,
             rotation_state=rotation_state,
             expiration=expiration,
+            exportable=exportable,
         )
         return self.request.post("v1/key/store", SymmetricStoreResult, data=input.dict(exclude_none=True))
 
@@ -1309,5 +1324,51 @@ class Vault(ServiceBase):
         return self.request.post(
             "v1/key/decrypt/structured",
             EncryptStructuredResult,
+            data=input.dict(exclude_none=True),
+        )
+
+    def export(
+        self,
+        id: str,
+        version: Optional[int] = None,
+        encryption_key: Optional[str] = None,
+        encryption_algorithm: Optional[ExportEncryptionAlgorithm] = None,
+    ) -> PangeaResponse[ExportResult]:
+        """
+        Export
+
+        Export a symmetric or asymmetric key.
+
+        OperationId: vault_post_v1_export
+
+        Args:
+            id (str): The ID of the item.
+            version (int, optional): The item version.
+            encryption_key (str, optional): Public key in pem format used to encrypt exported key(s).
+            encryption_algorithm (str, optional): The algorithm of the public key.
+
+        Raises:
+            PangeaAPIException: If an API error happens.
+
+        Returns:
+            A `PangeaResponse` where the exported key is returned in the
+            `response.result` field. Available response fields can be found in
+            our [API documentation](https://pangea.cloud/docs/api/vault#export).
+
+        Examples:
+            exp_encrypted_resp = self.vault.export(
+                id=id,
+                version=1,
+                encryption_key=rsa_pub_key_pem,
+                encryption_algorithm=ExportEncryptionAlgorithm.RSA4096_OAEP_SHA512,
+            )
+        """
+
+        input: ExportRequest = ExportRequest(
+            id=id, version=version, encryption_algorithm=encryption_algorithm, encryption_key=encryption_key
+        )
+        return self.request.post(
+            "v1/export",
+            ExportResult,
             data=input.dict(exclude_none=True),
         )

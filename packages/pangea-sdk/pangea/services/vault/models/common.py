@@ -166,6 +166,16 @@ class ItemState(str, enum.Enum):
         return str(self.value)
 
 
+class ExportEncryptionAlgorithm(str, enum.Enum):
+    RSA4096_OAEP_SHA512 = "RSA-OAEP-4096-SHA512"
+
+    def __str__(self):
+        return str(self.value)
+
+    def __repr__(self):
+        return str(self.value)
+
+
 class CommonStoreRequest(APIRequestModel):
     type: ItemType
     name: str
@@ -427,3 +437,49 @@ class EncryptStructuredResult(PangeaResponseResult, Generic[TDict]):
 
     structured_data: TDict
     """Encrypted structured data."""
+
+
+class ExportRequest(APIRequestModel):
+    id: str
+    """The ID of the item."""
+
+    version: Optional[int] = None
+    """The item version."""
+
+    encryption_key: Optional[str] = None
+    """Public key in pem format used to encrypt exported key(s)."""
+
+    encryption_algorithm: Optional[str] = None
+    """The algorithm of the public key."""
+
+
+class ExportResult(PangeaResponseResult):
+    id: str
+    """The ID of the item."""
+
+    version: int
+    """The item version."""
+
+    type: str
+    """The type of the key."""
+
+    item_state: str
+    """The state of the item."""
+
+    algorithm: str
+    """The algorithm of the key."""
+
+    public_key: Optional[str] = None
+    """The public key (in PEM format)."""
+
+    private_key: Optional[str] = None
+    """The private key (in PEM format)."""
+
+    key: Optional[str] = None
+    """The key material."""
+
+    encrypted: bool
+    """
+    Whether exported key(s) are encrypted with encryption_key sent on the request or not.
+    If encrypted, the result is sent in base64, any other case they are in PEM format plain text.
+    """
