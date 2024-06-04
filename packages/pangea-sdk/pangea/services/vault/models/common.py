@@ -243,6 +243,7 @@ class ItemData(PangeaResponseResult):
     created_at: Optional[str] = None
     algorithm: Optional[str] = None
     purpose: Optional[str] = None
+    exportable: Optional[bool] = None
 
 
 class InheritedSettings(PangeaResponseResult):
