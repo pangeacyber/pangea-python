@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `return_context` support in Audit `/search`, `/results` and `/download` endpoints
 - Redact `/unredact` endpoint support
 - `redaction_method_overrides` field support in `/redact` and `redact_structured` endpoints
+- AuthN usernames support.
 
 ### Removed
 

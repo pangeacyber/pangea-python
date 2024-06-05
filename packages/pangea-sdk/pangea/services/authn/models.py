@@ -1,5 +1,6 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+from __future__ import annotations
 
 import enum
 from typing import Dict, List, NewType, Optional, Union
@@ -160,24 +161,52 @@ class Authenticator(APIResponseModel):
 
 class User(PangeaResponseResult):
     id: str
+    """The identity of a user or a service."""
+
     email: str
+    """An email address."""
+
+    username: str
+    """A username."""
+
     profile: Profile
+    """A user profile as a collection of string properties."""
+
     verified: bool
+    """True if the user's email has been verified."""
+
     disabled: bool
+    """True if the service administrator has disabled user account."""
+
     accepted_eula_id: Optional[str] = None
+    """An ID for an agreement."""
+
     accepted_privacy_policy_id: Optional[str] = None
+    """An ID for an agreement."""
+
     last_login_at: Optional[str] = None
+    """A time in ISO-8601 format."""
+
     created_at: str
+    """A time in ISO-8601 format."""
+
     login_count: int = 0
     last_login_ip: Optional[str] = None
     last_login_city: Optional[str] = None
     last_login_country: Optional[str] = None
     authenticators: List[Authenticator] = []
+    """A list of authenticators."""
 
 
 class UserCreateRequest(APIRequestModel):
     email: str
+    """An email address."""
+
     profile: Profile
+    """A user profile as a collection of string properties."""
+
+    username: Optional[str] = None
+    """A username."""
 
 
 class UserCreateResult(User):
@@ -186,7 +215,13 @@ class UserCreateResult(User):
 
 class UserDeleteRequest(APIRequestModel):
     email: Optional[str] = None
+    """An email address."""
+
     id: Optional[str] = None
+    """The identity of a user or a service."""
+
+    username: Optional[str] = None
+    """A username."""
 
 
 class UserDeleteResult(PangeaResponseResult):
@@ -343,7 +378,13 @@ class UserInviteDeleteResult(PangeaResponseResult):
 
 class UserProfileGetRequest(APIRequestModel):
     id: Optional[str] = None
+    """The identity of a user or a service."""
+
     email: Optional[str] = None
+    """An email address."""
+
+    username: Optional[str] = None
+    """A username."""
 
 
 class UserProfileGetResult(User):
@@ -352,8 +393,16 @@ class UserProfileGetResult(User):
 
 class UserProfileUpdateRequest(APIRequestModel):
     profile: Profile
+    """Updates to a user profile."""
+
     id: Optional[str] = None
+    """The identity of a user or a service."""
+
     email: Optional[str] = None
+    """An email address."""
+
+    username: Optional[str] = None
+    """A username."""
 
 
 class UserProfileUpdateResult(User):
@@ -362,9 +411,25 @@ class UserProfileUpdateResult(User):
 
 class UserUpdateRequest(APIRequestModel):
     id: Optional[str] = None
+    """The identity of a user or a service."""
+
     email: Optional[str] = None
+    """An email address."""
+
     disabled: Optional[bool] = None
+    """
+    New disabled value. Disabling a user account will prevent them from logging
+    in.
+    """
+
     unlock: Optional[bool] = None
+    """
+    Unlock a user account if it has been locked out due to failed authentication
+    attempts.
+    """
+
+    username: Optional[str] = None
+    """A username."""
 
 
 class UserUpdateResult(User):
@@ -386,8 +451,16 @@ class ClientJWKSResult(PangeaResponseResult):
 
 class UserAuthenticatorsDeleteRequest(APIRequestModel):
     id: Optional[str] = None
+    """The identity of a user or a service."""
+
     email: Optional[str] = None
+    """An email address."""
+
     authenticator_id: str
+    """An ID for an authenticator."""
+
+    username: Optional[str] = None
+    """A username."""
 
 
 class UserAuthenticatorsDeleteResult(PangeaResponseResult):
@@ -396,7 +469,13 @@ class UserAuthenticatorsDeleteResult(PangeaResponseResult):
 
 class UserAuthenticatorsListRequest(APIRequestModel):
     email: Optional[str] = None
+    """An email address."""
+
     id: Optional[str] = None
+    """The identity of a user or a service."""
+
+    username: Optional[str] = None
+    """A username."""
 
 
 class UserAuthenticatorsListResult(PangeaResponseResult):
