@@ -64,6 +64,7 @@ class RedactAsync(ServiceBaseAsync):
         rules: Optional[List[str]] = None,
         rulesets: Optional[List[str]] = None,
         return_result: Optional[bool] = None,
+        redaction_method_overrides: Optional[m.RedactionMethodOverrides] = None,
     ) -> PangeaResponse[m.RedactResult]:
         """
         Redact
@@ -79,6 +80,7 @@ class RedactAsync(ServiceBaseAsync):
             rules (list[str], optional): An array of redact rule short names
             rulesets (list[str], optional): An array of redact rulesets short names
             return_result(bool, optional): Setting this value to false will omit the redacted result only returning count
+            redaction_method_overrides: A set of redaction method overrides for any enabled rule. These methods override the config declared methods
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -92,7 +94,14 @@ class RedactAsync(ServiceBaseAsync):
             response = redact.redact(text="Jenny Jenny... 555-867-5309")
         """
 
-        input = m.RedactRequest(text=text, debug=debug, rules=rules, rulesets=rulesets, return_result=return_result)
+        input = m.RedactRequest(
+            text=text,
+            debug=debug,
+            rules=rules,
+            rulesets=rulesets,
+            return_result=return_result,
+            redaction_method_overrides=redaction_method_overrides,
+        )
         return await self.request.post("v1/redact", m.RedactResult, data=input.dict(exclude_none=True))
 
     async def redact_structured(
@@ -104,6 +113,7 @@ class RedactAsync(ServiceBaseAsync):
         rules: Optional[List[str]] = None,
         rulesets: Optional[List[str]] = None,
         return_result: Optional[bool] = None,
+        redaction_method_overrides: Optional[m.RedactionMethodOverrides] = None,
     ) -> PangeaResponse[m.StructuredResult]:
         """
         Redact structured
@@ -123,6 +133,7 @@ class RedactAsync(ServiceBaseAsync):
             rules (list[str], optional): An array of redact rule short names
             rulesets (list[str], optional): An array of redact rulesets short names
             return_result(bool, optional): Setting this value to false will omit the redacted result only returning count
+            redaction_method_overrides: A set of redaction method overrides for any enabled rule. These methods override the config declared methods
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -149,5 +160,29 @@ class RedactAsync(ServiceBaseAsync):
             rules=rules,
             rulesets=rulesets,
             return_result=return_result,
+            redaction_method_overrides=redaction_method_overrides,
         )
         return await self.request.post("v1/redact_structured", m.StructuredResult, data=input.dict(exclude_none=True))
+
+    async def unredact(self, redacted_data: m.RedactedData, fpe_context: str) -> PangeaResponse[m.UnredactResult]:
+        """
+        Unredact
+
+        Decrypt or unredact fpe redactions
+
+        OperationId: redact_post_v1_unredact
+
+        Args:
+            redacted_data: Data to unredact
+            fpe_context (base64): FPE context used to decrypt and unredact data
+
+        Raises:
+            PangeaAPIException: If an API Error happens
+
+        Returns:
+            Pangea Response with redacted data in the response.result field,
+                available response fields can be found in our
+                [API Documentation](https://pangea.cloud/docs/api/redact#unredact)
+        """
+        input = m.UnredactRequest(redacted_data=redacted_data, fpe_context=fpe_context)
+        return await self.request.post("v1/unredact", m.UnredactResult, data=input.dict(exclude_none=True))
