@@ -13,9 +13,14 @@ import argparse
 import json
 import logging
 import sys
+import os
+from enum import Enum
 from typing import Dict, List, Optional
 
+from pangea.config import PangeaConfig
 from pangea.services.audit.signing import Verifier
+from pangea.services import Audit
+from pangea.services.audit.models import Root
 from pangea.services.audit.util import (
     canonicalize_json,
     decode_consistency_proof,
@@ -26,10 +31,12 @@ from pangea.services.audit.util import (
     hash_bytes,
     verify_consistency_proof,
     verify_membership_proof,
+    PublishedRoot,
 )
 
 logger = logging.getLogger("audit")
 pub_roots: Dict[int, Dict] = {}
+audit: Audit
 
 
 class VerifierLogFormatter(logging.Formatter):
@@ -76,6 +83,20 @@ def log_section(msg: str):
 
 
 formatter = VerifierLogFormatter()
+
+
+def _get_roots(tree_sizes: List[int]) -> Dict[int, Root]:
+    ans = {}
+    for size in tree_sizes:
+        try:
+            resp = audit.root(size)
+            if resp.status != "Success":
+                raise ValueError(resp.Status)
+
+            ans[int(size)] = resp.result.data
+        except Exception as e:
+            logger.error(f"Error fetching root from Pangea for size {size}: {str(e)}")
+    return ans
 
 
 def _verify_hash(data: Dict, data_hash: str) -> Optional[bool]:
@@ -127,22 +148,51 @@ def _verify_unpublished_membership_proof(root_hash, node_hash: str, proof: Optio
     return succeeded
 
 
-def _verify_membership_proof(tree_name: str, tree_size: int, node_hash: str, proof: Optional[str]) -> Optional[bool]:
+def _fetch_roots(tree_name: str, tree_size: int, leaf_index: Optional[int]) -> Optional[bool]:
+    global pub_roots
+
+    log_section("Fetching published roots from Arweave")
+
+    succeeded = None
+    needed_roots = {tree_size}
+    if leaf_index:
+        needed_roots |= {leaf_index, leaf_index + 1}
+    pending_roots = needed_roots - set(pub_roots.keys())
+
+    try:
+        if pending_roots:
+            pub_roots |= {int(k): v for k, v in get_arweave_published_roots(tree_name, pending_roots).items()}  # type: ignore[operator]
+            pending_roots = needed_roots - set(pub_roots.keys())
+        succeeded = True
+        if pending_roots and audit:
+            logger.debug("Published root could not be fetched from Arweave")
+            logger.debug("Fetching published roots from Pangea")
+            pub_roots |= {int(k): v for k, v in _get_roots(pending_roots).items()}  # type: ignore[operator]
+            pending_roots = needed_roots - set(pub_roots.keys())
+            succeeded = None
+        if pending_roots:
+            raise ValueError("Published root could not be fetched")
+    except:
+        succeeded = False
+
+    log_result("Fetching published roots", succeeded)
+    logger.info("")
+    return succeeded
+
+
+def _verify_membership_proof(tree_size: int, node_hash: str, proof: Optional[str]) -> Optional[bool]:
     global pub_roots
 
     log_section("Checking membership proof")
 
-    if proof is None:
+    if tree_size not in pub_roots:
+        succeeded = None
+        logger.debug("Published root not found")
+    elif proof is None:
         succeeded = None
         logger.debug("Proof not found (event not published yet)")
     else:
         try:
-            logger.debug("Fetching published roots from Arweave")
-            if tree_size not in pub_roots:
-                pub_roots |= {int(k): v for k, v in get_arweave_published_roots(tree_name, [tree_size]).items()}  # type: ignore[operator]
-            if tree_size not in pub_roots:
-                raise ValueError("Published root could was not found")
-
             root_hash_dec = decode_hash(pub_roots[tree_size].root_hash)  # type: ignore[attr-defined]
             node_hash_dec = decode_hash(node_hash)
             logger.debug("Calculating the proof")
@@ -158,7 +208,7 @@ def _verify_membership_proof(tree_name: str, tree_size: int, node_hash: str, pro
     return succeeded
 
 
-def _verify_consistency_proof(tree_name: str, leaf_index: Optional[int]) -> Optional[bool]:
+def _verify_consistency_proof(leaf_index: Optional[int]) -> Optional[bool]:
     global pub_roots
     log_section("Checking consistency proof")
 
@@ -169,15 +219,13 @@ def _verify_consistency_proof(tree_name: str, leaf_index: Optional[int]) -> Opti
     elif leaf_index == 0:
         succeeded = None
         logger.debug("Proof not found (event was published in the first leaf)")
+
+    elif leaf_index not in pub_roots:
+        succeeded = None
+        logger.debug("Published root not found")
+    
     else:
         try:
-            logger.debug("Fetching published roots from Arweave")
-            pub_roots |= {  # type: ignore[operator]
-                int(k): v for k, v in get_arweave_published_roots(tree_name, [leaf_index + 1, leaf_index]).items()
-            }
-            if leaf_index + 1 not in pub_roots or leaf_index not in pub_roots:
-                raise ValueError("Published roots could not be retrieved")
-
             curr_root = pub_roots[leaf_index + 1]
             prev_root = pub_roots[leaf_index]
             curr_root_hash = decode_hash(curr_root.root_hash)  # type: ignore[attr-defined]
@@ -233,7 +281,13 @@ def verify_multiple(root: Dict, unpublished_root: Dict, events: List[Dict]) -> O
         event.update({"root": root, "unpublished_root": unpublished_root})
         event_succeeded = verify_single(event, counter + 1)
         succeeded.append(event_succeeded)
-    return not any(event_succeeded is False for event_succeeded in succeeded)
+
+    for event_succeeded in succeeded:
+        if event_succeeded is False:
+            return False
+        elif event_succeeded is None:
+            return None
+    return True
 
 
 def verify_single(data: Dict, counter: Optional[int] = None) -> Optional[bool]:
@@ -248,11 +302,12 @@ def verify_single(data: Dict, counter: Optional[int] = None) -> Optional[bool]:
     ok_hash = _verify_hash(data["envelope"], data["hash"])
     ok_signature = _verify_signature(data["envelope"])
 
+    ok_roots = _fetch_roots(data["root"]["tree_name"], data["root"]["size"], data.get("leaf_index"))
+
     if data["published"]:
         if not data.get("root"):
             raise ValueError("Missing 'root' element")
-        ok_membership = _verify_membership_proof(
-            data["root"]["tree_name"],
+        ok_membership = _verify_membership_proof(            
             data["root"]["size"],
             data["hash"],
             data.get("membership_proof"),
@@ -265,17 +320,23 @@ def verify_single(data: Dict, counter: Optional[int] = None) -> Optional[bool]:
         )
 
     if data["published"]:
-        ok_consistency = _verify_consistency_proof(data["root"]["tree_name"], data.get("leaf_index"))
+        ok_consistency = _verify_consistency_proof(data.get("leaf_index"))
     else:
         ok_consistency = True
 
     all_ok = (
         ok_hash is True
         and (ok_signature is True or ok_signature is None)
+        and (ok_roots is True or ok_roots is None)
         and ok_membership is True
-        and ok_consistency is True
+        and (ok_consistency is True or ok_consistency is None)
     )
-    any_failed = ok_hash is False or ok_signature is False or ok_membership is False or ok_consistency is False
+    any_failed = (
+        ok_hash is False 
+        or (ok_signature is False)
+        or (ok_membership is False)
+        or (ok_consistency is False)
+    )
 
     if counter:
         formatter.indent = 0
@@ -303,6 +364,12 @@ def main():
         metavar="PATH",
         help="Input file (default: standard input).",
     )
+    parser.add_argument(
+        "--token", "-t", default=os.getenv("PANGEA_TOKEN"), help="Pangea token (default: env PANGEA_TOKEN)"
+    )
+    parser.add_argument(
+        "--domain", "-d", default=os.getenv("PANGEA_DOMAIN"), help="Pangea domain (default: env PANGEA_DOMAIN)"
+    )
     args = parser.parse_args()
 
     data = json.load(args.file)
@@ -310,6 +377,10 @@ def main():
 
     logger.info("Pangea Audit - Verification Tool")
     logger.info("")
+
+    if args.token and args.domain:
+        global audit
+        audit = Audit(token=args.token, config=PangeaConfig(domain=args.domain))
 
     if events:
         status = verify_multiple(data["result"].get("root"), data["result"].get("unpublished_root"), events)
