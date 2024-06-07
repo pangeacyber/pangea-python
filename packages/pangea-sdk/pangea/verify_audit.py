@@ -12,14 +12,15 @@ In the latter case, all the events are verified.
 import argparse
 import json
 import logging
-import sys
 import os
-from typing import Dict, List, Optional, Set
+import sys
+from enum import Enum
+from typing import Dict, Iterable, List, Optional, Set
 
 from pangea.config import PangeaConfig
-from pangea.services.audit.signing import Verifier
 from pangea.services import Audit
 from pangea.services.audit.models import Root
+from pangea.services.audit.signing import Verifier
 from pangea.services.audit.util import (
     canonicalize_json,
     decode_consistency_proof,
@@ -33,9 +34,15 @@ from pangea.services.audit.util import (
 )
 
 logger = logging.getLogger("audit")
-arweave_roots: Dict[int, Dict] = {}             # roots fetched from Arweave
-pangea_roots: Dict[int, Dict] = {}              # roots fetched from Pangea
+arweave_roots: Dict[int, Dict] = {}  # roots fetched from Arweave
+pangea_roots: Dict[int, Dict] = {}  # roots fetched from Pangea
 audit: Audit
+
+
+class Status(Enum):
+    SUCCEEDED = "succeeded"
+    FAILED = "failed"
+    NOT_DONE = "not_done"
 
 
 class VerifierLogFormatter(logging.Formatter):
@@ -46,9 +53,9 @@ class VerifierLogFormatter(logging.Formatter):
 
     def format(self, record):
         if hasattr(record, "is_result"):
-            if record.succeeded:
+            if record.status == Status.SUCCEEDED:
                 point = "🟢"
-            elif record.succeeded is None:
+            elif record.status == Status.NOT_DONE:
                 point = "⚪️"
             else:
                 point = "🔴"
@@ -67,14 +74,14 @@ class VerifierLogFormatter(logging.Formatter):
             return f"{pre}{record.msg}"
 
 
-def log_result(msg: str, succeeded: Optional[bool]):
-    if succeeded is True:
+def log_result(msg: str, status: Status):
+    if status == Status.SUCCEEDED:
         msg += " succeeded"
-    elif succeeded is False:
+    elif status == Status.FAILED:
         msg += " failed"
     else:
         msg += " could not be performed"
-    logger.log(logging.INFO, msg, extra={"is_result": True, "succeeded": succeeded})
+    logger.log(logging.INFO, msg, extra={"is_result": True, "status": status})
 
 
 def log_section(msg: str):
@@ -84,22 +91,24 @@ def log_section(msg: str):
 formatter = VerifierLogFormatter()
 
 
-def get_pangea_roots(tree_sizes: List[int]) -> Dict[int, Root]:
+def get_pangea_roots(tree_sizes: Iterable[int]) -> Dict[int, Root]:
     ans = {}
     for size in tree_sizes:
         try:
             resp = audit.root(size)
             if resp.status != "Success":
                 raise ValueError(resp.Status)
-
+            if resp.result is None:
+                raise ValueError("No result")
             ans[int(size)] = resp.result.data
         except Exception as e:
             logger.error(f"Error fetching root from Pangea for size {size}: {str(e)}")
     return ans
 
 
-def _verify_hash(data: Dict, data_hash: str) -> Optional[bool]:
+def _verify_hash(data: Dict, data_hash: str) -> Status:
     log_section("Checking data hash")
+    status = Status.NOT_DONE
     try:
         logger.debug("Canonicalizing data")
         data_canon = canonicalize_json(data)
@@ -109,20 +118,20 @@ def _verify_hash(data: Dict, data_hash: str) -> Optional[bool]:
         logger.debug("Comparing calculated hash with server hash")
         if computed_hash_dec != data_hash_dec:
             raise ValueError("Hash does not match")
-        succeeded = True
+        status = Status.SUCCEEDED
     except Exception:
-        succeeded = False
+        status = Status.FAILED
 
-    log_result("Data hash verification", succeeded)
+    log_result("Data hash verification", status)
     logger.info("")
-    return succeeded
+    return status
 
 
-def _verify_unpublished_membership_proof(root_hash, node_hash: str, proof: Optional[str]) -> Optional[bool]:
+def _verify_unpublished_membership_proof(root_hash, node_hash: str, proof: Optional[str]) -> Status:
     log_section("Checking unpublished membership proof")
 
     if proof is None:
-        succeeded = None
+        status = Status.NOT_DONE
         logger.debug("Proof not found")
     else:
         try:
@@ -134,18 +143,21 @@ def _verify_unpublished_membership_proof(root_hash, node_hash: str, proof: Optio
             proof_dec = decode_membership_proof(proof)
 
             logger.debug("Comparing the unpublished root hash with the proof hash")
-            succeeded = verify_membership_proof(node_hash_dec, root_hash_dec, proof_dec)
+            if verify_membership_proof(node_hash_dec, root_hash_dec, proof_dec):
+                status = Status.SUCCEEDED
+            else:
+                status = Status.FAILED
 
         except Exception as e:
-            succeeded = False
+            status = Status.FAILED
             logger.debug(str(e))
 
-    log_result("Unpublished membership proof verification", succeeded)
+    log_result("Unpublished membership proof verification", status)
     logger.info("")
-    return succeeded
+    return status
 
 
-def _fetch_roots(tree_name: str, tree_size: int, leaf_index: Optional[int]) -> Optional[bool]:
+def _fetch_roots(tree_name: str, tree_size: int, leaf_index: Optional[int]) -> Status:
     global arweave_roots, pangea_roots
 
     log_section("Fetching published roots from Arweave")
@@ -163,7 +175,7 @@ def _fetch_roots(tree_name: str, tree_size: int, leaf_index: Optional[int]) -> O
     def comma_sep(s: Set):
         return ",".join(map(str, s))
 
-    succeeded = True
+    status = Status.SUCCEEDED
     update_pending_roots()
 
     # print message for roots already fetched
@@ -174,7 +186,7 @@ def _fetch_roots(tree_name: str, tree_size: int, leaf_index: Optional[int]) -> O
     pangea_fetched_roots = needed_roots & set(pangea_roots.keys())
     if pangea_fetched_roots:
         logger.debug(f"Roots {comma_sep(pangea_fetched_roots)} already fetched from Pangea")
-        succeeded = None        # if we have roots from Pangea, we didn't succeed
+        status = Status.NOT_DONE  # if we have roots from Pangea, we didn't succeed
 
     if pending_roots:
         # try Arweave first
@@ -189,12 +201,12 @@ def _fetch_roots(tree_name: str, tree_size: int, leaf_index: Optional[int]) -> O
         logger.debug(f"Published root(s) {comma_sep(pending_roots)} could not be fetched from Arweave")
 
     if pending_roots and audit:
-            # and then Pangea (if we've set an audit client)
+        # and then Pangea (if we've set an audit client)
         try:
             logger.debug(f"Fetching root(s) {comma_sep(pending_roots)} from Pangea")
             pangea_roots |= {int(k): v for k, v in get_pangea_roots(pending_roots).items()}  # type: ignore[operator]
             update_pending_roots()
-            succeeded = None
+            status = Status.NOT_DONE
         except:
             pass
 
@@ -202,23 +214,23 @@ def _fetch_roots(tree_name: str, tree_size: int, leaf_index: Optional[int]) -> O
             logger.debug(f"Roots {comma_sep(pending_roots)} could not be fetched")
 
     if pending_roots:
-        succeeded = False
+        status = Status.FAILED
 
-    log_result("Fetching published roots from Arweave", succeeded)
+    log_result("Fetching published roots from Arweave", status)
     logger.info("")
-    return succeeded
+    return status
 
 
-def _verify_membership_proof(tree_size: int, node_hash: str, proof: Optional[str]) -> Optional[bool]:
+def _verify_membership_proof(tree_size: int, node_hash: str, proof: Optional[str]) -> Status:
     pub_roots = arweave_roots | pangea_roots
 
     log_section("Checking membership proof")
 
     if tree_size not in pub_roots:
-        succeeded = None
+        status = Status.NOT_DONE
         logger.debug("Published root not found")
     elif proof is None:
-        succeeded = None
+        status = Status.NOT_DONE
         logger.debug("Proof not found (event not published yet)")
     else:
         try:
@@ -227,33 +239,36 @@ def _verify_membership_proof(tree_size: int, node_hash: str, proof: Optional[str
             logger.debug("Calculating the proof")
             proof_dec = decode_membership_proof(proof)
             logger.debug("Comparing the root hash with the proof hash")
-            succeeded = verify_membership_proof(node_hash_dec, root_hash_dec, proof_dec)
+            if verify_membership_proof(node_hash_dec, root_hash_dec, proof_dec):
+                status = Status.SUCCEEDED
+            else:
+                status = Status.FAILED
         except Exception as e:
-            succeeded = False
+            status = Status.FAILED
             logger.debug(str(e))
 
-    log_result("Membership proof verification", succeeded)
+    log_result("Membership proof verification", status)
     logger.info("")
-    return succeeded
+    return status
 
 
-def _verify_consistency_proof(leaf_index: Optional[int]) -> Optional[bool]:
+def _verify_consistency_proof(leaf_index: Optional[int]) -> Status:
     pub_roots = arweave_roots | pangea_roots
 
     log_section("Checking consistency proof")
 
     if leaf_index is None:
-        succeeded = None
+        status = Status.NOT_DONE
         logger.debug("Proof not found (event was not published yet)")
 
     elif leaf_index == 0:
-        succeeded = None
+        status = Status.NOT_DONE
         logger.debug("Proof not found (event was published in the first leaf)")
 
     elif leaf_index not in pub_roots:
-        succeeded = None
+        status = Status.NOT_DONE
         logger.debug("Published root not found")
-    
+
     else:
         try:
             curr_root = pub_roots[leaf_index + 1]
@@ -262,26 +277,29 @@ def _verify_consistency_proof(leaf_index: Optional[int]) -> Optional[bool]:
             prev_root_hash = decode_hash(prev_root.root_hash)  # type: ignore[attr-defined]
             logger.debug("Calculating the proof")
             proof = decode_consistency_proof(curr_root.consistency_proof)  # type: ignore[attr-defined]
-            succeeded = verify_consistency_proof(curr_root_hash, prev_root_hash, proof)
+            if verify_consistency_proof(curr_root_hash, prev_root_hash, proof):
+                status = Status.SUCCEEDED
+            else:
+                status = Status.FAILED
 
         except Exception as e:
-            succeeded = False
+            status = Status.FAILED
             logger.debug(str(e))
 
-    log_result("Consistency proof verification", succeeded)
+    log_result("Consistency proof verification", status)
     logger.info("")
-    return succeeded
+    return status
 
 
 def create_signed_event(event: Dict) -> Dict:
     return {k: v for k, v in event.items() if v is not None}
 
 
-def _verify_signature(data: Dict) -> Optional[bool]:
+def _verify_signature(data: Dict) -> Status:
     log_section("Checking signature")
     if "signature" not in data:
         logger.debug("Signature is not present")
-        succeeded = None
+        status = Status.NOT_DONE
     else:
         try:
             logger.debug("Obtaining signature and public key from the event")
@@ -291,36 +309,36 @@ def _verify_signature(data: Dict) -> Optional[bool]:
             logger.debug("Checking the signature")
             if not sign_verifier.verify_signature(data["signature"], canonicalize_json(sign_event), public_key):
                 raise ValueError("Signature is invalid")
-            succeeded = True
+            status = Status.SUCCEEDED
         except Exception:
-            succeeded = False
+            status = Status.FAILED
 
-    log_result("Data signature verification", succeeded)
+    log_result("Data signature verification", status)
     logger.info("")
-    return succeeded
+    return status
 
 
-def verify_multiple(root: Dict, unpublished_root: Dict, events: List[Dict]) -> Optional[bool]:
+def verify_multiple(root: Dict, unpublished_root: Dict, events: List[Dict]) -> Status:
     """
     Verify a list of events.
     Returns a status.
     """
 
-    succeeded = []
+    statuses: List[Status] = []
     for counter, event in enumerate(events):
         event.update({"root": root, "unpublished_root": unpublished_root})
-        event_succeeded = verify_single(event, counter + 1)
-        succeeded.append(event_succeeded)
+        event_status = verify_single(event, counter + 1)
+        statuses.append(event_status)
 
-    for event_succeeded in succeeded:
-        if event_succeeded is False:
-            return False
-        elif event_succeeded is None:
-            return None
-    return True
+    for event_status in statuses:
+        if event_status == Status.FAILED:
+            return Status.FAILED
+        elif event_status == Status.NOT_DONE:
+            return Status.NOT_DONE
+    return Status.SUCCEEDED
 
 
-def verify_single(data: Dict, counter: Optional[int] = None) -> Optional[bool]:
+def verify_single(data: Dict, counter: Optional[int] = None) -> Status:
     """
     Verify a single event.
     Returns a status.
@@ -337,7 +355,7 @@ def verify_single(data: Dict, counter: Optional[int] = None) -> Optional[bool]:
     if data["published"]:
         if not data.get("root"):
             raise ValueError("Missing 'root' element")
-        ok_membership = _verify_membership_proof(            
+        ok_membership = _verify_membership_proof(
             data["root"]["size"],
             data["hash"],
             data.get("membership_proof"),
@@ -352,31 +370,31 @@ def verify_single(data: Dict, counter: Optional[int] = None) -> Optional[bool]:
     if data["published"]:
         ok_consistency = _verify_consistency_proof(data.get("leaf_index"))
     else:
-        ok_consistency = True
+        ok_consistency = Status.SUCCEEDED
 
     all_ok = (
-        ok_hash is True
-        and (ok_signature is True or ok_signature is None)
-        and (ok_roots is True or ok_roots is None)
-        and ok_membership is True
-        and (ok_consistency is True or ok_consistency is None)
+        ok_hash == Status.SUCCEEDED
+        and (ok_signature == Status.SUCCEEDED or ok_signature == Status.NOT_DONE)
+        and (ok_roots == Status.SUCCEEDED or ok_roots == Status.NOT_DONE)
+        and ok_membership == Status.SUCCEEDED
+        and (ok_consistency == Status.SUCCEEDED or ok_consistency == Status.NOT_DONE)
     )
     any_failed = (
-        ok_hash is False 
-        or (ok_signature is False)
-        or (ok_membership is False)
-        or (ok_consistency is False)
+        ok_hash == Status.FAILED
+        or (ok_signature == Status.FAILED)
+        or (ok_membership == Status.FAILED)
+        or (ok_consistency == Status.FAILED)
     )
 
     if counter:
         formatter.indent = 0
 
     if all_ok:
-        return True
+        return Status.SUCCEEDED
     elif any_failed:
-        return False
+        return Status.FAILED
     else:
-        return None
+        return Status.NOT_DONE
 
 
 def main():
@@ -418,9 +436,9 @@ def main():
         status = verify_single(data)
 
     logger.info("")
-    if status is True:
+    if status == Status.SUCCEEDED:
         logger.info("🟢 Verification succeeded 🟢")
-    elif status is False:
+    elif status == Status.FAILED:
         logger.info("🔴 Verification failed 🔴")
     else:
         logger.info("⚪️ Verification could not be finished ⚪️")

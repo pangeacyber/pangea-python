@@ -7,7 +7,7 @@ from binascii import hexlify, unhexlify
 from dataclasses import dataclass
 from datetime import datetime
 from hashlib import sha256
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Set
 
 import requests
 
@@ -192,7 +192,7 @@ def arweave_graphql_url():
     return f"{ARWEAVE_BASE_URL}/graphql"
 
 
-def get_arweave_published_roots(tree_name: str, tree_sizes: List[int]) -> Dict[int, PublishedRoot]:
+def get_arweave_published_roots(tree_name: str, tree_sizes: Set[int]) -> Dict[int, PublishedRoot]:
     if len(tree_sizes) == 0:
         return {}
 

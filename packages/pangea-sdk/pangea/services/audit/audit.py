@@ -222,7 +222,7 @@ class AuditBase:
         tree_sizes.difference_update(self.pub_roots.keys())
 
         if tree_sizes:
-            arweave_roots = get_arweave_published_roots(result.root.tree_name, list(tree_sizes))
+            arweave_roots = get_arweave_published_roots(result.root.tree_name, tree_sizes)
         else:
             arweave_roots = {}
 
