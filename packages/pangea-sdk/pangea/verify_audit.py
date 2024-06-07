@@ -14,8 +14,7 @@ import json
 import logging
 import sys
 import os
-from enum import Enum
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Set
 
 from pangea.config import PangeaConfig
 from pangea.services.audit.signing import Verifier
@@ -31,11 +30,11 @@ from pangea.services.audit.util import (
     hash_bytes,
     verify_consistency_proof,
     verify_membership_proof,
-    PublishedRoot,
 )
 
 logger = logging.getLogger("audit")
-pub_roots: Dict[int, Dict] = {}
+arweave_roots: Dict[int, Dict] = {}             # roots fetched from Arweave
+pangea_roots: Dict[int, Dict] = {}              # roots fetched from Pangea
 audit: Audit
 
 
@@ -85,7 +84,7 @@ def log_section(msg: str):
 formatter = VerifierLogFormatter()
 
 
-def _get_roots(tree_sizes: List[int]) -> Dict[int, Root]:
+def get_pangea_roots(tree_sizes: List[int]) -> Dict[int, Root]:
     ans = {}
     for size in tree_sizes:
         try:
@@ -120,8 +119,6 @@ def _verify_hash(data: Dict, data_hash: str) -> Optional[bool]:
 
 
 def _verify_unpublished_membership_proof(root_hash, node_hash: str, proof: Optional[str]) -> Optional[bool]:
-    global pub_roots
-
     log_section("Checking unpublished membership proof")
 
     if proof is None:
@@ -149,39 +146,71 @@ def _verify_unpublished_membership_proof(root_hash, node_hash: str, proof: Optio
 
 
 def _fetch_roots(tree_name: str, tree_size: int, leaf_index: Optional[int]) -> Optional[bool]:
-    global pub_roots
+    global arweave_roots, pangea_roots
 
     log_section("Fetching published roots from Arweave")
 
-    succeeded = None
     needed_roots = {tree_size}
     if leaf_index:
         needed_roots |= {leaf_index, leaf_index + 1}
-    pending_roots = needed_roots - set(pub_roots.keys())
 
-    try:
-        if pending_roots:
-            pub_roots |= {int(k): v for k, v in get_arweave_published_roots(tree_name, pending_roots).items()}  # type: ignore[operator]
-            pending_roots = needed_roots - set(pub_roots.keys())
-        succeeded = True
-        if pending_roots and audit:
-            logger.debug("Published root could not be fetched from Arweave")
-            logger.debug("Fetching published roots from Pangea")
-            pub_roots |= {int(k): v for k, v in _get_roots(pending_roots).items()}  # type: ignore[operator]
-            pending_roots = needed_roots - set(pub_roots.keys())
+    pending_roots = set()
+
+    def update_pending_roots():
+        nonlocal pending_roots
+        pending_roots = needed_roots - set(arweave_roots.keys()) - set(pangea_roots.keys())
+
+    def comma_sep(s: Set):
+        return ",".join(map(str, s))
+
+    succeeded = True
+    update_pending_roots()
+
+    # print message for roots already fetched
+    arweave_fetched_roots = needed_roots & set(arweave_roots.keys())
+    if arweave_fetched_roots:
+        logger.debug(f"Roots {comma_sep(arweave_fetched_roots)} already fetched from Arweave")
+
+    pangea_fetched_roots = needed_roots & set(pangea_roots.keys())
+    if pangea_fetched_roots:
+        logger.debug(f"Roots {comma_sep(pangea_fetched_roots)} already fetched from Pangea")
+        succeeded = None        # if we have roots from Pangea, we didn't succeed
+
+    if pending_roots:
+        # try Arweave first
+        try:
+            logger.debug(f"Fetching root(s) {comma_sep(pending_roots)} from Arweave")
+            arweave_roots |= {int(k): v for k, v in get_arweave_published_roots(tree_name, pending_roots).items()}  # type: ignore[operator]
+            update_pending_roots()
+        except:
+            pass
+
+    if pending_roots:
+        logger.debug(f"Published root(s) {comma_sep(pending_roots)} could not be fetched from Arweave")
+
+    if pending_roots and audit:
+            # and then Pangea (if we've set an audit client)
+        try:
+            logger.debug(f"Fetching root(s) {comma_sep(pending_roots)} from Pangea")
+            pangea_roots |= {int(k): v for k, v in get_pangea_roots(pending_roots).items()}  # type: ignore[operator]
+            update_pending_roots()
             succeeded = None
+        except:
+            pass
+
         if pending_roots:
-            raise ValueError("Published root could not be fetched")
-    except:
+            logger.debug(f"Roots {comma_sep(pending_roots)} could not be fetched")
+
+    if pending_roots:
         succeeded = False
 
-    log_result("Fetching published roots", succeeded)
+    log_result("Fetching published roots from Arweave", succeeded)
     logger.info("")
     return succeeded
 
 
 def _verify_membership_proof(tree_size: int, node_hash: str, proof: Optional[str]) -> Optional[bool]:
-    global pub_roots
+    pub_roots = arweave_roots | pangea_roots
 
     log_section("Checking membership proof")
 
@@ -209,7 +238,8 @@ def _verify_membership_proof(tree_size: int, node_hash: str, proof: Optional[str
 
 
 def _verify_consistency_proof(leaf_index: Optional[int]) -> Optional[bool]:
-    global pub_roots
+    pub_roots = arweave_roots | pangea_roots
+
     log_section("Checking consistency proof")
 
     if leaf_index is None:
