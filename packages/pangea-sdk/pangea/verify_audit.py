@@ -15,11 +15,11 @@ import logging
 import os
 import sys
 from enum import Enum
-from typing import Dict, Iterable, List, Optional, Set
+from typing import Dict, Iterable, List, Optional, Set, Union
 
 from pangea.config import PangeaConfig
 from pangea.services import Audit
-from pangea.services.audit.models import Root
+from pangea.services.audit.models import PublishedRoot, Root
 from pangea.services.audit.signing import Verifier
 from pangea.services.audit.util import (
     canonicalize_json,
@@ -34,8 +34,9 @@ from pangea.services.audit.util import (
 )
 
 logger = logging.getLogger("audit")
-arweave_roots: Dict[int, Dict] = {}  # roots fetched from Arweave
-pangea_roots: Dict[int, Dict] = {}  # roots fetched from Pangea
+
+arweave_roots: Dict[int, Union[PublishedRoot]] = {}  # roots fetched from Arweave
+pangea_roots: Dict[int, Union[Root]] = {}  # roots fetched from Pangea
 audit: Audit
 
 
@@ -97,7 +98,7 @@ def get_pangea_roots(tree_sizes: Iterable[int]) -> Dict[int, Root]:
         try:
             resp = audit.root(size)
             if resp.status != "Success":
-                raise ValueError(resp.Status)
+                raise ValueError(resp.status)
             if resp.result is None:
                 raise ValueError("No result")
             ans[int(size)] = resp.result.data
@@ -222,7 +223,7 @@ def _fetch_roots(tree_name: str, tree_size: int, leaf_index: Optional[int]) -> S
 
 
 def _verify_membership_proof(tree_size: int, node_hash: str, proof: Optional[str]) -> Status:
-    pub_roots = arweave_roots | pangea_roots
+    pub_roots: Dict[int, Union[Root, PublishedRoot]] = arweave_roots | pangea_roots  # type: ignore[operator]
 
     log_section("Checking membership proof")
 
@@ -234,9 +235,12 @@ def _verify_membership_proof(tree_size: int, node_hash: str, proof: Optional[str
         logger.debug("Proof not found (event not published yet)")
     else:
         try:
-            root_hash_dec = decode_hash(pub_roots[tree_size].root_hash)  # type: ignore[attr-defined]
+            root_hash_dec = decode_hash(pub_roots[tree_size].root_hash)
             node_hash_dec = decode_hash(node_hash)
             logger.debug("Calculating the proof")
+            if proof is None:
+                logger.debug("Consistency proof is missing")
+                return False
             proof_dec = decode_membership_proof(proof)
             logger.debug("Comparing the root hash with the proof hash")
             if verify_membership_proof(node_hash_dec, root_hash_dec, proof_dec):
@@ -253,7 +257,7 @@ def _verify_membership_proof(tree_size: int, node_hash: str, proof: Optional[str
 
 
 def _verify_consistency_proof(leaf_index: Optional[int]) -> Status:
-    pub_roots = arweave_roots | pangea_roots
+    pub_roots: Dict[int, Union[Root, PublishedRoot]] = arweave_roots | pangea_roots  # type: ignore[operator]
 
     log_section("Checking consistency proof")
 
@@ -273,10 +277,12 @@ def _verify_consistency_proof(leaf_index: Optional[int]) -> Status:
         try:
             curr_root = pub_roots[leaf_index + 1]
             prev_root = pub_roots[leaf_index]
-            curr_root_hash = decode_hash(curr_root.root_hash)  # type: ignore[attr-defined]
-            prev_root_hash = decode_hash(prev_root.root_hash)  # type: ignore[attr-defined]
+            curr_root_hash = decode_hash(curr_root.root_hash)
+            prev_root_hash = decode_hash(prev_root.root_hash)
+            if curr_root.consistency_proof is None:
+                raise ValueError("Consistency proof is missing")
             logger.debug("Calculating the proof")
-            proof = decode_consistency_proof(curr_root.consistency_proof)  # type: ignore[attr-defined]
+            proof = decode_consistency_proof(curr_root.consistency_proof)
             if verify_consistency_proof(curr_root_hash, prev_root_hash, proof):
                 status = Status.SUCCEEDED
             else:
