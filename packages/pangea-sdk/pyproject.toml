@@ -27,7 +27,7 @@ aiohttp = "^3.9.3"
 asyncio = "^3.4.3"
 google-crc32c = "^1.5.0"
 requests-toolbelt = "^1.0.0"
-typing-extensions = "^4.7.1"
+typing-extensions = "^4.12.2"
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.4.2"
