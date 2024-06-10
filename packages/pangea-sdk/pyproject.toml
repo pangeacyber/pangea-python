@@ -30,7 +30,7 @@ requests-toolbelt = "^1.0.0"
 typing-extensions = "^4.7.1"
 
 [tool.poetry.group.dev.dependencies]
-black = "^24.2.0"
+black = "^24.4.2"
 docstring-parser = "^0.15"
 isort = "^5.13.2"
 mypy = "^1.8.0"
