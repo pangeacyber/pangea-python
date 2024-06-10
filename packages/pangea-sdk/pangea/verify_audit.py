@@ -42,7 +42,7 @@ audit: Audit
 class Status(Enum):
     SUCCEEDED = "succeeded"
     FAILED = "failed"
-    NOT_DONE = "not_done"
+    SKIPPED = "skipped"
 
 
 class VerifierLogFormatter(logging.Formatter):
@@ -55,7 +55,7 @@ class VerifierLogFormatter(logging.Formatter):
         if hasattr(record, "is_result"):
             if record.status == Status.SUCCEEDED:
                 point = "🟢"
-            elif record.status == Status.NOT_DONE:
+            elif record.status == Status.SKIPPED:
                 point = "⚪️"
             else:
                 point = "🔴"
@@ -80,7 +80,7 @@ def log_result(msg: str, status: Status):
     elif status == Status.FAILED:
         msg += " failed"
     else:
-        msg += " could not be performed"
+        msg += " skipped"
     logger.log(logging.INFO, msg, extra={"is_result": True, "status": status})
 
 
@@ -108,7 +108,7 @@ def get_pangea_roots(tree_sizes: Iterable[int]) -> Dict[int, Root]:
 
 def _verify_hash(data: Dict, data_hash: str) -> Status:
     log_section("Checking data hash")
-    status = Status.NOT_DONE
+    status = Status.SKIPPED
     try:
         logger.debug("Canonicalizing data")
         data_canon = canonicalize_json(data)
@@ -131,7 +131,7 @@ def _verify_unpublished_membership_proof(root_hash, node_hash: str, proof: Optio
     log_section("Checking unpublished membership proof")
 
     if proof is None:
-        status = Status.NOT_DONE
+        status = Status.SKIPPED
         logger.debug("Proof not found")
     else:
         try:
@@ -186,7 +186,7 @@ def _fetch_roots(tree_name: str, tree_size: int, leaf_index: Optional[int]) -> S
     pangea_fetched_roots = needed_roots & set(pangea_roots.keys())
     if pangea_fetched_roots:
         logger.debug(f"Roots {comma_sep(pangea_fetched_roots)} already fetched from Pangea")
-        status = Status.NOT_DONE  # if we have roots from Pangea, we didn't succeed
+        status = Status.SKIPPED  # if we have roots from Pangea, we didn't succeed
 
     if pending_roots:
         # try Arweave first
@@ -206,7 +206,7 @@ def _fetch_roots(tree_name: str, tree_size: int, leaf_index: Optional[int]) -> S
             logger.debug(f"Fetching root(s) {comma_sep(pending_roots)} from Pangea")
             pangea_roots |= {int(k): v for k, v in get_pangea_roots(pending_roots).items()}  # type: ignore[operator]
             update_pending_roots()
-            status = Status.NOT_DONE
+            status = Status.SKIPPED
         except:
             pass
 
@@ -227,10 +227,10 @@ def _verify_membership_proof(tree_size: int, node_hash: str, proof: Optional[str
     log_section("Checking membership proof")
 
     if tree_size not in pub_roots:
-        status = Status.NOT_DONE
+        status = Status.SKIPPED
         logger.debug("Published root not found")
     elif proof is None:
-        status = Status.NOT_DONE
+        status = Status.SKIPPED
         logger.debug("Proof not found (event not published yet)")
     else:
         try:
@@ -258,15 +258,15 @@ def _verify_consistency_proof(leaf_index: Optional[int]) -> Status:
     log_section("Checking consistency proof")
 
     if leaf_index is None:
-        status = Status.NOT_DONE
+        status = Status.SKIPPED
         logger.debug("Proof not found (event was not published yet)")
 
     elif leaf_index == 0:
-        status = Status.NOT_DONE
+        status = Status.SKIPPED
         logger.debug("Proof not found (event was published in the first leaf)")
 
     elif leaf_index not in pub_roots:
-        status = Status.NOT_DONE
+        status = Status.SKIPPED
         logger.debug("Published root not found")
 
     else:
@@ -299,7 +299,7 @@ def _verify_signature(data: Dict) -> Status:
     log_section("Checking signature")
     if "signature" not in data:
         logger.debug("Signature is not present")
-        status = Status.NOT_DONE
+        status = Status.SKIPPED
     else:
         try:
             logger.debug("Obtaining signature and public key from the event")
@@ -333,8 +333,8 @@ def verify_multiple(root: Dict, unpublished_root: Dict, events: List[Dict]) -> S
     for event_status in statuses:
         if event_status == Status.FAILED:
             return Status.FAILED
-        elif event_status == Status.NOT_DONE:
-            return Status.NOT_DONE
+        elif event_status == Status.SKIPPED:
+            return Status.SKIPPED
     return Status.SUCCEEDED
 
 
@@ -374,10 +374,10 @@ def verify_single(data: Dict, counter: Optional[int] = None) -> Status:
 
     all_ok = (
         ok_hash == Status.SUCCEEDED
-        and (ok_signature == Status.SUCCEEDED or ok_signature == Status.NOT_DONE)
-        and (ok_roots == Status.SUCCEEDED or ok_roots == Status.NOT_DONE)
+        and (ok_signature == Status.SUCCEEDED or ok_signature == Status.SKIPPED)
+        and (ok_roots == Status.SUCCEEDED or ok_roots == Status.SKIPPED)
         and ok_membership == Status.SUCCEEDED
-        and (ok_consistency == Status.SUCCEEDED or ok_consistency == Status.NOT_DONE)
+        and (ok_consistency == Status.SUCCEEDED or ok_consistency == Status.SKIPPED)
     )
     any_failed = (
         ok_hash == Status.FAILED
@@ -394,7 +394,7 @@ def verify_single(data: Dict, counter: Optional[int] = None) -> Status:
     elif any_failed:
         return Status.FAILED
     else:
-        return Status.NOT_DONE
+        return Status.SKIPPED
 
 
 def main():
