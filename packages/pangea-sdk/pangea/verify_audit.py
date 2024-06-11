@@ -37,11 +37,12 @@ logger = logging.getLogger("audit")
 
 arweave_roots: Dict[int, Union[PublishedRoot]] = {}  # roots fetched from Arweave
 pangea_roots: Dict[int, Union[Root]] = {}  # roots fetched from Pangea
-audit: Audit
+audit: Optional[Audit] = None
 
 
 class Status(Enum):
     SUCCEEDED = "succeeded"
+    SUCCEEDED_PANGEA = "succeeded_pangea"  # succeeded with data fetched from Pangea instead of Arweave
     FAILED = "failed"
     SKIPPED = "skipped"
 
@@ -56,6 +57,8 @@ class VerifierLogFormatter(logging.Formatter):
         if hasattr(record, "is_result"):
             if record.status == Status.SUCCEEDED:
                 point = "🟢"
+            elif record.status == Status.SUCCEEDED_PANGEA:
+                point = "🟡"
             elif record.status == Status.SKIPPED:
                 point = "⚪️"
             else:
@@ -78,6 +81,8 @@ class VerifierLogFormatter(logging.Formatter):
 def log_result(msg: str, status: Status):
     if status == Status.SUCCEEDED:
         msg += " succeeded"
+    elif status == Status.SUCCEEDED_PANGEA:
+        msg += " succeeded (with data fetched from Pangea)"
     elif status == Status.FAILED:
         msg += " failed"
     else:
@@ -92,15 +97,22 @@ def log_section(msg: str):
 formatter = VerifierLogFormatter()
 
 
-def get_pangea_roots(tree_sizes: Iterable[int]) -> Dict[int, Root]:
-    ans = {}
+def get_pangea_roots(tree_name: str, tree_sizes: Iterable[int]) -> Dict[int, Root]:
+    ans: Dict[int, Root] = {}
+    if audit is None:
+        return ans
+
     for size in tree_sizes:
         try:
             resp = audit.root(size)
+
             if resp.status != "Success":
                 raise ValueError(resp.status)
-            if resp.result is None:
+            elif resp.result is None or resp.result.data is None:
                 raise ValueError("No result")
+            elif resp.result.data.tree_name != tree_name:
+                raise ValueError("Invalid Pangea Token provided")
+
             ans[int(size)] = resp.result.data
         except Exception as e:
             logger.error(f"Error fetching root from Pangea for size {size}: {str(e)}")
@@ -161,7 +173,7 @@ def _verify_unpublished_membership_proof(root_hash, node_hash: str, proof: Optio
 def _fetch_roots(tree_name: str, tree_size: int, leaf_index: Optional[int]) -> Status:
     global arweave_roots, pangea_roots
 
-    log_section("Fetching published roots from Arweave")
+    log_section("Fetching published roots")
 
     needed_roots = {tree_size}
     if leaf_index:
@@ -187,7 +199,7 @@ def _fetch_roots(tree_name: str, tree_size: int, leaf_index: Optional[int]) -> S
     pangea_fetched_roots = needed_roots & set(pangea_roots.keys())
     if pangea_fetched_roots:
         logger.debug(f"Roots {comma_sep(pangea_fetched_roots)} already fetched from Pangea")
-        status = Status.SKIPPED  # if we have roots from Pangea, we didn't succeed
+        status = Status.SUCCEEDED_PANGEA
 
     if pending_roots:
         # try Arweave first
@@ -201,23 +213,26 @@ def _fetch_roots(tree_name: str, tree_size: int, leaf_index: Optional[int]) -> S
     if pending_roots:
         logger.debug(f"Published root(s) {comma_sep(pending_roots)} could not be fetched from Arweave")
 
-    if pending_roots and audit:
-        # and then Pangea (if we've set an audit client)
-        try:
-            logger.debug(f"Fetching root(s) {comma_sep(pending_roots)} from Pangea")
-            pangea_roots |= {int(k): v for k, v in get_pangea_roots(pending_roots).items()}  # type: ignore[operator]
-            update_pending_roots()
-            status = Status.SKIPPED
-        except:
-            pass
+    if pending_roots:
+        if audit:
+            # and then Pangea (if we've set an audit client)
+            try:
+                logger.debug(f"Fetching root(s) {comma_sep(pending_roots)} from Pangea")
+                pangea_roots |= {int(k): v for k, v in get_pangea_roots(tree_name, pending_roots).items()}  # type: ignore[operator]
+                update_pending_roots()
+                status = Status.SUCCEEDED_PANGEA
+            except:
+                pass
 
-        if pending_roots:
-            logger.debug(f"Roots {comma_sep(pending_roots)} could not be fetched")
+            if pending_roots:
+                logger.debug(f"Roots {comma_sep(pending_roots)} could not be fetched")
+        else:
+            logger.debug("Set PANGEA_DOMAIN and PANGEA_TOKEN envvars to fetch roots from Pangea")
 
     if pending_roots:
         status = Status.FAILED
 
-    log_result("Fetching published roots from Arweave", status)
+    log_result("Fetching published roots", status)
     logger.info("")
     return status
 
@@ -380,10 +395,10 @@ def verify_single(data: Dict, counter: Optional[int] = None) -> Status:
 
     all_ok = (
         ok_hash == Status.SUCCEEDED
-        and (ok_signature == Status.SUCCEEDED or ok_signature == Status.SKIPPED)
-        and (ok_roots == Status.SUCCEEDED or ok_roots == Status.SKIPPED)
+        and (ok_signature in (Status.SUCCEEDED, Status.SKIPPED))
+        and (ok_roots in (Status.SUCCEEDED, Status.SUCCEEDED_PANGEA))
         and ok_membership == Status.SUCCEEDED
-        and (ok_consistency == Status.SUCCEEDED or ok_consistency == Status.SKIPPED)
+        and (ok_consistency in (Status.SUCCEEDED, Status.SKIPPED))
     )
     any_failed = (
         ok_hash == Status.FAILED
