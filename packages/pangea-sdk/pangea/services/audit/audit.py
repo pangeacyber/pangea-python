@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import datetime
 import json
-from typing import Any, Dict, List, Optional, Sequence, Set, Tuple, Union
+from typing import Any, Dict, Iterable, List, Optional, Sequence, Set, Tuple, Union
 
 import pangea.exceptions as pexc
 from pangea.config import PangeaConfig
@@ -199,7 +199,7 @@ class AuditBase:
 
                 # verify consistency proofs
                 if self.can_verify_consistency_proof(search_event):
-                    if self.verify_consistency_proof(self.pub_roots, search_event):
+                    if search_event.leaf_index is not None and self.verify_consistency_proof(search_event.leaf_index):
                         search_event.consistency_verification = EventVerification.PASS
                     else:
                         search_event.consistency_verification = EventVerification.FAIL
@@ -284,7 +284,7 @@ class AuditBase:
         """
         return event.published and event.leaf_index is not None and event.leaf_index >= 0  # type: ignore[return-value]
 
-    def verify_consistency_proof(self, pub_roots: Dict[int, PublishedRoot], event: SearchEvent) -> bool:
+    def verify_consistency_proof(self, tree_size: int) -> bool:
         """
         Verify consistency proof
 
@@ -293,18 +293,17 @@ class AuditBase:
         Read more at: [What is a consistency proof?](https://pangea.cloud/docs/audit/merkle-trees#what-is-a-consistency-proof)
 
         Args:
-            pub_roots (dict[int, Root]): list of published root hashes across time
-            event (SearchEvent): Audit event to be verified.
+            leaf_index (int): The tree size of the root to be verified.
 
         Returns:
             bool: True if consistency proof is verified, False otherwise.
         """
 
-        if event.leaf_index == 0:
+        if tree_size == 0:
             return True
 
-        curr_root = pub_roots.get(event.leaf_index + 1)  # type: ignore[operator]
-        prev_root = pub_roots.get(event.leaf_index)  # type: ignore[arg-type]
+        curr_root = self.pub_roots.get(tree_size + 1)
+        prev_root = self.pub_roots.get(tree_size)
 
         if not curr_root or not prev_root:
             return False
@@ -314,9 +313,12 @@ class AuditBase:
         ):
             return False
 
+        if curr_root.consistency_proof is None:
+            return False
+
         curr_root_hash = decode_hash(curr_root.root_hash)
         prev_root_hash = decode_hash(prev_root.root_hash)
-        proof = decode_consistency_proof(curr_root.consistency_proof)  # type: ignore[arg-type]
+        proof = decode_consistency_proof(curr_root.consistency_proof)
 
         return verify_consistency_proof(curr_root_hash, prev_root_hash, proof)
 
@@ -958,3 +960,22 @@ class Audit(ServiceBase, AuditBase):
                     pub_root.source = RootSource.PANGEA
             if pub_root is not None:
                 self.pub_roots[tree_size] = pub_root
+
+        self.fix_consistency_proofs(tree_sizes)
+
+    def fix_consistency_proofs(self, tree_sizes: Iterable[int]):
+        # on very rare occasions, the consistency proof in Arweave may be wrong
+        # override it with the proof from pangea (not the root hash, just the proof)
+        for tree_size in tree_sizes:
+            if tree_size not in self.pub_roots or tree_size - 1 not in self.pub_roots:
+                continue
+
+            if self.pub_roots[tree_size].source == RootSource.PANGEA:
+                continue
+
+            if self.verify_consistency_proof(tree_size):
+                continue
+
+            resp = self.root(tree_size=tree_size)
+            if resp.success and resp.result is not None and resp.result.data is not None:
+                self.pub_roots[tree_size].consistency_proof = resp.result.data.consistency_proof
