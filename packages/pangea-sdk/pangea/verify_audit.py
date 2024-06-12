@@ -292,6 +292,24 @@ def _consistency_proof_ok(pub_roots: Dict[int, Root | PublishedRoot], leaf_index
     return verify_consistency_proof(curr_root_hash, prev_root_hash, proof)
 
 
+# Due to an (already fixed) bug, some proofs from Arweave may be wrong.
+# Try the proof from Pangea instead. If the root hash in both Arweave and Pangea is the same,
+# it doesn't matter where the proof came from.
+def _fix_consistency_proof(pub_roots: Dict[int, Union[Root, PublishedRoot]], tree_name: str, leaf_index: int):
+    logger.debug("Consistency proof from Arweave failed to verify")
+    size = leaf_index + 1
+    logger.debug(f"Fetching root from Pangea for size {size}")
+    new_roots = get_pangea_roots(tree_name, [size])
+    if size not in new_roots:
+        raise ValueError("Error fetching root from Pangea")
+    pangea_roots[size] = new_roots[size]
+    pub_roots[size] = pangea_roots[size]
+    logger.debug(f"Comparing Arweave root hash with Pangea root hash")
+    if pangea_roots[size].root_hash != arweave_roots[size].root_hash:
+        raise ValueError("Hash does not match")
+    pangea_roots[size] = pangea_roots[size]
+
+
 def _verify_consistency_proof(tree_name: str, leaf_index: Optional[int]) -> Status:
     pub_roots: Dict[int, Union[Root, PublishedRoot]] = arweave_roots | pangea_roots  # type: ignore[operator]
 
@@ -315,21 +333,7 @@ def _verify_consistency_proof(tree_name: str, leaf_index: Optional[int]) -> Stat
                 status = Status.SUCCEEDED
 
             elif audit:
-                # Due to an (already fixed) bug, some proofs from Arweave may be wrong.
-                # Try the proof from Pangea instead. If the root hash in both Arweave and Pangea is the same,
-                # it doesn't matter where the proof came from.
-                logger.debug("Consistency proof from Arweave failed to verify")
-                size = leaf_index + 1
-                logger.debug(f"Fetching root from Pangea for size {size}")
-                new_roots = get_pangea_roots(tree_name, [size])
-                if size not in new_roots:
-                    raise ValueError("Error fetching root from Pangea")
-                pangea_roots[size] = new_roots[size]
-                pub_roots[size] = pangea_roots[size]
-                logger.debug(f"Comparing Arweave root hash with Pangea root hash")
-                if pangea_roots[size].root_hash != arweave_roots[size].root_hash:
-                    raise ValueError("Hash does not match")
-                pangea_roots[size] = pangea_roots[size]
+                _fix_consistency_proof(pub_roots, tree_name, leaf_index)
 
                 # check again
                 if _consistency_proof_ok(pub_roots, leaf_index):
@@ -338,6 +342,9 @@ def _verify_consistency_proof(tree_name: str, leaf_index: Optional[int]) -> Stat
                     status = Status.FAILED
 
             else:
+                logger.debug(
+                    "Set Pangea token and domain (from envvars or script parameters) to fetch roots from Pangea"
+                )
                 status = Status.FAILED
 
         except Exception as e:
