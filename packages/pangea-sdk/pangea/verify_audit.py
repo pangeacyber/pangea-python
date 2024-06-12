@@ -18,6 +18,7 @@ from enum import Enum
 from typing import Dict, Iterable, List, Optional, Set, Union
 
 from pangea.config import PangeaConfig
+from pangea.exceptions import TreeNotFoundException
 from pangea.services import Audit
 from pangea.services.audit.models import PublishedRoot, Root
 from pangea.services.audit.signing import Verifier
@@ -96,6 +97,8 @@ def log_section(msg: str):
 
 formatter = VerifierLogFormatter()
 
+InvalidTokenError = ValueError("Invalid Pangea Token provided")
+
 
 def get_pangea_roots(tree_name: str, tree_sizes: Iterable[int]) -> Dict[int, Root]:
     ans: Dict[int, Root] = {}
@@ -111,9 +114,12 @@ def get_pangea_roots(tree_name: str, tree_sizes: Iterable[int]) -> Dict[int, Roo
             elif resp.result is None or resp.result.data is None:
                 raise ValueError("No result")
             elif resp.result.data.tree_name != tree_name:
-                raise ValueError("Invalid Pangea Token provided")
+                raise InvalidTokenError
 
             ans[int(size)] = resp.result.data
+        except TreeNotFoundException as e:
+            ex = InvalidTokenError
+            logger.error(f"Error fetching root from Pangea for size {size}: {str(ex)}")
         except Exception as e:
             logger.error(f"Error fetching root from Pangea for size {size}: {str(e)}")
     return ans
@@ -227,7 +233,7 @@ def _fetch_roots(tree_name: str, tree_size: int, leaf_index: Optional[int]) -> S
             if pending_roots:
                 logger.debug(f"Roots {comma_sep(pending_roots)} could not be fetched")
         else:
-            logger.debug("Set PANGEA_DOMAIN and PANGEA_TOKEN envvars to fetch roots from Pangea")
+            logger.debug("Set Pangea token and domain (from envvars or script parameters) to fetch roots from Pangea")
 
     if pending_roots:
         status = Status.FAILED
