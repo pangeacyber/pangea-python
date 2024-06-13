@@ -192,7 +192,7 @@ def arweave_graphql_url():
     return f"{ARWEAVE_BASE_URL}/graphql"
 
 
-def get_arweave_published_roots(tree_name: str, tree_sizes: Set[int]) -> Dict[int, PublishedRoot]:
+def get_arweave_published_roots(tree_name: str, tree_sizes: Collection[int]) -> Dict[int, PublishedRoot]:
     if len(tree_sizes) == 0:
         return {}
 
