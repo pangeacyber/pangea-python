@@ -276,19 +276,19 @@ def _verify_membership_proof(tree_size: int, node_hash: str, proof: Optional[str
     return status
 
 
-def _consistency_proof_ok(pub_roots: Dict[int, Root | PublishedRoot], leaf_index: int) -> bool:
+def _consistency_proof_ok(pub_roots: Dict[int, Union[Root, PublishedRoot]], leaf_index: int) -> bool:
     """returns true if a consistency proof is correct"""
 
     curr_root = pub_roots[leaf_index + 1]
     prev_root = pub_roots[leaf_index]
-    curr_root_hash = decode_hash(curr_root.root_hash)  # type: ignore[attr-defined]
-    prev_root_hash = decode_hash(prev_root.root_hash)  # type: ignore[attr-defined]
+    curr_root_hash = decode_hash(curr_root.root_hash)
+    prev_root_hash = decode_hash(prev_root.root_hash)
     if curr_root.consistency_proof is None:
         logger.debug("Consistency proof is missing")
         return False
 
     logger.debug("Calculating the proof")
-    proof = decode_consistency_proof(curr_root.consistency_proof)  # type: ignore[attr-defined]
+    proof = decode_consistency_proof(curr_root.consistency_proof)
     return verify_consistency_proof(curr_root_hash, prev_root_hash, proof)
 
 
@@ -307,7 +307,6 @@ def _fix_consistency_proof(pub_roots: Dict[int, Union[Root, PublishedRoot]], tre
     logger.debug(f"Comparing Arweave root hash with Pangea root hash")
     if pangea_roots[size].root_hash != arweave_roots[size].root_hash:
         raise ValueError("Hash does not match")
-    pangea_roots[size] = pangea_roots[size]
 
 
 def _verify_consistency_proof(tree_name: str, leaf_index: Optional[int]) -> Status:
