@@ -36,9 +36,8 @@ from pangea.services.audit.util import (
 )
 
 logger = logging.getLogger("audit")
-
-arweave_roots: Dict[int, Union[PublishedRoot]] = {}  # roots fetched from Arweave
-pangea_roots: Dict[int, Union[Root]] = {}  # roots fetched from Pangea
+arweave_roots: Dict[int, PublishedRoot] = {}  # roots fetched from Arweave
+pangea_roots: Dict[int, Root] = {}  # roots fetched from Pangea
 audit: Optional[Audit] = None
 
 
@@ -278,7 +277,40 @@ def _verify_membership_proof(tree_size: int, node_hash: str, proof: Optional[str
     return status
 
 
-def _verify_consistency_proof(leaf_index: Optional[int]) -> Status:
+def _consistency_proof_ok(pub_roots: Dict[int, Union[Root, PublishedRoot]], leaf_index: int) -> bool:
+    """returns true if a consistency proof is correct"""
+
+    curr_root = pub_roots[leaf_index + 1]
+    prev_root = pub_roots[leaf_index]
+    curr_root_hash = decode_hash(curr_root.root_hash)
+    prev_root_hash = decode_hash(prev_root.root_hash)
+    if curr_root.consistency_proof is None:
+        logger.debug("Consistency proof is missing")
+        return False
+
+    logger.debug("Calculating the proof")
+    proof = decode_consistency_proof(curr_root.consistency_proof)
+    return verify_consistency_proof(curr_root_hash, prev_root_hash, proof)
+
+
+# Due to an (already fixed) bug, some proofs from Arweave may be wrong.
+# Try the proof from Pangea instead. If the root hash in both Arweave and Pangea is the same,
+# it doesn't matter where the proof came from.
+def _fix_consistency_proof(pub_roots: Dict[int, Union[Root, PublishedRoot]], tree_name: str, leaf_index: int):
+    logger.debug("Consistency proof from Arweave failed to verify")
+    size = leaf_index + 1
+    logger.debug(f"Fetching root from Pangea for size {size}")
+    new_roots = get_pangea_roots(tree_name, [size])
+    if size not in new_roots:
+        raise ValueError("Error fetching root from Pangea")
+    pangea_roots[size] = new_roots[size]
+    pub_roots[size] = pangea_roots[size]
+    logger.debug(f"Comparing Arweave root hash with Pangea root hash")
+    if pangea_roots[size].root_hash != arweave_roots[size].root_hash:
+        raise ValueError("Hash does not match")
+
+
+def _verify_consistency_proof(tree_name: str, leaf_index: Optional[int]) -> Status:
     pub_roots: Dict[int, Union[Root, PublishedRoot]] = arweave_roots | pangea_roots  # type: ignore[operator]
 
     log_section("Checking consistency proof")
@@ -297,17 +329,22 @@ def _verify_consistency_proof(leaf_index: Optional[int]) -> Status:
 
     else:
         try:
-            curr_root = pub_roots[leaf_index + 1]
-            prev_root = pub_roots[leaf_index]
-            curr_root_hash = decode_hash(curr_root.root_hash)
-            prev_root_hash = decode_hash(prev_root.root_hash)
-            if curr_root.consistency_proof is None:
-                raise ValueError("Consistency proof is missing")
-            logger.debug("Calculating the proof")
-            proof = decode_consistency_proof(curr_root.consistency_proof)
-            if verify_consistency_proof(curr_root_hash, prev_root_hash, proof):
+            if _consistency_proof_ok(pub_roots, leaf_index):
                 status = Status.SUCCEEDED
+
+            elif audit:
+                _fix_consistency_proof(pub_roots, tree_name, leaf_index)
+
+                # check again
+                if _consistency_proof_ok(pub_roots, leaf_index):
+                    status = Status.SUCCEEDED
+                else:
+                    status = Status.FAILED
+
             else:
+                logger.debug(
+                    "Set Pangea token and domain (from envvars or script parameters) to fetch roots from Pangea"
+                )
                 status = Status.FAILED
 
         except Exception as e:
@@ -396,7 +433,7 @@ def verify_single(data: Dict, counter: Optional[int] = None) -> Status:
         )
 
     if data["published"]:
-        ok_consistency = _verify_consistency_proof(data.get("leaf_index"))
+        ok_consistency = _verify_consistency_proof(data["root"]["tree_name"], data.get("leaf_index"))
     else:
         ok_consistency = Status.SUCCEEDED
 
