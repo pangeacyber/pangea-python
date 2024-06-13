@@ -7,7 +7,7 @@ from binascii import hexlify, unhexlify
 from dataclasses import dataclass
 from datetime import datetime
 from hashlib import sha256
-from typing import Dict, List, Optional, Set
+from typing import Collection, Dict, List, Optional
 
 import requests
 
