@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import datetime
-from typing import Any, Dict, List, Optional, Sequence, Union
+from typing import Any, Dict, Iterable, List, Optional, Sequence, Union
 
 import pangea.exceptions as pexc
 from pangea.asyncio.services.base import ServiceBaseAsync
@@ -631,3 +631,22 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
                     pub_root.source = RootSource.PANGEA
             if pub_root is not None:
                 self.pub_roots[tree_size] = pub_root
+
+        await self.fix_consistency_proofs(tree_sizes)
+
+    async def fix_consistency_proofs(self, tree_sizes: Iterable[int]):
+        # on very rare occasions, the consistency proof in Arweave may be wrong
+        # override it with the proof from pangea (not the root hash, just the proof)
+        for tree_size in tree_sizes:
+            if tree_size not in self.pub_roots or tree_size - 1 not in self.pub_roots:
+                continue
+
+            if self.pub_roots[tree_size].source == RootSource.PANGEA:
+                continue
+
+            if self.verify_consistency_proof(tree_size):
+                continue
+
+            resp = await self.root(tree_size=tree_size)
+            if resp.success and resp.result is not None and resp.result.data is not None:
+                self.pub_roots[tree_size].consistency_proof = resp.result.data.consistency_proof
