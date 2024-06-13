@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Improvements in `verify_audit` script
 - `fpe_context` field in Audit search events
 - `return_context` support in Audit `/search`, `/results` and `/download` endpoints
 - Redact `/unredact` endpoint support
