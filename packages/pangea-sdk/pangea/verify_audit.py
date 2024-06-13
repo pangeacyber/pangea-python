@@ -14,8 +14,9 @@ import json
 import logging
 import os
 import sys
+from collections.abc import Set
 from enum import Enum
-from typing import Dict, Iterable, List, Optional, Set, Union
+from typing import Dict, Iterable, List, Optional, Union
 
 from pangea.config import PangeaConfig
 from pangea.exceptions import TreeNotFoundException
