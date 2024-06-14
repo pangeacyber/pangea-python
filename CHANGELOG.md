@@ -7,11 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [3.9.0] - 2024-06-07
+## [4.0.0] - 2024-06-14
 
 ### Added
 
 - Improvements in `verify_audit` script
+
+### Changed
+
+- Support for Python v3.7 has been dropped. Python v3.8 is now the minimum
+  supported version.
+- Updated pydantic to v2.6.3.
+- Updated aiohttp to v3.9.3.
+
+### Removed
+
+- `utils.dict_order_keys()` and `utils.dict_order_keys_recursive()`.
+
+## [3.9.0] - 2024-06-07
+
+### Added
+
 - `fpe_context` field in Audit search events
 - `return_context` support in Audit `/search`, `/results` and `/download` endpoints
 - Redact `/unredact` endpoint support
@@ -55,16 +71,11 @@ Note that Sanitize and Secure Share did not make it into this release.
 ### Changed
 
 - AuthN ClientTokenCheckResult `token` field is optional
-- Support for Python v3.7 has been dropped. Python v3.8 is now the minimum
-  supported version.
-- Updated pydantic to v2.6.3.
-- Updated aiohttp to v3.9.3.
 
 ### Removed
 
 - An unused binascii import.
 - Unused os imports.
-- `utils.dict_order_keys()` and `utils.dict_order_keys_recursive()`.
 
 ## [3.7.0] - 2024-02-26
 
