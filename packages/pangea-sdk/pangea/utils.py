@@ -33,6 +33,11 @@ def str2str_b64(data: str, encoding: str = "utf-8") -> str:
     return base64.b64encode(data.encode(encoding)).decode("ascii")
 
 
+def str_b64_2bytes(data: str) -> bytes:
+    data += "=" * ((4 - len(data) % 4) % 4)  # add padding if needed
+    return base64.urlsafe_b64decode(data)
+
+
 def canonicalize_nested_json(data: dict) -> dict:
     """Canonicalize nested JSON"""
     if not isinstance(data, dict):

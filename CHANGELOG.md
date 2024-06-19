@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Vault `/export` support
+- `exportable` field support in Vault `/key/store` and `/key/generate`
+
 ## [4.0.0] - 2024-06-14
 
 ### Added

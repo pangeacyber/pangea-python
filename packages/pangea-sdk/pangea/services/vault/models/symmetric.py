@@ -18,6 +18,8 @@ class SymmetricStoreRequest(CommonStoreRequest):
     key: EncodedSymmetricKey
     algorithm: SymmetricAlgorithm
     purpose: KeyPurpose
+    exportable: Optional[bool] = None
+    """Whether the key is exportable or not."""
 
 
 class SymmetricStoreResult(CommonStoreResult):
@@ -28,6 +30,8 @@ class SymmetricStoreResult(CommonStoreResult):
 class SymmetricGenerateRequest(CommonGenerateRequest):
     algorithm: SymmetricAlgorithm
     purpose: KeyPurpose
+    exportable: Optional[bool] = None
+    """Whether the key is exportable or not."""
 
 
 class SymmetricGenerateResult(CommonGenerateResult):

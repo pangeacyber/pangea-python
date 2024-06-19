@@ -18,6 +18,7 @@ from pangea.services.vault.models.common import (
 class AsymmetricGenerateRequest(CommonGenerateRequest):
     algorithm: AsymmetricAlgorithm
     purpose: KeyPurpose
+    exportable: Optional[bool] = None
 
 
 class AsymmetricGenerateResult(CommonGenerateResult):
@@ -31,6 +32,7 @@ class AsymmetricStoreRequest(CommonStoreRequest):
     public_key: EncodedPublicKey
     private_key: EncodedPrivateKey
     purpose: KeyPurpose
+    exportable: Optional[bool] = None
 
 
 class AsymmetricStoreResult(CommonStoreResult):
