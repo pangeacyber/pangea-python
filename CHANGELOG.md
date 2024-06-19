@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Vault `/export` support
 - `exportable` field support in Vault `/key/store` and `/key/generate`
 
+### Fixed
+
+- Exception in `verify_audit` script when the event is not published
+
 ## [4.0.0] - 2024-06-14
 
 ### Added
