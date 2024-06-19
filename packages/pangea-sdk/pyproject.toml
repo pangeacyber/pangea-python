@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pangea-sdk"
-version = "3.9.0"
+version = "4.0.0"
 description = "Pangea API SDK"
 authors = ["Glenn Gallien <glenn.gallien@pangea.cloud>"]
 license = "MIT"
@@ -33,7 +33,7 @@ typing-extensions = "^4.12.2"
 black = "^24.4.2"
 docstring-parser = "^0.15"
 isort = "^5.13.2"
-mypy = "^1.8.0"
+mypy = "^1.10.0"
 types-Deprecated = "^1.2.9.3"
 types-python-dateutil = "^2.8.19.14"
 types-requests = "^2.31.0.10"
