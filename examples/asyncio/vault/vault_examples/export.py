@@ -2,18 +2,20 @@ import asyncio
 import os
 from secrets import token_hex
 
-import pangea.crypto.rsa as rsa
 import pangea.exceptions as pe
 from pangea.asyncio.services import VaultAsync
 from pangea.config import PangeaConfig
+from pangea.crypto import rsa
 from pangea.services.vault.models.asymmetric import AsymmetricAlgorithm
 from pangea.services.vault.models.common import ExportEncryptionAlgorithm, KeyPurpose
 from pangea.utils import str_b64_2bytes
 
 
-async def main():
+async def main() -> None:
     token = os.getenv("PANGEA_VAULT_TOKEN")
     domain = os.getenv("PANGEA_DOMAIN")
+    assert token
+    assert domain
     config = PangeaConfig(domain=domain)
     vault = VaultAsync(token, config=config)
 
@@ -48,7 +50,7 @@ async def main():
         exp_encrypted_resp = await vault.export(
             id=key_id,
             version=1,
-            encryption_key=rsa_pub_key_pem,
+            encryption_key=rsa_pub_key_pem.decode("utf8"),
             encryption_algorithm=ExportEncryptionAlgorithm.RSA4096_OAEP_SHA512,
         )
 

@@ -1,10 +1,10 @@
-from typing import Tuple
+from __future__ import annotations
 
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
 
 
-def generate_key_pair() -> Tuple[rsa.RSAPrivateKey, rsa.RSAPublicKey]:
+def generate_key_pair() -> tuple[rsa.RSAPrivateKey, rsa.RSAPublicKey]:
     # Generate a 4096-bit RSA key pair
     private_key = rsa.generate_private_key(
         public_exponent=65537,
@@ -31,7 +31,7 @@ def encrypt_sha512(public_key: rsa.RSAPublicKey, message: bytes) -> bytes:
     )
 
 
-def private_key_to_pem(private_key: rsa.RSAPrivateKey) -> str:
+def private_key_to_pem(private_key: rsa.RSAPrivateKey) -> bytes:
     # Serialize private key to PEM format
     return private_key.private_bytes(
         encoding=serialization.Encoding.PEM,
@@ -40,7 +40,7 @@ def private_key_to_pem(private_key: rsa.RSAPrivateKey) -> str:
     )
 
 
-def public_key_to_pem(public_key: rsa.RSAPublicKey) -> str:
+def public_key_to_pem(public_key: rsa.RSAPublicKey) -> bytes:
     # Serialize public key to PEM format
     return public_key.public_bytes(
         encoding=serialization.Encoding.PEM, format=serialization.PublicFormat.SubjectPublicKeyInfo

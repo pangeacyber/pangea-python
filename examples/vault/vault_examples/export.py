@@ -1,9 +1,9 @@
 import os
 from secrets import token_hex
 
-import pangea.crypto.rsa as rsa
 import pangea.exceptions as pe
 from pangea.config import PangeaConfig
+from pangea.crypto import rsa
 from pangea.services.vault.models.asymmetric import AsymmetricAlgorithm
 from pangea.services.vault.models.common import ExportEncryptionAlgorithm, KeyPurpose
 from pangea.services.vault.vault import Vault
@@ -49,7 +49,7 @@ def main() -> None:
         exp_encrypted_resp = vault.export(
             id=key_id,
             version=1,
-            encryption_key=rsa_pub_key_pem,
+            encryption_key=rsa_pub_key_pem.decode("utf8"),
             encryption_algorithm=ExportEncryptionAlgorithm.RSA4096_OAEP_SHA512,
         )
 

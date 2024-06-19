@@ -743,7 +743,7 @@ class TestVault(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(msg, decrypt1_deactivated_resp.result.plain_text)
 
-    async def test_export_generate_asymmetric(self):
+    async def test_export_generate_asymmetric(self) -> None:
         name = get_name()
         algorithm = AsymmetricAlgorithm.Ed25519
         purpose = KeyPurpose.SIGNING
@@ -789,7 +789,7 @@ class TestVault(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(exp_priv_key_pem, exp_resp.result.private_key.encode("utf-8"))
         self.assertEqual(exp_pub_key_pem, exp_resp.result.public_key.encode("utf-8"))
 
-    async def test_export_generate_symmetric(self):
+    async def test_export_generate_symmetric(self) -> None:
         name = get_name()
         algorithm = SymmetricAlgorithm.AES128_CBC
         purpose = KeyPurpose.ENCRYPTION
@@ -830,7 +830,7 @@ class TestVault(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(exp_key_pem, exp_resp.result.key.encode("utf-8"))
 
-    async def test_export_store_asymmetric(self):
+    async def test_export_store_asymmetric(self) -> None:
         name = get_name()
         purpose = KeyPurpose.SIGNING
         response = await self.vault.asymmetric_store(
@@ -878,7 +878,7 @@ class TestVault(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(exp_priv_key_pem, exp_resp.result.private_key.encode("utf-8"))
         self.assertEqual(exp_pub_key_pem, exp_resp.result.public_key.encode("utf-8"))
 
-    async def test_export_store_symmetric(self):
+    async def test_export_store_symmetric(self) -> None:
         name = get_name()
         response = await self.vault.symmetric_store(
             **KEY_AES, purpose=KeyPurpose.ENCRYPTION, name=name, exportable=True

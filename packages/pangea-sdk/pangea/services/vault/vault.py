@@ -1424,9 +1424,9 @@ class Vault(ServiceBase):
     def export(
         self,
         id: str,
-        version: Optional[int] = None,
-        encryption_key: Optional[str] = None,
-        encryption_algorithm: Optional[ExportEncryptionAlgorithm] = None,
+        version: int | None = None,
+        encryption_key: str | None = None,
+        encryption_algorithm: ExportEncryptionAlgorithm | None = None,
     ) -> PangeaResponse[ExportResult]:
         """
         Export
@@ -1436,10 +1436,10 @@ class Vault(ServiceBase):
         OperationId: vault_post_v1_export
 
         Args:
-            id (str): The ID of the item.
-            version (int, optional): The item version.
-            encryption_key (str, optional): Public key in pem format used to encrypt exported key(s).
-            encryption_algorithm (str, optional): The algorithm of the public key.
+            id: The ID of the item.
+            version: The item version.
+            encryption_key: Public key in pem format used to encrypt exported key(s).
+            encryption_algorithm: The algorithm of the public key.
 
         Raises:
             PangeaAPIException: If an API error happens.
@@ -1464,5 +1464,5 @@ class Vault(ServiceBase):
         return self.request.post(
             "v1/export",
             ExportResult,
-            data=input.dict(exclude_none=True),
+            data=input.model_dump(exclude_none=True),
         )

@@ -174,7 +174,10 @@ class ItemState(str, enum.Enum):
 
 
 class ExportEncryptionAlgorithm(str, enum.Enum):
+    """Algorithm of an exported public key."""
+
     RSA4096_OAEP_SHA512 = "RSA-OAEP-4096-SHA512"
+    """RSA 4096-bit key, OAEP padding, SHA512 digest."""
 
     def __str__(self):
         return str(self.value)
@@ -251,6 +254,7 @@ class ItemData(PangeaResponseResult):
     algorithm: Optional[str] = None
     purpose: Optional[str] = None
     exportable: Optional[bool] = None
+    """Whether the key is exportable or not."""
 
 
 class InheritedSettings(PangeaResponseResult):
