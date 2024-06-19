@@ -415,7 +415,10 @@ def verify_single(data: Dict, counter: Optional[int] = None) -> Status:
     ok_hash = _verify_hash(data["envelope"], data["hash"])
     ok_signature = _verify_signature(data["envelope"])
 
-    ok_roots = _fetch_roots(data["root"]["tree_name"], data["root"]["size"], data.get("leaf_index"))
+    if data.get("root"):
+        ok_roots = _fetch_roots(data["root"]["tree_name"], data["root"]["size"], data.get("leaf_index"))
+    else:
+        ok_roots = Status.SKIPPED
 
     if data["published"]:
         if not data.get("root"):
@@ -440,7 +443,7 @@ def verify_single(data: Dict, counter: Optional[int] = None) -> Status:
     all_ok = (
         ok_hash == Status.SUCCEEDED
         and (ok_signature in (Status.SUCCEEDED, Status.SKIPPED))
-        and (ok_roots in (Status.SUCCEEDED, Status.SUCCEEDED_PANGEA))
+        and (ok_roots in (Status.SKIPPED, Status.SUCCEEDED, Status.SUCCEEDED_PANGEA))
         and ok_membership == Status.SUCCEEDED
         and (ok_consistency in (Status.SUCCEEDED, Status.SKIPPED))
     )
