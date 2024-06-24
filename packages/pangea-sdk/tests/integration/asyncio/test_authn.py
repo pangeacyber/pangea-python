@@ -31,14 +31,14 @@ CB_URI = "https://someurl.com/callbacklink"
 
 
 class TestAuthN(unittest.IsolatedAsyncioTestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         self.token = get_test_token(TEST_ENVIRONMENT)
         domain = get_test_domain(TEST_ENVIRONMENT)
         self.config = PangeaConfig(domain=domain)
         self.authn = AuthNAsync(self.token, config=self.config, logger_name="pangea")
         logger_set_pangea_config(logger_name=self.authn.logger.name)
 
-    async def asyncTearDown(self):
+    async def asyncTearDown(self) -> None:
         await self.authn.close()
 
     async def flow_handle_password_phase(self, flow_id, password):
@@ -73,6 +73,7 @@ class TestAuthN(unittest.IsolatedAsyncioTestCase):
         response = await self.authn.flow.start(
             email=email, flow_types=[m.FlowType.SIGNUP, m.FlowType.SIGNIN], cb_uri=CB_URI
         )
+        assert response.result
         flow_id = response.result.flow_id
 
         while response.result.flow_phase != "phase_completed":
@@ -83,6 +84,7 @@ class TestAuthN(unittest.IsolatedAsyncioTestCase):
             elif self.choice_is_available(response, m.FlowChoice.AGREEMENTS.value):
                 response = await self.flow_handle_agreements_phase(flow_id=flow_id, response=response)
             else:
+                assert response.result
                 print(f"Phase {response.result.flow_choices} not handled")
                 break
 
@@ -140,6 +142,7 @@ class TestAuthN(unittest.IsolatedAsyncioTestCase):
             response = await self.authn.user.profile.get(email=EMAIL_TEST)
             self.assertEqual(response.status, "Success")
             self.assertIsNotNone(response.result)
+            assert response.result
             USER_ID = response.result.id
             self.assertEqual(EMAIL_TEST, response.result.email)
             self.assertEqual(PROFILE_OLD, response.result.profile)
@@ -147,14 +150,16 @@ class TestAuthN(unittest.IsolatedAsyncioTestCase):
             response = await self.authn.user.profile.get(id=USER_ID)
             self.assertEqual(response.status, "Success")
             self.assertIsNotNone(response.result)
+            assert response.result
             self.assertEqual(USER_ID, response.result.id)
             self.assertEqual(EMAIL_TEST, response.result.email)
             self.assertEqual(PROFILE_OLD, response.result.profile)
 
             # Add one new field to profile
-            response = await self.authn.user.profile.update(id=USER_ID, profile=PROFILE_NEW)
+            response = await self.authn.user.profile.update(id=USER_ID, profile=PROFILE_NEW)  # type: ignore[assignment]
             self.assertEqual(response.status, "Success")
             self.assertIsNotNone(response.result)
+            assert response.result
             self.assertEqual(USER_ID, response.result.id)
             self.assertEqual(EMAIL_TEST, response.result.email)
             final_profile: dict[str, str] = {}
@@ -290,7 +295,7 @@ class TestAuthN(unittest.IsolatedAsyncioTestCase):
             print(e)
             self.assertTrue(False)
 
-    async def authn_c3_login_n_logout_sessions(self):
+    async def authn_c3_login_n_logout_sessions(self) -> None:
         # This could (should) fail if test_authn_a1_user_create_with_password failed
         try:
             response_login = await self.login(email=EMAIL_TEST, password=PASSWORD_OLD)
@@ -303,9 +308,14 @@ class TestAuthN(unittest.IsolatedAsyncioTestCase):
             response_logout = await self.authn.session.logout(user_id=response_login.result.active_token.id)
             self.assertEqual(response_logout.status, "Success")
 
+            # Expire password.
+            assert USER_ID
+            expire_response = await self.authn.client.password.expire(USER_ID)
+            self.assertEqual(expire_response.status, "Success")
+
         except pe.PangeaAPIException as e:
             print(e)
-            self.assertTrue(False)
+            raise
 
     async def authn_sessions(self):
         await self.authn_c1_login_n_some_validations()
@@ -332,6 +342,7 @@ class TestAuthN(unittest.IsolatedAsyncioTestCase):
 
         # Create agreement
         response = await self.authn.agreements.create(type=type, name=name, text=text, active=active)
+        assert response.result
         self.assertEqual(response.result.type, str(type))
         self.assertEqual(response.result.name, name)
         self.assertEqual(response.result.text, text)
@@ -343,23 +354,26 @@ class TestAuthN(unittest.IsolatedAsyncioTestCase):
         new_name = f"{name}_v2"
         new_text = f"{text} v2"
 
-        response = await self.authn.agreements.update(type=type, id=id, name=new_name, text=new_text, active=active)
+        response = await self.authn.agreements.update(type=type, id=id, name=new_name, text=new_text, active=active)  # type: ignore[assignment]
+        assert response.result
         self.assertEqual(response.result.name, new_name)
         self.assertEqual(response.result.text, new_text)
         self.assertEqual(response.result.active, active)
 
         # List
-        response = await self.authn.agreements.list()
-        self.assertGreater(response.result.count, 0)
-        self.assertGreater(len(response.result.agreements), 0)
-        count = response.result.count  # save current value
+        list_response = await self.authn.agreements.list()
+        assert list_response.result
+        self.assertGreater(list_response.result.count, 0)
+        self.assertGreater(len(list_response.result.agreements), 0)
+        count = list_response.result.count  # save current value
 
         # delete
-        response = await self.authn.agreements.delete(type=type, id=id)
+        await self.authn.agreements.delete(type=type, id=id)
 
         # List again
-        response = await self.authn.agreements.list()
-        self.assertEqual(response.result.count, count - 1)
+        list_response = await self.authn.agreements.list()
+        assert list_response.result
+        self.assertEqual(list_response.result.count, count - 1)
 
     async def test_agreements_eula(self):
         await self.agreements_cycle(m.AgreementType.EULA)

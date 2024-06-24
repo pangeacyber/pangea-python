@@ -1,5 +1,6 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+from __future__ import annotations
 
 import datetime
 import unittest
@@ -30,7 +31,7 @@ CB_URI = "https://someurl.com/callbacklink"
 
 
 class TestAuthN(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         self.token = get_test_token(TEST_ENVIRONMENT)
         domain = get_test_domain(TEST_ENVIRONMENT)
         self.config = PangeaConfig(domain=domain)
@@ -80,6 +81,7 @@ class TestAuthN(unittest.TestCase):
 
     def create_n_login(self, email, password) -> PangeaResponse[m.FlowCompleteResult]:
         response = self.authn.flow.start(email=email, flow_types=[m.FlowType.SIGNUP, m.FlowType.SIGNIN], cb_uri=CB_URI)
+        assert response.result
         flow_id = response.result.flow_id
 
         while response.result.flow_phase != "phase_completed":
@@ -90,6 +92,7 @@ class TestAuthN(unittest.TestCase):
             elif self.choice_is_available(response, m.FlowChoice.AGREEMENTS.value):
                 response = self.flow_handle_agreements_phase(flow_id=flow_id, response=response)
             else:
+                assert response.result
                 print(f"Phase {response.result.flow_choices} not handled")
                 break
 
@@ -252,9 +255,9 @@ class TestAuthN(unittest.TestCase):
 
         except pe.PangeaAPIException as e:
             print(e)
-            self.assertTrue(False)
+            raise
 
-    def test_authn_c2_login_n_client_session_invalidate(self):
+    def test_authn_c2_login_n_client_session_invalidate(self) -> None:
         # This could (should) fail if test_authn_a1_user_create_with_password failed
         try:
             response_login = self.login(email=EMAIL_TEST, password=PASSWORD_OLD)
@@ -280,9 +283,9 @@ class TestAuthN(unittest.TestCase):
 
         except pe.PangeaAPIException as e:
             print(e)
-            self.assertTrue(False)
+            raise
 
-    def test_authn_c3_login_n_logout_sessions(self):
+    def test_authn_c3_login_n_logout_sessions(self) -> None:
         # This could (should) fail if test_authn_a1_user_create_with_password failed
         try:
             response_login = self.login(email=EMAIL_TEST, password=PASSWORD_OLD)
@@ -295,14 +298,19 @@ class TestAuthN(unittest.TestCase):
             response_logout = self.authn.session.logout(user_id=response_login.result.active_token.id)
             self.assertEqual(response_logout.status, "Success")
 
+            # Expire password.
+            expire_response = self.authn.client.password.expire(USER_ID)
+            self.assertEqual(expire_response.status, "Success")
+
         except pe.PangeaAPIException as e:
             print(e)
-            self.assertTrue(False)
+            raise
 
     def test_authn_z1_user_list(self) -> None:
         response = self.authn.user.list(filter={})
         self.assertEqual(response.status, "Success")
         self.assertIsNotNone(response.result)
+        assert response.result
         self.assertGreater(len(response.result.users), 0)
         for user in response.result.users:
             try:
@@ -318,6 +326,7 @@ class TestAuthN(unittest.TestCase):
 
         # Create agreement
         response = self.authn.agreements.create(type=type, name=name, text=text, active=active)
+        assert response.result
         self.assertEqual(response.result.type, str(type))
         self.assertEqual(response.result.name, name)
         self.assertEqual(response.result.text, text)
@@ -329,23 +338,26 @@ class TestAuthN(unittest.TestCase):
         new_name = f"{name}_v2"
         new_text = f"{text} v2"
 
-        response = self.authn.agreements.update(type=type, id=id, name=new_name, text=new_text, active=active)
+        response = self.authn.agreements.update(type=type, id=id, name=new_name, text=new_text, active=active)  # type: ignore[assignment]
+        assert response.result
         self.assertEqual(response.result.name, new_name)
         self.assertEqual(response.result.text, new_text)
         self.assertEqual(response.result.active, active)
 
         # List
-        response = self.authn.agreements.list(filter={})
-        self.assertGreater(response.result.count, 0)
-        self.assertGreater(len(response.result.agreements), 0)
-        count = response.result.count  # save current value
+        list_response = self.authn.agreements.list(filter={})
+        assert list_response.result
+        self.assertGreater(list_response.result.count, 0)
+        self.assertGreater(len(list_response.result.agreements), 0)
+        count = list_response.result.count  # save current value
 
         # delete
-        response = self.authn.agreements.delete(type=type, id=id)
+        self.authn.agreements.delete(type=type, id=id)
 
         # List again
-        response = self.authn.agreements.list()
-        self.assertEqual(response.result.count, count - 1)
+        list_response = self.authn.agreements.list()
+        assert list_response.result
+        self.assertEqual(list_response.result.count, count - 1)
 
     def test_agreements_eula(self):
         self.agreements_cycle(m.AgreementType.EULA)

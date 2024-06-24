@@ -6,7 +6,7 @@ from typing import Dict, List, Optional, Union
 
 import pangea.services.authn.models as m
 from pangea.config import PangeaConfig
-from pangea.response import PangeaResponse
+from pangea.response import PangeaResponse, PangeaResponseResult
 from pangea.services.base import ServiceBase
 
 SERVICE_NAME = "authn"
@@ -363,10 +363,10 @@ class AuthN(ServiceBase):
 
             def __init__(
                 self,
-                token,
-                config=None,
-                logger_name="pangea",
-            ):
+                token: str,
+                config: PangeaConfig | None = None,
+                logger_name: str = "pangea",
+            ) -> None:
                 super().__init__(token, config, logger_name=logger_name)
 
             def change(
@@ -398,6 +398,25 @@ class AuthN(ServiceBase):
                 return self.request.post(
                     "v2/client/password/change", m.ClientPasswordChangeResult, data=input.model_dump(exclude_none=True)
                 )
+
+            def expire(self, user_id: str) -> PangeaResponse[PangeaResponseResult]:
+                """
+                Expire a user's password
+
+                Expire a user's password.
+
+                OperationId: authn_post_v2_user_password_expire
+
+                Args:
+                    user_id: The identity of a user or a service.
+
+                Returns:
+                    A PangeaResponse with an empty object in the response.result field.
+
+                Examples:
+                    authn.client.password.expire("pui_[...]")
+                """
+                return self.request.post("v2/user/password/expire", PangeaResponseResult, {"id": user_id})
 
         class Token(ServiceBase):
             service_name = SERVICE_NAME
