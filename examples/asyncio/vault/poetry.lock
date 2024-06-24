@@ -844,7 +844,7 @@ files = [
 
 [[package]]
 name = "pangea-sdk"
-version = "3.9.0"
+version = "4.1.0"
 description = "Pangea API SDK"
 optional = false
 python-versions = "^3.8.0"
