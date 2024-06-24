@@ -7,7 +7,7 @@ from typing import Dict, List, Optional, Union
 import pangea.services.authn.models as m
 from pangea.asyncio.services.base import ServiceBaseAsync
 from pangea.config import PangeaConfig
-from pangea.response import PangeaResponse
+from pangea.response import PangeaResponse, PangeaResponseResult
 
 SERVICE_NAME = "authn"
 
@@ -398,6 +398,25 @@ class AuthNAsync(ServiceBaseAsync):
                 return await self.request.post(
                     "v2/client/password/change", m.ClientPasswordChangeResult, data=input.model_dump(exclude_none=True)
                 )
+
+            async def expire(self, user_id: str) -> PangeaResponse[PangeaResponseResult]:
+                """
+                Expire a user's password
+
+                Expire a user's password.
+
+                OperationId: authn_post_v2_user_password_expire
+
+                Args:
+                    user_id: The identity of a user or a service.
+
+                Returns:
+                    A PangeaResponse with an empty object in the response.result field.
+
+                Examples:
+                    await authn.client.password.expire("pui_[...]")
+                """
+                return await self.request.post("v2/user/password/expire", PangeaResponseResult, {"id": user_id})
 
         class TokenAsync(ServiceBaseAsync):
             service_name = SERVICE_NAME
