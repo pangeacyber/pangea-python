@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - AuthN user password expiration support.
 
+### Changed
+
+- `pangea.services.authn.models.Profile` has returned to being a
+  `dict[str, str]`, and its `first_name`, `last_name`, and `phone` properties
+  have been deprecated.
+
 ## [4.1.0] - 2024-06-19
 
 ### Added

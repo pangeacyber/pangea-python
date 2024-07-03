@@ -163,12 +163,12 @@ class TestAuthN(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(USER_ID, response.result.id)
             self.assertEqual(EMAIL_TEST, response.result.email)
             final_profile: dict[str, str] = {}
-            final_profile.update(PROFILE_OLD.model_dump(exclude_none=True))
-            final_profile.update(PROFILE_NEW.model_dump(exclude_none=True))
+            final_profile.update(PROFILE_OLD)
+            final_profile.update(PROFILE_NEW)
             self.assertEqual(m.Profile(**final_profile), response.result.profile)
         except pe.PangeaAPIException as e:
             print(e)
-            self.assertTrue(False)
+            raise
 
     async def authn_a5_user_update(self):
         response = await self.authn.user.update(email=EMAIL_TEST, disabled=False)
