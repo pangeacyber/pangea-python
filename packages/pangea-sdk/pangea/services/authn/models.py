@@ -5,22 +5,62 @@ from __future__ import annotations
 
 import enum
 from typing import Dict, List, NewType, Optional, Union
+from warnings import warn
 
-from pydantic import BaseModel, ConfigDict
+from typing_extensions import deprecated
 
 import pangea.services.intel as im
+from pangea.deprecated import pangea_deprecated
 from pangea.response import APIRequestModel, APIResponseModel, PangeaResponseResult
 from pangea.services.vault.models.common import JWK, JWKec, JWKrsa
 
 Scopes = NewType("Scopes", List[str])
 
 
-class Profile(BaseModel):
-    first_name: str
-    last_name: Optional[str] = None
-    phone: Optional[str] = None
+class Profile(Dict[str, str]):
+    @property
+    def first_name(self) -> str:
+        warn(
+            '`Profile.first_name` is deprecated. Use `Profile["first_name"]` instead.', DeprecationWarning, stacklevel=2
+        )
+        return self["first_name"]
 
-    model_config = ConfigDict(extra="allow")
+    @first_name.setter
+    def first_name(self, value: str) -> None:
+        warn(
+            '`Profile.first_name` is deprecated. Use `Profile["first_name"]` instead.', DeprecationWarning, stacklevel=2
+        )
+        self["first_name"] = value
+
+    @property
+    def last_name(self) -> str:
+        warn('`Profile.last_name` is deprecated. Use `Profile["last_name"]` instead.', DeprecationWarning, stacklevel=2)
+        return self["last_name"]
+
+    @last_name.setter
+    def last_name(self, value: str) -> None:
+        warn('`Profile.last_name` is deprecated. Use `Profile["last_name"]` instead.', DeprecationWarning, stacklevel=2)
+        self["last_name"] = value
+
+    @property
+    def phone(self) -> str:
+        warn('`Profile.phone` is deprecated. Use `Profile["phone"]` instead.', DeprecationWarning, stacklevel=2)
+        return self["phone"]
+
+    @phone.setter
+    def phone(self, value: str) -> None:
+        warn('`Profile.phone` is deprecated. Use `Profile["phone"]` instead.', DeprecationWarning, stacklevel=2)
+        self["phone"] = value
+
+    @deprecated("`Profile.model_dump()` is deprecated. `Profile` is already a `dict[str, str]`.")
+    @pangea_deprecated(reason="`Profile` is already a `dict[str, str]`.")
+    def model_dump(self, *, exclude_none: bool = False) -> dict[str, str]:
+        warn(
+            "`Profile.model_dump()` is deprecated. `Profile` is already a `dict[str, str]`.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self
 
 
 class ClientPasswordChangeRequest(APIRequestModel):
@@ -65,7 +105,7 @@ class SessionToken(PangeaResponseResult):
     identity: str
     email: str
     scopes: Optional[Scopes] = None
-    profile: Profile
+    profile: Union[Profile, Dict[str, str]]
     created_at: str
     intelligence: Optional[Intelligence] = None
 
@@ -174,7 +214,7 @@ class User(PangeaResponseResult):
     username: str
     """A username."""
 
-    profile: Profile
+    profile: Union[Profile, Dict[str, str]]
     """A user profile as a collection of string properties."""
 
     verified: bool
@@ -207,7 +247,7 @@ class UserCreateRequest(APIRequestModel):
     email: str
     """An email address."""
 
-    profile: Profile
+    profile: Union[Profile, Dict[str, str]]
     """A user profile as a collection of string properties."""
 
     username: Optional[str] = None
@@ -397,7 +437,7 @@ class UserProfileGetResult(User):
 
 
 class UserProfileUpdateRequest(APIRequestModel):
-    profile: Profile
+    profile: Union[Profile, Dict[str, str]]
     """Updates to a user profile."""
 
     id: Optional[str] = None
@@ -583,7 +623,7 @@ class FlowUpdateDataPassword(APIRequestModel):
 
 
 class FlowUpdateDataProfile(APIRequestModel):
-    profile: Profile
+    profile: Union[Profile, Dict[str, str]]
 
 
 class FlowUpdateDataProvisionalEnrollment(APIRequestModel):
@@ -705,7 +745,7 @@ class SessionItem(APIResponseModel):
     expire: str
     email: str
     scopes: Optional[Scopes] = None
-    profile: Profile
+    profile: Union[Profile, Dict[str, str]]
     created_at: str
     active_token: Optional[SessionToken] = None
 
