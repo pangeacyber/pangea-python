@@ -196,12 +196,43 @@ class UserListOrderBy(enum.Enum):
 
 
 class Authenticator(APIResponseModel):
+    """Authenticator."""
+
     id: str
+    """An ID for an authenticator."""
+
     type: str
+    """An authentication mechanism."""
+
     enabled: bool
+    """Enabled."""
+
     provider: Optional[str] = None
+    """Provider."""
+
+    provider_name: Optional[str] = None
+    """Provider name."""
+
     rpid: Optional[str] = None
+    """RPID."""
+
     phase: Optional[str] = None
+    """Phase."""
+
+    enrolling_browser: Optional[str] = None
+    """Enrolling browser."""
+
+    enrolling_ip: Optional[str] = None
+    """Enrolling IP."""
+
+    created_at: str
+    """A time in ISO-8601 format."""
+
+    updated_at: str
+    """A time in ISO-8601 format."""
+
+    state: Optional[str] = None
+    """State."""
 
 
 class User(PangeaResponseResult):
@@ -525,6 +556,7 @@ class UserAuthenticatorsListRequest(APIRequestModel):
 
 class UserAuthenticatorsListResult(PangeaResponseResult):
     authenticators: List[Authenticator] = []
+    """A list of authenticators."""
 
 
 class FlowCompleteRequest(APIRequestModel):
