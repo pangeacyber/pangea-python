@@ -66,7 +66,7 @@ jobs:
           poetry --version
 
       - name: Setup Python
-        uses: actions/setup-python@v5.1.0
+        uses: actions/setup-python@v5.1.1
         with:
           python-version: 3.11.7 # renovate: datasource=docker depName=python
           cache: poetry
@@ -83,7 +83,7 @@ jobs:
         uses: actions/checkout@v4.1.7
 
       - name: Setup Python
-        uses: actions/setup-python@v5.1.0
+        uses: actions/setup-python@v5.1.1
         with:
           python-version: 3.11.7 # renovate: datasource=docker depName=python
 
@@ -105,7 +105,7 @@ jobs:
           poetry --version
 
       - name: Setup Python
-        uses: actions/setup-python@v5.1.0
+        uses: actions/setup-python@v5.1.1
         with:
           python-version: 3.8
           cache: poetry
@@ -135,7 +135,7 @@ jobs:
           poetry --version
 
       - name: Setup Python
-        uses: actions/setup-python@v5.1.0
+        uses: actions/setup-python@v5.1.1
         with:
           python-version: 3.8
           cache: poetry
@@ -165,7 +165,7 @@ jobs:
           poetry --version
 
       - name: Setup Python
-        uses: actions/setup-python@v5.1.0
+        uses: actions/setup-python@v5.1.1
         with:
           python-version: 3.8
           cache: poetry
@@ -198,7 +198,7 @@ jobs:
           poetry --version
 
       - name: Setup Python
-        uses: actions/setup-python@v5.1.0
+        uses: actions/setup-python@v5.1.1
         with:
           python-version: ${{ matrix.python-version }}
           cache: poetry
@@ -228,7 +228,7 @@ jobs:
           poetry --version
 
       - name: Setup Python
-        uses: actions/setup-python@v5.1.0
+        uses: actions/setup-python@v5.1.1
         with:
           python-version: 3.11.9 # renovate: datasource=docker depName=python
           cache: poetry
@@ -272,7 +272,7 @@ jobs:
           poetry --version
 
       - name: Setup Python
-        uses: actions/setup-python@v5.1.0
+        uses: actions/setup-python@v5.1.1
         with:
           python-version: 3.11.7 # renovate: datasource=docker depName=python
           cache: poetry
