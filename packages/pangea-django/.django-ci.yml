@@ -10,13 +10,6 @@
   rules:
     - if: $CI_PIPELINE_SOURCE == "push"
 
-django-lint-black:
-  extends: .django-base
-  stage: lint
-  needs: []
-  script:
-    - poetry run black --check .
-
 django-build:
   extends: .django-base
   stage: build
