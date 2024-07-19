@@ -25,7 +25,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  POETRY_VERSION: 1.8.2 # renovate: datasource=pypi depName=poetry
+  POETRY_VERSION: 1.8.3
 
 jobs:
   setup:
@@ -89,12 +89,15 @@ jobs:
 
       - uses: pre-commit/action@v3.0.1
 
-  sdk-lint-black:
+  lint-black:
     needs: [prefetch]
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package: [pangea-django, pangea-sdk]
     defaults:
       run:
-        working-directory: ./packages/pangea-sdk
+        working-directory: ./packages/${{ matrix.package }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4.1.7
@@ -109,7 +112,7 @@ jobs:
         with:
           python-version: 3.8
           cache: poetry
-          cache-dependency-path: ./packages/pangea-sdk/poetry.lock
+          cache-dependency-path: ./packages/${{ matrix.package }}/poetry.lock
 
       - name: Install dependencies
         run: |
@@ -119,12 +122,15 @@ jobs:
       - name: black
         run: poetry run black --check .
 
-  sdk-lint-isort:
+  lint-isort:
     needs: [prefetch]
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package: [pangea-django, pangea-sdk]
     defaults:
       run:
-        working-directory: ./packages/pangea-sdk
+        working-directory: ./packages/${{ matrix.package }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4.1.7
@@ -139,7 +145,7 @@ jobs:
         with:
           python-version: 3.8
           cache: poetry
-          cache-dependency-path: ./packages/pangea-sdk/poetry.lock
+          cache-dependency-path: ./packages/${{ matrix.package }}/poetry.lock
 
       - name: Install dependencies
         run: |
@@ -152,9 +158,12 @@ jobs:
   sdk-lint-mypy:
     needs: [prefetch]
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package: [pangea-django, pangea-sdk]
     defaults:
       run:
-        working-directory: ./packages/pangea-sdk
+        working-directory: ./packages/${{ matrix.package }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4.1.7
@@ -169,7 +178,7 @@ jobs:
         with:
           python-version: 3.8
           cache: poetry
-          cache-dependency-path: ./packages/pangea-sdk/poetry.lock
+          cache-dependency-path: ./packages/${{ matrix.package }}/poetry.lock
 
       - name: Install dependencies
         run: |
@@ -291,3 +300,36 @@ jobs:
 
       - name: mypy
         run: poetry run mypy .
+
+  django-test-unit:
+    needs: [prefetch]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.8', '3.9', '3.10', '3.11']
+    defaults:
+      run:
+        working-directory: ./packages/pangea-django
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.1.7
+
+      - name: Install poetry
+        run: |
+          pip install --upgrade poetry==${{ env.POETRY_VERSION }}
+          poetry --version
+
+      - name: Setup Python
+        uses: actions/setup-python@v5.1.1
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: poetry
+          cache-dependency-path: ./packages/pangea-django/poetry.lock
+
+      - name: Install dependencies
+        run: |
+          poetry check
+          poetry install
+
+      - name: Unit test
+        run: poetry run python -m pytest
