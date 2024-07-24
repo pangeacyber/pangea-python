@@ -222,4 +222,4 @@ class PangeaResponse(ResponseHeader, Generic[T]):
 
     @property
     def url(self) -> str:
-        return str(self.raw_response.url)  # type: ignore[arg-type,union-attr]
+        return str(self.raw_response.url)  # type: ignore[union-attr]
