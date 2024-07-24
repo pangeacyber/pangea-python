@@ -182,7 +182,7 @@ class PangeaRequestBase(object):
         elif status == ResponseStatus.VAULT_ITEM_NOT_FOUND.value:
             raise pe.VaultItemNotFound(summary, response)
         elif status == ResponseStatus.NOT_FOUND.value:
-            raise pe.NotFound(str(response.raw_response.url) if response.raw_response is not None else "", response)  # type: ignore[arg-type]
+            raise pe.NotFound(str(response.raw_response.url) if response.raw_response is not None else "", response)
         elif status == ResponseStatus.INTERNAL_SERVER_ERROR.value:
             raise pe.InternalServerError(response)
         elif status == ResponseStatus.ACCEPTED.value:

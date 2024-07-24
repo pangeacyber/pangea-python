@@ -79,7 +79,7 @@ class DocumentationModule:
 
 class DocsJsonEncoder(json.JSONEncoder):
     def default(self, o: Any) -> Any:
-        return asdict(o) if is_dataclass(o) else super().default(o)
+        return asdict(o) if is_dataclass(o) and not isinstance(o, type) else super().default(o)
 
 
 def _format_annotation(annotation: object, base_module: str | None = None) -> str:
