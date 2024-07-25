@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Multiple bucket ID support to Share.
+
 ### Fixed
 
 - The source-url transfer method now works with File Scan and Sanitize.

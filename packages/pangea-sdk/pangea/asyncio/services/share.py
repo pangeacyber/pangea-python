@@ -1,10 +1,12 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+from __future__ import annotations
+
 import io
 from typing import Dict, List, Optional, Tuple, Union
 
 import pangea.services.share.share as m
-from .base import ServiceBaseAsync
+from pangea.asyncio.services.base import ServiceBaseAsync
 from pangea.response import PangeaResponse, TransferMethod
 from pangea.services.share.file_format import FileFormat
 from pangea.utils import get_file_size, get_file_upload_params
@@ -15,8 +17,30 @@ class ShareAsync(ServiceBaseAsync):
 
     service_name = "share"
 
+    async def buckets(self) -> PangeaResponse[m.BucketsResult]:
+        """
+        Buckets (Beta)
+
+        Get information on the accessible buckets.
+        How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
+
+        OperationId: share_post_v1beta_buckets
+
+        Returns:
+            A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/share).
+
+        Examples:
+            response = share.buckets()
+        """
+
+        return await self.request.post("v1beta/buckets", m.BucketsResult)
+
     async def delete(
-        self, id: Optional[str] = None, path: Optional[str] = None, force: Optional[bool] = None
+        self,
+        id: Optional[str] = None,
+        path: Optional[str] = None,
+        force: Optional[bool] = None,
+        bucket_id: Optional[str] = None,
     ) -> PangeaResponse[m.DeleteResult]:
         """
         Delete (Beta)
@@ -31,6 +55,7 @@ class ShareAsync(ServiceBaseAsync):
             id (str, optional): The ID of the object to delete.
             path (str, optional): The path of the object to delete.
             force (bool, optional): If true, delete a folder even if it's not empty.
+            bucket_id (str, optional): The bucket to use, if not the default.
 
         Returns:
             A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/share).
@@ -39,7 +64,7 @@ class ShareAsync(ServiceBaseAsync):
             response = await share.delete(id="pos_3djfmzg2db4c6donarecbyv5begtj2bm")
         """
 
-        input = m.DeleteRequest(id=id, path=path, force=force)
+        input = m.DeleteRequest(id=id, path=path, force=force, bucket_id=bucket_id)
         return await self.request.post("v1beta/delete", m.DeleteResult, data=input.model_dump(exclude_none=True))
 
     async def folder_create(
@@ -49,6 +74,7 @@ class ShareAsync(ServiceBaseAsync):
         parent_id: Optional[str] = None,
         path: Optional[str] = None,
         tags: Optional[m.Tags] = None,
+        bucket_id: Optional[str] = None,
     ) -> PangeaResponse[m.FolderCreateResult]:
         """
         Create a folder (Beta)
@@ -64,6 +90,7 @@ class ShareAsync(ServiceBaseAsync):
             parent_id (str, optional): The ID of a stored object.
             path (str, optional): A case-sensitive path to an object. Contains a sequence of path segments delimited by the the / character. Any path ending in a / character refers to a folder.
             tags (Tags, optional): A list of user-defined tags.
+            bucket_id (str, optional): The bucket to use, if not the default.
 
         Returns:
             A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/share).
@@ -80,13 +107,19 @@ class ShareAsync(ServiceBaseAsync):
             )
         """
 
-        input = m.FolderCreateRequest(name=name, metadata=metadata, parent_id=parent_id, path=path, tags=tags)
+        input = m.FolderCreateRequest(
+            name=name, metadata=metadata, parent_id=parent_id, path=path, tags=tags, bucket_id=bucket_id
+        )
         return await self.request.post(
             "v1beta/folder/create", m.FolderCreateResult, data=input.model_dump(exclude_none=True)
         )
 
     async def get(
-        self, id: Optional[str] = None, path: Optional[str] = None, transfer_method: Optional[TransferMethod] = None
+        self,
+        id: Optional[str] = None,
+        path: Optional[str] = None,
+        transfer_method: Optional[TransferMethod] = None,
+        bucket_id: Optional[str] = None,
     ) -> PangeaResponse[m.GetResult]:
         """
         Get an object (Beta)
@@ -101,6 +134,7 @@ class ShareAsync(ServiceBaseAsync):
             id (str, optional): The ID of the object to retrieve.
             path (str, optional): The path of the object to retrieve.
             transfer_method (TransferMethod, optional): The requested transfer method for the file data.
+            bucket_id (str, optional): The bucket to use, if not the default.
 
         Returns:
             A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/share).
@@ -116,6 +150,7 @@ class ShareAsync(ServiceBaseAsync):
             id=id,
             path=path,
             transfer_method=transfer_method,
+            bucket_id=bucket_id,
         )
         return await self.request.post("v1beta/get", m.GetResult, data=input.model_dump(exclude_none=True))
 
@@ -124,6 +159,7 @@ class ShareAsync(ServiceBaseAsync):
         ids: List[str] = [],
         format: Optional[m.ArchiveFormat] = None,
         transfer_method: Optional[TransferMethod] = None,
+        bucket_id: Optional[str] = None,
     ) -> PangeaResponse[m.GetArchiveResult]:
         """
         Get archive (Beta)
@@ -137,6 +173,7 @@ class ShareAsync(ServiceBaseAsync):
             ids (List[str]): The IDs of the objects to include in the archive. Folders include all children.
             format (ArchiveFormat, optional): The format to use for the built archive.
             transfer_method (TransferMethod, optional): The requested transfer method for the file data.
+            bucket_id (str, optional): The bucket to use, if not the default.
 
         Returns:
             A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/share).
@@ -154,7 +191,7 @@ class ShareAsync(ServiceBaseAsync):
         ):
             raise ValueError(f"Only {TransferMethod.DEST_URL} and {TransferMethod.MULTIPART} are supported")
 
-        input = m.GetArchiveRequest(ids=ids, format=format, transfer_method=transfer_method)
+        input = m.GetArchiveRequest(ids=ids, format=format, transfer_method=transfer_method, bucket_id=bucket_id)
         return await self.request.post(
             "v1beta/get_archive", m.GetArchiveResult, data=input.model_dump(exclude_none=True)
         )
@@ -166,6 +203,7 @@ class ShareAsync(ServiceBaseAsync):
         order: Optional[m.ItemOrder] = None,
         order_by: Optional[m.ItemOrderBy] = None,
         size: Optional[int] = None,
+        bucket_id: Optional[str] = None,
     ) -> PangeaResponse[m.ListResult]:
         """
         List (Beta)
@@ -181,6 +219,7 @@ class ShareAsync(ServiceBaseAsync):
             order (ItemOrder, optional): Order results asc(ending) or desc(ending).
             order_by (ItemOrderBy, optional): Which field to order results by.
             size (int, optional): Maximum results to include in the response.
+            bucket_id (str, optional): The bucket to use, if not the default.
 
         Returns:
             A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/share).
@@ -189,7 +228,7 @@ class ShareAsync(ServiceBaseAsync):
             response = await share.list()
         """
 
-        input = m.ListRequest(filter=filter, last=last, order=order, order_by=order_by, size=size)
+        input = m.ListRequest(filter=filter, last=last, order=order, order_by=order_by, size=size, bucket_id=bucket_id)
         return await self.request.post("v1beta/list", m.ListResult, data=input.model_dump(exclude_none=True))
 
     async def put(
@@ -209,6 +248,7 @@ class ShareAsync(ServiceBaseAsync):
         sha256: Optional[str] = None,
         sha512: Optional[str] = None,
         size: Optional[int] = None,
+        bucket_id: Optional[str] = None,
     ) -> PangeaResponse[m.PutResult]:
         """
         Upload a file (Beta)
@@ -234,6 +274,7 @@ class ShareAsync(ServiceBaseAsync):
             sha256 (str, optional): The SHA256 hash of the file data, which will be verified by the server if provided.
             sha512 (str, optional): The hexadecimal-encoded SHA512 hash of the file data, which will be verified by the server if provided.
             size (str, optional): The size (in bytes) of the file. If the upload doesn't match, the call will fail.
+            bucket_id (str, optional): The bucket to use, if not the default.
 
         Returns:
             A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/share).
@@ -275,6 +316,7 @@ class ShareAsync(ServiceBaseAsync):
             sha256=sha256,
             sha512=sha512,
             size=size,
+            bucket_id=bucket_id,
         )
         data = input.model_dump(exclude_none=True)
         return await self.request.post("v1beta/put", m.PutResult, data=data, files=files)
@@ -295,6 +337,7 @@ class ShareAsync(ServiceBaseAsync):
         crc32c: Optional[str] = None,
         sha256: Optional[str] = None,
         size: Optional[int] = None,
+        bucket_id: Optional[str] = None,
     ) -> PangeaResponse[m.PutResult]:
         """
         Request upload URL (Beta)
@@ -319,6 +362,7 @@ class ShareAsync(ServiceBaseAsync):
             crc32c (str, optional): The hexadecimal-encoded CRC32C hash of the file data, which will be verified by the server if provided.
             sha256 (str, optional): The SHA256 hash of the file data, which will be verified by the server if provided.
             size (str, optional): The size (in bytes) of the file. If the upload doesn't match, the call will fail.
+            bucket_id (str, optional): The bucket to use, if not the default.
 
         Returns:
             A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/share).
@@ -354,6 +398,7 @@ class ShareAsync(ServiceBaseAsync):
             sha256=sha256,
             sha512=sha512,
             size=size,
+            bucket_id=bucket_id,
         )
 
         data = input.model_dump(exclude_none=True)
@@ -371,6 +416,7 @@ class ShareAsync(ServiceBaseAsync):
         tags: Optional[m.Tags] = None,
         parent_id: Optional[str] = None,
         updated_at: Optional[str] = None,
+        bucket_id: Optional[str] = None,
     ) -> PangeaResponse[m.UpdateResult]:
         """
         Update a file (Beta)
@@ -391,6 +437,7 @@ class ShareAsync(ServiceBaseAsync):
             tags (Tags, optional): Set the object's Tags.
             parent_id (str, optional): Set the parent (folder) of the object.
             updated_at (str, optional): The date and time the object was last updated. If included, the update will fail if this doesn't match what's stored.
+            bucket_id (str, optional): The bucket to use, if not the default.
 
         Returns:
             A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/share).
@@ -417,10 +464,13 @@ class ShareAsync(ServiceBaseAsync):
             tags=tags,
             parent_id=parent_id,
             updated_at=updated_at,
+            bucket_id=bucket_id,
         )
         return await self.request.post("v1beta/update", m.UpdateResult, data=input.model_dump(exclude_none=True))
 
-    async def share_link_create(self, links: List[m.ShareLinkCreateItem]) -> PangeaResponse[m.ShareLinkCreateResult]:
+    async def share_link_create(
+        self, links: List[m.ShareLinkCreateItem], bucket_id: Optional[str] = None
+    ) -> PangeaResponse[m.ShareLinkCreateResult]:
         """
         Create share links (Beta)
 
@@ -431,6 +481,7 @@ class ShareAsync(ServiceBaseAsync):
 
         Args:
             links (List[ShareLinkCreateItem]):
+            bucket_id (str, optional): The bucket to use, if not the default.
 
         Returns:
             A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/share).
@@ -452,7 +503,7 @@ class ShareAsync(ServiceBaseAsync):
             )
         """
 
-        input = m.ShareLinkCreateRequest(links=links)
+        input = m.ShareLinkCreateRequest(links=links, bucket_id=bucket_id)
         return await self.request.post(
             "v1beta/share/link/create", m.ShareLinkCreateResult, data=input.model_dump(exclude_none=True)
         )
@@ -490,6 +541,7 @@ class ShareAsync(ServiceBaseAsync):
         order: Optional[m.ItemOrder] = None,
         order_by: Optional[m.ShareLinkOrderBy] = None,
         size: Optional[int] = None,
+        bucket_id: Optional[str] = None,
     ) -> PangeaResponse[m.ShareLinkListResult]:
         """
         List share links (Beta)
@@ -505,6 +557,7 @@ class ShareAsync(ServiceBaseAsync):
             order (ItemOrder, optional): Order results asc(ending) or desc(ending).
             order_by (ItemOrderBy, optional): Which field to order results by.
             size (int, optional): Maximum results to include in the response.
+            bucket_id (str, optional): The bucket to use, if not the default.
 
         Returns:
             A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/share).
@@ -513,12 +566,16 @@ class ShareAsync(ServiceBaseAsync):
             response = await share.share_link_list()
         """
 
-        input = m.ShareLinkListRequest(filter=filter, last=last, order=order, order_by=order_by, size=size)
+        input = m.ShareLinkListRequest(
+            filter=filter, last=last, order=order, order_by=order_by, size=size, bucket_id=bucket_id
+        )
         return await self.request.post(
             "v1beta/share/link/list", m.ShareLinkListResult, data=input.model_dump(exclude_none=True)
         )
 
-    async def share_link_delete(self, ids: List[str]) -> PangeaResponse[m.ShareLinkDeleteResult]:
+    async def share_link_delete(
+        self, ids: List[str], bucket_id: Optional[str] = None
+    ) -> PangeaResponse[m.ShareLinkDeleteResult]:
         """
         Delete share links (Beta)
 
@@ -529,6 +586,7 @@ class ShareAsync(ServiceBaseAsync):
 
         Args:
             ids (List[str]): list of the share link's id to delete
+            bucket_id (str, optional): The bucket to use, if not the default.
 
         Returns:
             A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/share).
@@ -539,7 +597,7 @@ class ShareAsync(ServiceBaseAsync):
             )
         """
 
-        input = m.ShareLinkDeleteRequest(ids=ids)
+        input = m.ShareLinkDeleteRequest(ids=ids, bucket_id=bucket_id)
         return await self.request.post(
             "v1beta/share/link/delete", m.ShareLinkDeleteResult, data=input.model_dump(exclude_none=True)
         )

@@ -1,12 +1,14 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+from __future__ import annotations
+
 import enum
 import io
 from typing import Dict, List, NewType, Optional, Tuple, Union
 
-from ..base import ServiceBase
-from .file_format import FileFormat
 from pangea.response import APIRequestModel, PangeaResponse, PangeaResponseResult, TransferMethod
+from pangea.services.base import ServiceBase
+from pangea.services.share.file_format import FileFormat
 from pangea.utils import get_file_size, get_file_upload_params
 
 Metadata = NewType("Metadata", Dict[str, str])
@@ -77,7 +79,7 @@ class ItemOrderBy(str, enum.Enum):
 
 class ShareLinkOrderBy(str, enum.Enum):
     ID = "id"
-    STORAGE_POOL_ID = "storage_pool_id"
+    BUCKET_ID = "bucket_id"
     TARGET = "target"
     LINK_TYPE = "link_type"
     ACCESS_COUNT = "access_count"
@@ -98,6 +100,8 @@ class DeleteRequest(APIRequestModel):
     id: Optional[str] = None
     force: Optional[bool] = None
     path: Optional[str] = None
+    bucket_id: Optional[str] = None
+    """The bucket to use, if not the default."""
 
 
 class ItemData(PangeaResponseResult):
@@ -115,6 +119,8 @@ class ItemData(PangeaResponseResult):
     sha256: Optional[str] = None
     sha512: Optional[str] = None
     parent_id: Optional[str] = None
+    external_bucket_key: Optional[str] = None
+    """The key in the external bucket that contains this file."""
 
 
 class DeleteResult(PangeaResponseResult):
@@ -127,6 +133,8 @@ class FolderCreateRequest(APIRequestModel):
     parent_id: Optional[str] = None
     path: Optional[str] = None
     tags: Optional[Tags] = None
+    bucket_id: Optional[str] = None
+    """The bucket to use, if not the default."""
 
 
 class FolderCreateResult(PangeaResponseResult):
@@ -137,6 +145,8 @@ class GetRequest(APIRequestModel):
     id: Optional[str] = None
     path: Optional[str] = None
     transfer_method: Optional[TransferMethod] = None
+    bucket_id: Optional[str] = None
+    """The bucket to use, if not the default."""
 
 
 class GetResult(PangeaResponseResult):
@@ -159,6 +169,8 @@ class PutRequest(APIRequestModel):
     size: Optional[int] = None
     tags: Optional[Tags] = None
     transfer_method: Optional[TransferMethod] = None
+    bucket_id: Optional[str] = None
+    """The bucket to use, if not the default."""
 
 
 class PutResult(PangeaResponseResult):
@@ -176,6 +188,8 @@ class UpdateRequest(APIRequestModel):
     tags: Optional[Tags] = None
     parent_id: Optional[str] = None
     updated_at: Optional[str] = None
+    bucket_id: Optional[str] = None
+    """The bucket to use, if not the default."""
 
 
 class UpdateResult(PangeaResponseResult):
@@ -193,6 +207,12 @@ class ListRequest(APIRequestModel):
     order_by: Optional[ItemOrderBy] = None
     size: Optional[int] = None
 
+    include_external_bucket_key: bool = False
+    """If true, include the `external_bucket_key` in results."""
+
+    bucket_id: Optional[str] = None
+    """The bucket to use, if not the default."""
+
 
 class ListResult(PangeaResponseResult):
     count: int
@@ -204,6 +224,8 @@ class GetArchiveRequest(APIRequestModel):
     ids: List[str] = []
     format: Optional[ArchiveFormat] = None
     transfer_method: Optional[TransferMethod] = None
+    bucket_id: Optional[str] = None
+    """The bucket to use, if not the default."""
 
 
 class GetArchiveResult(PangeaResponseResult):
@@ -234,6 +256,8 @@ class ShareLinkCreateItem(ShareLinkItemBase):
 
 class ShareLinkCreateRequest(APIRequestModel):
     links: List[ShareLinkCreateItem] = []
+    bucket_id: Optional[str] = None
+    """The bucket to use, if not the default."""
 
 
 class ShareLinkItem(ShareLinkItemBase):
@@ -242,6 +266,8 @@ class ShareLinkItem(ShareLinkItemBase):
     created_at: str
     last_accessed_at: Optional[str] = None
     link: str
+    bucket_id: str
+    """The ID of a share bucket resource."""
 
 
 class ShareLinkCreateResult(PangeaResponseResult):
@@ -260,9 +286,6 @@ class FilterShareLinkList(APIRequestModel):
     id: Optional[str] = None
     id__contains: Optional[List[str]] = None
     id__in: Optional[List[str]] = None
-    storage_pool_id: Optional[str] = None
-    storage_pool_id__contains: Optional[List[str]] = None
-    storage_pool_id__in: Optional[List[str]] = None
     target: Optional[str] = None
     target__contains: Optional[List[str]] = None
     target__in: Optional[List[str]] = None
@@ -305,6 +328,8 @@ class ShareLinkListRequest(APIRequestModel):
     order: Optional[ItemOrder] = None
     order_by: Optional[ShareLinkOrderBy] = None
     size: Optional[int] = None
+    bucket_id: Optional[str] = None
+    """The bucket to use, if not the default."""
 
 
 class ShareLinkListResult(PangeaResponseResult):
@@ -314,6 +339,8 @@ class ShareLinkListResult(PangeaResponseResult):
 
 class ShareLinkDeleteRequest(APIRequestModel):
     ids: List[str]
+    bucket_id: Optional[str] = None
+    """The bucket to use, if not the default."""
 
 
 class ShareLinkDeleteResult(PangeaResponseResult):
@@ -335,13 +362,52 @@ class ShareLinkSendResult(PangeaResponseResult):
     share_link_objects: List[ShareLinkItem]
 
 
+class Bucket(PangeaResponseResult):
+    id: str
+    """The ID of a share bucket resource."""
+
+    default: bool
+    """If true, is the default bucket."""
+
+    name: str
+    """The bucket's friendly name."""
+
+    transfer_methods: List[TransferMethod]
+
+
+class BucketsResult(PangeaResponseResult):
+    buckets: List[Bucket]
+    """A list of available buckets."""
+
+
 class Share(ServiceBase):
     """Share service client."""
 
     service_name = "share"
 
+    def buckets(self) -> PangeaResponse[BucketsResult]:
+        """
+        Buckets (Beta)
+
+        Get information on the accessible buckets.
+        How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
+
+        OperationId: share_post_v1beta_buckets
+
+        Returns:
+            A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/share).
+
+        Examples:
+            response = share.buckets()
+        """
+        return self.request.post("v1beta/buckets", BucketsResult)
+
     def delete(
-        self, id: Optional[str] = None, path: Optional[str] = None, force: Optional[bool] = None
+        self,
+        id: Optional[str] = None,
+        path: Optional[str] = None,
+        force: Optional[bool] = None,
+        bucket_id: Optional[str] = None,
     ) -> PangeaResponse[DeleteResult]:
         """
         Delete (Beta)
@@ -356,6 +422,7 @@ class Share(ServiceBase):
             id (str, optional): The ID of the object to delete.
             path (str, optional): The path of the object to delete.
             force (bool, optional): If true, delete a folder even if it's not empty.
+            bucket_id (str, optional): The bucket to use, if not the default.
 
         Returns:
             A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/share).
@@ -363,7 +430,7 @@ class Share(ServiceBase):
         Examples:
             response = share.delete(id="pos_3djfmzg2db4c6donarecbyv5begtj2bm")
         """
-        input = DeleteRequest(id=id, path=path, force=force)
+        input = DeleteRequest(id=id, path=path, force=force, bucket_id=bucket_id)
         return self.request.post("v1beta/delete", DeleteResult, data=input.model_dump(exclude_none=True))
 
     def folder_create(
@@ -373,6 +440,7 @@ class Share(ServiceBase):
         parent_id: Optional[str] = None,
         path: Optional[str] = None,
         tags: Optional[Tags] = None,
+        bucket_id: Optional[str] = None,
     ) -> PangeaResponse[FolderCreateResult]:
         """
         Create a folder (Beta)
@@ -388,6 +456,7 @@ class Share(ServiceBase):
             parent_id (str, optional): The ID of a stored object.
             path (str, optional): A case-sensitive path to an object. Contains a sequence of path segments delimited by the the / character. Any path ending in a / character refers to a folder.
             tags (Tags, optional): A list of user-defined tags.
+            bucket_id (str, optional): The bucket to use, if not the default.
 
         Returns:
             A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/share).
@@ -403,11 +472,17 @@ class Share(ServiceBase):
                 tags=["irs_2023", "personal"],
             )
         """
-        input = FolderCreateRequest(name=name, metadata=metadata, parent_id=parent_id, path=path, tags=tags)
+        input = FolderCreateRequest(
+            name=name, metadata=metadata, parent_id=parent_id, path=path, tags=tags, bucket_id=bucket_id
+        )
         return self.request.post("v1beta/folder/create", FolderCreateResult, data=input.model_dump(exclude_none=True))
 
     def get(
-        self, id: Optional[str] = None, path: Optional[str] = None, transfer_method: Optional[TransferMethod] = None
+        self,
+        id: Optional[str] = None,
+        path: Optional[str] = None,
+        transfer_method: Optional[TransferMethod] = None,
+        bucket_id: Optional[str] = None,
     ) -> PangeaResponse[GetResult]:
         """
         Get an object (Beta)
@@ -422,6 +497,7 @@ class Share(ServiceBase):
             id (str, optional): The ID of the object to retrieve.
             path (str, optional): The path of the object to retrieve.
             transfer_method (TransferMethod, optional): The requested transfer method for the file data.
+            bucket_id (str, optional): The bucket to use, if not the default.
 
         Returns:
             A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/share).
@@ -436,6 +512,7 @@ class Share(ServiceBase):
             id=id,
             path=path,
             transfer_method=transfer_method,
+            bucket_id=bucket_id,
         )
         return self.request.post("v1beta/get", GetResult, data=input.model_dump(exclude_none=True))
 
@@ -444,6 +521,7 @@ class Share(ServiceBase):
         ids: List[str] = [],
         format: Optional[ArchiveFormat] = None,
         transfer_method: Optional[TransferMethod] = None,
+        bucket_id: Optional[str] = None,
     ) -> PangeaResponse[GetArchiveResult]:
         """
         Get archive (Beta)
@@ -457,6 +535,7 @@ class Share(ServiceBase):
             ids (List[str]): The IDs of the objects to include in the archive. Folders include all children.
             format (ArchiveFormat, optional): The format to use for the built archive.
             transfer_method (TransferMethod, optional): The requested transfer method for the file data.
+            bucket_id (str, optional): The bucket to use, if not the default.
 
         Returns:
             A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/share).
@@ -473,7 +552,7 @@ class Share(ServiceBase):
         ):
             raise ValueError(f"Only {TransferMethod.DEST_URL} and {TransferMethod.MULTIPART} are supported")
 
-        input = GetArchiveRequest(ids=ids, format=format, transfer_method=transfer_method)
+        input = GetArchiveRequest(ids=ids, format=format, transfer_method=transfer_method, bucket_id=bucket_id)
         return self.request.post("v1beta/get_archive", GetArchiveResult, data=input.model_dump(exclude_none=True))
 
     def list(
@@ -483,6 +562,7 @@ class Share(ServiceBase):
         order: Optional[ItemOrder] = None,
         order_by: Optional[ItemOrderBy] = None,
         size: Optional[int] = None,
+        bucket_id: Optional[str] = None,
     ) -> PangeaResponse[ListResult]:
         """
         List (Beta)
@@ -498,6 +578,7 @@ class Share(ServiceBase):
             order (ItemOrder, optional): Order results asc(ending) or desc(ending).
             order_by (ItemOrderBy, optional): Which field to order results by.
             size (int, optional): Maximum results to include in the response.
+            bucket_id (str, optional): The bucket to use, if not the default.
 
         Returns:
             A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/share).
@@ -505,7 +586,7 @@ class Share(ServiceBase):
         Examples:
             response = share.list()
         """
-        input = ListRequest(filter=filter, last=last, order=order, order_by=order_by, size=size)
+        input = ListRequest(filter=filter, last=last, order=order, order_by=order_by, size=size, bucket_id=bucket_id)
         return self.request.post("v1beta/list", ListResult, data=input.model_dump(exclude_none=True))
 
     def put(
@@ -525,6 +606,7 @@ class Share(ServiceBase):
         sha256: Optional[str] = None,
         sha512: Optional[str] = None,
         size: Optional[int] = None,
+        bucket_id: Optional[str] = None,
     ) -> PangeaResponse[PutResult]:
         """
         Upload a file (Beta)
@@ -550,6 +632,7 @@ class Share(ServiceBase):
             sha256 (str, optional): The SHA256 hash of the file data, which will be verified by the server if provided.
             sha512 (str, optional): The hexadecimal-encoded SHA512 hash of the file data, which will be verified by the server if provided.
             size (str, optional): The size (in bytes) of the file. If the upload doesn't match, the call will fail.
+            bucket_id (str, optional): The bucket to use, if not the default.
 
         Returns:
             A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/share).
@@ -610,6 +693,7 @@ class Share(ServiceBase):
         crc32c: Optional[str] = None,
         sha256: Optional[str] = None,
         size: Optional[int] = None,
+        bucket_id: Optional[str] = None,
     ) -> PangeaResponse[PutResult]:
         """
         Request upload URL (Beta)
@@ -634,6 +718,7 @@ class Share(ServiceBase):
             crc32c (str, optional): The hexadecimal-encoded CRC32C hash of the file data, which will be verified by the server if provided.
             sha256 (str, optional): The SHA256 hash of the file data, which will be verified by the server if provided.
             size (str, optional): The size (in bytes) of the file. If the upload doesn't match, the call will fail.
+            bucket_id (str, optional): The bucket to use, if not the default.
 
         Returns:
             A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/share).
@@ -668,6 +753,7 @@ class Share(ServiceBase):
             sha256=sha256,
             sha512=sha512,
             size=size,
+            bucket_id=bucket_id,
         )
 
         data = input.model_dump(exclude_none=True)
@@ -685,6 +771,7 @@ class Share(ServiceBase):
         tags: Optional[Tags] = None,
         parent_id: Optional[str] = None,
         updated_at: Optional[str] = None,
+        bucket_id: Optional[str] = None,
     ) -> PangeaResponse[UpdateResult]:
         """
         Update a file (Beta)
@@ -705,6 +792,7 @@ class Share(ServiceBase):
             tags (Tags, optional): Set the object's Tags.
             parent_id (str, optional): Set the parent (folder) of the object.
             updated_at (str, optional): The date and time the object was last updated. If included, the update will fail if this doesn't match what's stored.
+            bucket_id (str, optional): The bucket to use, if not the default.
 
         Returns:
             A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/share).
@@ -730,10 +818,13 @@ class Share(ServiceBase):
             tags=tags,
             parent_id=parent_id,
             updated_at=updated_at,
+            bucket_id=bucket_id,
         )
         return self.request.post("v1beta/update", UpdateResult, data=input.model_dump(exclude_none=True))
 
-    def share_link_create(self, links: List[ShareLinkCreateItem]) -> PangeaResponse[ShareLinkCreateResult]:
+    def share_link_create(
+        self, links: List[ShareLinkCreateItem], bucket_id: Optional[str] = None
+    ) -> PangeaResponse[ShareLinkCreateResult]:
         """
         Create share links (Beta)
 
@@ -744,6 +835,7 @@ class Share(ServiceBase):
 
         Args:
             links (List[ShareLinkCreateItem]):
+            bucket_id (str, optional): The bucket to use, if not the default.
 
         Returns:
             A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/share).
@@ -799,6 +891,7 @@ class Share(ServiceBase):
         order: Optional[ItemOrder] = None,
         order_by: Optional[ShareLinkOrderBy] = None,
         size: Optional[int] = None,
+        bucket_id: Optional[str] = None,
     ) -> PangeaResponse[ShareLinkListResult]:
         """
         List share links (Beta)
@@ -814,6 +907,7 @@ class Share(ServiceBase):
             order (ItemOrder, optional): Order results asc(ending) or desc(ending).
             order_by (ItemOrderBy, optional): Which field to order results by.
             size (int, optional): Maximum results to include in the response.
+            bucket_id (str, optional): The bucket to use, if not the default.
 
         Returns:
             A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/share).
@@ -821,12 +915,16 @@ class Share(ServiceBase):
         Examples:
             response = share.share_link_list()
         """
-        input = ShareLinkListRequest(filter=filter, last=last, order=order, order_by=order_by, size=size)
+        input = ShareLinkListRequest(
+            filter=filter, last=last, order=order, order_by=order_by, size=size, bucket_id=bucket_id
+        )
         return self.request.post(
             "v1beta/share/link/list", ShareLinkListResult, data=input.model_dump(exclude_none=True)
         )
 
-    def share_link_delete(self, ids: List[str]) -> PangeaResponse[ShareLinkDeleteResult]:
+    def share_link_delete(
+        self, ids: List[str], bucket_id: Optional[str] = None
+    ) -> PangeaResponse[ShareLinkDeleteResult]:
         """
         Delete share links (Beta)
 
@@ -837,6 +935,7 @@ class Share(ServiceBase):
 
         Args:
             ids (List[str]): list of the share link's id to delete
+            bucket_id (str, optional): The bucket to use, if not the default
 
         Returns:
             A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/share).
@@ -846,7 +945,7 @@ class Share(ServiceBase):
                 ids=["psl_3djfmzg2db4c6donarecbyv5begtj2bm"]
             )
         """
-        input = ShareLinkDeleteRequest(ids=ids)
+        input = ShareLinkDeleteRequest(ids=ids, bucket_id=bucket_id)
         return self.request.post(
             "v1beta/share/link/delete", ShareLinkDeleteResult, data=input.model_dump(exclude_none=True)
         )
