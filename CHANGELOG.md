@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Fixed
+
+- The source-url transfer method now works with File Scan.
+
 ## 4.2.0 - 2024-07-16
 
 ### Added

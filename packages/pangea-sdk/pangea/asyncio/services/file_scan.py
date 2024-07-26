@@ -59,12 +59,14 @@ class FileScanAsync(ServiceBaseAsync):
         OperationId: file_scan_post_v1_scan
 
         Args:
-            file (io.BufferedReader, optional): file to be scanned (should be opened with read permissions and in binary format)
             file_path (str, optional): filepath to be opened and scanned
+            file (io.BufferedReader, optional): file to be scanned (should be opened with read permissions and in binary format)
             verbose (bool, optional): Echo the API parameters in the response
             raw (bool, optional): Include raw data from this provider
             provider (str, optional): Scan file using this provider
             sync_call (bool, optional): True to wait until server returns a result, False to return immediately and retrieve result asynchronously
+            transfer_method (TransferMethod, optional): Transfer method used to upload the file data.
+            source_url (str, optional): A URL where the Pangea APIs can fetch the contents of the input file.
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -77,7 +79,7 @@ class FileScanAsync(ServiceBaseAsync):
         Examples:
             try:
                 with open("./path/to/file.pdf", "rb") as f:
-                    response = client.file_scan(file=f, verbose=True, provider="crowdstrike")
+                    response = await client.file_scan(file=f, verbose=True, provider="crowdstrike")
                     print(f"Response: {response.result}")
             except pe.PangeaAPIException as e:
                 print(f"Request Error: {e.response.summary}")
@@ -85,6 +87,15 @@ class FileScanAsync(ServiceBaseAsync):
                     print(f"\\t{err.detail} \\n")
         """
 
+        if transfer_method == TransferMethod.SOURCE_URL and source_url is None:
+            raise ValueError("`source_url` argument is required when using `TransferMethod.SOURCE_URL`.")
+
+        if source_url is not None and transfer_method != TransferMethod.SOURCE_URL:
+            raise ValueError(
+                "`transfer_method` should be `TransferMethod.SOURCE_URL` when using the `source_url` argument."
+            )
+
+        files: Optional[List[Tuple]] = None
         if file or file_path:
             if file_path:
                 file = open(file_path, "rb")
@@ -95,9 +106,9 @@ class FileScanAsync(ServiceBaseAsync):
                 size = params.size
             else:
                 crc, sha, size = None, None, None
-            files: List[Tuple] = [("upload", ("filename", file, "application/octet-stream"))]
-        else:
-            raise ValueError("Need to set file_path or file arguments")
+            files = [("upload", ("filename", file, "application/octet-stream"))]
+        elif source_url is None:
+            raise ValueError("Need to set one of `file_path`, `file`, or `source_url` arguments.")
 
         input = m.FileScanRequest(
             verbose=verbose,
@@ -110,7 +121,11 @@ class FileScanAsync(ServiceBaseAsync):
             source_url=source_url,
         )
         data = input.model_dump(exclude_none=True)
-        return await self.request.post("v1/scan", m.FileScanResult, data=data, files=files, poll_result=sync_call)
+        try:
+            return await self.request.post("v1/scan", m.FileScanResult, data=data, files=files, poll_result=sync_call)
+        finally:
+            if file_path and file:
+                file.close()
 
     async def request_upload_url(
         self,
