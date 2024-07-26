@@ -5,13 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## Unreleased
 
 ### Fixed
 
 - The source-url transfer method now works with File Scan.
 
-## [4.2.0] - 2024-07-16
+## 4.2.0 - 2024-07-16
 
 ### Added
 
@@ -24,7 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `dict[str, str]`, and its `first_name`, `last_name`, and `phone` properties
   have been deprecated.
 
-## [4.1.0] - 2024-06-19
+## 4.1.0 - 2024-06-19
 
 ### Added
 
@@ -35,7 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Exception in `verify_audit` script when the event is not published
 
-## [4.0.0] - 2024-06-14
+## 4.0.0 - 2024-06-14
 
 ### Added
 
@@ -52,7 +52,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `utils.dict_order_keys()` and `utils.dict_order_keys_recursive()`.
 
-## [3.9.0] - 2024-06-07
+## 3.9.0 - 2024-06-07
 
 ### Added
 
@@ -66,7 +66,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Beta tags from AuthZ.
 
-## [3.8.0] - 2024-05-10
+## 3.8.0 - 2024-05-10
 
 Note that Sanitize and Secure Share did not make it into this release.
 
@@ -81,7 +81,7 @@ Note that Sanitize and Secure Share did not make it into this release.
 - Incorrect return types in Intel bulk APIs.
 - `str2str_b64()` now supports non-ASCII strings.
 
-## [3.7.1] - 2024-03-20
+## 3.7.1 - 2024-03-20
 
 ### Added
 
@@ -435,7 +435,6 @@ Asyncio support. New Async Service classes are in /asyncio folder.
 - Domain Intel client
 - Redact client
 
-[unreleased]: https://github.com/pangeacyber/pangea-python/compare/v3.7.0...main
 [3.7.0]: https://github.com/pangeacyber/pangea-python/compare/v3.6.1...v3.7.0
 [3.6.1]: https://github.com/pangeacyber/pangea-python/compare/v3.6.0...v3.6.1
 [3.6.0]: https://github.com/pangeacyber/pangea-python/compare/v3.5.0...v3.6.0
