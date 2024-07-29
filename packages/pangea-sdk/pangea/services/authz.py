@@ -132,6 +132,7 @@ class ListResourcesRequest(APIRequestModel):
     type: str
     action: str
     subject: Subject
+    attributes: Optional[Dict[str, Any]] = None
 
 
 class ListResourcesResult(PangeaResponseResult):
@@ -141,6 +142,7 @@ class ListResourcesResult(PangeaResponseResult):
 class ListSubjectsRequest(APIRequestModel):
     resource: Resource
     action: str
+    attributes: Optional[Dict[str, Any]] = None
 
 
 class ListSubjectsResult(PangeaResponseResult):
@@ -204,7 +206,7 @@ class AuthZ(ServiceBase):
         """
 
         input_data = TupleCreateRequest(tuples=tuples)
-        return self.request.post("v1/tuple/create", TupleCreateResult, data=input_data.dict(exclude_none=True))
+        return self.request.post("v1/tuple/create", TupleCreateResult, data=input_data.model_dump(exclude_none=True))
 
     def tuple_list(
         self,
@@ -240,9 +242,9 @@ class AuthZ(ServiceBase):
             authz.tuple_list(TupleListFilter(subject_type="user", subject_id="user_1"))
         """
         input_data = TupleListRequest(
-            filter=filter.dict(exclude_none=True), size=size, last=last, order=order, order_by=order_by
+            filter=filter.model_dump(exclude_none=True), size=size, last=last, order=order, order_by=order_by
         )
-        return self.request.post("v1/tuple/list", TupleListResult, data=input_data.dict(exclude_none=True))
+        return self.request.post("v1/tuple/list", TupleListResult, data=input_data.model_dump(exclude_none=True))
 
     def tuple_delete(self, tuples: List[Tuple]) -> PangeaResponse[TupleDeleteResult]:
         """Delete tuples. (Beta)
@@ -274,7 +276,7 @@ class AuthZ(ServiceBase):
         """
 
         input_data = TupleDeleteRequest(tuples=tuples)
-        return self.request.post("v1/tuple/delete", TupleDeleteResult, data=input_data.dict(exclude_none=True))
+        return self.request.post("v1/tuple/delete", TupleDeleteResult, data=input_data.model_dump(exclude_none=True))
 
     def check(
         self,
@@ -282,7 +284,7 @@ class AuthZ(ServiceBase):
         action: str,
         subject: Subject,
         debug: Optional[bool] = None,
-        attributes: Optional[Dict[str, Union[int, str]]] = None,
+        attributes: Optional[Dict[str, Any]] = None,
     ) -> PangeaResponse[CheckResult]:
         """Perform a check request. (Beta)
 
@@ -294,7 +296,7 @@ class AuthZ(ServiceBase):
             action (str): The action to check.
             subject (Subject): The subject to check.
             debug (Optional[bool]): Setting this value to True will provide a detailed analysis of the check.
-            attributes (Optional[Dict[str, Union[int, str]]]): Additional attributes for the check.
+            attributes (Optional[Dict[str, Any]]): Additional attributes for the check.
 
         Raises:
             PangeaAPIException: If an API Error happens.
@@ -314,9 +316,9 @@ class AuthZ(ServiceBase):
         """
 
         input_data = CheckRequest(resource=resource, action=action, subject=subject, debug=debug, attributes=attributes)
-        return self.request.post("v1/check", CheckResult, data=input_data.dict(exclude_none=True))
+        return self.request.post("v1/check", CheckResult, data=input_data.model_dump(exclude_none=True))
 
-    def list_resources(self, type: str, action: str, subject: Subject) -> PangeaResponse[ListResourcesResult]:
+    def list_resources(self, type: str, action: str, subject: Subject, attributes: Optional[Dict[str, Any]] = None) -> PangeaResponse[ListResourcesResult]:
         """List resources. (Beta)
 
         Given a type, action, and subject, list all the resources in the
@@ -327,6 +329,7 @@ class AuthZ(ServiceBase):
             type (str): The type to filter resources.
             action (str): The action to filter resources.
             subject (Subject): The subject to filter resources.
+            attributes (Optional[Dict[str, Any]]): A JSON object of attribute data.
 
         Raises:
             PangeaAPIException: If an API Error happens.
@@ -344,10 +347,10 @@ class AuthZ(ServiceBase):
             )
         """
 
-        input_data = ListResourcesRequest(type=type, action=action, subject=subject)
-        return self.request.post("v1/list-resources", ListResourcesResult, data=input_data.dict(exclude_none=True))
+        input_data = ListResourcesRequest(type=type, action=action, subject=subject, attributes=attributes)
+        return self.request.post("v1/list-resources", ListResourcesResult, data=input_data.model_dump(exclude_none=True))
 
-    def list_subjects(self, resource: Resource, action: str) -> PangeaResponse[ListSubjectsResult]:
+    def list_subjects(self, resource: Resource, action: str, attributes: Optional[Dict[str, Any]] = None) -> PangeaResponse[ListSubjectsResult]:
         """List subjects. (Beta)
 
         Given a resource and an action, return the list of subjects who have
@@ -357,6 +360,7 @@ class AuthZ(ServiceBase):
         Args:
             resource (Resource): The resource to filter subjects.
             action (str): The action to filter subjects.
+            attributes (Optional[Dict[str, Any]]): A JSON object of attribute data.
 
         Raises:
             PangeaAPIException: If an API Error happens.
@@ -373,5 +377,5 @@ class AuthZ(ServiceBase):
             )
         """
 
-        input_data = ListSubjectsRequest(resource=resource, action=action)
-        return self.request.post("v1/list-subjects", ListSubjectsResult, data=input_data.dict(exclude_none=True))
+        input_data = ListSubjectsRequest(resource=resource, action=action, attributes=attributes)
+        return self.request.post("v1/list-subjects", ListSubjectsResult, data=input_data.model_dump(exclude_none=True))
