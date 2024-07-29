@@ -318,7 +318,9 @@ class AuthZ(ServiceBase):
         input_data = CheckRequest(resource=resource, action=action, subject=subject, debug=debug, attributes=attributes)
         return self.request.post("v1/check", CheckResult, data=input_data.model_dump(exclude_none=True))
 
-    def list_resources(self, type: str, action: str, subject: Subject, attributes: Optional[Dict[str, Any]] = None) -> PangeaResponse[ListResourcesResult]:
+    def list_resources(
+        self, type: str, action: str, subject: Subject, attributes: Optional[Dict[str, Any]] = None
+    ) -> PangeaResponse[ListResourcesResult]:
         """List resources. (Beta)
 
         Given a type, action, and subject, list all the resources in the
@@ -348,9 +350,13 @@ class AuthZ(ServiceBase):
         """
 
         input_data = ListResourcesRequest(type=type, action=action, subject=subject, attributes=attributes)
-        return self.request.post("v1/list-resources", ListResourcesResult, data=input_data.model_dump(exclude_none=True))
+        return self.request.post(
+            "v1/list-resources", ListResourcesResult, data=input_data.model_dump(exclude_none=True)
+        )
 
-    def list_subjects(self, resource: Resource, action: str, attributes: Optional[Dict[str, Any]] = None) -> PangeaResponse[ListSubjectsResult]:
+    def list_subjects(
+        self, resource: Resource, action: str, attributes: Optional[Dict[str, Any]] = None
+    ) -> PangeaResponse[ListSubjectsResult]:
         """List subjects. (Beta)
 
         Given a resource and an action, return the list of subjects who have

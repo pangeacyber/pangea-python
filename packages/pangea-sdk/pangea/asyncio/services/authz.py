@@ -1,7 +1,7 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 
-from typing import Dict, List, Optional, Any
+from typing import Any, Dict, List, Optional
 
 from pangea.asyncio.services.base import ServiceBaseAsync
 from pangea.response import PangeaResponse
@@ -84,7 +84,9 @@ class AuthZAsync(ServiceBaseAsync):
         """
 
         input_data = TupleCreateRequest(tuples=tuples)
-        return await self.request.post("v1/tuple/create", TupleCreateResult, data=input_data.model_dump(exclude_none=True))
+        return await self.request.post(
+            "v1/tuple/create", TupleCreateResult, data=input_data.model_dump(exclude_none=True)
+        )
 
     async def tuple_list(
         self,
@@ -154,7 +156,9 @@ class AuthZAsync(ServiceBaseAsync):
         """
 
         input_data = TupleDeleteRequest(tuples=tuples)
-        return await self.request.post("v1/tuple/delete", TupleDeleteResult, data=input_data.model_dump(exclude_none=True))
+        return await self.request.post(
+            "v1/tuple/delete", TupleDeleteResult, data=input_data.model_dump(exclude_none=True)
+        )
 
     async def check(
         self,
@@ -196,7 +200,9 @@ class AuthZAsync(ServiceBaseAsync):
         input_data = CheckRequest(resource=resource, action=action, subject=subject, debug=debug, attributes=attributes)
         return await self.request.post("v1/check", CheckResult, data=input_data.model_dump(exclude_none=True))
 
-    async def list_resources(self, type: str, action: str, subject: Subject, attributes: Optional[Dict[str, Any]] = None) -> PangeaResponse[ListResourcesResult]:
+    async def list_resources(
+        self, type: str, action: str, subject: Subject, attributes: Optional[Dict[str, Any]] = None
+    ) -> PangeaResponse[ListResourcesResult]:
         """List resources. (Beta)
 
         Given a type, action, and subject, list all the resources in the
@@ -230,7 +236,9 @@ class AuthZAsync(ServiceBaseAsync):
             "v1/list-resources", ListResourcesResult, data=input_data.model_dump(exclude_none=True)
         )
 
-    async def list_subjects(self, resource: Resource, action: str, attributes: Optional[Dict[str, Any]] = None) -> PangeaResponse[ListSubjectsResult]:
+    async def list_subjects(
+        self, resource: Resource, action: str, attributes: Optional[Dict[str, Any]] = None
+    ) -> PangeaResponse[ListSubjectsResult]:
         """List subjects. (Beta)
 
         Given a resource and an action, return the list of subjects who have
@@ -258,4 +266,6 @@ class AuthZAsync(ServiceBaseAsync):
         """
 
         input_data = ListSubjectsRequest(resource=resource, action=action, attributes=attributes)
-        return await self.request.post("v1/list-subjects", ListSubjectsResult, data=input_data.model_dump(exclude_none=True))
+        return await self.request.post(
+            "v1/list-subjects", ListSubjectsResult, data=input_data.model_dump(exclude_none=True)
+        )
