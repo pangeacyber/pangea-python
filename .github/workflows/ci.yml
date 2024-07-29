@@ -69,8 +69,6 @@ jobs:
         uses: actions/setup-python@v5.0.0
         with:
           python-version: 3.11.7
-          cache: poetry
-          cache-dependency-path: '**/poetry.lock'
 
   pre-commit:
     # Skip pre-commit on `main` because the `no-commit-to-branch` hook won't
@@ -108,8 +106,6 @@ jobs:
         uses: actions/setup-python@v5.0.0
         with:
           python-version: 3.8.0
-          cache: poetry
-          cache-dependency-path: ./packages/pangea-sdk/poetry.lock
 
       - name: Install dependencies
         run: |
@@ -138,8 +134,6 @@ jobs:
         uses: actions/setup-python@v5.0.0
         with:
           python-version: 3.8.0
-          cache: poetry
-          cache-dependency-path: ./packages/pangea-sdk/poetry.lock
 
       - name: Install dependencies
         run: |
@@ -168,8 +162,6 @@ jobs:
         uses: actions/setup-python@v5.0.0
         with:
           python-version: 3.8.0
-          cache: poetry
-          cache-dependency-path: ./packages/pangea-sdk/poetry.lock
 
       - name: Install dependencies
         run: |
@@ -201,8 +193,6 @@ jobs:
         uses: actions/setup-python@v5.0.0
         with:
           python-version: ${{ matrix.python-version }}
-          cache: poetry
-          cache-dependency-path: ./packages/pangea-sdk/poetry.lock
 
       - name: Install dependencies
         run: |
@@ -239,8 +229,6 @@ jobs:
         uses: actions/setup-python@v5.0.0
         with:
           python-version: 3.11.7
-          cache: poetry
-          cache-dependency-path: ./examples/${{ matrix.example }}/poetry.lock
 
       - name: Install dependencies
         run: |
