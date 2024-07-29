@@ -107,7 +107,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5.0.0
         with:
-          python-version: 3.7.17
+          python-version: 3.8.0
           cache: poetry
           cache-dependency-path: ./packages/pangea-sdk/poetry.lock
 
@@ -137,7 +137,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5.0.0
         with:
-          python-version: 3.7.17
+          python-version: 3.8.0
           cache: poetry
           cache-dependency-path: ./packages/pangea-sdk/poetry.lock
 
@@ -167,7 +167,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5.0.0
         with:
-          python-version: 3.7.17
+          python-version: 3.8.0
           cache: poetry
           cache-dependency-path: ./packages/pangea-sdk/poetry.lock
 
@@ -184,7 +184,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11']
+        python-version: ['3.8', '3.9', '3.10', '3.11']
     defaults:
       run:
         working-directory: ./packages/pangea-sdk
