@@ -1,9 +1,12 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+from __future__ import annotations
+
 import datetime
 from typing import Dict, Optional, Union
 
 from pangea.asyncio.services.base import ServiceBaseAsync
+from pangea.config import PangeaConfig
 from pangea.response import PangeaResponse
 from pangea.services.vault.models.asymmetric import (
     AsymmetricGenerateRequest,
@@ -17,6 +20,8 @@ from pangea.services.vault.models.asymmetric import (
 )
 from pangea.services.vault.models.common import (
     AsymmetricAlgorithm,
+    DecryptTransformRequest,
+    DecryptTransformResult,
     DeleteRequest,
     DeleteResult,
     EncodedPrivateKey,
@@ -24,6 +29,11 @@ from pangea.services.vault.models.common import (
     EncodedSymmetricKey,
     EncryptStructuredRequest,
     EncryptStructuredResult,
+    EncryptTransformRequest,
+    EncryptTransformResult,
+    ExportEncryptionAlgorithm,
+    ExportRequest,
+    ExportResult,
     FolderCreateRequest,
     FolderCreateResult,
     GetRequest,
@@ -50,6 +60,7 @@ from pangea.services.vault.models.common import (
     SymmetricAlgorithm,
     Tags,
     TDict,
+    TransformAlphabet,
     UpdateRequest,
     UpdateResult,
 )
@@ -98,10 +109,24 @@ class VaultAsync(ServiceBaseAsync):
 
     def __init__(
         self,
-        token,
-        config=None,
-        logger_name="pangea",
-    ):
+        token: str,
+        config: PangeaConfig | None = None,
+        logger_name: str = "pangea",
+    ) -> None:
+        """
+        Vault client
+
+        Initializes a new Vault client.
+
+        Args:
+            token: Pangea API token.
+            config: Configuration.
+            logger_name: Logger name.
+
+        Examples:
+             config = PangeaConfig(domain="pangea_domain")
+             vault = VaultAsync(token="pangea_token", config=config)
+        """
         super().__init__(token, config, logger_name)
 
     # Delete endpoint
@@ -129,7 +154,7 @@ class VaultAsync(ServiceBaseAsync):
         input = DeleteRequest(
             id=id,
         )
-        return await self.request.post("v1/delete", DeleteResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v1/delete", DeleteResult, data=input.model_dump(exclude_none=True))
 
     # Get endpoint
     async def get(
@@ -176,7 +201,7 @@ class VaultAsync(ServiceBaseAsync):
             verbose=verbose,
             version_state=version_state,
         )
-        return await self.request.post("v1/get", GetResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v1/get", GetResult, data=input.model_dump(exclude_none=True))
 
     # List endpoint
     async def list(
@@ -232,7 +257,7 @@ class VaultAsync(ServiceBaseAsync):
             )
         """
         input = ListRequest(filter=filter, last=last, order=order, order_by=order_by, size=size)
-        return await self.request.post("v1/list", ListResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v1/list", ListResult, data=input.model_dump(exclude_none=True))
 
     # Update endpoint
     async def update(
@@ -313,7 +338,7 @@ class VaultAsync(ServiceBaseAsync):
             expiration=expiration,
             item_state=item_state,
         )
-        return await self.request.post("v1/update", UpdateResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v1/update", UpdateResult, data=input.model_dump(exclude_none=True))
 
     async def secret_store(
         self,
@@ -383,7 +408,7 @@ class VaultAsync(ServiceBaseAsync):
             rotation_state=rotation_state,
             expiration=expiration,
         )
-        return await self.request.post("v1/secret/store", SecretStoreResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v1/secret/store", SecretStoreResult, data=input.model_dump(exclude_none=True))
 
     async def pangea_token_store(
         self,
@@ -453,7 +478,7 @@ class VaultAsync(ServiceBaseAsync):
             rotation_state=rotation_state,
             expiration=expiration,
         )
-        return await self.request.post("v1/secret/store", SecretStoreResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v1/secret/store", SecretStoreResult, data=input.model_dump(exclude_none=True))
 
     # Rotate endpoint
     async def secret_rotate(
@@ -493,7 +518,7 @@ class VaultAsync(ServiceBaseAsync):
             )
         """
         input = SecretRotateRequest(id=id, secret=secret, rotation_state=rotation_state)
-        return await self.request.post("v1/secret/rotate", SecretRotateResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v1/secret/rotate", SecretRotateResult, data=input.model_dump(exclude_none=True))
 
     # Rotate endpoint
     async def pangea_token_rotate(self, id: str) -> PangeaResponse[SecretRotateResult]:
@@ -521,7 +546,7 @@ class VaultAsync(ServiceBaseAsync):
             )
         """
         input = SecretRotateRequest(id=id)  # type: ignore[call-arg]
-        return await self.request.post("v1/secret/rotate", SecretRotateResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v1/secret/rotate", SecretRotateResult, data=input.model_dump(exclude_none=True))
 
     async def symmetric_generate(
         self,
@@ -534,6 +559,7 @@ class VaultAsync(ServiceBaseAsync):
         rotation_frequency: Optional[str] = None,
         rotation_state: Optional[ItemVersionState] = None,
         expiration: Optional[datetime.datetime] = None,
+        exportable: Optional[bool] = None,
     ) -> PangeaResponse[SymmetricGenerateResult]:
         """
         Symmetric generate
@@ -555,6 +581,7 @@ class VaultAsync(ServiceBaseAsync):
                 - `deactivated`
                 - `destroyed`
             expiration (str, optional): Expiration timestamp
+            exportable (bool, optional): Whether the key is exportable or not
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -594,8 +621,11 @@ class VaultAsync(ServiceBaseAsync):
             rotation_frequency=rotation_frequency,
             rotation_state=rotation_state,
             expiration=expiration,
+            exportable=exportable,
         )
-        return await self.request.post("v1/key/generate", SymmetricGenerateResult, data=input.dict(exclude_none=True))
+        return await self.request.post(
+            "v1/key/generate", SymmetricGenerateResult, data=input.model_dump(exclude_none=True)
+        )
 
     async def asymmetric_generate(
         self,
@@ -608,6 +638,7 @@ class VaultAsync(ServiceBaseAsync):
         rotation_frequency: Optional[str] = None,
         rotation_state: Optional[ItemVersionState] = None,
         expiration: Optional[datetime.datetime] = None,
+        exportable: Optional[bool] = None,
     ) -> PangeaResponse[AsymmetricGenerateResult]:
         """
         Asymmetric generate
@@ -629,6 +660,7 @@ class VaultAsync(ServiceBaseAsync):
                 - `deactivated`
                 - `destroyed`
             expiration (str, optional): Expiration timestamp
+            exportable (bool, optional): Whether the key is exportable or not
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -668,8 +700,11 @@ class VaultAsync(ServiceBaseAsync):
             rotation_frequency=rotation_frequency,
             rotation_state=rotation_state,
             expiration=expiration,
+            exportable=exportable,
         )
-        return await self.request.post("v1/key/generate", AsymmetricGenerateResult, data=input.dict(exclude_none=True))
+        return await self.request.post(
+            "v1/key/generate", AsymmetricGenerateResult, data=input.model_dump(exclude_none=True)
+        )
 
     # Store endpoints
     async def asymmetric_store(
@@ -685,6 +720,7 @@ class VaultAsync(ServiceBaseAsync):
         rotation_frequency: Optional[str] = None,
         rotation_state: Optional[ItemVersionState] = None,
         expiration: Optional[datetime.datetime] = None,
+        exportable: Optional[bool] = None,
     ) -> PangeaResponse[AsymmetricStoreResult]:
         """
         Asymmetric store
@@ -708,6 +744,7 @@ class VaultAsync(ServiceBaseAsync):
                 - `deactivated`
                 - `destroyed`
             expiration (str, optional): Expiration timestamp
+            exportable (bool, optional): Whether the key is exportable or not
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -751,8 +788,9 @@ class VaultAsync(ServiceBaseAsync):
             rotation_frequency=rotation_frequency,
             rotation_state=rotation_state,
             expiration=expiration,
+            exportable=exportable,
         )
-        return await self.request.post("v1/key/store", AsymmetricStoreResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v1/key/store", AsymmetricStoreResult, data=input.model_dump(exclude_none=True))
 
     async def symmetric_store(
         self,
@@ -766,6 +804,7 @@ class VaultAsync(ServiceBaseAsync):
         rotation_frequency: Optional[str] = None,
         rotation_state: Optional[ItemVersionState] = None,
         expiration: Optional[datetime.datetime] = None,
+        exportable: Optional[bool] = None,
     ) -> PangeaResponse[SymmetricStoreResult]:
         """
         Symmetric store
@@ -788,6 +827,7 @@ class VaultAsync(ServiceBaseAsync):
                 - `deactivated`
                 - `destroyed`
             expiration (str, optional): Expiration timestamp
+            exportable (bool, optional): Whether the key is exportable or not
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -829,8 +869,9 @@ class VaultAsync(ServiceBaseAsync):
             rotation_frequency=rotation_frequency,
             rotation_state=rotation_state,
             expiration=expiration,
+            exportable=exportable,
         )
-        return await self.request.post("v1/key/store", SymmetricStoreResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v1/key/store", SymmetricStoreResult, data=input.model_dump(exclude_none=True))
 
     # Rotate endpoint
     async def key_rotate(
@@ -879,7 +920,7 @@ class VaultAsync(ServiceBaseAsync):
         input = KeyRotateRequest(
             id=id, public_key=public_key, private_key=private_key, key=key, rotation_state=rotation_state
         )
-        return await self.request.post("v1/key/rotate", KeyRotateResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v1/key/rotate", KeyRotateResult, data=input.model_dump(exclude_none=True))
 
     # Encrypt
     async def encrypt(self, id: str, plain_text: str, version: Optional[int] = None) -> PangeaResponse[EncryptResult]:
@@ -910,8 +951,8 @@ class VaultAsync(ServiceBaseAsync):
                 version=1,
             )
         """
-        input = EncryptRequest(id=id, plain_text=plain_text, version=version)  # type: ignore[call-arg]
-        return await self.request.post("v1/key/encrypt", EncryptResult, data=input.dict(exclude_none=True))
+        input = EncryptRequest(id=id, plain_text=plain_text, version=version)
+        return await self.request.post("v1/key/encrypt", EncryptResult, data=input.model_dump(exclude_none=True))
 
     # Decrypt
     async def decrypt(self, id: str, cipher_text: str, version: Optional[int] = None) -> PangeaResponse[DecryptResult]:
@@ -942,8 +983,8 @@ class VaultAsync(ServiceBaseAsync):
                 version=1,
             )
         """
-        input = DecryptRequest(id=id, cipher_text=cipher_text, version=version)  # type: ignore[call-arg]
-        return await self.request.post("v1/key/decrypt", DecryptResult, data=input.dict(exclude_none=True))
+        input = DecryptRequest(id=id, cipher_text=cipher_text, version=version)
+        return await self.request.post("v1/key/decrypt", DecryptResult, data=input.model_dump(exclude_none=True))
 
     # Sign
     async def sign(self, id: str, message: str, version: Optional[int] = None) -> PangeaResponse[SignResult]:
@@ -975,7 +1016,7 @@ class VaultAsync(ServiceBaseAsync):
             )
         """
         input = SignRequest(id=id, message=message, version=version)
-        return await self.request.post("v1/key/sign", SignResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v1/key/sign", SignResult, data=input.model_dump(exclude_none=True))
 
     # Verify
     async def verify(
@@ -1016,7 +1057,7 @@ class VaultAsync(ServiceBaseAsync):
             signature=signature,
             version=version,
         )
-        return await self.request.post("v1/key/verify", VerifyResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v1/key/verify", VerifyResult, data=input.model_dump(exclude_none=True))
 
     async def jwt_verify(self, jws: str) -> PangeaResponse[JWTVerifyResult]:
         """
@@ -1043,7 +1084,7 @@ class VaultAsync(ServiceBaseAsync):
             )
         """
         input = JWTVerifyRequest(jws=jws)
-        return await self.request.post("v1/key/verify/jwt", JWTVerifyResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v1/key/verify/jwt", JWTVerifyResult, data=input.model_dump(exclude_none=True))
 
     async def jwt_sign(self, id: str, payload: str) -> PangeaResponse[JWTSignResult]:
         """
@@ -1072,7 +1113,7 @@ class VaultAsync(ServiceBaseAsync):
             )
         """
         input = JWTSignRequest(id=id, payload=payload)
-        return await self.request.post("v1/key/sign/jwt", JWTSignResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v1/key/sign/jwt", JWTSignResult, data=input.model_dump(exclude_none=True))
 
     # Get endpoint
     async def jwk_get(self, id: str, version: Optional[str] = None) -> PangeaResponse[JWKGetResult]:
@@ -1103,7 +1144,7 @@ class VaultAsync(ServiceBaseAsync):
             )
         """
         input = JWKGetRequest(id=id, version=version)
-        return await self.request.post("v1/get/jwk", JWKGetResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v1/get/jwk", JWKGetResult, data=input.model_dump(exclude_none=True))
 
     # State change
     async def state_change(
@@ -1142,7 +1183,7 @@ class VaultAsync(ServiceBaseAsync):
             )
         """
         input = StateChangeRequest(id=id, state=state, version=version, destroy_period=destroy_period)
-        return await self.request.post("v1/state/change", StateChangeResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v1/state/change", StateChangeResult, data=input.model_dump(exclude_none=True))
 
     # Folder create
     async def folder_create(
@@ -1179,7 +1220,7 @@ class VaultAsync(ServiceBaseAsync):
             )
         """
         input = FolderCreateRequest(name=name, folder=folder, metadata=metadata, tags=tags)
-        return await self.request.post("v1/folder/create", FolderCreateResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v1/folder/create", FolderCreateResult, data=input.model_dump(exclude_none=True))
 
     # Encrypt structured
     async def encrypt_structured(
@@ -1227,7 +1268,7 @@ class VaultAsync(ServiceBaseAsync):
         return await self.request.post(
             "v1/key/encrypt/structured",
             EncryptStructuredResult,
-            data=input.dict(exclude_none=True),
+            data=input.model_dump(exclude_none=True),
         )
 
     # Decrypt structured
@@ -1276,5 +1317,140 @@ class VaultAsync(ServiceBaseAsync):
         return await self.request.post(
             "v1/key/decrypt/structured",
             EncryptStructuredResult,
-            data=input.dict(exclude_none=True),
+            data=input.model_dump(exclude_none=True),
+        )
+
+    async def encrypt_transform(
+        self,
+        id: str,
+        plain_text: str,
+        alphabet: TransformAlphabet,
+        tweak: str | None = None,
+        version: int | None = None,
+    ) -> PangeaResponse[EncryptTransformResult]:
+        """
+        Encrypt transform
+
+        Encrypt using a format-preserving algorithm (FPE).
+
+        OperationId: vault_post_v1_key_encrypt_transform
+
+        Args:
+            id: The item ID.
+            plain_text: A message to be encrypted.
+            alphabet: Set of characters to use for format-preserving encryption (FPE).
+            tweak: User provided tweak string. If not provided, a random string will be generated and returned.
+            version: The item version. Defaults to the current version.
+
+        Raises:
+            PangeaAPIException: If an API error happens.
+
+        Returns:
+            A `PangeaResponse` containing the encrypted message.
+
+        Examples:
+            await vault.encrypt_transform(
+                id="pvi_[...]",
+                plain_text="message to encrypt",
+                alphabet=TransformAlphabet.ALPHANUMERIC,
+                tweak="MTIzMTIzMT==",
+            )
+        """
+
+        input = EncryptTransformRequest(
+            id=id,
+            plain_text=plain_text,
+            alphabet=alphabet,
+            tweak=tweak,
+            version=version,
+        )
+        return await self.request.post(
+            "v1/key/encrypt/transform",
+            EncryptTransformResult,
+            data=input.model_dump(exclude_none=True),
+        )
+
+    async def decrypt_transform(
+        self, id: str, cipher_text: str, tweak: str, alphabet: TransformAlphabet, version: int | None = None
+    ) -> PangeaResponse[DecryptTransformResult]:
+        """
+        Decrypt transform
+
+        Decrypt using a format-preserving algorithm (FPE).
+
+        OperationId: vault_post_v1_key_decrypt_transform
+
+        Args:
+            id: The item ID.
+            cipher_text: A message encrypted by Vault.
+            tweak: User provided tweak string.
+            alphabet: Set of characters to use for format-preserving encryption (FPE).
+            version: The item version. Defaults to the current version.
+
+        Raises:
+            PangeaAPIException: If an API error happens.
+
+        Returns:
+            A `PangeaResponse` containing the decrypted message.
+
+        Examples:
+            await vault.decrypt_transform(
+                id="pvi_[...]",
+                cipher_text="encrypted message",
+                tweak="MTIzMTIzMT==",
+                alphabet=TransformAlphabet.ALPHANUMERIC,
+            )
+        """
+
+        input = DecryptTransformRequest(id=id, cipher_text=cipher_text, tweak=tweak, alphabet=alphabet, version=version)
+        return await self.request.post(
+            "v1/key/decrypt/transform",
+            DecryptTransformResult,
+            data=input.model_dump(exclude_none=True),
+        )
+
+    async def export(
+        self,
+        id: str,
+        version: int | None = None,
+        encryption_key: str | None = None,
+        encryption_algorithm: ExportEncryptionAlgorithm | None = None,
+    ) -> PangeaResponse[ExportResult]:
+        """
+        Export
+
+        Export a symmetric or asymmetric key.
+
+        OperationId: vault_post_v1_export
+
+        Args:
+            id: The ID of the item.
+            version: The item version.
+            encryption_key: Public key in pem format used to encrypt exported key(s).
+            encryption_algorithm: The algorithm of the public key.
+
+        Raises:
+            PangeaAPIException: If an API error happens.
+
+        Returns:
+            A `PangeaResponse` where the exported key is returned in the
+            `response.result` field. Available response fields can be found in
+            our [API documentation](https://pangea.cloud/docs/api/vault#export).
+
+        Examples:
+            exp_encrypted_resp = await self.vault.export(
+                id=id,
+                version=1,
+                encryption_key=rsa_pub_key_pem,
+                encryption_algorithm=ExportEncryptionAlgorithm.RSA4096_OAEP_SHA512,
+            )
+        """
+
+        input: ExportRequest = ExportRequest(
+            id=id, version=version, encryption_algorithm=encryption_algorithm, encryption_key=encryption_key
+        )
+        return await self.request.post(
+            "v1/export",
+            ExportResult,
+            data=input.model_dump(exclude_none=True),
         )

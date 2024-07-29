@@ -1,10 +1,10 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
-import datetime
+
 import enum
 from typing import Dict, Generic, List, NewType, Optional, TypeVar, Union
 
-from pangea.response import APIRequestModel, PangeaResponseResult
+from pangea.response import APIRequestModel, PangeaDateTime, PangeaResponseResult
 
 # EncodedPublicKey is a PEM public key, with no further encoding (i.e. no base64)
 # It may be used for example in openssh with no further processing
@@ -22,6 +22,8 @@ class KeyPurpose(str, enum.Enum):
     SIGNING = "signing"
     ENCRYPTION = "encryption"
     JWT = "jwt"
+    FPE = "fpe"
+    """Format-preserving encryption."""
 
     def __str__(self):
         return str(self.value)
@@ -84,6 +86,11 @@ class SymmetricAlgorithm(str, enum.Enum):
     AES128_CBC = "AES-CBC-128"
     AES256_CBC = "AES-CBC-256"
     AES = "AES-CFB-128"  # deprecated, use AES128_CFB instead
+    AES128_FF3_1_BETA = "AES-FF3-1-128-BETA"
+    """128-bit encryption using the FF3-1 algorithm."""
+
+    AES256_FF3_1_BETA = "AES-FF3-1-256-BETA"
+    """256-bit encryption using the FF3-1 algorithm."""
 
     def __str__(self):
         return str(self.value)
@@ -166,6 +173,19 @@ class ItemState(str, enum.Enum):
         return str(self.value)
 
 
+class ExportEncryptionAlgorithm(str, enum.Enum):
+    """Algorithm of an exported public key."""
+
+    RSA4096_OAEP_SHA512 = "RSA-OAEP-4096-SHA512"
+    """RSA 4096-bit key, OAEP padding, SHA512 digest."""
+
+    def __str__(self):
+        return str(self.value)
+
+    def __repr__(self):
+        return str(self.value)
+
+
 class CommonStoreRequest(APIRequestModel):
     type: ItemType
     name: str
@@ -174,7 +194,7 @@ class CommonStoreRequest(APIRequestModel):
     tags: Optional[Tags] = None
     rotation_frequency: Optional[str] = None
     rotation_state: Optional[ItemVersionState] = None
-    expiration: Optional[datetime.datetime] = None
+    expiration: Optional[PangeaDateTime] = None
 
 
 class CommonStoreResult(PangeaResponseResult):
@@ -191,7 +211,7 @@ class CommonGenerateRequest(APIRequestModel):
     tags: Optional[Tags] = None
     rotation_frequency: Optional[str] = None
     rotation_state: Optional[ItemVersionState] = None
-    expiration: Optional[datetime.datetime] = None
+    expiration: Optional[PangeaDateTime] = None
 
 
 class CommonGenerateResult(PangeaResponseResult):
@@ -233,6 +253,8 @@ class ItemData(PangeaResponseResult):
     created_at: Optional[str] = None
     algorithm: Optional[str] = None
     purpose: Optional[str] = None
+    exportable: Optional[bool] = None
+    """Whether the key is exportable or not."""
 
 
 class InheritedSettings(PangeaResponseResult):
@@ -254,7 +276,7 @@ class ListItemData(ItemData):
 class ListResult(PangeaResponseResult):
     items: List[ListItemData] = []
     count: int
-    last: Optional[str]
+    last: Optional[str] = None
 
 
 class ListRequest(APIRequestModel):
@@ -305,7 +327,7 @@ class UpdateRequest(APIRequestModel):
     rotation_frequency: Optional[str] = None
     rotation_state: Optional[ItemVersionState] = None
     rotation_grace_period: Optional[str] = None
-    expiration: Optional[datetime.datetime] = None
+    expiration: Optional[PangeaDateTime] = None
     item_state: Optional[ItemState] = None
 
 
@@ -427,3 +449,157 @@ class EncryptStructuredResult(PangeaResponseResult, Generic[TDict]):
 
     structured_data: TDict
     """Encrypted structured data."""
+
+
+class TransformAlphabet(str, enum.Enum):
+    """Set of characters to use for format-preserving encryption (FPE)."""
+
+    NUMERIC = "numeric"
+    """Numeric (0-9)."""
+
+    ALPHA_LOWER = "alphalower"
+    """Lowercase alphabet (a-z)."""
+
+    ALPHA_UPPER = "alphaupper"
+    """Uppercase alphabet (A-Z)."""
+
+    ALPHANUMERIC_LOWER = "alphanumericlower"
+    """Lowercase alphabet with numbers (a-z, 0-9)."""
+
+    ALPHANUMERIC_UPPER = "alphanumericupper"
+    """Uppercase alphabet with numbers (A-Z, 0-9)."""
+
+    ALPHANUMERIC = "alphanumeric"
+    """Alphanumeric (a-z, A-Z, 0-9)."""
+
+    def __str__(self) -> str:
+        return str(self.value)
+
+    def __repr__(self) -> str:
+        return str(self.value)
+
+
+class EncryptTransformRequest(APIRequestModel):
+    id: str
+    """The item ID."""
+
+    plain_text: str
+    """A message to be encrypted."""
+
+    alphabet: TransformAlphabet
+    """Set of characters to use for format-preserving encryption (FPE)."""
+
+    tweak: Optional[str] = None
+    """
+    User provided tweak string. If not provided, a random string will be
+    generated and returned. The user must securely store the tweak source which
+    will be needed to decrypt the data.
+    """
+
+    version: Optional[int] = None
+    """The item version."""
+
+
+class EncryptTransformResult(PangeaResponseResult):
+    id: str
+    """The item ID."""
+
+    version: int
+    """The item version."""
+
+    algorithm: str
+    """The algorithm of the key."""
+
+    cipher_text: str
+    """The encrypted message."""
+
+    tweak: str
+    """
+    User provided tweak string. If not provided, a random string will be
+    generated and returned. The user must securely store the tweak source which
+    will be needed to decrypt the data.
+    """
+
+    alphabet: str
+    """Set of characters to use for format-preserving encryption (FPE)."""
+
+
+class DecryptTransformRequest(APIRequestModel):
+    id: str
+    """The item ID."""
+
+    cipher_text: str
+    """A message encrypted by Vault."""
+
+    tweak: str
+    """
+    User provided tweak string. If not provided, a random string will be
+    generated and returned. The user must securely store the tweak source which
+    will be needed to decrypt the data.
+    """
+
+    alphabet: TransformAlphabet
+    """Set of characters to use for format-preserving encryption (FPE)."""
+
+    version: Optional[int] = None
+    """The item version."""
+
+
+class DecryptTransformResult(PangeaResponseResult):
+    id: str
+    """The item ID."""
+
+    version: int
+    """The item version."""
+
+    algorithm: str
+    """The algorithm of the key."""
+
+    plain_text: str
+    """Decrypted message."""
+
+
+class ExportRequest(APIRequestModel):
+    id: str
+    """The ID of the item."""
+
+    version: Optional[int] = None
+    """The item version."""
+
+    encryption_key: Optional[str] = None
+    """Public key in pem format used to encrypt exported key(s)."""
+
+    encryption_algorithm: Optional[ExportEncryptionAlgorithm] = None
+    """The algorithm of the public key."""
+
+
+class ExportResult(PangeaResponseResult):
+    id: str
+    """The ID of the item."""
+
+    version: int
+    """The item version."""
+
+    type: str
+    """The type of the key."""
+
+    item_state: str
+    """The state of the item."""
+
+    algorithm: str
+    """The algorithm of the key."""
+
+    public_key: Optional[str] = None
+    """The public key (in PEM format)."""
+
+    private_key: Optional[str] = None
+    """The private key (in PEM format)."""
+
+    key: Optional[str] = None
+    """The key material."""
+
+    encrypted: bool
+    """
+    Whether exported key(s) are encrypted with encryption_key sent on the request or not.
+    If encrypted, the result is sent in base64, any other case they are in PEM format plain text.
+    """

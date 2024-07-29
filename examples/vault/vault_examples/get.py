@@ -6,23 +6,31 @@ from pangea.services import Audit, Vault
 
 
 def main() -> None:
+    # Vault API token.
     token = os.getenv("PANGEA_VAULT_TOKEN")
+    assert token
+
+    # Pangea domain.
     domain = os.getenv("PANGEA_DOMAIN")
     assert domain
+
+    # Vault ID of the Secure Audit Log token.
+    token_id = os.getenv("PANGEA_AUDIT_TOKEN_VAULT_ID")
+    assert token_id
+
+    # Set up API client.
     config = PangeaConfig(domain=domain)
     vault = Vault(token, config=config)
 
     try:
-        # ID of the audit token
-        token_id = os.getenv("PANGEA_AUDIT_TOKEN_VAULT_ID")
-        assert token_id
-
-        # Fetch the audit token.
+        # Fetch the Secure Audit Log token.
         create_response = vault.get(id=token_id)
         assert create_response.result
         assert create_response.result.current_version
         audit_token = create_response.result.current_version.secret
+        assert audit_token
 
+        # Use that token to log a message.
         msg = "Hello, World!"
         audit = Audit(audit_token, config=config, logger_name="audit")
         log_response = audit.log(message=msg, verbose=True)

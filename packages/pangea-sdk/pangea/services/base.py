@@ -1,9 +1,12 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+from __future__ import annotations
 
 import copy
 import logging
 from typing import Dict, Optional, Type, Union
+
+from typing_extensions import TypeVar
 
 from pangea.asyncio.request import PangeaRequestAsync
 from pangea.config import PangeaConfig
@@ -11,13 +14,27 @@ from pangea.exceptions import AcceptedRequestException
 from pangea.request import PangeaRequest
 from pangea.response import AttachedFile, PangeaResponse, PangeaResponseResult
 
+TResult = TypeVar("TResult", bound=PangeaResponseResult, default=PangeaResponseResult)
+
 
 class ServiceBase(object):
     service_name: str = "base"
 
     def __init__(
-        self, token, config: Optional[PangeaConfig] = None, logger_name: str = "pangea", config_id: Optional[str] = None
-    ):
+        self,
+        token: str,
+        config: PangeaConfig | None = None,
+        logger_name: str = "pangea",
+        config_id: str | None = None,
+    ) -> None:
+        """
+        Initializes a new Pangea service client.
+
+        Args:
+            token: Pangea API token.
+            config: Configuration.
+            logger_name: Logger name.
+        """
         if not token:
             raise Exception("No token provided")
 
@@ -30,11 +47,11 @@ class ServiceBase(object):
         self.request.set_extra_headers(extra_headers)
 
     @property
-    def token(self):
+    def token(self) -> str:
         return self._token
 
     @token.setter
-    def token(self, value):
+    def token(self, value: str) -> None:
         self._token = value
 
     @property
@@ -55,8 +72,8 @@ class ServiceBase(object):
         exception: Optional[AcceptedRequestException] = None,
         response: Optional[PangeaResponse] = None,
         request_id: Optional[str] = None,
-        result_class: Union[Type[PangeaResponseResult], Type[Dict]] = dict,
-    ) -> PangeaResponse:
+        result_class: Type[TResult] = PangeaResponseResult,  # type: ignore[assignment]
+    ) -> PangeaResponse[TResult]:
         """
         Poll result
 

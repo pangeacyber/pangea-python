@@ -3,15 +3,14 @@
 import datetime
 import enum
 import os
-from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
+from typing import Any, Dict, Generic, List, Optional, Type, Union
 
 import aiohttp
 import requests
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, PlainSerializer
+from typing_extensions import Annotated, TypeVar
 
 from pangea.utils import format_datetime
-
-T = TypeVar("T")
 
 
 class AttachedFile(object):
@@ -77,24 +76,17 @@ class TransferMethod(str, enum.Enum):
         return str(self.value)
 
 
+PangeaDateTime = Annotated[datetime.datetime, PlainSerializer(format_datetime)]
+
+
 # API response should accept arbitrary fields to make them accept possible new parameters
 class APIResponseModel(BaseModel):
-    class Config:
-        arbitrary_types_allowed = True
-        # allow parameters despite they are not declared in model. Make SDK accept server new parameters
-        extra = "allow"
+    model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
 
 
 # API request models doesn't not allow arbitrary fields
 class APIRequestModel(BaseModel):
-    class Config:
-        arbitrary_types_allowed = True
-        extra = (
-            "allow"  # allow parameters despite they are not declared in model. Make SDK accept server new parameters
-        )
-        json_encoders = {
-            datetime.datetime: format_datetime,
-        }
+    model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
 
 
 class PangeaResponseResult(APIResponseModel):
@@ -169,38 +161,50 @@ class ResponseStatus(str, enum.Enum):
 
 
 class ResponseHeader(APIResponseModel):
-    """
-    Pangea response API header.
-
-    Arguments:
-    request_id -- The request ID.
-    request_time -- The time the request was issued, ISO8601.
-    response_time -- The time the response was issued, ISO8601.
-    status -- Pangea response status
-    summary -- The summary of the response.
-    """
+    """Pangea response API header."""
 
     request_id: str
+    """A unique identifier assigned to each request made to the API."""
+
     request_time: str
+    """
+    Timestamp indicating the exact moment when a request is made to the API.
+    """
+
     response_time: str
+    """
+    Duration it takes for the API to process a request and generate a response.
+    """
+
     status: str
+    """
+    Represents the status or outcome of the API request.
+    """
+
     summary: str
+    """
+    Provides a concise and brief overview of the purpose or primary objective of
+    the API endpoint.
+    """
 
 
-class PangeaResponse(Generic[T], ResponseHeader):
+T = TypeVar("T", bound=PangeaResponseResult)
+
+
+class PangeaResponse(ResponseHeader, Generic[T]):
     raw_result: Optional[Dict[str, Any]] = None
     raw_response: Optional[Union[requests.Response, aiohttp.ClientResponse]] = None
     result: Optional[T] = None
     pangea_error: Optional[PangeaError] = None
     accepted_result: Optional[AcceptedResult] = None
-    result_class: Union[Type[PangeaResponseResult], Type[dict]] = PangeaResponseResult
+    result_class: Type[T] = PangeaResponseResult  # type: ignore[assignment]
     _json: Any
     attached_files: List[AttachedFile] = []
 
     def __init__(
         self,
         response: requests.Response,
-        result_class: Union[Type[PangeaResponseResult], Type[dict]],
+        result_class: Type[T],
         json: dict,
         attached_files: List[AttachedFile] = [],
     ):
@@ -212,7 +216,7 @@ class PangeaResponse(Generic[T], ResponseHeader):
         self.attached_files = attached_files
 
         self.result = (
-            self.result_class(**self.raw_result)  # type: ignore[assignment]
+            self.result_class(**self.raw_result)
             if self.raw_result is not None and issubclass(self.result_class, PangeaResponseResult) and self.success
             else None
         )
@@ -244,4 +248,4 @@ class PangeaResponse(Generic[T], ResponseHeader):
 
     @property
     def url(self) -> str:
-        return str(self.raw_response.url)  # type: ignore[arg-type,union-attr]
+        return str(self.raw_response.url)  # type: ignore[union-attr]

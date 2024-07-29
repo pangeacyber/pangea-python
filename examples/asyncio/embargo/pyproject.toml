@@ -7,13 +7,13 @@ readme = "README.md"
 packages = [{include = "embargo_examples"}]
 
 [tool.poetry.dependencies]
-python = "^3.7.2"
-pangea-sdk = "^3.7.0"
+python = "^3.8.18"
+pangea-sdk = "^4.2.0"
 
 [tool.poetry.group.dev.dependencies]
-black = "^23.3.0"
-isort = "^5.11.5"
-mypy = "^1.4.1"
+black = "^24.4.2"
+isort = "^5.13.2"
+mypy = "^1.11.0"
 
 [tool.black]
 line-length = 120

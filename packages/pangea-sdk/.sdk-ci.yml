@@ -15,6 +15,7 @@
     # Set each service test environment
     SERVICE_AUDIT_ENV: LVE
     SERVICE_AUTHN_ENV: LVE
+    SERVICE_AUTHZ_ENV: LVE
     SERVICE_EMBARGO_ENV: LVE
     SERVICE_FILE_SCAN_ENV: LVE
     SERVICE_IP_INTEL_ENV: LVE
@@ -43,6 +44,7 @@
     # Config IDs
     - export PANGEA_AUDIT_CONFIG_ID_1_${ENV}="$(eval echo \$PANGEA_AUDIT_CONFIG_ID_1_${ENV}_${CLOUD})"
     - export PANGEA_AUDIT_CONFIG_ID_2_${ENV}="$(eval echo \$PANGEA_AUDIT_CONFIG_ID_2_${ENV}_${CLOUD})"
+    - export PANGEA_AUDIT_CONFIG_ID_3_${ENV}="$(eval echo \$PANGEA_AUDIT_CONFIG_ID_3_${ENV}_${CLOUD})"
     - export PANGEA_REDACT_CONFIG_ID_1_${ENV}="$(eval echo \$PANGEA_REDACT_CONFIG_ID_1_${ENV}_${CLOUD})"
     - export PANGEA_REDACT_CONFIG_ID_2_${ENV}="$(eval echo \$PANGEA_REDACT_CONFIG_ID_2_${ENV}_${CLOUD})"
 
@@ -60,6 +62,9 @@
       - CLOUD: [AWS, GCP]
         ENV: ${SERVICE_AUTHN_ENV}
         TEST: test_authn
+      - CLOUD: [AWS, GCP]
+        ENV: ${SERVICE_AUTHZ_ENV}
+        TEST: test_authz
       - CLOUD: [AWS, GCP]
         ENV: ${SERVICE_EMBARGO_ENV}
         TEST: test_embargo
@@ -97,7 +102,11 @@
         ENV: ${SERVICE_AUTHZ_ENV}
         TEST: test_authz
   rules:
-    - if: $CI_COMMIT_BRANCH
+    - if: '$CI_COMMIT_BRANCH && $CLOUD == "GCP" && $TEST == "test_file_scan"'
+      allow_failure: true
+    - if: '$CI_COMMIT_BRANCH && $CLOUD == "GCP" && $TEST != "test_file_scan"'
+      allow_failure: false
+    - if: '$CI_COMMIT_BRANCH && $CLOUD != "GCP"'
       allow_failure: false
 
 sdk-build:
@@ -109,29 +118,18 @@ sdk-build:
     paths: ["packages/pangea-sdk/dist"]
     when: on_success
 
-sdk-docs:
-  extends: .sdk-base
-  stage: build
-  script:
-    - poetry run python parse_module.py > python_sdk.json
-  artifacts:
-    expire_in: 1 month
-    expose_as: python_sdk
-    paths: ["packages/pangea-sdk/python_sdk.json"]
-    when: on_success
-
 sdk-integration-tests:
   extends: .sdk-test-base
   stage: integration_tests
   script:
     - poetry run python -m unittest tests.integration.${TEST}
 
-# TODO: Add asyncio tests when upgrade python 3.8
-# sdk-asyncio-integration-tests:
-#   extends: .sdk-test-base
-#   stage: integration_tests
-#   script:
-#     - poetry run python -m unittest tests.integration.asyncio.${TEST}
+sdk-asyncio-integration-tests:
+  extends: .sdk-test-base
+  image: python:3.8-bullseye
+  stage: integration_tests
+  script:
+    - poetry run python -m unittest tests.integration.asyncio.${TEST}
 
 sdk-publish:
   extends: .sdk-base

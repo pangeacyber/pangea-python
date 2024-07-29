@@ -81,7 +81,7 @@ class TestSanitize(unittest.TestCase):
         except pe.PangeaAPIException as e:
             print(e)
             print(type(e))
-            self.assertTrue(False)
+            raise
 
     def test_sanitize_no_share(self):
         try:
@@ -126,7 +126,7 @@ class TestSanitize(unittest.TestCase):
         except pe.PangeaAPIException as e:
             print(e)
             print(type(e))
-            self.assertTrue(False)
+            raise
 
     def test_sanitize_all_defaults(self):
         try:
@@ -147,7 +147,6 @@ class TestSanitize(unittest.TestCase):
         except pe.PangeaAPIException as e:
             print(e)
             print(type(e))
-            self.assertTrue(False)
 
     def test_sanitize_multipart_upload(self):
         try:
@@ -189,7 +188,7 @@ class TestSanitize(unittest.TestCase):
         except pe.PangeaAPIException as e:
             print(e)
             print(type(e))
-            self.assertTrue(False)
+            raise
 
     def test_sanitize_async(self):
         with self.assertRaises(pe.AcceptedRequestException):
@@ -238,7 +237,7 @@ class TestSanitize(unittest.TestCase):
         except pe.PangeaAPIException as e:
             print(e)
             print(type(e))
-            self.assertTrue(False)
+            raise
 
     def test_sanitize_poll_result(self):
         exception = None

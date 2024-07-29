@@ -6,13 +6,13 @@ authors = []
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.7.17"
+python = "^3.8.18"
 pangea-sdk = { path = "../../../packages/pangea-sdk", develop = true }
 
 [tool.poetry.group.dev.dependencies]
-black = "^23.3.0"
-isort = "^5.11.5"
-mypy = "^1.4.1"
+black = "^24.4.2"
+isort = "^5.13.2"
+mypy = "^1.11.0"
 
 [tool.black]
 line-length = 120

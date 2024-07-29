@@ -14,8 +14,9 @@ from pangea.tools import (
     get_test_token,
     logger_set_pangea_config,
 )
+from tests.test_tools import load_test_environment
 
-TEST_ENVIRONMENT = TestEnvironment.LIVE
+TEST_ENVIRONMENT = load_test_environment(RedactAsync.service_name, TestEnvironment.LIVE)
 
 
 class TestRedact(unittest.IsolatedAsyncioTestCase):

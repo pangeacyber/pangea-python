@@ -5,11 +5,81 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## Unreleased
 
 ### Fixed
 
 - The source-url transfer method now works with File Scan and Sanitize.
+
+## 4.2.0 - 2024-07-16
+
+### Added
+
+- AuthN user password expiration support.
+- `"state"` and other new properties to AuthN's `Authenticator`.
+
+### Changed
+
+- `pangea.services.authn.models.Profile` has returned to being a
+  `dict[str, str]`, and its `first_name`, `last_name`, and `phone` properties
+  have been deprecated.
+
+## 4.1.0 - 2024-06-19
+
+### Added
+
+- Vault `/export` support
+- `exportable` field support in Vault `/key/store` and `/key/generate`
+
+### Fixed
+
+- Exception in `verify_audit` script when the event is not published
+
+## 4.0.0 - 2024-06-14
+
+### Added
+
+- Improvements in `verify_audit` script
+
+### Changed
+
+- Support for Python v3.7 has been dropped. Python v3.8 is now the minimum
+  supported version.
+- Updated pydantic to v2.6.3.
+- Updated aiohttp to v3.9.3.
+
+### Removed
+
+- `utils.dict_order_keys()` and `utils.dict_order_keys_recursive()`.
+
+## 3.9.0 - 2024-06-07
+
+### Added
+
+- `fpe_context` field in Audit search events
+- `return_context` support in Audit `/search`, `/results` and `/download` endpoints
+- Redact `/unredact` endpoint support
+- `redaction_method_overrides` field support in `/redact` and `redact_structured` endpoints
+- AuthN usernames support.
+
+### Removed
+
+- Beta tags from AuthZ.
+
+## 3.8.0 - 2024-05-10
+
+Note that Sanitize and Secure Share did not make it into this release.
+
+### Added
+
+- Support for Secure Audit Log's log stream API.
+- Support for Secure Audit Log's export API.
+- AuthZ service support.
+
+### Fixed
+
+- Incorrect return types in Intel bulk APIs.
+- `str2str_b64()` now supports non-ASCII strings.
 
 ## 3.8.0beta4 - 2024-03-28
 
@@ -22,6 +92,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - AuthZ service support.
+
+## 3.7.1 - 2024-03-20
+
+### Added
+
+- Audit assert_search_restriction added as a keyword argument to the results method
+- Audit /download_results endpoint support
+
+### Fixed
+
+- AuthN list method's filter not being serialized properly.
+- Incorrect docstrings positioning in `PangeaConfig`.
+- Incorrect variable name in `Vault` docstring.
+- Extraneous colons in `Vault.key_rotate()` docstrings.
+- Put to presigned url. It should just put file in raw, not in form format.
+
+### Changed
+
+- AuthN ClientTokenCheckResult `token` field is optional
+
+### Removed
+
+- An unused binascii import.
+- Unused os imports.
 
 ## 3.8.0beta2 - 2024-03-20
 
@@ -383,7 +477,6 @@ Asyncio support. New Async Service classes are in /asyncio folder.
 - Domain Intel client
 - Redact client
 
-[unreleased]: https://github.com/pangeacyber/pangea-python/compare/v3.7.0...main
 [3.7.0]: https://github.com/pangeacyber/pangea-python/compare/v3.6.1...v3.7.0
 [3.6.1]: https://github.com/pangeacyber/pangea-python/compare/v3.6.0...v3.6.1
 [3.6.0]: https://github.com/pangeacyber/pangea-python/compare/v3.5.0...v3.6.0

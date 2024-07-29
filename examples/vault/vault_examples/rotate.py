@@ -8,6 +8,7 @@ from pangea.services import Vault
 
 def main() -> None:
     token = os.getenv("PANGEA_VAULT_TOKEN")
+    assert token
     domain = os.getenv("PANGEA_DOMAIN")
     assert domain
     config = PangeaConfig(domain=domain)

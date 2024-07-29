@@ -1,10 +1,16 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 
+from __future__ import annotations
+
 import enum
 from typing import Dict, List, NewType, Optional, Union
+from warnings import warn
+
+from typing_extensions import deprecated
 
 import pangea.services.intel as im
+from pangea.deprecated import pangea_deprecated
 from pangea.response import APIRequestModel, APIResponseModel, PangeaResponseResult
 from pangea.services.vault.models.common import JWK, JWKec, JWKrsa
 
@@ -12,9 +18,49 @@ Scopes = NewType("Scopes", List[str])
 
 
 class Profile(Dict[str, str]):
-    first_name: str
-    last_name: str
-    phone: Optional[str] = None
+    @property
+    def first_name(self) -> str:
+        warn(
+            '`Profile.first_name` is deprecated. Use `Profile["first_name"]` instead.', DeprecationWarning, stacklevel=2
+        )
+        return self["first_name"]
+
+    @first_name.setter
+    def first_name(self, value: str) -> None:
+        warn(
+            '`Profile.first_name` is deprecated. Use `Profile["first_name"]` instead.', DeprecationWarning, stacklevel=2
+        )
+        self["first_name"] = value
+
+    @property
+    def last_name(self) -> str:
+        warn('`Profile.last_name` is deprecated. Use `Profile["last_name"]` instead.', DeprecationWarning, stacklevel=2)
+        return self["last_name"]
+
+    @last_name.setter
+    def last_name(self, value: str) -> None:
+        warn('`Profile.last_name` is deprecated. Use `Profile["last_name"]` instead.', DeprecationWarning, stacklevel=2)
+        self["last_name"] = value
+
+    @property
+    def phone(self) -> str:
+        warn('`Profile.phone` is deprecated. Use `Profile["phone"]` instead.', DeprecationWarning, stacklevel=2)
+        return self["phone"]
+
+    @phone.setter
+    def phone(self, value: str) -> None:
+        warn('`Profile.phone` is deprecated. Use `Profile["phone"]` instead.', DeprecationWarning, stacklevel=2)
+        self["phone"] = value
+
+    @deprecated("`Profile.model_dump()` is deprecated. `Profile` is already a `dict[str, str]`.")
+    @pangea_deprecated(reason="`Profile` is already a `dict[str, str]`.")
+    def model_dump(self, *, exclude_none: bool = False) -> dict[str, str]:
+        warn(
+            "`Profile.model_dump()` is deprecated. `Profile` is already a `dict[str, str]`.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self
 
 
 class ClientPasswordChangeRequest(APIRequestModel):
@@ -59,7 +105,7 @@ class SessionToken(PangeaResponseResult):
     identity: str
     email: str
     scopes: Optional[Scopes] = None
-    profile: Profile
+    profile: Union[Profile, Dict[str, str]]
     created_at: str
     intelligence: Optional[Intelligence] = None
 
@@ -69,7 +115,7 @@ class LoginToken(SessionToken):
 
 
 class ClientTokenCheckResult(SessionToken):
-    token: Optional[str]
+    token: Optional[str] = None
 
 
 class IDProvider(str, enum.Enum):
@@ -150,34 +196,93 @@ class UserListOrderBy(enum.Enum):
 
 
 class Authenticator(APIResponseModel):
+    """Authenticator."""
+
     id: str
+    """An ID for an authenticator."""
+
     type: str
+    """An authentication mechanism."""
+
     enabled: bool
+    """Enabled."""
+
     provider: Optional[str] = None
+    """Provider."""
+
+    provider_name: Optional[str] = None
+    """Provider name."""
+
     rpid: Optional[str] = None
+    """RPID."""
+
     phase: Optional[str] = None
+    """Phase."""
+
+    enrolling_browser: Optional[str] = None
+    """Enrolling browser."""
+
+    enrolling_ip: Optional[str] = None
+    """Enrolling IP."""
+
+    created_at: str
+    """A time in ISO-8601 format."""
+
+    updated_at: str
+    """A time in ISO-8601 format."""
+
+    state: Optional[str] = None
+    """State."""
 
 
 class User(PangeaResponseResult):
     id: str
+    """The identity of a user or a service."""
+
     email: str
-    profile: Profile
+    """An email address."""
+
+    username: str
+    """A username."""
+
+    profile: Union[Profile, Dict[str, str]]
+    """A user profile as a collection of string properties."""
+
     verified: bool
+    """True if the user's email has been verified."""
+
     disabled: bool
+    """True if the service administrator has disabled user account."""
+
     accepted_eula_id: Optional[str] = None
+    """An ID for an agreement."""
+
     accepted_privacy_policy_id: Optional[str] = None
+    """An ID for an agreement."""
+
     last_login_at: Optional[str] = None
+    """A time in ISO-8601 format."""
+
     created_at: str
+    """A time in ISO-8601 format."""
+
     login_count: int = 0
     last_login_ip: Optional[str] = None
     last_login_city: Optional[str] = None
     last_login_country: Optional[str] = None
     authenticators: List[Authenticator] = []
+    """A list of authenticators."""
 
 
 class UserCreateRequest(APIRequestModel):
     email: str
-    profile: Profile
+    """An email address."""
+
+    profile: Union[Profile, Dict[str, str]]
+    """A user profile as a collection of string properties."""
+
+    username: Optional[str] = None
+    """A username."""
 
 
 class UserCreateResult(User):
@@ -186,7 +291,13 @@ class UserCreateResult(User):
 
 class UserDeleteRequest(APIRequestModel):
     email: Optional[str] = None
+    """An email address."""
+
     id: Optional[str] = None
+    """The identity of a user or a service."""
+
+    username: Optional[str] = None
+    """A username."""
 
 
 class UserDeleteResult(PangeaResponseResult):
@@ -289,7 +400,7 @@ class UserInviterOrderBy(enum.Enum):
 
 
 class UserInviteListFilter(APIRequestModel):
-    callback: Optional[str]
+    callback: Optional[str] = None
     callback__contains: Optional[List[str]] = None
     callback__in: Optional[List[str]] = None
     created_at: Optional[str] = None
@@ -343,7 +454,13 @@ class UserInviteDeleteResult(PangeaResponseResult):
 
 class UserProfileGetRequest(APIRequestModel):
     id: Optional[str] = None
+    """The identity of a user or a service."""
+
     email: Optional[str] = None
+    """An email address."""
+
+    username: Optional[str] = None
+    """A username."""
 
 
 class UserProfileGetResult(User):
@@ -351,9 +468,17 @@ class UserProfileGetResult(User):
 
 
 class UserProfileUpdateRequest(APIRequestModel):
-    profile: Profile
+    profile: Union[Profile, Dict[str, str]]
+    """Updates to a user profile."""
+
     id: Optional[str] = None
+    """The identity of a user or a service."""
+
     email: Optional[str] = None
+    """An email address."""
+
+    username: Optional[str] = None
+    """A username."""
 
 
 class UserProfileUpdateResult(User):
@@ -362,9 +487,25 @@ class UserProfileUpdateResult(User):
 
 class UserUpdateRequest(APIRequestModel):
     id: Optional[str] = None
+    """The identity of a user or a service."""
+
     email: Optional[str] = None
+    """An email address."""
+
     disabled: Optional[bool] = None
+    """
+    New disabled value. Disabling a user account will prevent them from logging
+    in.
+    """
+
     unlock: Optional[bool] = None
+    """
+    Unlock a user account if it has been locked out due to failed authentication
+    attempts.
+    """
+
+    username: Optional[str] = None
+    """A username."""
 
 
 class UserUpdateResult(User):
@@ -386,8 +527,16 @@ class ClientJWKSResult(PangeaResponseResult):
 
 class UserAuthenticatorsDeleteRequest(APIRequestModel):
     id: Optional[str] = None
+    """The identity of a user or a service."""
+
     email: Optional[str] = None
+    """An email address."""
+
     authenticator_id: str
+    """An ID for an authenticator."""
+
+    username: Optional[str] = None
+    """A username."""
 
 
 class UserAuthenticatorsDeleteResult(PangeaResponseResult):
@@ -396,11 +545,18 @@ class UserAuthenticatorsDeleteResult(PangeaResponseResult):
 
 class UserAuthenticatorsListRequest(APIRequestModel):
     email: Optional[str] = None
+    """An email address."""
+
     id: Optional[str] = None
+    """The identity of a user or a service."""
+
+    username: Optional[str] = None
+    """A username."""
 
 
 class UserAuthenticatorsListResult(PangeaResponseResult):
     authenticators: List[Authenticator] = []
+    """A list of authenticators."""
 
 
 class FlowCompleteRequest(APIRequestModel):
@@ -499,7 +655,7 @@ class FlowUpdateDataPassword(APIRequestModel):
 
 
 class FlowUpdateDataProfile(APIRequestModel):
-    profile: Profile
+    profile: Union[Profile, Dict[str, str]]
 
 
 class FlowUpdateDataProvisionalEnrollment(APIRequestModel):
@@ -621,7 +777,7 @@ class SessionItem(APIResponseModel):
     expire: str
     email: str
     scopes: Optional[Scopes] = None
-    profile: Profile
+    profile: Union[Profile, Dict[str, str]]
     created_at: str
     active_token: Optional[SessionToken] = None
 

@@ -96,7 +96,7 @@ class Signer:
 
         for func in (serialization.load_pem_private_key, serialization.load_ssh_private_key):
             try:
-                return func(private_key, None)  # type: ignore[operator]
+                return func(private_key, None)
             except exceptions.UnsupportedAlgorithm as e:
                 raise e
             except ValueError:

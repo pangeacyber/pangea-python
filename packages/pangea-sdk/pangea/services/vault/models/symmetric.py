@@ -18,6 +18,8 @@ class SymmetricStoreRequest(CommonStoreRequest):
     key: EncodedSymmetricKey
     algorithm: SymmetricAlgorithm
     purpose: KeyPurpose
+    exportable: Optional[bool] = None
+    """Whether the key is exportable or not."""
 
 
 class SymmetricStoreResult(CommonStoreResult):
@@ -28,6 +30,8 @@ class SymmetricStoreResult(CommonStoreResult):
 class SymmetricGenerateRequest(CommonGenerateRequest):
     algorithm: SymmetricAlgorithm
     purpose: KeyPurpose
+    exportable: Optional[bool] = None
+    """Whether the key is exportable or not."""
 
 
 class SymmetricGenerateResult(CommonGenerateResult):
@@ -39,7 +43,7 @@ class EncryptRequest(APIRequestModel):
     id: str
     plain_text: str
     version: Optional[int] = None
-    additional_data: Optional[str]
+    additional_data: Optional[str] = None
 
 
 class EncryptResult(PangeaResponseResult):
@@ -53,7 +57,7 @@ class DecryptRequest(APIRequestModel):
     id: str
     cipher_text: str
     version: Optional[int] = None
-    additional_data: Optional[str]
+    additional_data: Optional[str] = None
 
 
 class DecryptResult(PangeaResponseResult):

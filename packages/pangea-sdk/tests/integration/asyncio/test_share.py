@@ -20,8 +20,9 @@ from pangea.services.share.share import (
 )
 from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
 from pangea.utils import get_file_upload_params
+from tests.test_tools import load_test_environment
 
-TEST_ENVIRONMENT = TestEnvironment.DEVELOP
+TEST_ENVIRONMENT = load_test_environment(ShareAsync.service_name, TestEnvironment.LIVE)
 PDF_FILEPATH = "./tests/testdata/testfile.pdf"
 ZEROBYTES_FILEPATH = "./tests/testdata/zerobytes.txt"
 TIME = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")

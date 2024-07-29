@@ -1,5 +1,5 @@
+import asyncio
 import logging
-import time
 import unittest
 from http.client import HTTPConnection
 
@@ -33,7 +33,7 @@ def debug_requests_on():
 
 
 class TestSanitize(unittest.IsolatedAsyncioTestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         # debug_requests_on()
         token = get_test_token(TEST_ENVIRONMENT)
         domain = get_test_domain(TEST_ENVIRONMENT)
@@ -84,7 +84,7 @@ class TestSanitize(unittest.IsolatedAsyncioTestCase):
         except pe.PangeaAPIException as e:
             print(e)
             print(type(e))
-            self.assertTrue(False)
+            raise
 
     async def test_sanitize_no_share(self):
         try:
@@ -129,7 +129,7 @@ class TestSanitize(unittest.IsolatedAsyncioTestCase):
         except pe.PangeaAPIException as e:
             print(e)
             print(type(e))
-            self.assertTrue(False)
+            raise
 
     async def test_sanitize_all_defaults(self):
         try:
@@ -150,7 +150,7 @@ class TestSanitize(unittest.IsolatedAsyncioTestCase):
         except pe.PangeaAPIException as e:
             print(e)
             print(type(e))
-            self.assertTrue(False)
+            raise
 
     async def test_sanitize_multipart_upload(self):
         try:
@@ -192,7 +192,7 @@ class TestSanitize(unittest.IsolatedAsyncioTestCase):
         except pe.PangeaAPIException as e:
             print(e)
             print(type(e))
-            self.assertTrue(False)
+            raise
 
     async def test_sanitize_async(self):
         with self.assertRaises(pe.AcceptedRequestException):
@@ -241,7 +241,7 @@ class TestSanitize(unittest.IsolatedAsyncioTestCase):
         except pe.PangeaAPIException as e:
             print(e)
             print(type(e))
-            self.assertTrue(False)
+            raise
 
     async def test_sanitize_poll_result(self):
         exception = None
@@ -261,7 +261,7 @@ class TestSanitize(unittest.IsolatedAsyncioTestCase):
         for retry in range(max_retry):
             try:
                 # wait some time to get result ready and poll it
-                time.sleep(10)
+                await asyncio.sleep(10)
 
                 response: PangeaResponse[SanitizeResult] = await self.client.poll_result(exception)
                 self.assertEqual(response.status, "Success")
@@ -313,7 +313,7 @@ class TestSanitize(unittest.IsolatedAsyncioTestCase):
         for retry in range(max_retry):
             try:
                 # wait some time to get result ready and poll it
-                time.sleep(10)
+                await asyncio.sleep(10)
 
                 response: PangeaResponse[SanitizeResult] = await self.client.poll_result(response=response)
                 self.assertEqual(response.status, "Success")
@@ -367,7 +367,7 @@ class TestSanitize(unittest.IsolatedAsyncioTestCase):
         for retry in range(max_retry):
             try:
                 # wait some time to get result ready and poll it
-                time.sleep(10)
+                await asyncio.sleep(10)
 
                 response: PangeaResponse[SanitizeResult] = await self.client.poll_result(response=response)
                 self.assertEqual(response.status, "Success")

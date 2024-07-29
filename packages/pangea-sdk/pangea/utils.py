@@ -3,11 +3,10 @@ import copy
 import datetime
 import io
 import json
-from collections import OrderedDict
 from hashlib import md5, new, sha1, sha256, sha512
 from typing import Union
 
-from google_crc32c import Checksum as CRC32C  # type: ignore[import]
+from google_crc32c import Checksum as CRC32C  # type: ignore[import-untyped]
 from pydantic import BaseModel
 
 
@@ -31,24 +30,13 @@ def default_encoder(obj) -> str:
         return str(obj)
 
 
-def str2str_b64(data: str):
-    return base64.b64encode(data.encode("ascii")).decode("ascii")
+def str2str_b64(data: str, encoding: str = "utf-8") -> str:
+    return base64.b64encode(data.encode(encoding)).decode("ascii")
 
 
-def dict_order_keys(data: dict) -> OrderedDict:
-    if isinstance(data, dict):
-        return OrderedDict(sorted(data.items()))
-    else:
-        return data
-
-
-def dict_order_keys_recursive(data: dict) -> OrderedDict:
-    if isinstance(data, dict):
-        for k, v in data.items():
-            if type(v) is dict:
-                data[k] = dict_order_keys_recursive(v)
-
-    return data  # type: ignore[return-value]
+def str_b64_2bytes(data: str) -> bytes:
+    data += "=" * ((4 - len(data) % 4) % 4)  # add padding if needed
+    return base64.urlsafe_b64decode(data)
 
 
 def canonicalize_nested_json(data: dict) -> dict:

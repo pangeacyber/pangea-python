@@ -40,7 +40,7 @@ class ShareAsync(ServiceBaseAsync):
         """
 
         input = m.DeleteRequest(id=id, path=path, force=force)
-        return await self.request.post("v1beta/delete", m.DeleteResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v1beta/delete", m.DeleteResult, data=input.model_dump(exclude_none=True))
 
     async def folder_create(
         self,
@@ -81,7 +81,9 @@ class ShareAsync(ServiceBaseAsync):
         """
 
         input = m.FolderCreateRequest(name=name, metadata=metadata, parent_id=parent_id, path=path, tags=tags)
-        return await self.request.post("v1beta/folder/create", m.FolderCreateResult, data=input.dict(exclude_none=True))
+        return await self.request.post(
+            "v1beta/folder/create", m.FolderCreateResult, data=input.model_dump(exclude_none=True)
+        )
 
     async def get(
         self, id: Optional[str] = None, path: Optional[str] = None, transfer_method: Optional[TransferMethod] = None
@@ -115,7 +117,7 @@ class ShareAsync(ServiceBaseAsync):
             path=path,
             transfer_method=transfer_method,
         )
-        return await self.request.post("v1beta/get", m.GetResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v1beta/get", m.GetResult, data=input.model_dump(exclude_none=True))
 
     async def get_archive(
         self,
@@ -153,7 +155,9 @@ class ShareAsync(ServiceBaseAsync):
             raise ValueError(f"Only {TransferMethod.DEST_URL} and {TransferMethod.MULTIPART} are supported")
 
         input = m.GetArchiveRequest(ids=ids, format=format, transfer_method=transfer_method)
-        return await self.request.post("v1beta/get_archive", m.GetArchiveResult, data=input.dict(exclude_none=True))
+        return await self.request.post(
+            "v1beta/get_archive", m.GetArchiveResult, data=input.model_dump(exclude_none=True)
+        )
 
     async def list(
         self,
@@ -186,7 +190,7 @@ class ShareAsync(ServiceBaseAsync):
         """
 
         input = m.ListRequest(filter=filter, last=last, order=order, order_by=order_by, size=size)
-        return await self.request.post("v1beta/list", m.ListResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v1beta/list", m.ListResult, data=input.model_dump(exclude_none=True))
 
     async def put(
         self,
@@ -272,7 +276,7 @@ class ShareAsync(ServiceBaseAsync):
             sha512=sha512,
             size=size,
         )
-        data = input.dict(exclude_none=True)
+        data = input.model_dump(exclude_none=True)
         return await self.request.post("v1beta/put", m.PutResult, data=data, files=files)
 
     async def request_upload_url(
@@ -352,7 +356,7 @@ class ShareAsync(ServiceBaseAsync):
             size=size,
         )
 
-        data = input.dict(exclude_none=True)
+        data = input.model_dump(exclude_none=True)
         return await self.request.request_presigned_url("v1beta/put", m.PutResult, data=data)
 
     async def update(
@@ -414,7 +418,7 @@ class ShareAsync(ServiceBaseAsync):
             parent_id=parent_id,
             updated_at=updated_at,
         )
-        return await self.request.post("v1beta/update", m.UpdateResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v1beta/update", m.UpdateResult, data=input.model_dump(exclude_none=True))
 
     async def share_link_create(self, links: List[m.ShareLinkCreateItem]) -> PangeaResponse[m.ShareLinkCreateResult]:
         """
@@ -450,7 +454,7 @@ class ShareAsync(ServiceBaseAsync):
 
         input = m.ShareLinkCreateRequest(links=links)
         return await self.request.post(
-            "v1beta/share/link/create", m.ShareLinkCreateResult, data=input.dict(exclude_none=True)
+            "v1beta/share/link/create", m.ShareLinkCreateResult, data=input.model_dump(exclude_none=True)
         )
 
     async def share_link_get(self, id: str) -> PangeaResponse[m.ShareLinkGetResult]:
@@ -476,7 +480,7 @@ class ShareAsync(ServiceBaseAsync):
 
         input = m.ShareLinkGetRequest(id=id)
         return await self.request.post(
-            "v1beta/share/link/get", m.ShareLinkGetResult, data=input.dict(exclude_none=True)
+            "v1beta/share/link/get", m.ShareLinkGetResult, data=input.model_dump(exclude_none=True)
         )
 
     async def share_link_list(
@@ -511,7 +515,7 @@ class ShareAsync(ServiceBaseAsync):
 
         input = m.ShareLinkListRequest(filter=filter, last=last, order=order, order_by=order_by, size=size)
         return await self.request.post(
-            "v1beta/share/link/list", m.ShareLinkListResult, data=input.dict(exclude_none=True)
+            "v1beta/share/link/list", m.ShareLinkListResult, data=input.model_dump(exclude_none=True)
         )
 
     async def share_link_delete(self, ids: List[str]) -> PangeaResponse[m.ShareLinkDeleteResult]:
@@ -537,7 +541,7 @@ class ShareAsync(ServiceBaseAsync):
 
         input = m.ShareLinkDeleteRequest(ids=ids)
         return await self.request.post(
-            "v1beta/share/link/delete", m.ShareLinkDeleteResult, data=input.dict(exclude_none=True)
+            "v1beta/share/link/delete", m.ShareLinkDeleteResult, data=input.model_dump(exclude_none=True)
         )
 
     async def share_link_send(
@@ -569,5 +573,5 @@ class ShareAsync(ServiceBaseAsync):
 
         input = m.ShareLinkSendRequest(links=links, sender_email=sender_email, sender_name=sender_name)
         return await self.request.post(
-            "v1beta/share/link/send", m.ShareLinkSendResult, data=input.dict(exclude_none=True)
+            "v1beta/share/link/send", m.ShareLinkSendResult, data=input.model_dump(exclude_none=True)
         )
