@@ -1,7 +1,7 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 
-from typing import Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 from pangea.asyncio.services.base import ServiceBaseAsync
 from pangea.response import PangeaResponse
@@ -162,7 +162,7 @@ class AuthZAsync(ServiceBaseAsync):
         action: str,
         subject: Subject,
         debug: Optional[bool] = None,
-        attributes: Optional[Dict[str, Union[int, str]]] = None,
+        attributes: Optional[Dict[str, Any]] = None,
     ) -> PangeaResponse[CheckResult]:
         """Perform a check request.
 
@@ -173,7 +173,7 @@ class AuthZAsync(ServiceBaseAsync):
             action (str): The action to check.
             subject (Subject): The subject to check.
             debug (Optional[bool]): Setting this value to True will provide a detailed analysis of the check.
-            attributes (Optional[Dict[str, Union[int, str]]]): Additional attributes for the check.
+            attributes (Optional[Dict[str, Any]]): Additional attributes for the check.
 
         Raises:
             PangeaAPIException: If an API Error happens.
@@ -195,8 +195,10 @@ class AuthZAsync(ServiceBaseAsync):
         input_data = CheckRequest(resource=resource, action=action, subject=subject, debug=debug, attributes=attributes)
         return await self.request.post("v1/check", CheckResult, data=input_data.model_dump(exclude_none=True))
 
-    async def list_resources(self, type: str, action: str, subject: Subject) -> PangeaResponse[ListResourcesResult]:
-        """List resources.
+    async def list_resources(
+        self, type: str, action: str, subject: Subject, attributes: Optional[Dict[str, Any]] = None
+    ) -> PangeaResponse[ListResourcesResult]:
+        """List resources. (Beta)
 
         Given a type, action, and subject, list all the resources in the
         type that the subject has access to the action with.
@@ -205,6 +207,7 @@ class AuthZAsync(ServiceBaseAsync):
             type (str): The type to filter resources.
             action (str): The action to filter resources.
             subject (Subject): The subject to filter resources.
+            attributes (Optional[Dict[str, Any]]): A JSON object of attribute data.
 
         Raises:
             PangeaAPIException: If an API Error happens.
@@ -222,13 +225,15 @@ class AuthZAsync(ServiceBaseAsync):
             )
         """
 
-        input_data = ListResourcesRequest(type=type, action=action, subject=subject)
+        input_data = ListResourcesRequest(type=type, action=action, subject=subject, attributes=attributes)
         return await self.request.post(
             "v1/list-resources", ListResourcesResult, data=input_data.model_dump(exclude_none=True)
         )
 
-    async def list_subjects(self, resource: Resource, action: str) -> PangeaResponse[ListSubjectsResult]:
-        """List subjects.
+    async def list_subjects(
+        self, resource: Resource, action: str, attributes: Optional[Dict[str, Any]] = None
+    ) -> PangeaResponse[ListSubjectsResult]:
+        """List subjects. (Beta)
 
         Given a resource and an action, return the list of subjects who have
         access to the action for the given resource.
@@ -236,6 +241,7 @@ class AuthZAsync(ServiceBaseAsync):
         Args:
             resource (Resource): The resource to filter subjects.
             action (str): The action to filter subjects.
+            attributes (Optional[Dict[str, Any]]): A JSON object of attribute data.
 
         Raises:
             PangeaAPIException: If an API Error happens.
@@ -252,7 +258,7 @@ class AuthZAsync(ServiceBaseAsync):
             )
         """
 
-        input_data = ListSubjectsRequest(resource=resource, action=action)
+        input_data = ListSubjectsRequest(resource=resource, action=action, attributes=attributes)
         return await self.request.post(
             "v1/list-subjects", ListSubjectsResult, data=input_data.model_dump(exclude_none=True)
         )
