@@ -9,8 +9,9 @@ from pangea.response import PangeaResponse, TransferMethod
 from pangea.services.file_scan import FileScanResult
 from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
 from pangea.utils import get_file_upload_params
+from tests.test_tools import load_test_environment
 
-TEST_ENVIRONMENT = TestEnvironment.LIVE
+TEST_ENVIRONMENT = load_test_environment(FileScanAsync.service_name, TestEnvironment.LIVE)
 PDF_FILEPATH = "./tests/testdata/testfile.pdf"
 
 

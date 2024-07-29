@@ -5,6 +5,7 @@ from pangea.config import PangeaConfig
 from pangea.services import Redact
 
 token = os.getenv("PANGEA_REDACT_MULTICONFIG_TOKEN")
+assert token
 config_id = os.getenv("PANGEA_REDACT_CONFIG_ID")
 domain = os.getenv("PANGEA_DOMAIN")
 assert domain

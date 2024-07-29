@@ -1,11 +1,14 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+from __future__ import annotations
+
 import datetime
 import json
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from typing import Any, Dict, Iterable, List, Optional, Sequence, Set, Tuple, Union
 
 import pangea.exceptions as pexc
-from pangea.response import PangeaResponse
+from pangea.config import PangeaConfig
+from pangea.response import PangeaResponse, PangeaResponseResult
 from pangea.services.audit.exceptions import AuditException, EventCorruption
 from pangea.services.audit.models import (
     DownloadFormat,
@@ -14,6 +17,7 @@ from pangea.services.audit.models import (
     Event,
     EventEnvelope,
     EventVerification,
+    ExportRequest,
     LogBulkRequest,
     LogBulkResult,
     LogEvent,
@@ -51,8 +55,8 @@ from pangea.utils import canonicalize_nested_json
 
 class AuditBase:
     def __init__(
-        self, private_key_file: str = "", public_key_info: Dict[str, str] = {}, tenant_id: Optional[str] = None
-    ):
+        self, private_key_file: str = "", public_key_info: dict[str, str] = {}, tenant_id: str | None = None
+    ) -> None:
         self.pub_roots: Dict[int, PublishedRoot] = {}
         self.buffer_data: Optional[str] = None
         self.signer: Optional[Signer] = Signer(private_key_file) if private_key_file else None
@@ -195,7 +199,7 @@ class AuditBase:
 
                 # verify consistency proofs
                 if self.can_verify_consistency_proof(search_event):
-                    if self.verify_consistency_proof(self.pub_roots, search_event):
+                    if search_event.leaf_index is not None and self.verify_consistency_proof(search_event.leaf_index):
                         search_event.consistency_verification = EventVerification.PASS
                     else:
                         search_event.consistency_verification = EventVerification.FAIL
@@ -218,7 +222,7 @@ class AuditBase:
         tree_sizes.difference_update(self.pub_roots.keys())
 
         if tree_sizes:
-            arweave_roots = get_arweave_published_roots(result.root.tree_name, list(tree_sizes))
+            arweave_roots = get_arweave_published_roots(result.root.tree_name, tree_sizes)
         else:
             arweave_roots = {}
 
@@ -280,7 +284,7 @@ class AuditBase:
         """
         return event.published and event.leaf_index is not None and event.leaf_index >= 0  # type: ignore[return-value]
 
-    def verify_consistency_proof(self, pub_roots: Dict[int, PublishedRoot], event: SearchEvent) -> bool:
+    def verify_consistency_proof(self, tree_size: int) -> bool:
         """
         Verify consistency proof
 
@@ -289,18 +293,17 @@ class AuditBase:
         Read more at: [What is a consistency proof?](https://pangea.cloud/docs/audit/merkle-trees#what-is-a-consistency-proof)
 
         Args:
-            pub_roots (dict[int, Root]): list of published root hashes across time
-            event (SearchEvent): Audit event to be verified.
+            leaf_index (int): The tree size of the root to be verified.
 
         Returns:
             bool: True if consistency proof is verified, False otherwise.
         """
 
-        if event.leaf_index == 0:
+        if tree_size == 0:
             return True
 
-        curr_root = pub_roots.get(event.leaf_index + 1)  # type: ignore[operator]
-        prev_root = pub_roots.get(event.leaf_index)  # type: ignore[arg-type]
+        curr_root = self.pub_roots.get(tree_size + 1)
+        prev_root = self.pub_roots.get(tree_size)
 
         if not curr_root or not prev_root:
             return False
@@ -310,9 +313,12 @@ class AuditBase:
         ):
             return False
 
+        if curr_root.consistency_proof is None:
+            return False
+
         curr_root_hash = decode_hash(curr_root.root_hash)
         prev_root_hash = decode_hash(prev_root.root_hash)
-        proof = decode_consistency_proof(curr_root.consistency_proof)  # type: ignore[arg-type]
+        proof = decode_consistency_proof(curr_root.consistency_proof)
 
         return verify_consistency_proof(curr_root_hash, prev_root_hash, proof)
 
@@ -332,7 +338,9 @@ class AuditBase:
         if audit_envelope and audit_envelope.signature and public_key:
             v = Verifier()
             verification = v.verify_signature(
-                audit_envelope.signature, canonicalize_event(audit_envelope.event), public_key  # type: ignore[arg-type]
+                audit_envelope.signature,
+                canonicalize_event(Event(**audit_envelope.event)),
+                public_key,
             )
             if verification is not None:
                 return EventVerification.PASS if verification else EventVerification.FAIL
@@ -374,14 +382,32 @@ class Audit(ServiceBase, AuditBase):
 
     def __init__(
         self,
-        token,
-        config=None,
+        token: str,
+        config: PangeaConfig | None = None,
         private_key_file: str = "",
-        public_key_info: Dict[str, str] = {},
-        tenant_id: Optional[str] = None,
-        logger_name="pangea",
-        config_id: Optional[str] = None,
-    ):
+        public_key_info: dict[str, str] = {},
+        tenant_id: str | None = None,
+        logger_name: str = "pangea",
+        config_id: str | None = None,
+    ) -> None:
+        """
+        Audit client
+
+        Initializes a new Audit client.
+
+        Args:
+            token: Pangea API token.
+            config: Configuration.
+            private_key_file: Private key filepath.
+            public_key_info: Public key information.
+            tenant_id: Tenant ID.
+            logger_name: Logger name.
+            config_id: Configuration ID.
+
+        Examples:
+             config = PangeaConfig(domain="pangea_domain")
+             audit = Audit(token="pangea_token", config=config)
+        """
         # FIXME: Temporary check to deprecate config_id from PangeaConfig.
         # Delete it when deprecate PangeaConfig.config_id
         if config_id and config is not None and config.config_id is not None:
@@ -495,7 +521,9 @@ class Audit(ServiceBase, AuditBase):
         """
 
         input = self._get_log_request(event, sign_local=sign_local, verify=verify, verbose=verbose)
-        response: PangeaResponse[LogResult] = self.request.post("v1/log", LogResult, data=input.dict(exclude_none=True))
+        response: PangeaResponse[LogResult] = self.request.post(
+            "v1/log", LogResult, data=input.model_dump(exclude_none=True)
+        )
         if response.success and response.result is not None:
             self._process_log_result(response.result, verify=verify)
         return response
@@ -535,7 +563,7 @@ class Audit(ServiceBase, AuditBase):
 
         input = self._get_log_request(events, sign_local=sign_local, verify=False, verbose=verbose)
         response: PangeaResponse[LogBulkResult] = self.request.post(
-            "v2/log", LogBulkResult, data=input.dict(exclude_none=True)
+            "v2/log", LogBulkResult, data=input.model_dump(exclude_none=True)
         )
 
         if response.success and response.result is not None:
@@ -579,7 +607,7 @@ class Audit(ServiceBase, AuditBase):
         try:
             # Calling to v2 methods will return always a 202.
             response: PangeaResponse[LogBulkResult] = self.request.post(
-                "v2/log_async", LogBulkResult, data=input.dict(exclude_none=True), poll_result=False
+                "v2/log_async", LogBulkResult, data=input.model_dump(exclude_none=True), poll_result=False
             )
         except pexc.AcceptedRequestException as e:
             return e.response
@@ -598,10 +626,11 @@ class Audit(ServiceBase, AuditBase):
         end: Optional[Union[datetime.datetime, str]] = None,
         limit: Optional[int] = None,
         max_results: Optional[int] = None,
-        search_restriction: Optional[dict] = None,
+        search_restriction: Optional[Dict[str, Sequence[str]]] = None,
         verbose: Optional[bool] = None,
         verify_consistency: bool = False,
         verify_events: bool = True,
+        return_context: Optional[bool] = None,
     ) -> PangeaResponse[SearchOutput]:
         """
         Search the log
@@ -627,10 +656,11 @@ class Audit(ServiceBase, AuditBase):
             end (datetime, optional): An RFC-3339 formatted timestamp, or relative time adjustment from the current time.
             limit (int, optional): Optional[int] = None,
             max_results (int, optional): Maximum number of results to return.
-            search_restriction (dict, optional): A list of keys to restrict the search results to. Useful for partitioning data available to the query string.
+            search_restriction (Dict[str, Sequence[str]], optional): A list of keys to restrict the search results to. Useful for partitioning data available to the query string.
             verbose (bool, optional): If true, response include root and membership and consistency proofs.
             verify_consistency (bool): True to verify logs consistency
             verify_events (bool): True to verify hash events and signatures
+            return_context (bool): Return the context data needed to decrypt secure audit events that have been redacted with format preserving encryption.
 
         Raises:
             AuditException: If an audit based api exception happens
@@ -664,10 +694,11 @@ class Audit(ServiceBase, AuditBase):
             max_results=max_results,
             search_restriction=search_restriction,
             verbose=verbose,
+            return_context=return_context,
         )
 
         response: PangeaResponse[SearchOutput] = self.request.post(
-            "v1/search", SearchOutput, data=input.dict(exclude_none=True)
+            "v1/search", SearchOutput, data=input.model_dump(exclude_none=True)
         )
         if verify_consistency and response.result is not None:
             self.update_published_roots(response.result)
@@ -678,8 +709,10 @@ class Audit(ServiceBase, AuditBase):
         id: str,
         limit: Optional[int] = 20,
         offset: Optional[int] = 0,
+        assert_search_restriction: Optional[Dict[str, Sequence[str]]] = None,
         verify_consistency: bool = False,
         verify_events: bool = True,
+        return_context: Optional[bool] = None,
     ) -> PangeaResponse[SearchResultOutput]:
         """
         Results of a search
@@ -692,8 +725,10 @@ class Audit(ServiceBase, AuditBase):
             id (string): the id of a search action, found in `response.result.id`
             limit (integer, optional): the maximum number of results to return, default is 20
             offset (integer, optional): the position of the first result to return, default is 0
+            assert_search_restriction (Dict[str, Sequence[str]], optional): Assert the requested search results were queried with the exact same search restrictions, to ensure the results comply to the expected restrictions.
             verify_consistency (bool): True to verify logs consistency
             verify_events (bool): True to verify hash events and signatures
+            return_context (bool): Return the context data needed to decrypt secure audit events that have been redacted with format preserving encryption.
         Raises:
             AuditException: If an audit based api exception happens
             PangeaAPIException: If an API Error happens
@@ -716,13 +751,116 @@ class Audit(ServiceBase, AuditBase):
             id=id,
             limit=limit,
             offset=offset,
+            assert_search_restriction=assert_search_restriction,
+            return_context=return_context,
         )
         response: PangeaResponse[SearchResultOutput] = self.request.post(
-            "v1/results", SearchResultOutput, data=input.dict(exclude_none=True)
+            "v1/results", SearchResultOutput, data=input.model_dump(exclude_none=True)
         )
         if verify_consistency and response.result is not None:
             self.update_published_roots(response.result)
         return self.handle_results_response(response, verify_consistency, verify_events)
+
+    def export(
+        self,
+        *,
+        format: DownloadFormat = DownloadFormat.CSV,
+        start: Optional[datetime.datetime] = None,
+        end: Optional[datetime.datetime] = None,
+        order: Optional[SearchOrder] = None,
+        order_by: Optional[str] = None,
+        verbose: bool = True,
+    ) -> PangeaResponse[PangeaResponseResult]:
+        """
+        Export from the audit log
+
+        Bulk export of data from the Secure Audit Log, with optional filtering.
+
+        OperationId: audit_post_v1_export
+
+        Args:
+            format: Format for the records.
+            start: The start of the time range to perform the search on.
+            end: The end of the time range to perform the search on. If omitted,
+                then all records up to the latest will be searched.
+            order: Specify the sort order of the response.
+            order_by: Name of column to sort the results by.
+            verbose: Whether or not to include the root hash of the tree and the
+                membership proof for each record.
+
+        Raises:
+            AuditException: If an audit based api exception happens
+            PangeaAPIException: If an API Error happens
+
+        Examples:
+            export_res = audit.export(verbose=False)
+
+            # Export may take several dozens of minutes, so polling for the result
+            # should be done in a loop. That is omitted here for brevity's sake.
+            try:
+                audit.poll_result(request_id=export_res.request_id)
+            except AcceptedRequestException:
+                # Retry later.
+
+            # Download the result when it's ready.
+            download_res = audit.download_results(request_id=export_res.request_id)
+            download_res.result.dest_url
+            # => https://pangea-runtime.s3.amazonaws.com/audit/xxxxx/search_results_[...]
+        """
+        input = ExportRequest(
+            format=format,
+            start=start,
+            end=end,
+            order=order,
+            order_by=order_by,
+            verbose=verbose,
+        )
+        try:
+            return self.request.post(
+                "v1/export", PangeaResponseResult, data=input.model_dump(exclude_none=True), poll_result=False
+            )
+        except pexc.AcceptedRequestException as e:
+            return e.response
+
+    def log_stream(self, data: dict) -> PangeaResponse[PangeaResponseResult]:
+        """
+        Log streaming endpoint
+
+        This API allows 3rd party vendors (like Auth0) to stream events to this
+        endpoint where the structure of the payload varies across different
+        vendors.
+
+        OperationId: audit_post_v1_log_stream
+
+        Args:
+            data: Event data. The exact schema of this will vary by vendor.
+
+        Raises:
+            AuditException: If an audit based api exception happens
+            PangeaAPIException: If an API Error happens
+
+        Examples:
+            data = {
+                "logs": [
+                    {
+                        "log_id": "some log ID",
+                        "data": {
+                            "date": "2024-03-29T17:26:50.193Z",
+                            "type": "sapi",
+                            "description": "Create a log stream",
+                            "client_id": "some client ID",
+                            "ip": "127.0.0.1",
+                            "user_agent": "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0",
+                            "user_id": "some user ID",
+                        },
+                    }
+                    # ...
+                ]
+            }
+
+            response = audit.log_stream(data)
+        """
+        return self.request.post("v1/log_stream", PangeaResponseResult, data=data)
 
     def root(self, tree_size: Optional[int] = None) -> PangeaResponse[RootResult]:
         """
@@ -746,10 +884,14 @@ class Audit(ServiceBase, AuditBase):
             response = audit.root(tree_size=7)
         """
         input = RootRequest(tree_size=tree_size)
-        return self.request.post("v1/root", RootResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1/root", RootResult, data=input.model_dump(exclude_none=True))
 
     def download_results(
-        self, result_id: str, format: Optional[DownloadFormat] = None
+        self,
+        result_id: Optional[str] = None,
+        format: DownloadFormat = DownloadFormat.CSV,
+        request_id: Optional[str] = None,
+        return_context: Optional[bool] = None,
     ) -> PangeaResponse[DownloadResult]:
         """
         Download search results
@@ -761,6 +903,8 @@ class Audit(ServiceBase, AuditBase):
         Args:
             result_id: ID returned by the search API.
             format: Format for the records.
+            request_id: ID returned by the export API.
+            return_context (bool): Return the context data needed to decrypt secure audit events that have been redacted with format preserving encryption.
 
         Returns:
             URL where search results can be downloaded.
@@ -776,8 +920,13 @@ class Audit(ServiceBase, AuditBase):
             )
         """
 
-        input = DownloadRequest(result_id=result_id, format=format)
-        return self.request.post("v1/download_results", DownloadResult, data=input.dict(exclude_none=True))
+        if request_id is None and result_id is None:
+            raise ValueError("must pass one of `request_id` or `result_id`")
+
+        input = DownloadRequest(
+            request_id=request_id, result_id=result_id, format=format, return_context=return_context
+        )
+        return self.request.post("v1/download_results", DownloadResult, data=input.model_dump(exclude_none=True))
 
     def update_published_roots(self, result: SearchResultOutput):
         """Fetches series of published root hashes from Arweave
@@ -802,12 +951,31 @@ class Audit(ServiceBase, AuditBase):
         for tree_size in tree_sizes:
             pub_root = None
             if tree_size in arweave_roots:
-                pub_root = PublishedRoot(**arweave_roots[tree_size].dict(exclude_none=True))
+                pub_root = PublishedRoot(**arweave_roots[tree_size].model_dump(exclude_none=True))
                 pub_root.source = RootSource.ARWEAVE
             elif self.allow_server_roots:
                 resp = self.root(tree_size=tree_size)
                 if resp.success and resp.result is not None:
-                    pub_root = PublishedRoot(**resp.result.data.dict(exclude_none=True))
+                    pub_root = PublishedRoot(**resp.result.data.model_dump(exclude_none=True))
                     pub_root.source = RootSource.PANGEA
             if pub_root is not None:
                 self.pub_roots[tree_size] = pub_root
+
+        self.fix_consistency_proofs(tree_sizes)
+
+    def fix_consistency_proofs(self, tree_sizes: Iterable[int]):
+        # on very rare occasions, the consistency proof in Arweave may be wrong
+        # override it with the proof from pangea (not the root hash, just the proof)
+        for tree_size in tree_sizes:
+            if tree_size not in self.pub_roots or tree_size - 1 not in self.pub_roots:
+                continue
+
+            if self.pub_roots[tree_size].source == RootSource.PANGEA:
+                continue
+
+            if self.verify_consistency_proof(tree_size):
+                continue
+
+            resp = self.root(tree_size=tree_size)
+            if resp.success and resp.result is not None and resp.result.data is not None:
+                self.pub_roots[tree_size].consistency_proof = resp.result.data.consistency_proof

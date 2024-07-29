@@ -117,7 +117,7 @@ class SanitizeAsync(ServiceBaseAsync):
             size=size,
             uploaded_file_name=uploaded_file_name,
         )
-        data = input.dict(exclude_none=True)
+        data = input.model_dump(exclude_none=True)
         try:
             return await self.request.post(
                 "v1beta/sanitize", m.SanitizeResult, data=data, files=files, poll_result=sync_call
@@ -191,5 +191,5 @@ class SanitizeAsync(ServiceBaseAsync):
             input.sha256 = params.sha256_hex
             input.size = params.size
 
-        data = input.dict(exclude_none=True)
+        data = input.model_dump(exclude_none=True)
         return await self.request.request_presigned_url("v1beta/sanitize", m.SanitizeResult, data=data)

@@ -217,7 +217,7 @@ class Sanitize(ServiceBase):
             size=size,
             uploaded_file_name=uploaded_file_name,
         )
-        data = input.dict(exclude_none=True)
+        data = input.model_dump(exclude_none=True)
         try:
             response = self.request.post(
                 "v1beta/sanitize", SanitizeResult, data=data, files=files, poll_result=sync_call
@@ -292,5 +292,5 @@ class Sanitize(ServiceBase):
             input.sha256 = params.sha256_hex
             input.size = params.size
 
-        data = input.dict(exclude_none=True)
+        data = input.model_dump(exclude_none=True)
         return self.request.request_presigned_url("v1beta/sanitize", SanitizeResult, data=data)

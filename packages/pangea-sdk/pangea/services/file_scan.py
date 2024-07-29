@@ -155,7 +155,7 @@ class FileScan(ServiceBase):
             transfer_method=transfer_method,
             source_url=source_url,
         )
-        data = input.dict(exclude_none=True)
+        data = input.model_dump(exclude_none=True)
         try:
             return self.request.post("v1/scan", FileScanResult, data=data, files=files, poll_result=sync_call)
         finally:
@@ -181,7 +181,7 @@ class FileScan(ServiceBase):
             input.sha256 = params.sha256_hex
             input.size = params.size
 
-        data = input.dict(exclude_none=True)
+        data = input.model_dump(exclude_none=True)
         return self.request.request_presigned_url("v1/scan", FileScanResult, data=data)
 
 

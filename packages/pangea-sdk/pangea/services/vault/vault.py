@@ -1,8 +1,11 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+from __future__ import annotations
+
 import datetime
 from typing import Dict, Optional, Union
 
+from pangea.config import PangeaConfig
 from pangea.response import PangeaResponse
 from pangea.services.base import ServiceBase
 from pangea.services.vault.models.asymmetric import (
@@ -17,6 +20,8 @@ from pangea.services.vault.models.asymmetric import (
 )
 from pangea.services.vault.models.common import (
     AsymmetricAlgorithm,
+    DecryptTransformRequest,
+    DecryptTransformResult,
     DeleteRequest,
     DeleteResult,
     EncodedPrivateKey,
@@ -24,6 +29,11 @@ from pangea.services.vault.models.common import (
     EncodedSymmetricKey,
     EncryptStructuredRequest,
     EncryptStructuredResult,
+    EncryptTransformRequest,
+    EncryptTransformResult,
+    ExportEncryptionAlgorithm,
+    ExportRequest,
+    ExportResult,
     FolderCreateRequest,
     FolderCreateResult,
     GetRequest,
@@ -50,6 +60,7 @@ from pangea.services.vault.models.common import (
     SymmetricAlgorithm,
     Tags,
     TDict,
+    TransformAlphabet,
     UpdateRequest,
     UpdateResult,
 )
@@ -98,10 +109,24 @@ class Vault(ServiceBase):
 
     def __init__(
         self,
-        token,
-        config=None,
-        logger_name="pangea",
-    ):
+        token: str,
+        config: PangeaConfig | None = None,
+        logger_name: str = "pangea",
+    ) -> None:
+        """
+        Vault client
+
+        Initializes a new Vault client.
+
+        Args:
+            token: Pangea API token.
+            config: Configuration.
+            logger_name: Logger name.
+
+        Examples:
+             config = PangeaConfig(domain="pangea_domain")
+             vault = Vault(token="pangea_token", config=config)
+        """
         super().__init__(token, config, logger_name)
 
     # Delete endpoint
@@ -129,7 +154,7 @@ class Vault(ServiceBase):
         input = DeleteRequest(
             id=id,
         )
-        return self.request.post("v1/delete", DeleteResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1/delete", DeleteResult, data=input.model_dump(exclude_none=True))
 
     # Get endpoint
     def get(
@@ -176,7 +201,7 @@ class Vault(ServiceBase):
             verbose=verbose,
             version_state=version_state,
         )
-        return self.request.post("v1/get", GetResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1/get", GetResult, data=input.model_dump(exclude_none=True))
 
     # List endpoint
     def list(
@@ -232,7 +257,7 @@ class Vault(ServiceBase):
             )
         """
         input = ListRequest(filter=filter, last=last, order=order, order_by=order_by, size=size)
-        return self.request.post("v1/list", ListResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1/list", ListResult, data=input.model_dump(exclude_none=True))
 
     # Update endpoint
     def update(
@@ -313,7 +338,7 @@ class Vault(ServiceBase):
             expiration=expiration,
             item_state=item_state,
         )
-        return self.request.post("v1/update", UpdateResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1/update", UpdateResult, data=input.model_dump(exclude_none=True))
 
     def secret_store(
         self,
@@ -383,7 +408,7 @@ class Vault(ServiceBase):
             rotation_state=rotation_state,
             expiration=expiration,
         )
-        return self.request.post("v1/secret/store", SecretStoreResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1/secret/store", SecretStoreResult, data=input.model_dump(exclude_none=True))
 
     def pangea_token_store(
         self,
@@ -453,7 +478,7 @@ class Vault(ServiceBase):
             rotation_state=rotation_state,
             expiration=expiration,
         )
-        return self.request.post("v1/secret/store", SecretStoreResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1/secret/store", SecretStoreResult, data=input.model_dump(exclude_none=True))
 
     # Rotate endpoint
     def secret_rotate(
@@ -493,7 +518,7 @@ class Vault(ServiceBase):
             )
         """
         input = SecretRotateRequest(id=id, secret=secret, rotation_state=rotation_state)
-        return self.request.post("v1/secret/rotate", SecretRotateResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1/secret/rotate", SecretRotateResult, data=input.model_dump(exclude_none=True))
 
     # Rotate endpoint
     def pangea_token_rotate(self, id: str) -> PangeaResponse[SecretRotateResult]:
@@ -521,7 +546,7 @@ class Vault(ServiceBase):
             )
         """
         input = SecretRotateRequest(id=id)  # type: ignore[call-arg]
-        return self.request.post("v1/secret/rotate", SecretRotateResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1/secret/rotate", SecretRotateResult, data=input.model_dump(exclude_none=True))
 
     def symmetric_generate(
         self,
@@ -534,6 +559,7 @@ class Vault(ServiceBase):
         rotation_frequency: Optional[str] = None,
         rotation_state: Optional[ItemVersionState] = None,
         expiration: Optional[datetime.datetime] = None,
+        exportable: Optional[bool] = None,
     ) -> PangeaResponse[SymmetricGenerateResult]:
         """
         Symmetric generate
@@ -555,6 +581,7 @@ class Vault(ServiceBase):
                 - `deactivated`
                 - `destroyed`
             expiration (str, optional): Expiration timestamp
+            exportable (bool, optional): Whether the key is exportable or not
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -594,11 +621,12 @@ class Vault(ServiceBase):
             rotation_frequency=rotation_frequency,
             rotation_state=rotation_state,
             expiration=expiration,
+            exportable=exportable,
         )
         return self.request.post(
             "v1/key/generate",
             SymmetricGenerateResult,
-            data=input.dict(exclude_none=True),
+            data=input.model_dump(exclude_none=True),
         )
 
     def asymmetric_generate(
@@ -612,6 +640,7 @@ class Vault(ServiceBase):
         rotation_frequency: Optional[str] = None,
         rotation_state: Optional[ItemVersionState] = None,
         expiration: Optional[datetime.datetime] = None,
+        exportable: Optional[bool] = None,
     ) -> PangeaResponse[AsymmetricGenerateResult]:
         """
         Asymmetric generate
@@ -633,6 +662,7 @@ class Vault(ServiceBase):
                 - `deactivated`
                 - `destroyed`
             expiration (str, optional): Expiration timestamp
+            exportable (bool, optional): Whether the key is exportable or not
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -672,11 +702,12 @@ class Vault(ServiceBase):
             rotation_frequency=rotation_frequency,
             rotation_state=rotation_state,
             expiration=expiration,
+            exportable=exportable,
         )
         return self.request.post(
             "v1/key/generate",
             AsymmetricGenerateResult,
-            data=input.dict(exclude_none=True),
+            data=input.model_dump(exclude_none=True),
         )
 
     # Store endpoints
@@ -693,6 +724,7 @@ class Vault(ServiceBase):
         rotation_frequency: Optional[str] = None,
         rotation_state: Optional[ItemVersionState] = None,
         expiration: Optional[datetime.datetime] = None,
+        exportable: Optional[bool] = None,
     ) -> PangeaResponse[AsymmetricStoreResult]:
         """
         Asymmetric store
@@ -716,6 +748,7 @@ class Vault(ServiceBase):
                 - `deactivated`
                 - `destroyed`
             expiration (str, optional): Expiration timestamp
+            exportable (bool, optional): Whether the key is exportable or not
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -759,8 +792,9 @@ class Vault(ServiceBase):
             rotation_frequency=rotation_frequency,
             rotation_state=rotation_state,
             expiration=expiration,
+            exportable=exportable,
         )
-        return self.request.post("v1/key/store", AsymmetricStoreResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1/key/store", AsymmetricStoreResult, data=input.model_dump(exclude_none=True))
 
     def symmetric_store(
         self,
@@ -774,6 +808,7 @@ class Vault(ServiceBase):
         rotation_frequency: Optional[str] = None,
         rotation_state: Optional[ItemVersionState] = None,
         expiration: Optional[datetime.datetime] = None,
+        exportable: Optional[bool] = None,
     ) -> PangeaResponse[SymmetricStoreResult]:
         """
         Symmetric store
@@ -796,6 +831,7 @@ class Vault(ServiceBase):
                 - `deactivated`
                 - `destroyed`
             expiration (str, optional): Expiration timestamp
+            exportable (bool, optional): Whether the key is exportable or not
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -837,8 +873,9 @@ class Vault(ServiceBase):
             rotation_frequency=rotation_frequency,
             rotation_state=rotation_state,
             expiration=expiration,
+            exportable=exportable,
         )
-        return self.request.post("v1/key/store", SymmetricStoreResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1/key/store", SymmetricStoreResult, data=input.model_dump(exclude_none=True))
 
     # Rotate endpoint
     def key_rotate(
@@ -891,7 +928,7 @@ class Vault(ServiceBase):
             key=key,
             rotation_state=rotation_state,
         )
-        return self.request.post("v1/key/rotate", KeyRotateResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1/key/rotate", KeyRotateResult, data=input.model_dump(exclude_none=True))
 
     # Encrypt
     def encrypt(self, id: str, plain_text: str, version: Optional[int] = None) -> PangeaResponse[EncryptResult]:
@@ -922,8 +959,8 @@ class Vault(ServiceBase):
                 version=1,
             )
         """
-        input = EncryptRequest(id=id, plain_text=plain_text, version=version)  # type: ignore[call-arg]
-        return self.request.post("v1/key/encrypt", EncryptResult, data=input.dict(exclude_none=True))
+        input = EncryptRequest(id=id, plain_text=plain_text, version=version)
+        return self.request.post("v1/key/encrypt", EncryptResult, data=input.model_dump(exclude_none=True))
 
     # Decrypt
     def decrypt(self, id: str, cipher_text: str, version: Optional[int] = None) -> PangeaResponse[DecryptResult]:
@@ -954,8 +991,8 @@ class Vault(ServiceBase):
                 version=1,
             )
         """
-        input = DecryptRequest(id=id, cipher_text=cipher_text, version=version)  # type: ignore[call-arg]
-        return self.request.post("v1/key/decrypt", DecryptResult, data=input.dict(exclude_none=True))
+        input = DecryptRequest(id=id, cipher_text=cipher_text, version=version)
+        return self.request.post("v1/key/decrypt", DecryptResult, data=input.model_dump(exclude_none=True))
 
     # Sign
     def sign(self, id: str, message: str, version: Optional[int] = None) -> PangeaResponse[SignResult]:
@@ -987,7 +1024,7 @@ class Vault(ServiceBase):
             )
         """
         input = SignRequest(id=id, message=message, version=version)
-        return self.request.post("v1/key/sign", SignResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1/key/sign", SignResult, data=input.model_dump(exclude_none=True))
 
     # Verify
     def verify(
@@ -1028,7 +1065,7 @@ class Vault(ServiceBase):
             signature=signature,
             version=version,
         )
-        return self.request.post("v1/key/verify", VerifyResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1/key/verify", VerifyResult, data=input.model_dump(exclude_none=True))
 
     def jwt_verify(self, jws: str) -> PangeaResponse[JWTVerifyResult]:
         """
@@ -1055,7 +1092,7 @@ class Vault(ServiceBase):
             )
         """
         input = JWTVerifyRequest(jws=jws)
-        return self.request.post("v1/key/verify/jwt", JWTVerifyResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1/key/verify/jwt", JWTVerifyResult, data=input.model_dump(exclude_none=True))
 
     def jwt_sign(self, id: str, payload: str) -> PangeaResponse[JWTSignResult]:
         """
@@ -1084,7 +1121,7 @@ class Vault(ServiceBase):
             )
         """
         input = JWTSignRequest(id=id, payload=payload)
-        return self.request.post("v1/key/sign/jwt", JWTSignResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1/key/sign/jwt", JWTSignResult, data=input.model_dump(exclude_none=True))
 
     # Get endpoint
     def jwk_get(self, id: str, version: Optional[str] = None) -> PangeaResponse[JWKGetResult]:
@@ -1115,7 +1152,7 @@ class Vault(ServiceBase):
             )
         """
         input = JWKGetRequest(id=id, version=version)
-        return self.request.post("v1/get/jwk", JWKGetResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1/get/jwk", JWKGetResult, data=input.model_dump(exclude_none=True))
 
     # State change
     def state_change(
@@ -1158,7 +1195,7 @@ class Vault(ServiceBase):
             )
         """
         input = StateChangeRequest(id=id, state=state, version=version, destroy_period=destroy_period)
-        return self.request.post("v1/state/change", StateChangeResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1/state/change", StateChangeResult, data=input.model_dump(exclude_none=True))
 
     # Folder create
     def folder_create(
@@ -1195,7 +1232,7 @@ class Vault(ServiceBase):
             )
         """
         input = FolderCreateRequest(name=name, folder=folder, metadata=metadata, tags=tags)
-        return self.request.post("v1/folder/create", FolderCreateResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1/folder/create", FolderCreateResult, data=input.model_dump(exclude_none=True))
 
     # Encrypt structured
     def encrypt_structured(
@@ -1216,7 +1253,7 @@ class Vault(ServiceBase):
         Args:
             id (str): The item ID.
             structured_data (dict): Structured data for applying bulk operations.
-            filter (str, optional): A filter expression for applying bulk operations to the data field.
+            filter (str): A filter expression for applying bulk operations to the data field.
             version (int, optional): The item version. Defaults to the current version.
             additional_data (str, optional): User provided authentication data.
 
@@ -1243,7 +1280,7 @@ class Vault(ServiceBase):
         return self.request.post(
             "v1/key/encrypt/structured",
             EncryptStructuredResult,
-            data=input.dict(exclude_none=True),
+            data=input.model_dump(exclude_none=True),
         )
 
     # Decrypt structured
@@ -1265,7 +1302,7 @@ class Vault(ServiceBase):
         Args:
             id (str): The item ID.
             structured_data (dict): Structured data to decrypt.
-            filter (str, optional): A filter expression for applying bulk operations to the data field.
+            filter (str): A filter expression for applying bulk operations to the data field.
             version (int, optional): The item version. Defaults to the current version.
             additional_data (str, optional): User provided authentication data.
 
@@ -1292,5 +1329,140 @@ class Vault(ServiceBase):
         return self.request.post(
             "v1/key/decrypt/structured",
             EncryptStructuredResult,
-            data=input.dict(exclude_none=True),
+            data=input.model_dump(exclude_none=True),
+        )
+
+    def encrypt_transform(
+        self,
+        id: str,
+        plain_text: str,
+        alphabet: TransformAlphabet,
+        tweak: str | None = None,
+        version: int | None = None,
+    ) -> PangeaResponse[EncryptTransformResult]:
+        """
+        Encrypt transform
+
+        Encrypt using a format-preserving algorithm (FPE).
+
+        OperationId: vault_post_v1_key_encrypt_transform
+
+        Args:
+            id: The item ID.
+            plain_text: A message to be encrypted.
+            alphabet: Set of characters to use for format-preserving encryption (FPE).
+            tweak: User provided tweak string. If not provided, a random string will be generated and returned.
+            version: The item version. Defaults to the current version.
+
+        Raises:
+            PangeaAPIException: If an API error happens.
+
+        Returns:
+            A `PangeaResponse` containing the encrypted message.
+
+        Examples:
+            vault.encrypt_transform(
+                id="pvi_[...]",
+                plain_text="message to encrypt",
+                alphabet=TransformAlphabet.ALPHANUMERIC,
+                tweak="MTIzMTIzMT==",
+            )
+        """
+
+        input = EncryptTransformRequest(
+            id=id,
+            plain_text=plain_text,
+            tweak=tweak,
+            alphabet=alphabet,
+            version=version,
+        )
+        return self.request.post(
+            "v1/key/encrypt/transform",
+            EncryptTransformResult,
+            data=input.model_dump(exclude_none=True),
+        )
+
+    def decrypt_transform(
+        self, id: str, cipher_text: str, tweak: str, alphabet: TransformAlphabet, version: int | None = None
+    ) -> PangeaResponse[DecryptTransformResult]:
+        """
+        Decrypt transform
+
+        Decrypt using a format-preserving algorithm (FPE).
+
+        OperationId: vault_post_v1_key_decrypt_transform
+
+        Args:
+            id: The item ID.
+            cipher_text: A message encrypted by Vault.
+            tweak: User provided tweak string.
+            alphabet: Set of characters to use for format-preserving encryption (FPE).
+            version: The item version. Defaults to the current version.
+
+        Raises:
+            PangeaAPIException: If an API error happens.
+
+        Returns:
+            A `PangeaResponse` containing the decrypted message.
+
+        Examples:
+            vault.decrypt_transform(
+                id="pvi_[...]",
+                cipher_text="encrypted message",
+                tweak="MTIzMTIzMT==",
+                alphabet=TransformAlphabet.ALPHANUMERIC,
+            )
+        """
+
+        input = DecryptTransformRequest(id=id, cipher_text=cipher_text, tweak=tweak, alphabet=alphabet, version=version)
+        return self.request.post(
+            "v1/key/decrypt/transform",
+            DecryptTransformResult,
+            data=input.model_dump(exclude_none=True),
+        )
+
+    def export(
+        self,
+        id: str,
+        version: int | None = None,
+        encryption_key: str | None = None,
+        encryption_algorithm: ExportEncryptionAlgorithm | None = None,
+    ) -> PangeaResponse[ExportResult]:
+        """
+        Export
+
+        Export a symmetric or asymmetric key.
+
+        OperationId: vault_post_v1_export
+
+        Args:
+            id: The ID of the item.
+            version: The item version.
+            encryption_key: Public key in pem format used to encrypt exported key(s).
+            encryption_algorithm: The algorithm of the public key.
+
+        Raises:
+            PangeaAPIException: If an API error happens.
+
+        Returns:
+            A `PangeaResponse` where the exported key is returned in the
+            `response.result` field. Available response fields can be found in
+            our [API documentation](https://pangea.cloud/docs/api/vault#export).
+
+        Examples:
+            exp_encrypted_resp = self.vault.export(
+                id=id,
+                version=1,
+                encryption_key=rsa_pub_key_pem,
+                encryption_algorithm=ExportEncryptionAlgorithm.RSA4096_OAEP_SHA512,
+            )
+        """
+
+        input: ExportRequest = ExportRequest(
+            id=id, version=version, encryption_algorithm=encryption_algorithm, encryption_key=encryption_key
+        )
+        return self.request.post(
+            "v1/export",
+            ExportResult,
+            data=input.model_dump(exclude_none=True),
         )

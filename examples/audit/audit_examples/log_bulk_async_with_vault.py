@@ -5,24 +5,33 @@ from pangea.services import Audit, Vault
 from pangea.services.audit.models import Event
 from pangea.tools import logger_set_pangea_config
 
+# Vault API token.
 vault_token = os.getenv("PANGEA_VAULT_TOKEN")
 assert vault_token
+
+# Vault ID of the Secure Audit Log token.
 audit_token_vault_id = os.getenv("PANGEA_AUDIT_TOKEN_VAULT_ID")
 assert audit_token_vault_id
+
+# Pangea domain.
 domain = os.getenv("PANGEA_DOMAIN")
 assert domain
+
 config = PangeaConfig(domain=domain)
 logger_set_pangea_config(logger_name="audit")
-
-# This example shows how to perform an audit log
 
 
 def main():
     print("Logging bulk...")
+
+    # Create a Vault API client and fetch the previously-stored Secure Audit Log
+    # token.
     vault = Vault(vault_token, config=config, logger_name="vault")
     vault_response = vault.get(audit_token_vault_id)
     audit_token = vault_response.result.current_version.secret
-    # You may want to use a different audit config object.
+
+    # Use that token to create a new Secure Audit Log API client and log a
+    # message.
     audit = Audit(audit_token, config=config, logger_name="audit")
 
     event1 = Event(

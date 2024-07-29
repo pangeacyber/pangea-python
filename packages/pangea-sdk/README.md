@@ -5,11 +5,11 @@
 <br />
 
 [![documentation](https://img.shields.io/badge/documentation-pangea-blue?style=for-the-badge&labelColor=551B76)][Documentation]
-[![Slack](https://img.shields.io/badge/Slack-4A154B?style=for-the-badge&logo=slack&logoColor=white)][Slack]
+[![Discourse](https://img.shields.io/badge/Discourse-4A154B?style=for-the-badge&logo=discourse&logoColor=white)][Discourse]
 
 # Pangea Python SDK
 
-A Python SDK for integrating with Pangea services. Supports Python v3.7 and
+A Python SDK for integrating with Pangea services. Supports Python v3.8 and
 above.
 
 ## Installation
@@ -112,16 +112,6 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-
-<a name="beta-releases"></a>
-
-## Beta releases
-
-Pre-release versions may be available with the `beta` denotation in the version
-number. These releases serve to preview beta services and APIs. Per Semantic
-Versioning, they are considered unstable and do not carry the same compatibility
-guarantees as stable releases.
-
 ## Secure Audit Log - Integrity Tools
 
 The Python Pangea SDK also includes some extra features to validate Audit Service log's integrity. Here we explain how to run them.
@@ -210,5 +200,5 @@ It accepts multiple file formats:
    [GA Examples]: https://github.com/pangeacyber/pangea-python/tree/main/examples
    [Beta Examples]: https://github.com/pangeacyber/pangea-python/tree/beta/examples
    [Pangea Console]: https://console.pangea.cloud/
-   [Slack]: https://pangea.cloud/join-slack/
+   [Discourse]: https://l.pangea.cloud/Jd4wlGs
    [Secure Audit Log]: https://pangea.cloud/docs/audit

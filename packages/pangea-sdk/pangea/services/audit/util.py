@@ -7,7 +7,7 @@ from binascii import hexlify, unhexlify
 from dataclasses import dataclass
 from datetime import datetime
 from hashlib import sha256
-from typing import Dict, List, Optional
+from typing import Collection, Dict, List, Optional
 
 import requests
 
@@ -61,7 +61,7 @@ def verify_hash(hash1: str, hash2: str) -> bool:
 
 
 def verify_envelope_hash(envelope: EventEnvelope, hash: str):
-    return verify_hash(hash_dict(normalize_log(envelope.dict(exclude_none=True))), hash)
+    return verify_hash(hash_dict(normalize_log(envelope.model_dump(exclude_none=True))), hash)
 
 
 def canonicalize_event(event: Event) -> bytes:
@@ -192,7 +192,7 @@ def arweave_graphql_url():
     return f"{ARWEAVE_BASE_URL}/graphql"
 
 
-def get_arweave_published_roots(tree_name: str, tree_sizes: List[int]) -> Dict[int, PublishedRoot]:
+def get_arweave_published_roots(tree_name: str, tree_sizes: Collection[int]) -> Dict[int, PublishedRoot]:
     if len(tree_sizes) == 0:
         return {}
 

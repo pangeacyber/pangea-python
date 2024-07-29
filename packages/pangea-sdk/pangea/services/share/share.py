@@ -238,7 +238,6 @@ class ShareLinkCreateRequest(APIRequestModel):
 
 class ShareLinkItem(ShareLinkItemBase):
     id: str
-    storage_pool_id: str
     access_count: int
     created_at: str
     last_accessed_at: Optional[str] = None
@@ -365,7 +364,7 @@ class Share(ServiceBase):
             response = share.delete(id="pos_3djfmzg2db4c6donarecbyv5begtj2bm")
         """
         input = DeleteRequest(id=id, path=path, force=force)
-        return self.request.post("v1beta/delete", DeleteResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1beta/delete", DeleteResult, data=input.model_dump(exclude_none=True))
 
     def folder_create(
         self,
@@ -405,7 +404,7 @@ class Share(ServiceBase):
             )
         """
         input = FolderCreateRequest(name=name, metadata=metadata, parent_id=parent_id, path=path, tags=tags)
-        return self.request.post("v1beta/folder/create", FolderCreateResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1beta/folder/create", FolderCreateResult, data=input.model_dump(exclude_none=True))
 
     def get(
         self, id: Optional[str] = None, path: Optional[str] = None, transfer_method: Optional[TransferMethod] = None
@@ -438,7 +437,7 @@ class Share(ServiceBase):
             path=path,
             transfer_method=transfer_method,
         )
-        return self.request.post("v1beta/get", GetResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1beta/get", GetResult, data=input.model_dump(exclude_none=True))
 
     def get_archive(
         self,
@@ -475,7 +474,7 @@ class Share(ServiceBase):
             raise ValueError(f"Only {TransferMethod.DEST_URL} and {TransferMethod.MULTIPART} are supported")
 
         input = GetArchiveRequest(ids=ids, format=format, transfer_method=transfer_method)
-        return self.request.post("v1beta/get_archive", GetArchiveResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1beta/get_archive", GetArchiveResult, data=input.model_dump(exclude_none=True))
 
     def list(
         self,
@@ -507,7 +506,7 @@ class Share(ServiceBase):
             response = share.list()
         """
         input = ListRequest(filter=filter, last=last, order=order, order_by=order_by, size=size)
-        return self.request.post("v1beta/list", ListResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1beta/list", ListResult, data=input.model_dump(exclude_none=True))
 
     def put(
         self,
@@ -592,7 +591,7 @@ class Share(ServiceBase):
             sha512=sha512,
             size=size,
         )
-        data = input.dict(exclude_none=True)
+        data = input.model_dump(exclude_none=True)
         return self.request.post("v1beta/put", PutResult, data=data, files=files)
 
     def request_upload_url(
@@ -671,7 +670,7 @@ class Share(ServiceBase):
             size=size,
         )
 
-        data = input.dict(exclude_none=True)
+        data = input.model_dump(exclude_none=True)
         return self.request.request_presigned_url("v1beta/put", PutResult, data=data)
 
     def update(
@@ -732,7 +731,7 @@ class Share(ServiceBase):
             parent_id=parent_id,
             updated_at=updated_at,
         )
-        return self.request.post("v1beta/update", UpdateResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1beta/update", UpdateResult, data=input.model_dump(exclude_none=True))
 
     def share_link_create(self, links: List[ShareLinkCreateItem]) -> PangeaResponse[ShareLinkCreateResult]:
         """
@@ -766,7 +765,9 @@ class Share(ServiceBase):
             )
         """
         input = ShareLinkCreateRequest(links=links)
-        return self.request.post("v1beta/share/link/create", ShareLinkCreateResult, data=input.dict(exclude_none=True))
+        return self.request.post(
+            "v1beta/share/link/create", ShareLinkCreateResult, data=input.model_dump(exclude_none=True)
+        )
 
     def share_link_get(self, id: str) -> PangeaResponse[ShareLinkGetResult]:
         """
@@ -789,7 +790,7 @@ class Share(ServiceBase):
             )
         """
         input = ShareLinkGetRequest(id=id)
-        return self.request.post("v1beta/share/link/get", ShareLinkGetResult, data=input.dict(exclude_none=True))
+        return self.request.post("v1beta/share/link/get", ShareLinkGetResult, data=input.model_dump(exclude_none=True))
 
     def share_link_list(
         self,
@@ -821,7 +822,9 @@ class Share(ServiceBase):
             response = share.share_link_list()
         """
         input = ShareLinkListRequest(filter=filter, last=last, order=order, order_by=order_by, size=size)
-        return self.request.post("v1beta/share/link/list", ShareLinkListResult, data=input.dict(exclude_none=True))
+        return self.request.post(
+            "v1beta/share/link/list", ShareLinkListResult, data=input.model_dump(exclude_none=True)
+        )
 
     def share_link_delete(self, ids: List[str]) -> PangeaResponse[ShareLinkDeleteResult]:
         """
@@ -844,7 +847,9 @@ class Share(ServiceBase):
             )
         """
         input = ShareLinkDeleteRequest(ids=ids)
-        return self.request.post("v1beta/share/link/delete", ShareLinkDeleteResult, data=input.dict(exclude_none=True))
+        return self.request.post(
+            "v1beta/share/link/delete", ShareLinkDeleteResult, data=input.model_dump(exclude_none=True)
+        )
 
     def share_link_send(
         self, links: List[ShareLinkSendItem], sender_email: str, sender_name: Optional[str] = None
@@ -874,4 +879,6 @@ class Share(ServiceBase):
         """
 
         input = ShareLinkSendRequest(links=links, sender_email=sender_email, sender_name=sender_name)
-        return self.request.post("v1beta/share/link/send", ShareLinkSendResult, data=input.dict(exclude_none=True))
+        return self.request.post(
+            "v1beta/share/link/send", ShareLinkSendResult, data=input.model_dump(exclude_none=True)
+        )

@@ -1,10 +1,12 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+from __future__ import annotations
+
 import datetime
 import enum
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Sequence, Union
 
-from pangea.response import APIRequestModel, APIResponseModel, PangeaResponseResult
+from pangea.response import APIRequestModel, APIResponseModel, PangeaDateTime, PangeaResponseResult
 
 
 class EventVerification(str, enum.Enum):
@@ -19,14 +21,14 @@ class EventVerification(str, enum.Enum):
         return str(self.value)
 
 
-class Event(dict):
+class Event(Dict[str, Any]):
     """
     Event to perform an auditable activity
 
     Auxiliary class to be compatible with older SDKs
     """
 
-    def __init__(self, **data):
+    def __init__(self, **data) -> None:
         super().__init__(**data)
 
     @property
@@ -124,7 +126,7 @@ class EventEnvelope(APIResponseModel):
     event: Dict[str, Any]
     signature: Optional[str] = None
     public_key: Optional[str] = None
-    received_at: datetime.datetime
+    received_at: PangeaDateTime
 
 
 class LogRequest(APIRequestModel):
@@ -269,6 +271,7 @@ class SearchRequest(APIRequestModel):
     max_results -- Maximum number of results to return.
     search_restriction -- A list of keys to restrict the search results to. Useful for partitioning data available to the query string.
     verbose -- If true, include root, membership and consistency proofs in response.
+    return_context -- Return the context data needed to decrypt secure audit events that have been redacted with format preserving encryption.
     """
 
     query: str
@@ -279,8 +282,9 @@ class SearchRequest(APIRequestModel):
     end: Optional[str] = None
     limit: Optional[int] = None
     max_results: Optional[int] = None
-    search_restriction: Optional[dict] = None
+    search_restriction: Optional[Dict[str, Sequence[str]]] = None
     verbose: Optional[bool] = None
+    return_context: Optional[bool] = None
 
 
 class RootRequest(APIRequestModel):
@@ -361,6 +365,7 @@ class SearchEvent(APIResponseModel):
     consistency_verification -- Consistency verification calculated if required.
     membership_verification -- Membership verification calculated if required.
     signature_verification -- Signature verification calculated if required.
+    fpe_context -- The context data needed to decrypt secure audit events that have been redacted with format preserving encryption.
     """
 
     envelope: EventEnvelope
@@ -371,6 +376,7 @@ class SearchEvent(APIResponseModel):
     consistency_verification: EventVerification = EventVerification.NONE
     membership_verification: EventVerification = EventVerification.NONE
     signature_verification: EventVerification = EventVerification.NONE
+    fpe_context: Optional[str] = None
 
 
 class SearchResultOutput(PangeaResponseResult):
@@ -404,7 +410,7 @@ class SearchOutput(SearchResultOutput):
     """
 
     id: str
-    expires_at: datetime.datetime
+    expires_at: PangeaDateTime
 
 
 class SearchResultRequest(APIRequestModel):
@@ -415,11 +421,15 @@ class SearchResultRequest(APIRequestModel):
     id -- A search results identifier returned by the search call.
     limit -- Number of audit records to include from the first page of the results.
     offset -- Offset from the start of the result set to start returning results from.
+    assert_search_restriction -- Assert the requested search results were queried with the exact same search restrictions, to ensure the results comply to the expected restrictions.
+    return_context -- Return the context data needed to decrypt secure audit events that have been redacted with format preserving encryption.
     """
 
     id: str
     limit: Optional[int] = 20
     offset: Optional[int] = 0
+    assert_search_restriction: Optional[Dict[str, Sequence[str]]] = None
+    return_context: Optional[bool] = None
 
 
 class DownloadFormat(str, enum.Enum):
@@ -437,13 +447,51 @@ class DownloadFormat(str, enum.Enum):
 
 
 class DownloadRequest(APIRequestModel):
-    result_id: str
+    request_id: Optional[str] = None
+    """ID returned by the export API."""
+
+    result_id: Optional[str] = None
     """ID returned by the search API."""
 
     format: Optional[str] = None
     """Format for the records."""
 
+    return_context: Optional[bool] = None
+    """Return the context data needed to decrypt secure audit events that have been redacted with format preserving encryption."""
+
 
 class DownloadResult(PangeaResponseResult):
     dest_url: str
     """URL where search results can be downloaded."""
+
+    expires_at: str
+    """
+    The time when the results will no longer be available to page through via
+    the results API.
+    """
+
+
+class ExportRequest(APIRequestModel):
+    format: DownloadFormat = DownloadFormat.CSV
+    """Format for the records."""
+
+    start: Optional[datetime.datetime] = None
+    """The start of the time range to perform the search on."""
+
+    end: Optional[datetime.datetime] = None
+    """
+    The end of the time range to perform the search on. If omitted, then all
+    records up to the latest will be searched.
+    """
+
+    order_by: Optional[str] = None
+    """Name of column to sort the results by."""
+
+    order: Optional[SearchOrder] = None
+    """Specify the sort order of the response."""
+
+    verbose: bool = True
+    """
+    Whether or not to include the root hash of the tree and the membership proof
+    for each record.
+    """
