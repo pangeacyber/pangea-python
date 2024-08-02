@@ -328,32 +328,85 @@ class UpdateResult(PangeaResponseResult):
 
 class FilterList(APIRequestModel):
     created_at: Optional[str] = None
+    """Only records where created_at equals this value."""
+
     created_at__gt: Optional[str] = None
+    """Only records where created_at is greater than this value."""
+
     created_at__gte: Optional[str] = None
+    """Only records where created_at is greater than or equal to this value."""
+
     created_at__lt: Optional[str] = None
+    """Only records where created_at is less than this value."""
+
     created_at__lte: Optional[str] = None
+    """Only records where created_at is less than or equal to this value."""
+
     folder: Optional[str] = None
+    """Only records where the object exists in the supplied parent folder path name."""
+
     id: Optional[str] = None
+    """Only records where id equals this value."""
+
     id__in: Optional[List[str]] = None
+    """Only records where id equals one of the provided substrings."""
+
     name: Optional[str] = None
-    name__in: Optional[List[str]] = None
+    """Only records where name equals this value."""
+
     name__contains: Optional[List[str]] = None
+    """Only records where name includes each substring."""
+
+    name__in: Optional[List[str]] = None
+    """Only records where name equals one of the provided substrings."""
+
     parent_id: Optional[str] = None
+    """Only records where parent_id equals this value."""
+
     parent_id__in: Optional[List[str]] = None
+    """Only records where parent_id equals one of the provided substrings."""
+
     size: Optional[int] = None
+    """Only records where size equals this value."""
+
     size__gt: Optional[int] = None
+    """Only records where size is greater than this value."""
+
     size__gte: Optional[int] = None
+    """Only records where size is greater than or equal to this value."""
+
     size__lt: Optional[int] = None
+    """Only records where size is less than to this value."""
+
     size__lte: Optional[int] = None
+    """Only records where size is less than or equal to this value."""
+
     tags: Optional[List[str]] = None
+    """A list of tags that all must be present."""
+
     type: Optional[str] = None
-    type__in: Optional[List[str]] = None
+    """Only records where type equals this value."""
+
     type__contains: Optional[List[str]] = None
+    """Only records where type includes each substring."""
+
+    type__in: Optional[List[str]] = None
+    """Only records where type equals one of the provided substrings."""
+
     updated_at: Optional[str] = None
+    """Only records where updated_at equals this value."""
+
     updated_at__gt: Optional[str] = None
+    """Only records where updated_at is greater than this value."""
+
     updated_at__gte: Optional[str] = None
+    """Only records where updated_at is greater than or equal to this value."""
+
     updated_at__lt: Optional[str] = None
+    """Only records where updated_at is less than this value."""
+
     updated_at__lte: Optional[str] = None
+    """Only records where updated_at is less than or equal to this value."""
 
 
 class ListRequest(APIRequestModel):
