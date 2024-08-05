@@ -10,7 +10,7 @@ python = "^3.8.18"
 pangea-sdk = { path = "../../packages/pangea-sdk", develop = true }
 
 [tool.poetry.group.dev.dependencies]
-black = "^24.4.2"
+black = "^24.8.0"
 isort = "^5.13.2"
 mypy = "^1.11.1"
 
