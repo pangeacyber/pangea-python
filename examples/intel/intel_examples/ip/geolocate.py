@@ -1,6 +1,7 @@
+# Retrieve location information associated with an IP address.
+
 import os
 
-import pangea.exceptions as pe
 from pangea.config import PangeaConfig
 from pangea.services import IpIntel
 
@@ -14,16 +15,13 @@ config = PangeaConfig(domain=domain)
 intel = IpIntel(token, config=config)
 
 
-def main():
+def main() -> None:
     print("Geolocate IP...")
-
-    try:
-        ip = "93.231.182.110"
-        response = intel.geolocate(ip=ip, provider="digitalelement", verbose=True, raw=True)
-        print("Result")
-        print_ip_geolocate_data(ip, response.result.data)
-    except pe.PangeaAPIException as e:
-        print(e)
+    ip = "93.231.182.110"
+    response = intel.geolocate(ip=ip, provider="digitalelement", verbose=True, raw=True)
+    assert response.result
+    print("Result")
+    print_ip_geolocate_data(ip, response.result.data)
 
 
 if __name__ == "__main__":

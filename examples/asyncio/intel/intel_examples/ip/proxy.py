@@ -1,3 +1,5 @@
+# Determine if an IP address originates from a proxy.
+
 import asyncio
 import os
 

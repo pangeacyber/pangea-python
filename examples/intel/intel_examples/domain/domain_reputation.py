@@ -1,6 +1,7 @@
+# Use Pangea's Domain Intel service to retrieve reputation for a domain.
+
 import os
 
-import pangea.exceptions as pe
 from pangea.config import PangeaConfig
 from pangea.services import DomainIntel
 
@@ -14,16 +15,13 @@ config = PangeaConfig(domain=domain)
 intel = DomainIntel(token, config=config)
 
 
-def main():
+def main() -> None:
     print("Checking domain...")
-
-    try:
-        indicator = "737updatesboeing.com"
-        response = intel.reputation(domain=indicator, provider="domaintools", verbose=True, raw=True)
-        print("Result:")
-        print_reputation_data(indicator, response.result.data)
-    except pe.PangeaAPIException as e:
-        print(e)
+    indicator = "737updatesboeing.com"
+    response = intel.reputation(domain=indicator, provider="domaintools", verbose=True, raw=True)
+    assert response.result
+    print("Result:")
+    print_reputation_data(indicator, response.result.data)
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-from typing import Dict
+from collections.abc import Mapping
 
 from pangea.services.intel import IntelReputationData
 
@@ -10,6 +10,6 @@ def print_reputation_data(indicator: str, data: IntelReputationData) -> None:
     print(f"\t\tCategory: {data.category}")
 
 
-def print_reputation_bulk_data(data: Dict[str, IntelReputationData]) -> None:
+def print_reputation_bulk_data(data: Mapping[str, IntelReputationData]) -> None:
     for k, v in data.items():
         print_reputation_data(k, v)
