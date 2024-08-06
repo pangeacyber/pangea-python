@@ -1,3 +1,5 @@
+# Determine if an IP address originates from a VPN.
+
 import os
 
 import pangea.exceptions as pe

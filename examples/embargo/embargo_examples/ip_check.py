@@ -1,3 +1,5 @@
+# Check an IP against known sanction and trade embargo lists.
+
 import os
 
 import pangea.exceptions as pe
@@ -14,7 +16,7 @@ embargo = Embargo(token, config=config, logger_name="embargo")
 logger_set_pangea_config(logger_name=embargo.logger.name)
 
 
-def main():
+def main() -> None:
     ip = "213.24.238.26"
     print(f"Checking Embargo IP: {ip}")
     try:

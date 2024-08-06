@@ -1,3 +1,5 @@
+# Retrieve URL address reputation from a provider.
+
 import asyncio
 import os
 
@@ -13,7 +15,7 @@ config = PangeaConfig(domain=domain)
 intel = UrlIntelAsync(token, config=config)
 
 
-async def main():
+async def main() -> None:
     print("Checking URL...")
 
     try:
@@ -25,8 +27,8 @@ async def main():
         print(f"Request Error: {e.response.summary}")
         for err in e.errors:
             print(f"\t{err.detail} \n")
-
-    await intel.close()
+    finally:
+        await intel.close()
 
 
 if __name__ == "__main__":

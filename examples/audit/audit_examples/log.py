@@ -1,3 +1,5 @@
+# This example shows how to perform an audit log.
+
 import os
 
 import pangea.exceptions as pe
@@ -13,15 +15,16 @@ config = PangeaConfig(domain=domain)
 audit = Audit(token, config=config, logger_name="audit")
 logger_set_pangea_config(logger_name=audit.logger.name)
 
-# This example shows how to perform an audit log
 
-
-def main():
+def main() -> None:
+    # Message to log.
     msg = "Hello, World!"
     print(f"Logging: {msg}")
 
     try:
+        # Log the message to Pangea Secure Audit Log.
         log_response = audit.log(message=msg, verbose=True)
+        assert log_response.result
         print(f"Envelope: {log_response.result.envelope}")
     except pe.PangeaAPIException as e:
         print(f"Request Error: {e.response.summary}")

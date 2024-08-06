@@ -1,3 +1,7 @@
+# Look up breached users.
+#
+# Determine if an IP address was exposed in a security breach.
+
 import asyncio
 import os
 

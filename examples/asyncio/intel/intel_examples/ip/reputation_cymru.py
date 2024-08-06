@@ -1,3 +1,7 @@
+# Retrieve a reputation score for an IP address via the "cymru" provider.
+# This score will fall under one of these categories: benign, suspicious,
+# malicious, or unknown.
+
 import asyncio
 import os
 
@@ -13,7 +17,7 @@ config = PangeaConfig(domain=domain)
 intel = IpIntelAsync(token, config=config)
 
 
-async def main():
+async def main() -> None:
     print("Checking IP...")
 
     try:
@@ -23,8 +27,8 @@ async def main():
         print(f"Request Error: {e.response.summary}")
         for err in e.errors:
             print(f"\t{err.detail} \n")
-
-    await intel.close()
+    finally:
+        await intel.close()
 
 
 if __name__ == "__main__":

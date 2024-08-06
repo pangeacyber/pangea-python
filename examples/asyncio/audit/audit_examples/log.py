@@ -1,3 +1,5 @@
+# This example shows how to perform an audit log.
+
 import asyncio
 import os
 
@@ -14,22 +16,23 @@ config = PangeaConfig(domain=domain)
 audit = AuditAsync(token, config=config, logger_name="audit")
 logger_set_pangea_config(logger_name=audit.logger.name)
 
-# This example shows how to perform an audit log.
 
-
-async def main():
+async def main() -> None:
+    # Message to log.
     msg = "Hello, World!"
     print(f"Logging: {msg}")
 
     try:
+        # Log the message to Pangea Secure Audit Log.
         log_response = await audit.log(message=msg, verbose=True)
+        assert log_response.result
         print(f"Envelope: {log_response.result.envelope}")
     except pe.PangeaAPIException as e:
         print(f"Request Error: {e.response.summary}")
         for err in e.errors:
             print(f"\t{err.detail} \n")
-
-    await audit.close()
+    finally:
+        await audit.close()
 
 
 if __name__ == "__main__":

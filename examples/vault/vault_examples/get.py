@@ -1,3 +1,5 @@
+# Retrieve a secret or key from Pangea Vault.
+
 import os
 
 import pangea.exceptions as pe

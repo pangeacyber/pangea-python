@@ -1,3 +1,5 @@
+# Determine if an IP address originates from a proxy.
+
 import os
 
 import pangea.exceptions as pe
@@ -16,14 +18,10 @@ intel = IpIntel(token, config=config)
 
 def main():
     print("Checking if an IP belongs to a proxy service...")
-
-    try:
-        ip = "34.201.32.172"
-        response = intel.is_proxy(ip=ip, provider="digitalelement", verbose=True, raw=True)
-        print("Result:")
-        print_ip_proxy_data(ip, response.result.data)
-    except pe.PangeaAPIException as e:
-        print(e)
+    ip = "34.201.32.172"
+    response = intel.is_proxy(ip=ip, provider="digitalelement", verbose=True, raw=True)
+    print("Result:")
+    print_ip_proxy_data(ip, response.result.data)
 
 
 if __name__ == "__main__":

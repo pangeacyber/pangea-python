@@ -1,3 +1,5 @@
+# Retrieve a reputation score for a file hash.
+
 import asyncio
 import os
 
@@ -15,7 +17,7 @@ intel = FileIntelAsync(token, config=config, logger_name="intel")
 logger_set_pangea_config(logger_name=intel.logger.name)
 
 
-async def main():
+async def main() -> None:
     print("Checking hash...")
 
     try:
@@ -31,8 +33,8 @@ async def main():
         print(f"Request Error: {e.response.summary}")
         for err in e.errors:
             print(f"\t{err.detail} \n")
-
-    await intel.close()
+    finally:
+        await intel.close()
 
 
 if __name__ == "__main__":

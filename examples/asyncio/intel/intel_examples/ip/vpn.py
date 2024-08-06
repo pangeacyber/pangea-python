@@ -1,3 +1,5 @@
+# Determine if an IP address is provided by a VPN service.
+
 import asyncio
 import os
 
