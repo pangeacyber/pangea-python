@@ -179,7 +179,7 @@ class FolderCreateRequest(APIRequestModel):
     """The ID of a stored object."""
 
     path: Optional[str] = None
-    """An case-sensitive path to an object. Contains a sequence of path segments delimited by the the / character. Any path ending in a / character refers to a folder."""
+    """An case-sensitive path to an object. Contains a sequence of path segments delimited by the / character. Any path ending in a / character refers to a folder."""
 
     tags: Optional[Tags] = None
     """A list of user-defined tags"""
