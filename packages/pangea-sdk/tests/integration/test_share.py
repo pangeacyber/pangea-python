@@ -115,7 +115,7 @@ class TestShare(unittest.TestCase):
             # Get file. Transfer method dest-url
             resp_get = self.client.get(id=response.result.object.id, transfer_method=TransferMethod.DEST_URL)
             self.assertEqual(len(resp_get.attached_files), 0)
-            self.assertIsNone(resp_get.result.dest_url)
+            self.assertIsNotNone(resp_get.result.dest_url)
 
             # Get file. Transfer method multipart
             resp_get = self.client.get(id=response.result.object.id, transfer_method=TransferMethod.MULTIPART)
@@ -152,7 +152,7 @@ class TestShare(unittest.TestCase):
             # Get file. Transfer method dest-url
             resp_get = self.client.get(id=response.result.object.id, transfer_method=TransferMethod.DEST_URL)
             self.assertEqual(len(resp_get.attached_files), 0)
-            self.assertIsNone(resp_get.result.dest_url)
+            self.assertIsNotNone(resp_get.result.dest_url)
 
             # Get file. Transfer method multipart
             resp_get = self.client.get(id=response.result.object.id, transfer_method=TransferMethod.MULTIPART)

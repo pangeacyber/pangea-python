@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Multiple bucket ID support to Share.
+- `metadata_protected` and `tags_protected` support to Share `ItemData`.
+- `password` and `password_algorithm` support to Share.
+- Filter fields to `filter_list` on Share service.
+- `objects` field to Share `GetArchiveResult`.
+- `title` and `message` to Share `ShareCreateLinkItem`.
 
 ### Fixed
 
