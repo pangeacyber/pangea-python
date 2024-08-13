@@ -19,7 +19,7 @@ include = ["CHANGELOG.md"]
 
 [tool.poetry.dependencies]
 python = "^3.8.0"
-"Django" = "^4.2.14"
+"Django" = "^4.2.15"
 "pangea-sdk" = "^4.2.0"
 typing-extensions = "^4.12.2"
 
