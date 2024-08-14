@@ -1,3 +1,5 @@
+# Check a country against known sanction and trade embargo lists.
+
 import os
 
 import pangea.exceptions as pe
@@ -12,11 +14,13 @@ config = PangeaConfig(domain=domain)
 embargo = Embargo(token, config=config)
 
 
-def main():
+def main() -> None:
+    # Country code to check.
     country_code = "CU"
     print(f"Checking Embargo ISO code: {country_code}")
 
     try:
+        # Check the country code against known sanction and trade embargo lists.
         embargo_response = embargo.iso_check(iso_code=country_code)
         print(f"Response: {embargo_response.result}")
     except pe.PangeaAPIException as e:

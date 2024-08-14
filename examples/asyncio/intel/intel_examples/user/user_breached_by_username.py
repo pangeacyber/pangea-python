@@ -1,3 +1,7 @@
+# Look up breached users.
+#
+# Determine if a username was exposed in a security breach.
+
 import asyncio
 import os
 

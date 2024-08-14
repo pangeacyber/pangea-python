@@ -1,6 +1,7 @@
+# Retrieve the domain names associated with a list of IP addresses.
+
 import os
 
-import pangea.exceptions as pe
 from pangea.config import PangeaConfig
 from pangea.services import IpIntel
 
@@ -14,16 +15,13 @@ config = PangeaConfig(domain=domain)
 intel = IpIntel(token, config=config)
 
 
-def main():
+def main() -> None:
     print("Get IP's Domain...")
-
-    try:
-        response = intel.get_domain_bulk(
-            ips=["24.235.114.61", "93.231.182.110"], provider="digitalelement", verbose=True, raw=True
-        )
-        print_ip_domain_bulk_data(response.result.data)
-    except pe.PangeaAPIException as e:
-        print(e)
+    response = intel.get_domain_bulk(
+        ips=["24.235.114.61", "93.231.182.110"], provider="digitalelement", verbose=True, raw=True
+    )
+    assert response.result
+    print_ip_domain_bulk_data(response.result.data)
 
 
 if __name__ == "__main__":

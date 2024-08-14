@@ -1,3 +1,5 @@
+# Retrieve reputation scores for a list of file hashes.
+
 import os
 
 import pangea.exceptions as pe
@@ -16,21 +18,18 @@ intel = FileIntel(token, config=config, logger_name="intel")
 logger_set_pangea_config(logger_name=intel.logger.name)
 
 
-def main():
+def main() -> None:
     print("Checking file...")
+    response = intel.filepath_reputation_bulk(
+        filepaths=["./README.md", "./pyproject.toml"],
+        provider="reversinglabs",
+        verbose=True,
+        raw=True,
+    )
+    assert response.result
 
-    try:
-        response = intel.filepath_reputation_bulk(
-            filepaths=["./README.md", "./pyproject.toml"],
-            provider="reversinglabs",
-            verbose=True,
-            raw=True,
-        )
-
-        print("Result:")
-        print_reputation_bulk_data(response.result.data)
-    except pe.PangeaAPIException as e:
-        print(e)
+    print("Result:")
+    print_reputation_bulk_data(response.result.data)
 
 
 if __name__ == "__main__":

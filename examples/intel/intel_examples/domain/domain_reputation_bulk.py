@@ -1,6 +1,7 @@
+# Retrieve reputation for multiple domains.
+
 import os
 
-import pangea.exceptions as pe
 from pangea.config import PangeaConfig
 from pangea.services import DomainIntel
 
@@ -14,16 +15,13 @@ config = PangeaConfig(domain=domain)
 intel = DomainIntel(token, config=config)
 
 
-def main():
+def main() -> None:
     print("Checking domains...")
-
-    try:
-        domain_list = ["pemewizubidob.cafij.co.za", "redbomb.com.tr", "kmbk8.hicp.net"]
-        response = intel.reputation_bulk(domains=domain_list, provider="crowdstrike", verbose=True, raw=True)
-        print("Result:")
-        print_reputation_bulk_data(response.result.data)
-    except pe.PangeaAPIException as e:
-        print(e)
+    domain_list = ["pemewizubidob.cafij.co.za", "redbomb.com.tr", "kmbk8.hicp.net"]
+    response = intel.reputation_bulk(domains=domain_list, provider="crowdstrike", verbose=True, raw=True)
+    assert response.result
+    print("Result:")
+    print_reputation_bulk_data(response.result.data)
 
 
 if __name__ == "__main__":

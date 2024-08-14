@@ -1,3 +1,5 @@
+# Check a country against known sanction and trade embargo lists.
+
 import asyncio
 import os
 
