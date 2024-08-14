@@ -1,5 +1,7 @@
 # Retrieve reputation scores for a list of URLs.
 
+from __future__ import annotations
+
 import os
 
 from pangea.config import PangeaConfig
