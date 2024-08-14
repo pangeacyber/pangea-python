@@ -98,79 +98,177 @@ class ShareLinkOrderBy(str, enum.Enum):
 
 class DeleteRequest(APIRequestModel):
     id: Optional[str] = None
+    """The ID of the object to delete."""
+
     force: Optional[bool] = None
+    """If true, delete a folder even if it's not empty. Deletes the contents of folder as well."""
+
     path: Optional[str] = None
+    """The path of the object to delete."""
+
     bucket_id: Optional[str] = None
     """The bucket to use, if not the default."""
 
 
 class ItemData(PangeaResponseResult):
-    id: str
-    type: str
-    name: str
-    created_at: str
-    updated_at: str
-    size: Optional[int] = None
     billable_size: Optional[int] = None
-    location: Optional[str] = None
-    tags: Optional[Tags] = None
-    metadata: Optional[Metadata] = None
+    """The number of billable bytes (includes Metadata, Tags, etc.) for the object."""
+
+    created_at: str
+    """The date and time the object was created."""
+
+    id: str
+    """The ID of a stored object."""
+
     md5: Optional[str] = None
+    """The MD5 hash of the file contents. Cannot be written to."""
+
+    metadata: Optional[Metadata] = None
+    """A set of string-based key/value pairs used to provide additional data about an object."""
+
+    metadata_protected: Optional[Metadata] = None
+    """Protected (read-only) metadata."""
+
     sha256: Optional[str] = None
+    """The SHA256 hash of the file contents. Cannot be written to."""
+
     sha512: Optional[str] = None
+    """The SHA512 hash of the file contents. Cannot be written to."""
+
+    size: Optional[int] = None
+    """The size of the object in bytes."""
+
+    tags: Optional[Tags] = None
+    """A list of user-defined tags."""
+
+    tags_protected: Optional[Tags] = None
+    """Protected (read-only) flags."""
+
+    type: str
+    """The type of the item (file or dir). Cannot be written to."""
+
+    updated_at: str
+    """The date and time the object was last updated."""
+
+    name: str
+    """The name of the object."""
+
+    folder: str
+    """The full path to the folder the object is stored in."""
+
     parent_id: Optional[str] = None
+    """The parent ID (a folder). Blanks means the root folder."""
+
     external_bucket_key: Optional[str] = None
     """The key in the external bucket that contains this file."""
 
 
 class DeleteResult(PangeaResponseResult):
     count: int
+    """Number of objects deleted."""
 
 
 class FolderCreateRequest(APIRequestModel):
     name: Optional[str] = None
+    """The name of an object."""
+
     metadata: Optional[Metadata] = None
+    """A set of string-based key/value pairs used to provide additional data about an object."""
+
     parent_id: Optional[str] = None
+    """The ID of a stored object."""
+
     path: Optional[str] = None
+    """An case-sensitive path to an object. Contains a sequence of path segments delimited by the / character. Any path ending in a / character refers to a folder."""
+
     tags: Optional[Tags] = None
+    """A list of user-defined tags"""
+
     bucket_id: Optional[str] = None
     """The bucket to use, if not the default."""
 
 
 class FolderCreateResult(PangeaResponseResult):
     object: ItemData
+    """Information on the created folder."""
 
 
 class GetRequest(APIRequestModel):
     id: Optional[str] = None
+    """The ID of the object to retrieve."""
+
     path: Optional[str] = None
+    """The path of the object to retrieve."""
+
+    password: Optional[str] = None
+    """If the file was protected with a password, the password to decrypt with."""
+
     transfer_method: Optional[TransferMethod] = None
+    """The requested transfer method for the file data."""
+
     bucket_id: Optional[str] = None
     """The bucket to use, if not the default."""
 
 
 class GetResult(PangeaResponseResult):
     object: ItemData
+    """File information."""
+
     dest_url: Optional[str] = None
+    """A URL where the file can be downloaded from. (transfer_method: dest-url)"""
 
 
 class PutRequest(APIRequestModel):
-    name: Optional[str] = None
-    format: Optional[FileFormat] = None
-    metadata: Optional[Metadata] = None
-    mimetype: Optional[str] = None
-    parent_id: Optional[str] = None
-    path: Optional[str] = None
-    crc32c: Optional[str] = None
-    md5: Optional[str] = None
-    sha1: Optional[str] = None
-    sha256: Optional[str] = None
-    sha512: Optional[str] = None
-    size: Optional[int] = None
-    tags: Optional[Tags] = None
     transfer_method: Optional[TransferMethod] = None
+    """The transfer method used to upload the file data."""
+
     bucket_id: Optional[str] = None
     """The bucket to use, if not the default."""
+
+    size: Optional[int] = None
+    """The size (in bytes) of the file. If the upload doesn't match, the call will fail."""
+
+    crc32c: Optional[str] = None
+    """The hexadecimal-encoded CRC32C hash of the file data, which will be verified by the server if provided."""
+
+    sha256: Optional[str] = None
+    """The SHA256 hash of the file data, which will be verified by the server if provided."""
+
+    md5: Optional[str] = None
+    """The hexadecimal-encoded MD5 hash of the file data, which will be verified by the server if provided."""
+
+    name: Optional[str] = None
+    """The name of the object to store."""
+
+    format: Optional[FileFormat] = None
+    """The format of the file, which will be verified by the server if provided. Uploads not matching the supplied format will be rejected."""
+
+    metadata: Optional[Metadata] = None
+    """A set of string-based key/value pairs used to provide additional data about an object."""
+
+    mimetype: Optional[str] = None
+    """The MIME type of the file, which will be verified by the server if provided. Uploads not matching the supplied MIME type will be rejected."""
+
+    parent_id: Optional[str] = None
+    """The parent ID of the object (a folder). Leave blank to keep in the root folder."""
+
+    path: Optional[str] = None
+    """An optional path where the file should be placed. It will auto-create directories if necessary."""
+
+    password: Optional[str] = None
+    """An optional password to protect the file with. Downloading the file will require this password."""
+
+    password_algorithm: Optional[str] = None
+    """An optional password algorithm to protect the file with. See symmetric vault password_algorithm."""
+
+    sha1: Optional[str] = None
+    """The hexadecimal-encoded SHA1 hash of the file data, which will be verified by the server if provided."""
+
+    sha512: Optional[str] = None
+    """The hexadecimal-encoded SHA512 hash of the file data, which will be verified by the server if provided."""
+
+    tags: Optional[Tags] = None
+    """A list of user-defined tags"""
 
 
 class PutResult(PangeaResponseResult):
@@ -179,15 +277,47 @@ class PutResult(PangeaResponseResult):
 
 class UpdateRequest(APIRequestModel):
     id: Optional[str]
+    """An identifier for the file to update."""
+
     path: Optional[str] = None
+    """An alternative to ID for identifying the target file."""
+
     add_metadata: Optional[Metadata] = None
-    remove_metadata: Optional[Metadata] = None
-    metadata: Optional[Metadata] = None
+    """A list of Metadata key/values to set in the object. If a provided key exists, the value will be replaced."""
+
+    add_password: Optional[str] = None
+    """Protect the file with the supplied password."""
+
+    add_password_algorithm: Optional[str] = None
+    """The algorithm to use to password protect the file."""
+
     add_tags: Optional[Tags] = None
+    """A list of Tags to add. It is not an error to provide a tag which already exists."""
+
+    name: Optional[str] = None
+    """Sets the object's Name."""
+
+    metadata: Optional[Metadata] = None
+    """Set the object's metadata."""
+
+    remove_metadata: Optional[Metadata] = None
+    """A list of metadata key/values to remove in the object. It is not an error for a provided key to not exist. If a provided key exists but doesn't match the provided value, it will not be removed."""
+
+    remove_password: Optional[str] = None
+    """Remove the supplied password from the file."""
+
     remove_tags: Optional[Tags] = None
-    tags: Optional[Tags] = None
+    """A list of tags to remove. It is not an error to provide a tag which is not present."""
+
     parent_id: Optional[str] = None
+    """Set the parent (folder) of the object. Can be an empty string for the root folder."""
+
+    tags: Optional[Tags] = None
+    """Set the object's tags."""
+
     updated_at: Optional[str] = None
+    """The date and time the object was last updated. If included, the update will fail if this doesn't match the date and time of the last update for the object."""
+
     bucket_id: Optional[str] = None
     """The bucket to use, if not the default."""
 
@@ -197,15 +327,101 @@ class UpdateResult(PangeaResponseResult):
 
 
 class FilterList(APIRequestModel):
-    folder: str
+    created_at: Optional[str] = None
+    """Only records where created_at equals this value."""
+
+    created_at__gt: Optional[str] = None
+    """Only records where created_at is greater than this value."""
+
+    created_at__gte: Optional[str] = None
+    """Only records where created_at is greater than or equal to this value."""
+
+    created_at__lt: Optional[str] = None
+    """Only records where created_at is less than this value."""
+
+    created_at__lte: Optional[str] = None
+    """Only records where created_at is less than or equal to this value."""
+
+    folder: Optional[str] = None
+    """Only records where the object exists in the supplied parent folder path name."""
+
+    id: Optional[str] = None
+    """Only records where id equals this value."""
+
+    id__in: Optional[List[str]] = None
+    """Only records where id equals one of the provided substrings."""
+
+    name: Optional[str] = None
+    """Only records where name equals this value."""
+
+    name__contains: Optional[List[str]] = None
+    """Only records where name includes each substring."""
+
+    name__in: Optional[List[str]] = None
+    """Only records where name equals one of the provided substrings."""
+
+    parent_id: Optional[str] = None
+    """Only records where parent_id equals this value."""
+
+    parent_id__in: Optional[List[str]] = None
+    """Only records where parent_id equals one of the provided substrings."""
+
+    size: Optional[int] = None
+    """Only records where size equals this value."""
+
+    size__gt: Optional[int] = None
+    """Only records where size is greater than this value."""
+
+    size__gte: Optional[int] = None
+    """Only records where size is greater than or equal to this value."""
+
+    size__lt: Optional[int] = None
+    """Only records where size is less than to this value."""
+
+    size__lte: Optional[int] = None
+    """Only records where size is less than or equal to this value."""
+
+    tags: Optional[List[str]] = None
+    """A list of tags that all must be present."""
+
+    type: Optional[str] = None
+    """Only records where type equals this value."""
+
+    type__contains: Optional[List[str]] = None
+    """Only records where type includes each substring."""
+
+    type__in: Optional[List[str]] = None
+    """Only records where type equals one of the provided substrings."""
+
+    updated_at: Optional[str] = None
+    """Only records where updated_at equals this value."""
+
+    updated_at__gt: Optional[str] = None
+    """Only records where updated_at is greater than this value."""
+
+    updated_at__gte: Optional[str] = None
+    """Only records where updated_at is greater than or equal to this value."""
+
+    updated_at__lt: Optional[str] = None
+    """Only records where updated_at is less than this value."""
+
+    updated_at__lte: Optional[str] = None
+    """Only records where updated_at is less than or equal to this value."""
 
 
 class ListRequest(APIRequestModel):
     filter: Optional[Union[Dict[str, str], FilterList]] = None
     last: Optional[str] = None
+    """Reflected value from a previous response to obtain the next page of results."""
+
     order: Optional[ItemOrder] = None
+    """Order results asc(ending) or desc(ending)."""
+
     order_by: Optional[ItemOrderBy] = None
+    """Which field to order results by."""
+
     size: Optional[int] = None
+    """Maximum results to include in the response."""
 
     include_external_bucket_key: bool = False
     """If true, include the `external_bucket_key` in results."""
@@ -216,38 +432,74 @@ class ListRequest(APIRequestModel):
 
 class ListResult(PangeaResponseResult):
     count: int
+    """The total number of objects matched by the list request."""
+
     last: Optional[str] = None
+    """Used to fetch the next page of the current listing when provided in a repeated request's last parameter."""
+
     objects: List[ItemData]
 
 
 class GetArchiveRequest(APIRequestModel):
     ids: List[str] = []
+    """The IDs of the objects to include in the archive. Folders include all children."""
+
     format: Optional[ArchiveFormat] = None
+    """The format to use to build the archive."""
+
     transfer_method: Optional[TransferMethod] = None
+    """The requested transfer method for the file data."""
+
     bucket_id: Optional[str] = None
     """The bucket to use, if not the default."""
 
 
 class GetArchiveResult(PangeaResponseResult):
-    dest_url: Optional[str] = None
     count: int
+    """Number of objects included in the archive."""
+
+    dest_url: Optional[str] = None
+    """A location where the archive can be downloaded from. (transfer_method: dest-url)"""
+
+    objects: List[ItemData] = []
+    """A list of all objects included in the archive."""
 
 
 class Authenticator(PangeaResponseResult):
     auth_type: AuthenticatorType
+    """An authentication mechanism."""
+
     auth_context: str
+    """An email address, a phone number or a password to access share link."""
 
 
 class ShareLinkItemBase(PangeaResponseResult):
     targets: List[str] = []
+    """List of storage IDs."""
+
     link_type: Optional[LinkType] = None
+    """Type of link."""
+
     expires_at: Optional[str] = None
+    """The date and time the share link expires."""
+
     max_access_count: Optional[int] = None
+    """The maximum number of times a user can be authenticated to access the share link."""
+
     authenticators: Optional[List[Authenticator]] = None
-    message: Optional[str] = None
+    """A list of authenticators."""
+
     title: Optional[str] = None
+    """An optional title to use in accessing shares."""
+
+    message: Optional[str] = None
+    """An optional message to use in accessing shares."""
+
     notify_email: Optional[str] = None
+    """An email address"""
+
     tags: Optional[Tags] = None
+    """A list of user-defined tags"""
 
 
 class ShareLinkCreateItem(ShareLinkItemBase):
@@ -262,10 +514,20 @@ class ShareLinkCreateRequest(APIRequestModel):
 
 class ShareLinkItem(ShareLinkItemBase):
     id: str
+    """The ID of a share link."""
+
     access_count: int
+    """The number of times a user has authenticated to access the share link."""
+
     created_at: str
+    """The date and time the share link was created."""
+
     last_accessed_at: Optional[str] = None
+    """The date and time the share link was last accessed."""
+
     link: str
+    """A URL to access the file/folders shared with a link."""
+
     bucket_id: str
     """The ID of a share bucket resource."""
 
@@ -276,6 +538,7 @@ class ShareLinkCreateResult(PangeaResponseResult):
 
 class ShareLinkGetRequest(APIRequestModel):
     id: str
+    """The ID of a share link."""
 
 
 class ShareLinkGetResult(PangeaResponseResult):
@@ -320,20 +583,44 @@ class FilterShareLinkList(APIRequestModel):
     link: Optional[str] = None
     link__contains: Optional[List[str]] = None
     link__in: Optional[List[str]] = None
+    title: Optional[str] = None
+    title__contains: Optional[List[str]] = None
+    title__in: Optional[List[str]] = None
+    message: Optional[str] = None
+    message__contains: Optional[List[str]] = None
+    message__in: Optional[List[str]] = None
+    notify_email: Optional[str] = None
+    notify_email__contains: Optional[List[str]] = None
+    notify_email__in: Optional[List[str]] = None
+    tags: Optional[List[str]] = None
 
 
 class ShareLinkListRequest(APIRequestModel):
     filter: Optional[Union[FilterShareLinkList, Dict[str, str]]] = None
+
     last: Optional[str] = None
+    """Reflected value from a previous response to obtain the next page of results."""
+
     order: Optional[ItemOrder] = None
+    """Order results asc(ending) or desc(ending)."""
+
     order_by: Optional[ShareLinkOrderBy] = None
+    """Which field to order results by."""
+
     size: Optional[int] = None
+    """Maximum results to include in the response."""
+
     bucket_id: Optional[str] = None
     """The bucket to use, if not the default."""
 
 
 class ShareLinkListResult(PangeaResponseResult):
     count: int
+    """The total number of share links matched by the list request."""
+
+    last: Optional[str] = None
+    """Used to fetch the next page of the current listing when provided in a repeated request's last parameter."""
+
     share_link_objects: List[ShareLinkItem] = []
 
 
@@ -354,8 +641,12 @@ class ShareLinkSendItem(APIRequestModel):
 
 class ShareLinkSendRequest(APIRequestModel):
     links: List[ShareLinkSendItem]
+
     sender_email: str
+    """An email address."""
+
     sender_name: Optional[str]
+    """The sender name information. Can be sender's full name for example."""
 
 
 class ShareLinkSendResult(PangeaResponseResult):
@@ -483,6 +774,7 @@ class Share(ServiceBase):
         path: Optional[str] = None,
         transfer_method: Optional[TransferMethod] = None,
         bucket_id: Optional[str] = None,
+        password: Optional[str] = None,
     ) -> PangeaResponse[GetResult]:
         """
         Get an object (Beta)
@@ -498,6 +790,7 @@ class Share(ServiceBase):
             path (str, optional): The path of the object to retrieve.
             transfer_method (TransferMethod, optional): The requested transfer method for the file data.
             bucket_id (str, optional): The bucket to use, if not the default.
+            password (str, optional): If the file was protected with a password, the password to decrypt with.
 
         Returns:
             A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/share).
@@ -513,6 +806,7 @@ class Share(ServiceBase):
             path=path,
             transfer_method=transfer_method,
             bucket_id=bucket_id,
+            password=password,
         )
         return self.request.post("v1beta/get", GetResult, data=input.model_dump(exclude_none=True))
 
@@ -607,6 +901,8 @@ class Share(ServiceBase):
         sha512: Optional[str] = None,
         size: Optional[int] = None,
         bucket_id: Optional[str] = None,
+        password: Optional[str] = None,
+        password_algorithm: Optional[str] = None,
     ) -> PangeaResponse[PutResult]:
         """
         Upload a file (Beta)
@@ -633,7 +929,8 @@ class Share(ServiceBase):
             sha512 (str, optional): The hexadecimal-encoded SHA512 hash of the file data, which will be verified by the server if provided.
             size (str, optional): The size (in bytes) of the file. If the upload doesn't match, the call will fail.
             bucket_id (str, optional): The bucket to use, if not the default.
-
+            password (str, optional): An optional password to protect the file with. Downloading the file will require this password.
+            password_algorithm (str, optional): An optional password algorithm to protect the file with. See symmetric vault password_algorithm.
         Returns:
             A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/share).
 
@@ -673,6 +970,9 @@ class Share(ServiceBase):
             sha256=sha256,
             sha512=sha512,
             size=size,
+            bucket_id=bucket_id,
+            password=password,
+            password_algorithm=password_algorithm,
         )
         data = input.model_dump(exclude_none=True)
         return self.request.post("v1beta/put", PutResult, data=data, files=files)
