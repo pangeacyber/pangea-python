@@ -120,6 +120,7 @@ class ShareAsync(ServiceBaseAsync):
         path: Optional[str] = None,
         transfer_method: Optional[TransferMethod] = None,
         bucket_id: Optional[str] = None,
+        password: Optional[str] = None,
     ) -> PangeaResponse[m.GetResult]:
         """
         Get an object (Beta)
@@ -135,6 +136,7 @@ class ShareAsync(ServiceBaseAsync):
             path (str, optional): The path of the object to retrieve.
             transfer_method (TransferMethod, optional): The requested transfer method for the file data.
             bucket_id (str, optional): The bucket to use, if not the default.
+            password (str, optional): If the file was protected with a password, the password to decrypt with.
 
         Returns:
             A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/share).
@@ -151,6 +153,7 @@ class ShareAsync(ServiceBaseAsync):
             path=path,
             transfer_method=transfer_method,
             bucket_id=bucket_id,
+            password=password,
         )
         return await self.request.post("v1beta/get", m.GetResult, data=input.dict(exclude_none=True))
 
@@ -249,6 +252,8 @@ class ShareAsync(ServiceBaseAsync):
         sha512: Optional[str] = None,
         size: Optional[int] = None,
         bucket_id: Optional[str] = None,
+        password: Optional[str] = None,
+        password_algorithm: Optional[str] = None,
     ) -> PangeaResponse[m.PutResult]:
         """
         Upload a file (Beta)
@@ -275,7 +280,8 @@ class ShareAsync(ServiceBaseAsync):
             sha512 (str, optional): The hexadecimal-encoded SHA512 hash of the file data, which will be verified by the server if provided.
             size (str, optional): The size (in bytes) of the file. If the upload doesn't match, the call will fail.
             bucket_id (str, optional): The bucket to use, if not the default.
-
+            password (str, optional): An optional password to protect the file with. Downloading the file will require this password.
+            password_algorithm (str, optional): An optional password algorithm to protect the file with. See symmetric vault password_algorithm.
         Returns:
             A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/share).
 
@@ -317,6 +323,8 @@ class ShareAsync(ServiceBaseAsync):
             sha512=sha512,
             size=size,
             bucket_id=bucket_id,
+            password=password,
+            password_algorithm=password_algorithm,
         )
         data = input.dict(exclude_none=True)
         return await self.request.post("v1beta/put", m.PutResult, data=data, files=files)
