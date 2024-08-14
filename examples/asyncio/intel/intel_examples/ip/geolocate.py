@@ -3,6 +3,7 @@
 import asyncio
 import os
 
+import pangea.exceptions as pe
 from pangea.asyncio.services import IpIntelAsync
 from pangea.config import PangeaConfig
 
@@ -16,9 +17,15 @@ intel = IpIntelAsync(token, config=config)
 
 async def main() -> None:
     print("Geolocate IP...")
-    response = await intel.geolocate(ip="93.231.182.110", provider="digitalelement", verbose=True, raw=True)
-    print(f"Response: {response.result}")
-    await intel.close()
+
+    try:
+        response = await intel.geolocate(ip="93.231.182.110", provider="digitalelement", verbose=True, raw=True)
+        print(f"Response: {response.result}")
+    except pe.PangeaAPIException as e:
+        print(f"Request Error: {e.response.summary}")
+        print(e)
+    finally:
+        await intel.close()
 
 
 if __name__ == "__main__":
