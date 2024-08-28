@@ -1,3 +1,4 @@
+from .test_config import TestConfig
 from .test_enum import TestEnums
 from .test_file_scan import TestFileScan
 from .test_models import TestModels
