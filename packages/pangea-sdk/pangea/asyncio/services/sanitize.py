@@ -44,12 +44,11 @@ class SanitizeAsync(ServiceBaseAsync):
         sync_call: bool = True,
     ) -> PangeaResponse[m.SanitizeResult]:
         """
-        Sanitize (Beta)
+        Sanitize
 
         Apply file sanitization actions according to specified rules.
-        How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
 
-        OperationId: sanitize_post_v1beta_sanitize
+        OperationId: sanitize_post_v1_sanitize
 
         Args:
             transfer_method: The transfer method used to upload the file data.
@@ -120,7 +119,7 @@ class SanitizeAsync(ServiceBaseAsync):
         data = input.model_dump(exclude_none=True)
         try:
             return await self.request.post(
-                "v1beta/sanitize", m.SanitizeResult, data=data, files=files, poll_result=sync_call
+                "v1/sanitize", m.SanitizeResult, data=data, files=files, poll_result=sync_call
             )
         finally:
             if file_path and file is not None:
@@ -139,13 +138,12 @@ class SanitizeAsync(ServiceBaseAsync):
         uploaded_file_name: Optional[str] = None,
     ) -> PangeaResponse[m.SanitizeResult]:
         """
-        Sanitize via presigned URL (Beta)
+        Sanitize via presigned URL
 
         Apply file sanitization actions according to specified rules via a
         [presigned URL](https://pangea.cloud/docs/api/transfer-methods).
-        How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
 
-        OperationId: sanitize_post_v1beta_sanitize 2
+        OperationId: sanitize_post_v1_sanitize 2
 
         Args:
             transfer_method: The transfer method used to upload the file data.
@@ -192,4 +190,4 @@ class SanitizeAsync(ServiceBaseAsync):
             input.size = params.size
 
         data = input.model_dump(exclude_none=True)
-        return await self.request.request_presigned_url("v1beta/sanitize", m.SanitizeResult, data=data)
+        return await self.request.request_presigned_url("v1/sanitize", m.SanitizeResult, data=data)

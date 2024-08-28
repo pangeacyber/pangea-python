@@ -12,7 +12,7 @@ from pangea import FileUploader, PangeaConfig
 from pangea.response import PangeaResponse, TransferMethod
 from pangea.services import Sanitize
 from pangea.services.sanitize import SanitizeContent, SanitizeFile, SanitizeResult, SanitizeShareOutput
-from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
+from pangea.tools import TestEnvironment, get_custom_schema_test_token, get_test_domain, logger_set_pangea_config
 from pangea.utils import get_file_upload_params
 from tests.test_tools import load_test_environment
 
@@ -40,7 +40,10 @@ class TestSanitize(unittest.TestCase):
 
     def setUp(self) -> None:
         # debug_requests_on()
-        token = get_test_token(TEST_ENVIRONMENT)
+
+        # The Sanitize config in the regular org was obsoleted by a breaking
+        # change, so the custom schema org is used instead.
+        token = get_custom_schema_test_token(TEST_ENVIRONMENT)
         domain = get_test_domain(TEST_ENVIRONMENT)
         config = PangeaConfig(domain=domain, custom_user_agent="sdk-test", poll_result_timeout=240)
         self.client = Sanitize(token, config=config)
