@@ -183,12 +183,11 @@ class Sanitize(ServiceBase):
         sync_call: bool = True,
     ) -> PangeaResponse[SanitizeResult]:
         """
-        Sanitize (Beta)
+        Sanitize
 
         Apply file sanitization actions according to specified rules.
-        How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
 
-        OperationId: sanitize_post_v1beta_sanitize
+        OperationId: sanitize_post_v1_sanitize
 
         Args:
             transfer_method: The transfer method used to upload the file data.
@@ -262,9 +261,7 @@ class Sanitize(ServiceBase):
         )
         data = input.model_dump(exclude_none=True)
         try:
-            response = self.request.post(
-                "v1beta/sanitize", SanitizeResult, data=data, files=files, poll_result=sync_call
-            )
+            response = self.request.post("v1/sanitize", SanitizeResult, data=data, files=files, poll_result=sync_call)
         finally:
             if file_path and file is not None:
                 file.close()
@@ -283,13 +280,12 @@ class Sanitize(ServiceBase):
         uploaded_file_name: Optional[str] = None,
     ) -> PangeaResponse[SanitizeResult]:
         """
-        Sanitize via presigned URL (Beta)
+        Sanitize via presigned URL
 
         Apply file sanitization actions according to specified rules via a
         [presigned URL](https://pangea.cloud/docs/api/transfer-methods).
-        How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
 
-        OperationId: sanitize_post_v1beta_sanitize 2
+        OperationId: sanitize_post_v1_sanitize 2
 
         Args:
             transfer_method: The transfer method used to upload the file data.
@@ -336,4 +332,4 @@ class Sanitize(ServiceBase):
             input.size = params.size
 
         data = input.model_dump(exclude_none=True)
-        return self.request.request_presigned_url("v1beta/sanitize", SanitizeResult, data=data)
+        return self.request.request_presigned_url("v1/sanitize", SanitizeResult, data=data)
