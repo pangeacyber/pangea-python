@@ -19,12 +19,11 @@ class ShareAsync(ServiceBaseAsync):
 
     async def buckets(self) -> PangeaResponse[m.BucketsResult]:
         """
-        Buckets (Beta)
+        Buckets
 
         Get information on the accessible buckets.
-        How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
 
-        OperationId: share_post_v1beta_buckets
+        OperationId: share_post_v1_buckets
 
         Returns:
             A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/share).
@@ -33,7 +32,7 @@ class ShareAsync(ServiceBaseAsync):
             response = share.buckets()
         """
 
-        return await self.request.post("v1beta/buckets", m.BucketsResult)
+        return await self.request.post("v1/buckets", m.BucketsResult)
 
     async def delete(
         self,
@@ -43,13 +42,12 @@ class ShareAsync(ServiceBaseAsync):
         bucket_id: Optional[str] = None,
     ) -> PangeaResponse[m.DeleteResult]:
         """
-        Delete (Beta)
+        Delete
 
         Delete object by ID or path. If both are supplied, the path must match
         that of the object represented by the ID.
-        How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
 
-        OperationId: share_post_v1beta_delete
+        OperationId: share_post_v1_delete
 
         Args:
             id (str, optional): The ID of the object to delete.
@@ -65,7 +63,7 @@ class ShareAsync(ServiceBaseAsync):
         """
 
         input = m.DeleteRequest(id=id, path=path, force=force, bucket_id=bucket_id)
-        return await self.request.post("v1beta/delete", m.DeleteResult, data=input.model_dump(exclude_none=True))
+        return await self.request.post("v1/delete", m.DeleteResult, data=input.model_dump(exclude_none=True))
 
     async def folder_create(
         self,
@@ -77,12 +75,11 @@ class ShareAsync(ServiceBaseAsync):
         bucket_id: Optional[str] = None,
     ) -> PangeaResponse[m.FolderCreateResult]:
         """
-        Create a folder (Beta)
+        Create a folder
 
         Create a folder, either by name or path and parent_id.
-        How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
 
-        OperationId: share_post_v1beta_folder_create
+        OperationId: share_post_v1_folder_create
 
         Args:
             name (str, optional): The name of an object.
@@ -111,7 +108,7 @@ class ShareAsync(ServiceBaseAsync):
             name=name, metadata=metadata, parent_id=parent_id, path=path, tags=tags, bucket_id=bucket_id
         )
         return await self.request.post(
-            "v1beta/folder/create", m.FolderCreateResult, data=input.model_dump(exclude_none=True)
+            "v1/folder/create", m.FolderCreateResult, data=input.model_dump(exclude_none=True)
         )
 
     async def get(
@@ -123,13 +120,12 @@ class ShareAsync(ServiceBaseAsync):
         password: Optional[str] = None,
     ) -> PangeaResponse[m.GetResult]:
         """
-        Get an object (Beta)
+        Get an object
 
         Get object. If both ID and Path are supplied, the call will fail if the
         target object doesn't match both properties.
-        How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
 
-        OperationId: share_post_v1beta_get
+        OperationId: share_post_v1_get
 
         Args:
             id (str, optional): The ID of the object to retrieve.
@@ -155,7 +151,7 @@ class ShareAsync(ServiceBaseAsync):
             bucket_id=bucket_id,
             password=password,
         )
-        return await self.request.post("v1beta/get", m.GetResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v1/get", m.GetResult, data=input.model_dump(exclude_none=True))
 
     async def get_archive(
         self,
@@ -165,12 +161,11 @@ class ShareAsync(ServiceBaseAsync):
         bucket_id: Optional[str] = None,
     ) -> PangeaResponse[m.GetArchiveResult]:
         """
-        Get archive (Beta)
+        Get archive
 
         Get an archive file of multiple objects.
-        How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
 
-        OperationId: share_post_v1beta_get_archive
+        OperationId: share_post_v1_get_archive
 
         Args:
             ids (List[str]): The IDs of the objects to include in the archive. Folders include all children.
@@ -195,9 +190,7 @@ class ShareAsync(ServiceBaseAsync):
             raise ValueError(f"Only {TransferMethod.DEST_URL} and {TransferMethod.MULTIPART} are supported")
 
         input = m.GetArchiveRequest(ids=ids, format=format, transfer_method=transfer_method, bucket_id=bucket_id)
-        return await self.request.post(
-            "v1beta/get_archive", m.GetArchiveResult, data=input.model_dump(exclude_none=True)
-        )
+        return await self.request.post("v1/get_archive", m.GetArchiveResult, data=input.model_dump(exclude_none=True))
 
     async def list(
         self,
@@ -209,12 +202,11 @@ class ShareAsync(ServiceBaseAsync):
         bucket_id: Optional[str] = None,
     ) -> PangeaResponse[m.ListResult]:
         """
-        List (Beta)
+        List
 
         List or filter/search records.
-        How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
 
-        OperationId: share_post_v1beta_list
+        OperationId: share_post_v1_list
 
         Args:
             filter (Union[Dict[str, str], FilterList], optional):
@@ -232,7 +224,7 @@ class ShareAsync(ServiceBaseAsync):
         """
 
         input = m.ListRequest(filter=filter, last=last, order=order, order_by=order_by, size=size, bucket_id=bucket_id)
-        return await self.request.post("v1beta/list", m.ListResult, data=input.model_dump(exclude_none=True))
+        return await self.request.post("v1/list", m.ListResult, data=input.model_dump(exclude_none=True))
 
     async def put(
         self,
@@ -256,12 +248,11 @@ class ShareAsync(ServiceBaseAsync):
         password_algorithm: Optional[str] = None,
     ) -> PangeaResponse[m.PutResult]:
         """
-        Upload a file (Beta)
+        Upload a file
 
         Upload a file.
-        How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
 
-        OperationId: share_post_v1beta_put
+        OperationId: share_post_v1_put
 
         Args:
             file (io.BufferedReader):
@@ -326,8 +317,8 @@ class ShareAsync(ServiceBaseAsync):
             password=password,
             password_algorithm=password_algorithm,
         )
-        data = input.dict(exclude_none=True)
-        return await self.request.post("v1beta/put", m.PutResult, data=data, files=files)
+        data = input.model_dump(exclude_none=True)
+        return await self.request.post("v1/put", m.PutResult, data=data, files=files)
 
     async def request_upload_url(
         self,
@@ -348,12 +339,11 @@ class ShareAsync(ServiceBaseAsync):
         bucket_id: Optional[str] = None,
     ) -> PangeaResponse[m.PutResult]:
         """
-        Request upload URL (Beta)
+        Request upload URL
 
         Request an upload URL.
-        How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
 
-        OperationId: share_post_v1beta_put 2
+        OperationId: share_post_v1_put 2
 
         Args:
             name (str, optional): The name of the object to store.
@@ -409,8 +399,8 @@ class ShareAsync(ServiceBaseAsync):
             bucket_id=bucket_id,
         )
 
-        data = input.dict(exclude_none=True)
-        return await self.request.request_presigned_url("v1beta/put", m.PutResult, data=data)
+        data = input.model_dump(exclude_none=True)
+        return await self.request.request_presigned_url("v1/put", m.PutResult, data=data)
 
     async def update(
         self,
@@ -427,12 +417,11 @@ class ShareAsync(ServiceBaseAsync):
         bucket_id: Optional[str] = None,
     ) -> PangeaResponse[m.UpdateResult]:
         """
-        Update a file (Beta)
+        Update a file
 
         Update a file.
-        How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
 
-        OperationId: share_post_v1beta_update
+        OperationId: share_post_v1_update
 
         Args:
             id (str, optional): An identifier for the file to update.
@@ -474,18 +463,17 @@ class ShareAsync(ServiceBaseAsync):
             updated_at=updated_at,
             bucket_id=bucket_id,
         )
-        return await self.request.post("v1beta/update", m.UpdateResult, data=input.dict(exclude_none=True))
+        return await self.request.post("v1/update", m.UpdateResult, data=input.model_dump(exclude_none=True))
 
     async def share_link_create(
         self, links: List[m.ShareLinkCreateItem], bucket_id: Optional[str] = None
     ) -> PangeaResponse[m.ShareLinkCreateResult]:
         """
-        Create share links (Beta)
+        Create share links
 
         Create a share link.
-        How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
 
-        OperationId: share_post_v1beta_share_link_create
+        OperationId: share_post_v1_share_link_create
 
         Args:
             links (List[ShareLinkCreateItem]):
@@ -513,17 +501,16 @@ class ShareAsync(ServiceBaseAsync):
 
         input = m.ShareLinkCreateRequest(links=links, bucket_id=bucket_id)
         return await self.request.post(
-            "v1beta/share/link/create", m.ShareLinkCreateResult, data=input.dict(exclude_none=True)
+            "v1/share/link/create", m.ShareLinkCreateResult, data=input.model_dump(exclude_none=True)
         )
 
     async def share_link_get(self, id: str) -> PangeaResponse[m.ShareLinkGetResult]:
         """
-        Get share link (Beta)
+        Get share link
 
         Get a share link.
-        How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
 
-        OperationId: share_post_v1beta_share_link_get
+        OperationId: share_post_v1_share_link_get
 
         Args:
             id (str, optional): The ID of a share link.
@@ -539,7 +526,7 @@ class ShareAsync(ServiceBaseAsync):
 
         input = m.ShareLinkGetRequest(id=id)
         return await self.request.post(
-            "v1beta/share/link/get", m.ShareLinkGetResult, data=input.dict(exclude_none=True)
+            "v1/share/link/get", m.ShareLinkGetResult, data=input.model_dump(exclude_none=True)
         )
 
     async def share_link_list(
@@ -552,12 +539,11 @@ class ShareAsync(ServiceBaseAsync):
         bucket_id: Optional[str] = None,
     ) -> PangeaResponse[m.ShareLinkListResult]:
         """
-        List share links (Beta)
+        List share links
 
         Look up share links by filter options.
-        How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
 
-        OperationId: share_post_v1beta_share_link_list
+        OperationId: share_post_v1_share_link_list
 
         Args:
             filter (Union[Dict[str, str], ShareLinkListFilter], optional):
@@ -578,19 +564,18 @@ class ShareAsync(ServiceBaseAsync):
             filter=filter, last=last, order=order, order_by=order_by, size=size, bucket_id=bucket_id
         )
         return await self.request.post(
-            "v1beta/share/link/list", m.ShareLinkListResult, data=input.dict(exclude_none=True)
+            "v1/share/link/list", m.ShareLinkListResult, data=input.model_dump(exclude_none=True)
         )
 
     async def share_link_delete(
         self, ids: List[str], bucket_id: Optional[str] = None
     ) -> PangeaResponse[m.ShareLinkDeleteResult]:
         """
-        Delete share links (Beta)
+        Delete share links
 
         Delete share links.
-        How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
 
-        OperationId: share_post_v1beta_share_link_delete
+        OperationId: share_post_v1_share_link_delete
 
         Args:
             ids (List[str]): list of the share link's id to delete
@@ -607,22 +592,21 @@ class ShareAsync(ServiceBaseAsync):
 
         input = m.ShareLinkDeleteRequest(ids=ids, bucket_id=bucket_id)
         return await self.request.post(
-            "v1beta/share/link/delete", m.ShareLinkDeleteResult, data=input.dict(exclude_none=True)
+            "v1/share/link/delete", m.ShareLinkDeleteResult, data=input.model_dump(exclude_none=True)
         )
 
     async def share_link_send(
         self, links: List[m.ShareLinkSendItem], sender_email: str, sender_name: Optional[str] = None
     ) -> PangeaResponse[m.ShareLinkSendResult]:
         """
-        Send share links (Beta)
+        Send share links
 
         Send a secure share-link notification to a set of email addresses. The
         notification email will contain an Open button that the recipient can
         use to follow the secured share-link to authenticate and then access the
         shared content.
-        How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
 
-        OperationId: share_post_v1beta_share_link_send
+        OperationId: share_post_v1_share_link_send
 
         Args:
             sender_email: An email address.
@@ -639,5 +623,5 @@ class ShareAsync(ServiceBaseAsync):
 
         input = m.ShareLinkSendRequest(links=links, sender_email=sender_email, sender_name=sender_name)
         return await self.request.post(
-            "v1beta/share/link/send", m.ShareLinkSendResult, data=input.dict(exclude_none=True)
+            "v1/share/link/send", m.ShareLinkSendResult, data=input.model_dump(exclude_none=True)
         )
