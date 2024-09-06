@@ -24,7 +24,7 @@ python-dateutil = "^2.9.0"
 pydantic = "^2.8.2"
 deprecated = "^1.2.14"
 aiohttp = "^3.10.3"
-google-crc32c = "^1.5.0"
+google-crc32c = "^1.6.0"
 requests-toolbelt = "^1.0.0"
 typing-extensions = "^4.12.2"
 
