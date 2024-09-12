@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 import datetime
 import unittest
+from pathlib import Path
 
 from pangea.deep_verify import deep_verify
 from pangea.dump_audit import dump_audit
@@ -19,54 +22,22 @@ class TestAuditTools(unittest.TestCase):
 
     # TODO: broken test, the search yields 0 events.
     @unittest.expectedFailure
-    def test_dump_audit(self) -> None:
-        with open(self.dump_filename, "a") as file:
-            try:
-                audit = init_audit(self.token, self.domain)
-                cnt = dump_audit(
-                    audit,
-                    file,
-                    datetime.datetime.fromisoformat(self.start_date),
-                    datetime.datetime.fromisoformat(self.end_date),
-                )
-                print(f"\nFile {self.dump_filename} created with {cnt} events.")
+    def test_01_dump_audit(self) -> None:
+        audit = init_audit(self.token, self.domain)
+        with Path(self.dump_filename).open("a") as file:
+            cnt = dump_audit(
+                audit,
+                file,
+                datetime.datetime.fromisoformat(self.start_date),
+                datetime.datetime.fromisoformat(self.end_date),
+            )
+            print(f"\nFile {self.dump_filename} created with {cnt} events.")
 
-            except Exception as e:
-                print(f"error: {str(e)}")
-                self.assertTrue(False)
-
-    def test_verify_audit(self) -> None:
-        with open(self.dump_filename, "r") as file:
-            try:
-                audit = init_audit(self.token, self.domain)
-                errors = deep_verify(audit, file)
-
-                print("\n\nTotal errors:")
-                for key, val in errors.items():
-                    print(f"\t{key.title()}: {val}")
-                print()
-
-            except Exception as e:
-                import traceback
-
-                print(traceback.format_exc())
-                print(e)
-                self.assertTrue(False)
-
-    def test_deep_verify(self) -> None:
-        with open(self.dump_filename, "r") as file:
-            try:
-                audit = init_audit(self.token, self.domain)
-                errors = deep_verify(audit, file)
-
-                print("\n\nTotal errors:")
-                for key, val in errors.items():
-                    print(f"\t{key.title()}: {val}")
-                print()
-
-            except Exception as e:
-                import traceback
-
-                print(traceback.format_exc())
-                print(e)
-                self.assertTrue(False)
+    def test_02_deep_verify(self) -> None:
+        audit = init_audit(self.token, self.domain)
+        with Path(self.dump_filename).open() as file:
+            errors = deep_verify(audit, file)
+            print("\n\nTotal errors:")
+            for key, val in errors.items():
+                print(f"\t{key.title()}: {val}")
+            print()
