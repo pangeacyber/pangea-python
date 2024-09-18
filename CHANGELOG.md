@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- Vault APIs have been updated to v2.
+
 ## 4.4.0 - 2024-10-15
 
 ### Added

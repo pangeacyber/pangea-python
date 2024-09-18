@@ -1,15 +1,39 @@
+from __future__ import annotations
+
 import datetime
 import inspect
 import json
 import random
 import unittest
+from typing import cast
 
-import pangea.crypto.rsa as rsa
+from typing_extensions import Literal
+
 import pangea.exceptions as pe
 from pangea import PangeaConfig
 from pangea.asyncio.services.vault import VaultAsync
-from pangea.services.vault.models.asymmetric import AsymmetricAlgorithm, KeyPurpose
-from pangea.services.vault.models.symmetric import SymmetricAlgorithm
+from pangea.crypto import rsa
+from pangea.services.vault.models.asymmetric import (
+    AsymmetricKeyAlgorithm,
+    AsymmetricKeyEncryptionAlgorithm,
+    AsymmetricKeyJwtAlgorithm,
+    AsymmetricKeyPurpose,
+    AsymmetricKeySigningAlgorithm,
+)
+from pangea.services.vault.models.common import (
+    ExportEncryptionType,
+    Metadata,
+    RequestManualRotationState,
+    RequestRotationState,
+    Tags,
+)
+from pangea.services.vault.models.symmetric import (
+    SymmetricKeyAlgorithm,
+    SymmetricKeyEncryptionAlgorithm,
+    SymmetricKeyFpeAlgorithm,
+    SymmetricKeyJwtAlgorithm,
+    SymmetricKeyPurpose,
+)
 from pangea.services.vault.vault import ExportEncryptionAlgorithm, ItemType, ItemVersionState, TransformAlphabet
 from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
 from pangea.utils import format_datetime, str2str_b64, str_b64_2bytes
@@ -17,10 +41,10 @@ from tests.test_tools import load_test_environment
 
 TIME = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 FOLDER_VALUE = f"/test_key_folder/{TIME}/"
-METADATA_VALUE = {"test": "True", "field1": "value1", "field2": "value2"}
-TAGS_VALUE = ["test", "symmetric"]
+METADATA_VALUE = cast(Metadata, {"test": "True", "field1": "value1", "field2": "value2"})
+TAGS_VALUE = cast(Tags, ["test", "symmetric"])
 ROTATION_FREQUENCY_VALUE = "1d"
-ROTATION_STATE_VALUE = ItemVersionState.DEACTIVATED
+ROTATION_STATE_VALUE = RequestRotationState.DEACTIVATED
 EXPIRATION_VALUE = datetime.datetime.now() + datetime.timedelta(days=1)
 EXPIRATION_VALUE_STR = format_datetime(EXPIRATION_VALUE)
 MAX_RANDOM = 1000000
@@ -42,35 +66,38 @@ def get_function_name() -> str:
 
 TEST_ENVIRONMENT = load_test_environment(VaultAsync.service_name, TestEnvironment.LIVE)
 
-KEY_ED25519 = {
-    "algorithm": AsymmetricAlgorithm.Ed25519,
+KEY_ED25519: dict[str, str | AsymmetricKeySigningAlgorithm] = {
+    "algorithm": AsymmetricKeySigningAlgorithm.ED25519,
     "private_key": "-----BEGIN PRIVATE KEY-----\nMC4CAQAwBQYDK2VwBCIEIGthqegkjgddRAn0PWN2FeYC6HcCVQf/Ph9sUbeprTBO\n-----END PRIVATE KEY-----\n",
     "public_key": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAPlGrDliJXUbPc2YWEhFxlL2UbBfLHc3ed1f36FrDtTc=\n-----END PUBLIC KEY-----\n",
 }
 
-KEY_AES = {
-    "algorithm": SymmetricAlgorithm.AES,
+KEY_AES: dict[str, str | SymmetricKeyEncryptionAlgorithm] = {
+    "algorithm": SymmetricKeyEncryptionAlgorithm.AES_CFB_128,
     "key": "oILlp2FUPHWiaqFXl4/1ww==",
 }
 
 
 class TestVault(unittest.IsolatedAsyncioTestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         self.token = get_test_token(TEST_ENVIRONMENT)
         domain = get_test_domain(TEST_ENVIRONMENT)
         self.config = PangeaConfig(domain=domain, custom_user_agent="sdk-test")
         self.vault = VaultAsync(self.token, config=self.config, logger_name="vault")
         logger_set_pangea_config("vault")
 
-    async def asyncTearDown(self):
+    async def asyncTearDown(self) -> None:
         await self.vault.close()
 
-    async def encrypting_cycle(self, id):
+    async def encrypting_cycle(
+        self, id: str, *, key_type: Literal[ItemType.ASYMMETRIC_KEY, ItemType.SYMMETRIC_KEY] = ItemType.ASYMMETRIC_KEY
+    ) -> None:
         msg = "thisisamessagetoencrypt"
         data_b64 = str2str_b64(msg)
 
         # Encrypt 1
         encrypt1_resp = await self.vault.encrypt(id, data_b64)
+        assert encrypt1_resp.result
 
         self.assertEqual(id, encrypt1_resp.result.id)
         self.assertEqual(1, encrypt1_resp.result.version)
@@ -78,131 +105,156 @@ class TestVault(unittest.IsolatedAsyncioTestCase):
         self.assertIsNotNone(cipher_v1)
 
         # Rotate
-        rotate_resp = await self.vault.key_rotate(id=id, rotation_state=ItemVersionState.SUSPENDED)
-        self.assertEqual(2, rotate_resp.result.version)
+        rotate_resp = await self.vault.rotate_key(
+            id, key_type=key_type, rotation_state=RequestManualRotationState.SUSPENDED
+        )
+        assert rotate_resp.result
+        assert rotate_resp.result.type == key_type
+        self.assertEqual(1, len(rotate_resp.result.item_versions))
+        self.assertEqual(2, rotate_resp.result.item_versions[0].version)
         self.assertEqual(id, rotate_resp.result.id)
 
         # Encrypt 2
         encrypt2_resp = await self.vault.encrypt(id, data_b64)
+        assert encrypt2_resp.result
         self.assertEqual(id, encrypt2_resp.result.id)
         self.assertEqual(2, encrypt2_resp.result.version)
         cipher_v2 = encrypt2_resp.result.cipher_text
         self.assertIsNotNone(cipher_v2)
 
         # Decrypt 1
-        decrypt1_resp = await self.vault.decrypt(id, cipher_v1, 1)
+        decrypt1_resp = await self.vault.decrypt(id, cipher_v1, version=1)
+        assert decrypt1_resp.result
         self.assertEqual(data_b64, decrypt1_resp.result.plain_text)
 
         # Decrypt 2
-        decrypt2_resp = await self.vault.decrypt(id, cipher_v2, 2)
+        decrypt2_resp = await self.vault.decrypt(id, cipher_v2, version=2)
+        assert decrypt2_resp.result
         self.assertTrue(data_b64, decrypt2_resp.result.plain_text)
 
         # Update
         update_resp = await self.vault.update(id, folder="updated")
+        assert update_resp.result
         self.assertEqual(id, update_resp.result.id)
 
         # Decrypt default version
         decrypt_default_resp = await self.vault.decrypt(id, cipher_v2)
+        assert decrypt_default_resp.result
         self.assertEqual(data_b64, decrypt_default_resp.result.plain_text)
-
-        # Decrypt wrong version
-        # decrypt_bad = await self.vault.decrypt(id, cipher_v2, 1)
-        # self.assertNotEqual(data_b64, decrypt_bad.result.plain_text)
 
         # Decrypt wrong id
         with self.assertRaises(pe.VaultItemNotFound):
-            await self.vault.decrypt("thisisnotandid", cipher_v2, 2)
+            await self.vault.decrypt("thisisnotandid", cipher_v2, version=2)
 
         # Deactivate key
         change_state_resp = await self.vault.state_change(id, ItemVersionState.DEACTIVATED, version=1)
+        assert change_state_resp.result
         self.assertEqual(id, change_state_resp.result.id)
 
         # Decrypt after deactivated.
-        decrypt1_deactivated_resp = await self.vault.decrypt(id, cipher_v1, 1)
+        decrypt1_deactivated_resp = await self.vault.decrypt(id, cipher_v1, version=1)
+        assert decrypt1_deactivated_resp.result
         self.assertEqual(data_b64, decrypt1_deactivated_resp.result.plain_text)
 
-    async def signing_cycle(self, id):
+    async def signing_cycle(self, id: str) -> None:
         msg = "thisisamessagetosign"
         data = str2str_b64(msg)
         # Sign 1
         sign1_resp = await self.vault.sign(id, data)
+        assert sign1_resp.result
         self.assertEqual(id, sign1_resp.result.id)
         self.assertEqual(1, sign1_resp.result.version)
         signature_v1 = sign1_resp.result.signature
         self.assertIsNotNone(signature_v1)
 
         # Rotate
-        rotate_resp = await self.vault.key_rotate(id, rotation_state=ItemVersionState.SUSPENDED)
-        self.assertEqual(2, rotate_resp.result.version)
+        rotate_resp = await self.vault.rotate_key(
+            id, key_type=ItemType.ASYMMETRIC_KEY, rotation_state=RequestManualRotationState.SUSPENDED
+        )
+        assert rotate_resp.result
+        assert rotate_resp.result.type == ItemType.ASYMMETRIC_KEY
+        self.assertEqual(1, len(rotate_resp.result.item_versions))
+        self.assertEqual(2, rotate_resp.result.item_versions[0].version)
         self.assertEqual(id, rotate_resp.result.id)
 
         # Sign 2
         sign2_resp = await self.vault.sign(id, data)
+        assert sign2_resp.result
         self.assertEqual(id, sign2_resp.result.id)
         self.assertEqual(2, sign2_resp.result.version)
         signature_v2 = sign2_resp.result.signature
         self.assertIsNotNone(signature_v2)
 
         # Verify 1
-        verify1_resp = await self.vault.verify(id, data, signature_v1, 1)
+        verify1_resp = await self.vault.verify(id, data, signature_v1, version=1)
+        assert verify1_resp.result
         self.assertEqual(id, verify1_resp.result.id)
         self.assertEqual(1, verify1_resp.result.version)
         self.assertTrue(verify1_resp.result.valid_signature)
 
         # Verify 2
-        verify2_resp = await self.vault.verify(id, data, signature_v2, 2)
+        verify2_resp = await self.vault.verify(id, data, signature_v2, version=2)
+        assert verify2_resp.result
         self.assertEqual(id, verify2_resp.result.id)
         self.assertEqual(2, verify2_resp.result.version)
         self.assertTrue(verify2_resp.result.valid_signature)
 
         # Verify default version
         verify_default_resp = await self.vault.verify(id, data, signature_v2)
+        assert verify_default_resp.result
         self.assertEqual(id, verify_default_resp.result.id)
         self.assertEqual(2, verify_default_resp.result.version)
         self.assertTrue(verify_default_resp.result.valid_signature)
 
         # Update
         update_resp = await self.vault.update(id, folder="updated")
+        assert update_resp.result
         self.assertEqual(id, update_resp.result.id)
 
         # Verify not existing version
         with self.assertRaises(pe.PangeaAPIException):
-            await self.vault.verify(id, data, signature_v2, 10)
+            await self.vault.verify(id, data, signature_v2, version=10)
 
         # Verify wrong id
         with self.assertRaises(pe.VaultItemNotFound):
-            await self.vault.verify("thisisnotandid", data, signature_v2, 2)
+            await self.vault.verify("thisisnotandid", data, signature_v2, version=2)
 
         # Verify wrong signature
         with self.assertRaises(pe.PangeaAPIException):
-            await self.vault.verify(id, data, "thisisnotasignature", 2)
+            await self.vault.verify(id, data, "thisisnotasignature", version=2)
 
         # Verify wrong data
         with self.assertRaises(pe.PangeaAPIException):
-            await self.vault.verify(id, "thisisnotvaliddatax", signature_v2, 2)
+            await self.vault.verify(id, "thisisnotvaliddatax", signature_v2, version=2)
 
         # Deactivate key
         state_change_resp = await self.vault.state_change(id, ItemVersionState.DEACTIVATED, version=1)
+        assert state_change_resp.result
         self.assertEqual(id, state_change_resp.result.id)
 
         # Verify after deactivated.
-        verify1_deactivated_resp = await self.vault.verify(id, data, signature_v1, 1)
+        verify1_deactivated_resp = await self.vault.verify(id, data, signature_v1, version=1)
+        assert verify1_deactivated_resp.result
         self.assertEqual(id, verify1_deactivated_resp.result.id)
         self.assertEqual(1, verify1_deactivated_resp.result.version)
         self.assertTrue(verify1_deactivated_resp.result.valid_signature)
 
-    async def sym_generate_default(self, algorithm: SymmetricAlgorithm, purpose: KeyPurpose) -> str:
+    async def sym_generate_default(self, algorithm: SymmetricKeyAlgorithm, purpose: SymmetricKeyPurpose) -> str:
         name = get_name()
-        response = await self.vault.symmetric_generate(algorithm=algorithm, purpose=purpose, name=name)
+        response = await self.vault.generate_key(
+            key_type=ItemType.SYMMETRIC_KEY, algorithm=algorithm, purpose=purpose, name=name
+        )
+        assert response.result
         self.assertEqual(ItemType.SYMMETRIC_KEY.value, response.result.type)
-        self.assertEqual(1, response.result.version)
+        self.assertEqual(1, len(response.result.item_versions))
         self.assertIsNotNone(response.result.id)
         self.assertEqual(algorithm.value, response.result.algorithm)
         return response.result.id
 
-    async def sym_generate_all_params(self, algorithm: SymmetricAlgorithm, purpose: KeyPurpose) -> str:
+    async def sym_generate_all_params(self, algorithm: SymmetricKeyAlgorithm, purpose: SymmetricKeyPurpose) -> str:
         name = get_name()
-        response = await self.vault.symmetric_generate(
+        generated = await self.vault.generate_key(
+            key_type=ItemType.SYMMETRIC_KEY,
             algorithm=algorithm,
             purpose=purpose,
             name=name,
@@ -211,109 +263,139 @@ class TestVault(unittest.IsolatedAsyncioTestCase):
             tags=TAGS_VALUE,
             rotation_frequency=ROTATION_FREQUENCY_VALUE,
             rotation_state=ROTATION_STATE_VALUE,
-            expiration=EXPIRATION_VALUE,
+            disabled_at=EXPIRATION_VALUE,
         )
-        self.assertEqual(ItemType.SYMMETRIC_KEY.value, response.result.type)
-        self.assertEqual(1, response.result.version)
-        self.assertIsNotNone(response.result.id)
+        assert generated.result
+        self.assertEqual(ItemType.SYMMETRIC_KEY.value, generated.result.type)
+        self.assertEqual(1, len(generated.result.item_versions))
+        self.assertIsNotNone(generated.result.id)
 
-        response = await self.vault.get(id=response.result.id, verbose=True)
-        self.assertEqual(ItemType.SYMMETRIC_KEY.value, response.result.type)
-        self.assertEqual(0, len(response.result.versions))
-        self.assertEqual(1, response.result.current_version.version)
+        response = await self.vault.get(item_id=generated.result.id)
+        assert response.result
+        assert response.result.type == ItemType.SYMMETRIC_KEY
+        self.assertEqual(1, len(response.result.item_versions))
+        self.assertEqual(1, response.result.item_versions[0].version)
         self.assertEqual(name, response.result.name)
         self.assertEqual(FOLDER_VALUE, response.result.folder)
         self.assertEqual(METADATA_VALUE, response.result.metadata)
         self.assertEqual(TAGS_VALUE, response.result.tags)
         self.assertEqual(ROTATION_FREQUENCY_VALUE, response.result.rotation_frequency)
         self.assertEqual(ROTATION_STATE_VALUE.value, response.result.rotation_state)
-        self.assertEqual(EXPIRATION_VALUE_STR, response.result.expiration)
+        self.assertEqual(EXPIRATION_VALUE_STR, response.result.disabled_at)
         return response.result.id
 
-    async def test_sym_aes_store_default(self):
-        name = name = get_name()
-        response = await self.vault.symmetric_store(**KEY_AES, purpose=KeyPurpose.ENCRYPTION, name=name)
-        self.assertEqual(ItemType.SYMMETRIC_KEY.value, response.result.type)
-        self.assertEqual(1, response.result.version)
-        self.assertIsNotNone(response.result.id)
-
-    async def test_sym_aes_store_all_params(self):
-        name = name = get_name()
-        response = await self.vault.symmetric_store(
-            name=name,
-            folder=FOLDER_VALUE,
-            metadata=METADATA_VALUE,
-            tags=TAGS_VALUE,
-            rotation_frequency=ROTATION_FREQUENCY_VALUE,
-            rotation_state=ROTATION_STATE_VALUE,
-            expiration=EXPIRATION_VALUE,
-            purpose=KeyPurpose.ENCRYPTION,
-            **KEY_AES,
-        )
-        self.assertEqual(ItemType.SYMMETRIC_KEY.value, response.result.type)
-        self.assertEqual(1, response.result.version)
-        self.assertIsNotNone(response.result.id)
-
-        response = await self.vault.get(id=response.result.id, verbose=True)
-        self.assertEqual(ItemType.SYMMETRIC_KEY.value, response.result.type)
-        self.assertEqual(0, len(response.result.versions))
-        self.assertEqual(1, response.result.current_version.version)
-        self.assertEqual(name, response.result.name)
-        self.assertEqual(FOLDER_VALUE, response.result.folder)
-        self.assertEqual(METADATA_VALUE, response.result.metadata)
-        self.assertEqual(TAGS_VALUE, response.result.tags)
-        self.assertEqual(ROTATION_FREQUENCY_VALUE, response.result.rotation_frequency)
-        self.assertEqual(ROTATION_STATE_VALUE.value, response.result.rotation_state)
-        self.assertEqual(EXPIRATION_VALUE_STR, response.result.expiration)
-
-    async def test_asym_ed25519_store_default(self):
-        name = name = get_name()
-        response = await self.vault.asymmetric_store(**KEY_ED25519, purpose=KeyPurpose.SIGNING, name=name)
-        self.assertEqual(ItemType.ASYMMETRIC_KEY.value, response.result.type)
-        self.assertEqual(1, response.result.version)
-        self.assertIsNotNone(response.result.id)
-
-    async def test_asym_ed25519_store_all_params(self):
-        name = name = get_name()
-        response = await self.vault.asymmetric_store(
-            name=name,
-            folder=FOLDER_VALUE,
-            metadata=METADATA_VALUE,
-            tags=TAGS_VALUE,
-            rotation_frequency=ROTATION_FREQUENCY_VALUE,
-            rotation_state=ROTATION_STATE_VALUE,
-            expiration=EXPIRATION_VALUE,
-            purpose=KeyPurpose.SIGNING,
-            **KEY_ED25519,
-        )
-        self.assertEqual(ItemType.ASYMMETRIC_KEY.value, response.result.type)
-        self.assertEqual(1, response.result.version)
-        self.assertIsNotNone(response.result.id)
-
-        response = await self.vault.get(id=response.result.id, verbose=True)
-        self.assertEqual(ItemType.ASYMMETRIC_KEY.value, response.result.type)
-        self.assertEqual(0, len(response.result.versions))
-        self.assertEqual(1, response.result.current_version.version)
-        self.assertEqual(name, response.result.name)
-        self.assertEqual(FOLDER_VALUE, response.result.folder)
-        self.assertEqual(METADATA_VALUE, response.result.metadata)
-        self.assertEqual(TAGS_VALUE, response.result.tags)
-        self.assertEqual(ROTATION_FREQUENCY_VALUE, response.result.rotation_frequency)
-        self.assertEqual(ROTATION_STATE_VALUE.value, response.result.rotation_state)
-        self.assertEqual(EXPIRATION_VALUE_STR, response.result.expiration)
-
-    async def asym_generate_default(self, algorithm: AsymmetricAlgorithm, purpose: KeyPurpose) -> str:
+    async def test_sym_aes_store_default(self) -> None:
         name = get_name()
-        response = await self.vault.asymmetric_generate(algorithm=algorithm, purpose=purpose, name=name)
-        self.assertEqual(ItemType.ASYMMETRIC_KEY.value, response.result.type)
-        self.assertEqual(1, response.result.version)
+        response = await self.vault.store_key(
+            key_type=ItemType.SYMMETRIC_KEY,
+            purpose=SymmetricKeyPurpose.ENCRYPTION,
+            name=name,
+            algorithm=cast(SymmetricKeyEncryptionAlgorithm, KEY_AES["algorithm"]),
+            key=KEY_AES["key"],
+        )
+        assert response.result
+        assert response.result.type == ItemType.SYMMETRIC_KEY
+        assert response.result.item_versions[0].version == 1
+        assert response.result.id
+
+    async def test_sym_aes_store_all_params(self) -> None:
+        name = get_name()
+        response = await self.vault.store_key(
+            key_type=ItemType.SYMMETRIC_KEY,
+            name=name,
+            folder=FOLDER_VALUE,
+            metadata=METADATA_VALUE,
+            tags=TAGS_VALUE,
+            rotation_frequency=ROTATION_FREQUENCY_VALUE,
+            rotation_state=ROTATION_STATE_VALUE,
+            disabled_at=EXPIRATION_VALUE,
+            purpose=SymmetricKeyPurpose.ENCRYPTION,
+            algorithm=cast(SymmetricKeyEncryptionAlgorithm, KEY_AES["algorithm"]),
+            key=KEY_AES["key"],
+        )
+        assert response.result
+        assert response.result.type == ItemType.SYMMETRIC_KEY
+        assert response.result.item_versions[0].version == 1
+        assert response.result.id
+
+        response2 = await self.vault.get(item_id=response.result.id)
+        assert response2.result
+        assert response2.result.type == ItemType.SYMMETRIC_KEY
+        self.assertEqual(1, len(response2.result.item_versions))
+        self.assertEqual(1, response2.result.item_versions[0].version)
+        self.assertEqual(name, response2.result.name)
+        self.assertEqual(FOLDER_VALUE, response2.result.folder)
+        self.assertEqual(METADATA_VALUE, response2.result.metadata)
+        self.assertEqual(TAGS_VALUE, response2.result.tags)
+        self.assertEqual(ROTATION_FREQUENCY_VALUE, response2.result.rotation_frequency)
+        self.assertEqual(ROTATION_STATE_VALUE.value, response2.result.rotation_state)
+        self.assertEqual(EXPIRATION_VALUE_STR, response2.result.disabled_at)
+
+    async def test_asym_ed25519_store_default(self) -> None:
+        name = get_name()
+        response = await self.vault.store_key(
+            key_type=ItemType.ASYMMETRIC_KEY,
+            purpose=AsymmetricKeyPurpose.SIGNING,
+            name=name,
+            algorithm=cast(AsymmetricKeySigningAlgorithm, KEY_ED25519["algorithm"]),
+            public_key=KEY_ED25519["public_key"],
+            private_key=KEY_ED25519["private_key"],
+        )
+        assert response.result
+        assert response.result.type == ItemType.ASYMMETRIC_KEY
+        self.assertEqual(1, response.result.item_versions[0].version)
+        self.assertIsNotNone(response.result.id)
+
+    async def test_asym_ed25519_store_all_params(self) -> None:
+        name = get_name()
+        response = await self.vault.store_key(
+            key_type=ItemType.ASYMMETRIC_KEY,
+            name=name,
+            folder=FOLDER_VALUE,
+            metadata=METADATA_VALUE,
+            tags=TAGS_VALUE,
+            rotation_frequency=ROTATION_FREQUENCY_VALUE,
+            rotation_state=ROTATION_STATE_VALUE,
+            disabled_at=EXPIRATION_VALUE,
+            purpose=AsymmetricKeyPurpose.SIGNING,
+            algorithm=cast(AsymmetricKeySigningAlgorithm, KEY_ED25519["algorithm"]),
+            public_key=KEY_ED25519["public_key"],
+            private_key=KEY_ED25519["private_key"],
+        )
+        assert response.result
+        assert response.result.type == ItemType.ASYMMETRIC_KEY
+        self.assertEqual(1, response.result.item_versions[0].version)
+        self.assertIsNotNone(response.result.id)
+
+        response2 = await self.vault.get(item_id=response.result.id)
+        assert response2.result
+        assert response2.result.type == ItemType.ASYMMETRIC_KEY
+        self.assertEqual(1, len(response2.result.item_versions))
+        self.assertEqual(1, response2.result.item_versions[0].version)
+        self.assertEqual(name, response2.result.name)
+        self.assertEqual(FOLDER_VALUE, response2.result.folder)
+        self.assertEqual(METADATA_VALUE, response2.result.metadata)
+        self.assertEqual(TAGS_VALUE, response2.result.tags)
+        self.assertEqual(ROTATION_FREQUENCY_VALUE, response2.result.rotation_frequency)
+        self.assertEqual(ROTATION_STATE_VALUE.value, response2.result.rotation_state)
+        self.assertEqual(EXPIRATION_VALUE_STR, response2.result.disabled_at)
+
+    async def asym_generate_default(self, algorithm: AsymmetricKeyAlgorithm, purpose: AsymmetricKeyPurpose) -> str:
+        name = get_name()
+        response = await self.vault.generate_key(
+            key_type=ItemType.ASYMMETRIC_KEY, algorithm=algorithm, purpose=purpose, name=name
+        )
+        assert response.result
+        assert response.result.type == ItemType.ASYMMETRIC_KEY
+        self.assertEqual(1, response.result.item_versions[0].version)
         self.assertIsNotNone(response.result.id)
         self.assertEqual(algorithm.value, response.result.algorithm)
         return response.result.id
 
-    async def asym_generate_all_params(self, algorithm: AsymmetricAlgorithm, purpose: KeyPurpose) -> str:
+    async def asym_generate_all_params(self, algorithm: AsymmetricKeyAlgorithm, purpose: AsymmetricKeyPurpose) -> str:
         name = get_name()
-        response = await self.vault.asymmetric_generate(
+        generated = await self.vault.generate_key(
+            key_type=ItemType.ASYMMETRIC_KEY,
             algorithm=algorithm,
             purpose=purpose,
             name=name,
@@ -322,330 +404,345 @@ class TestVault(unittest.IsolatedAsyncioTestCase):
             tags=TAGS_VALUE,
             rotation_frequency=ROTATION_FREQUENCY_VALUE,
             rotation_state=ROTATION_STATE_VALUE,
-            expiration=EXPIRATION_VALUE,
+            disabled_at=EXPIRATION_VALUE,
         )
-        self.assertEqual(ItemType.ASYMMETRIC_KEY.value, response.result.type)
-        self.assertEqual(1, response.result.version)
-        self.assertIsNotNone(response.result.id)
-        self.assertEqual(algorithm.value, response.result.algorithm)
+        assert generated.result
+        self.assertEqual(ItemType.ASYMMETRIC_KEY.value, generated.result.type)
+        self.assertEqual(1, len(generated.result.item_versions))
+        self.assertIsNotNone(generated.result.id)
+        self.assertEqual(algorithm.value, generated.result.algorithm)
 
-        response = await self.vault.get(id=response.result.id, verbose=True)
-        self.assertEqual(ItemType.ASYMMETRIC_KEY.value, response.result.type)
-        self.assertEqual(0, len(response.result.versions))
-        self.assertEqual(1, response.result.current_version.version)
+        response = await self.vault.get(item_id=generated.result.id)
+        assert response.result
+        assert response.result.type == ItemType.ASYMMETRIC_KEY
+        self.assertEqual(1, len(response.result.item_versions))
+        self.assertEqual(1, response.result.item_versions[0].version)
         self.assertEqual(name, response.result.name)
         self.assertEqual(FOLDER_VALUE, response.result.folder)
         self.assertEqual(METADATA_VALUE, response.result.metadata)
         self.assertEqual(TAGS_VALUE, response.result.tags)
         self.assertEqual(ROTATION_FREQUENCY_VALUE, response.result.rotation_frequency)
         self.assertEqual(ROTATION_STATE_VALUE.value, response.result.rotation_state)
-        self.assertEqual(EXPIRATION_VALUE_STR, response.result.expiration)
+        self.assertEqual(EXPIRATION_VALUE_STR, response.result.disabled_at)
         return response.result.id
 
-    async def jwt_sym_signing_cycle(self, id):
+    async def jwt_sym_signing_cycle(self, id: str) -> None:
         data = {"message": "message to sign", "data": "Some extra data"}
         payload = json.dumps(data)
 
         # Sign 1
         sign1_resp = await self.vault.jwt_sign(id, payload)
+        assert sign1_resp.result
         jws_v1 = sign1_resp.result.jws
         self.assertIsNotNone(jws_v1)
 
         # Rotate
-        rotate_resp = await self.vault.key_rotate(id, ItemVersionState.SUSPENDED)
-        self.assertEqual(2, rotate_resp.result.version)
+        rotate_resp = await self.vault.rotate_key(
+            id, key_type=ItemType.SYMMETRIC_KEY, rotation_state=RequestManualRotationState.SUSPENDED
+        )
+        assert rotate_resp.result
+        self.assertEqual(1, len(rotate_resp.result.item_versions))
+        self.assertEqual(2, rotate_resp.result.item_versions[0].version)
         self.assertEqual(id, rotate_resp.result.id)
 
         # Sign 2
         sign2_resp = await self.vault.jwt_sign(id, payload)
+        assert sign2_resp.result
         jws_v2 = sign2_resp.result.jws
         self.assertIsNotNone(jws_v2)
 
         # Verify 1
         verify1_resp = await self.vault.jwt_verify(jws_v1)
+        assert verify1_resp.result
         self.assertTrue(verify1_resp.result.valid_signature)
 
         # Verify 2
         verify2_resp = await self.vault.jwt_verify(jws_v2)
+        assert verify2_resp.result
         self.assertTrue(verify2_resp.result.valid_signature)
 
         # Update
         update_resp = await self.vault.update(id, folder="updated")
+        assert update_resp.result
         self.assertEqual(id, update_resp.result.id)
 
         # Deactivate key
         state_change_resp = await self.vault.state_change(id, ItemVersionState.DEACTIVATED, version=1)
+        assert state_change_resp.result
         self.assertEqual(id, state_change_resp.result.id)
 
         # Verify after deactivated.
         verify1_deactivated_resp = await self.vault.jwt_verify(jws_v1)
+        assert verify1_deactivated_resp.result
         self.assertTrue(verify1_deactivated_resp.result.valid_signature)
 
-    async def jwt_asym_signing_cycle(self, id):
+    async def jwt_asym_signing_cycle(self, id: str) -> None:
         data = {"message": "message to sign", "data": "Some extra data"}
         payload = json.dumps(data)
 
         # Sign 1
         sign1_resp = await self.vault.jwt_sign(id, payload)
+        assert sign1_resp.result
         jws_v1 = sign1_resp.result.jws
         self.assertIsNotNone(jws_v1)
 
         # Rotate
-        rotate_resp = await self.vault.key_rotate(id, ItemVersionState.SUSPENDED)
-        self.assertEqual(2, rotate_resp.result.version)
+        rotate_resp = await self.vault.rotate_key(
+            id, key_type=ItemType.ASYMMETRIC_KEY, rotation_state=RequestManualRotationState.SUSPENDED
+        )
+        assert rotate_resp.result
+        self.assertEqual(1, len(rotate_resp.result.item_versions))
+        self.assertEqual(2, rotate_resp.result.item_versions[0].version)
         self.assertEqual(id, rotate_resp.result.id)
 
         # Sign 2
         sign2_resp = await self.vault.jwt_sign(id, payload)
+        assert sign2_resp.result
         jws_v2 = sign2_resp.result.jws
         self.assertIsNotNone(jws_v2)
 
         # Verify 1
         verify1_resp = await self.vault.jwt_verify(jws_v1)
+        assert verify1_resp.result
         self.assertTrue(verify1_resp.result.valid_signature)
 
         # Verify 2
         verify2_resp = await self.vault.jwt_verify(jws_v2)
+        assert verify2_resp.result
         self.assertTrue(verify2_resp.result.valid_signature)
 
         # Update
         update_resp = await self.vault.update(id, folder="updated")
+        assert update_resp.result
         self.assertEqual(id, update_resp.result.id)
 
         # Get default
         get_resp = await self.vault.jwk_get(id)
+        assert get_resp.result
         self.assertEqual(1, len(get_resp.result.keys))
 
         # Get version 1
-        get_resp = await self.vault.jwk_get(id, "1")
+        get_resp = await self.vault.jwk_get(id, version="1")
+        assert get_resp.result
         self.assertEqual(1, len(get_resp.result.keys))
 
         # Get all
-        get_resp = await self.vault.jwk_get(id, "all")
+        get_resp = await self.vault.jwk_get(id, version="all")
+        assert get_resp.result
         self.assertEqual(2, len(get_resp.result.keys))
 
         # Get version -1
-        get_resp = await self.vault.jwk_get(id, "-1")
-        self.assertEqual(2, len(get_resp.result.keys))
+        get_resp = await self.vault.jwk_get(id, version="-1")
+        assert get_resp.result
+        self.assertEqual(1, len(get_resp.result.keys))
 
         # Deactivate key
         state_change_resp = await self.vault.state_change(id, ItemVersionState.DEACTIVATED, version=1)
+        assert state_change_resp.result
         self.assertEqual(id, state_change_resp.result.id)
 
         # Verify after deactivated.
         verify1_deactivated_resp = await self.vault.jwt_verify(jws_v1)
+        assert verify1_deactivated_resp.result
         self.assertTrue(verify1_deactivated_resp.result.valid_signature)
 
-    async def test_generate_asym_signing_all_params(self):
-        algorithms = [
-            AsymmetricAlgorithm.Ed25519,
-            AsymmetricAlgorithm.RSA2048_PKCS1V15_SHA256,
-        ]
-        purpose = KeyPurpose.SIGNING
+    async def test_generate_asym_signing_all_params(self) -> None:
+        algorithms = list(AsymmetricKeySigningAlgorithm)
+        purpose = AsymmetricKeyPurpose.SIGNING
         for a in algorithms:
-            id = await self.asym_generate_all_params(algorithm=a, purpose=purpose)
-            await self.vault.delete(id=id)
+            print(f"Test {get_function_name()}. Generate {a} {purpose}...")
+            item_id = await self.asym_generate_all_params(algorithm=a, purpose=purpose)
+            await self.vault.delete(item_id=item_id)
 
-    async def test_generate_asym_encrypting_all_params(self):
-        algorithms = [
-            AsymmetricAlgorithm.RSA2048_OAEP_SHA256,
-        ]
-        purpose = KeyPurpose.ENCRYPTION
+    async def test_generate_asym_encrypting_all_params(self) -> None:
+        algorithms = list(AsymmetricKeyEncryptionAlgorithm)
+        purpose = AsymmetricKeyPurpose.ENCRYPTION
         for a in algorithms:
-            id = await self.asym_generate_all_params(algorithm=a, purpose=purpose)
-            await self.vault.delete(id=id)
+            print(f"Test {get_function_name()}. Generate {a} {purpose}...")
+            item_id = await self.asym_generate_all_params(algorithm=a, purpose=purpose)
+            await self.vault.delete(item_id=item_id)
 
-    async def test_generate_sym_encrypting_all_params(self):
-        algorithms = [
-            SymmetricAlgorithm.AES,
-        ]
-        purpose = KeyPurpose.ENCRYPTION
+    async def test_generate_sym_encrypting_all_params(self) -> None:
+        algorithms = list(SymmetricKeyEncryptionAlgorithm)
+        purpose = SymmetricKeyPurpose.ENCRYPTION
         for a in algorithms:
-            id = await self.sym_generate_all_params(algorithm=a, purpose=purpose)
-            await self.vault.delete(id=id)
+            print(f"Test {get_function_name()}. Generate {a} {purpose}...")
+            item_id = await self.sym_generate_all_params(algorithm=a, purpose=purpose)
+            await self.vault.delete(item_id=item_id)
 
-    async def test_asym_encrypting_life_cycle(self):
-        algorithms = [
-            AsymmetricAlgorithm.RSA2048_OAEP_SHA256,
-        ]
-        purpose = KeyPurpose.ENCRYPTION
+    async def test_asym_encrypting_life_cycle(self) -> None:
+        algorithms = [AsymmetricKeyEncryptionAlgorithm.RSA_OAEP_2048_SHA256]
+        purpose = AsymmetricKeyPurpose.ENCRYPTION
         for algorithm in algorithms:
-            id = await self.asym_generate_default(algorithm=algorithm, purpose=purpose)
+            item_id = await self.asym_generate_default(algorithm=algorithm, purpose=purpose)
             try:
-                await self.encrypting_cycle(id)
-                await self.vault.delete(id=id)
-            except pe.PangeaAPIException as e:
-                print(f"Failed test_asym_encrypting_life_cycle with {algorithm}")
-                print(e)
-                await self.vault.delete(id=id)
-                self.assertTrue(False)
-
-    async def test_asym_signing_life_cycle(self):
-        algorithms = [
-            AsymmetricAlgorithm.Ed25519,
-            AsymmetricAlgorithm.RSA2048_PKCS1V15_SHA256,
-        ]
-        purpose = KeyPurpose.SIGNING
-        for algorithm in algorithms:
-            id = await self.asym_generate_default(algorithm=algorithm, purpose=purpose)
-            try:
-                await self.signing_cycle(id)
-                await self.vault.delete(id=id)
-            except pe.PangeaAPIException as e:
+                await self.encrypting_cycle(item_id)
+            except pe.PangeaAPIException:
                 print(f"Failed {get_function_name()} with {algorithm}")
-                print(e)
-                await self.vault.delete(id=id)
-                self.assertTrue(False)
+                raise
+            finally:
+                await self.vault.delete(item_id=item_id)
 
-    async def test_sym_encrypting_life_cycle(self):
-        algorithms = [
-            SymmetricAlgorithm.AES128_CBC,
-            SymmetricAlgorithm.AES256_CBC,
-            SymmetricAlgorithm.AES128_CFB,
-            SymmetricAlgorithm.AES256_CFB,
-            SymmetricAlgorithm.AES256_GCM,
-        ]
-        purpose = KeyPurpose.ENCRYPTION
+    async def test_asym_signing_life_cycle(self) -> None:
+        algorithms = [AsymmetricKeySigningAlgorithm.ED25519, AsymmetricKeySigningAlgorithm.RSA_PKCS1V15_2048_SHA256]
+        purpose = AsymmetricKeyPurpose.SIGNING
         for algorithm in algorithms:
-            id = await self.sym_generate_default(algorithm=algorithm, purpose=purpose)
+            item_id = await self.asym_generate_default(algorithm=algorithm, purpose=purpose)
             try:
-                await self.encrypting_cycle(id)
-                await self.vault.delete(id=id)
-            except pe.PangeaAPIException as e:
+                await self.signing_cycle(item_id)
+            except pe.PangeaAPIException:
                 print(f"Failed {get_function_name()} with {algorithm}")
-                print(e)
-                await self.vault.delete(id=id)
-                self.assertTrue(False)
+                raise
+            finally:
+                await self.vault.delete(item_id=item_id)
 
-    async def test_secret_life_cycle(self):
-        name = name = get_name()
-        create_resp = await self.vault.secret_store(secret="hello world", name=name)
+    async def test_sym_encrypting_life_cycle(self) -> None:
+        algorithms = list(SymmetricKeyEncryptionAlgorithm)
+        purpose = SymmetricKeyPurpose.ENCRYPTION
+        for algorithm in algorithms:
+            item_id = await self.sym_generate_default(algorithm=algorithm, purpose=purpose)
+            try:
+                await self.encrypting_cycle(item_id, key_type=ItemType.SYMMETRIC_KEY)
+            except pe.PangeaAPIException:
+                print(f"Failed {get_function_name()} with {algorithm}")
+                raise
+            finally:
+                await self.vault.delete(item_id=item_id)
+
+    async def test_secret_life_cycle(self) -> None:
+        name = get_name()
+        create_resp = await self.vault.store_secret(secret="hello world", name=name)
+        assert create_resp.result
         id = create_resp.result.id
-        secret_v1 = create_resp.result.secret
         self.assertIsNotNone(id)
-        self.assertEqual(1, create_resp.result.version)
         self.assertEqual(ItemType.SECRET, create_resp.result.type)
 
-        rotate_resp = await self.vault.secret_rotate(id=id, secret="new hello world")
-        secret_v2 = rotate_resp.result.secret
+        rotate_resp = await self.vault.rotate_secret(id, secret="new hello world")
+        assert rotate_resp.result
         self.assertEqual(id, rotate_resp.result.id)
-        self.assertEqual(2, rotate_resp.result.version)
         self.assertEqual(ItemType.SECRET, rotate_resp.result.type)
-        self.assertNotEqual(secret_v1, secret_v2)
 
         get_resp = await self.vault.get(id)
-        self.assertEqual(0, len(get_resp.result.versions))
-        self.assertEqual(2, get_resp.result.current_version.version)
-        self.assertEqual(secret_v2, get_resp.result.current_version.secret)
-        self.assertEqual(ItemType.SECRET, get_resp.result.type)
+        assert get_resp.result
+        assert get_resp.result.type == ItemType.SECRET
+        self.assertEqual(1, len(get_resp.result.item_versions))
+        self.assertEqual(2, get_resp.result.item_versions[0].version)
 
         # update
         update_resp = await self.vault.update(id, folder="updated")
+        assert update_resp.result
         self.assertEqual(id, update_resp.result.id)
 
         state_change_resp = await self.vault.state_change(id, ItemVersionState.DEACTIVATED, version=2)
+        assert state_change_resp.result
         self.assertEqual(id, state_change_resp.result.id)
 
         # This should fail because secret was deactivated
         get_resp = await self.vault.get(id)
+        assert get_resp.result
+        assert get_resp.result.type == ItemType.SECRET
         self.assertEqual(id, get_resp.result.id)
-        self.assertEqual(0, len(get_resp.result.versions))
-        self.assertEqual(ItemVersionState.DEACTIVATED.value, get_resp.result.current_version.state)
+        self.assertEqual(1, len(get_resp.result.item_versions))
+        self.assertEqual(ItemVersionState.DEACTIVATED, get_resp.result.item_versions[0].state)
 
-    async def test_jwt_asym_life_cycle(self):
-        # Create
-        algorithms = [
-            AsymmetricAlgorithm.ES256,
-            AsymmetricAlgorithm.ES384,
-            AsymmetricAlgorithm.ES512,
-        ]
-        purpose = KeyPurpose.JWT
+    async def test_jwt_asym_life_cycle(self) -> None:
+        algorithms = list(AsymmetricKeyJwtAlgorithm)
+        purpose = AsymmetricKeyPurpose.JWT
         for algorithm in algorithms:
-            id = await self.asym_generate_default(algorithm=algorithm, purpose=purpose)
+            key_id = await self.asym_generate_default(algorithm=algorithm, purpose=purpose)
             try:
-                await self.jwt_asym_signing_cycle(id)
-                await self.vault.delete(id=id)
-            except pe.PangeaAPIException as e:
+                await self.jwt_asym_signing_cycle(key_id)
+            except pe.PangeaAPIException:
                 print(f"Failed {get_function_name()} with {algorithm}")
-                print(e)
-                await self.vault.delete(id=id)
-                self.assertTrue(False)
+                raise
+            finally:
+                await self.vault.delete(item_id=key_id)
 
-    async def test_jwt_sym_life_cycle(self):
+    async def test_jwt_sym_life_cycle(self) -> None:
         # Create
-        algorithms = [
-            SymmetricAlgorithm.HS256,
-            SymmetricAlgorithm.HS384,
-            SymmetricAlgorithm.HS512,
-        ]
-        purpose = KeyPurpose.JWT
+        algorithms = list(SymmetricKeyJwtAlgorithm)
+        purpose = SymmetricKeyPurpose.JWT
         for algorithm in algorithms:
-            id = await self.sym_generate_default(algorithm=algorithm, purpose=purpose)
+            key_id = await self.sym_generate_default(algorithm=algorithm, purpose=purpose)
             try:
-                await self.jwt_sym_signing_cycle(id)
-                await self.vault.delete(id=id)
-            except pe.PangeaAPIException as e:
+                await self.jwt_sym_signing_cycle(key_id)
+            except pe.PangeaAPIException:
                 print(f"Failed {get_function_name()} with {algorithm}")
-                print(e)
-                await self.vault.delete(id=id)
-                self.assertTrue(False)
+                raise
+            finally:
+                await self.vault.delete(item_id=key_id)
 
-    async def test_list(self):
+    async def test_list(self) -> None:
         list_resp = await self.vault.list()
+        assert list_resp.result
         self.assertGreater(list_resp.result.count, 0)
         self.assertGreater(len(list_resp.result.items), 0)
 
         for i in list_resp.result.items:
             try:
-                if i.id is not None and i.type != "folder":
+                if (
+                    i.id is not None and i.type != "folder" and i.folder != "/service-tokens/"
+                ):  # Skip service token deletion
                     del_resp = await self.vault.delete(i.id)
+                    assert del_resp.result
                     self.assertEqual(i.id, del_resp.result.id)
             except pe.PangeaAPIException as e:
                 print(i)
                 print(e)
 
-    async def test_folders(self):
+    async def test_folders(self) -> None:
         FOLDER_PARENT = f"test_parent_folder_{TIME}/"
         FOLDER_NAME = "test_folder_name"
         FOLDER_NAME_NEW = "test_folder_name_new"
 
         # Create parent
         create_parent_resp = await self.vault.folder_create(name=FOLDER_PARENT, folder="/")
+        assert create_parent_resp.result
         self.assertIsNotNone(create_parent_resp.result.id)
 
         # Create folder
         create_folder_resp = await self.vault.folder_create(name=FOLDER_NAME, folder=FOLDER_PARENT)
+        assert create_folder_resp.result
         self.assertIsNotNone(create_folder_resp.result.id)
 
         # Update name
-        update_folder_resp = await self.vault.update(id=create_folder_resp.result.id, name=FOLDER_NAME_NEW)
+        update_folder_resp = await self.vault.update(item_id=create_folder_resp.result.id, name=FOLDER_NAME_NEW)
+        assert update_folder_resp.result
         self.assertEqual(create_folder_resp.result.id, update_folder_resp.result.id)
 
         # List
         list_resp = await self.vault.list(filter={"folder": FOLDER_PARENT})
+        assert list_resp.result
         self.assertEqual(1, list_resp.result.count)
         self.assertEqual(create_folder_resp.result.id, list_resp.result.items[0].id)
         self.assertEqual("folder", list_resp.result.items[0].type)
         self.assertEqual(FOLDER_NAME_NEW, list_resp.result.items[0].name)
 
         # Delete folder
-        delete_resp = await self.vault.delete(id=update_folder_resp.result.id)
+        delete_resp = await self.vault.delete(item_id=update_folder_resp.result.id)
+        assert delete_resp.result
         self.assertEqual(delete_resp.result.id, update_folder_resp.result.id)
 
         # Delete parent folder
-        delete_resp = await self.vault.delete(id=create_parent_resp.result.id)
+        delete_resp = await self.vault.delete(item_id=create_parent_resp.result.id)
+        assert delete_resp.result
         self.assertEqual(delete_resp.result.id, create_parent_resp.result.id)
 
-    async def test_encrypt_structured(self):
-        key = await self.vault.symmetric_generate(
-            algorithm=SymmetricAlgorithm.AES256_CFB, purpose=KeyPurpose.ENCRYPTION, name=get_name()
+    async def test_encrypt_structured(self) -> None:
+        key = await self.vault.generate_key(
+            key_type=ItemType.SYMMETRIC_KEY,
+            purpose=SymmetricKeyPurpose.ENCRYPTION,
+            algorithm=SymmetricKeyEncryptionAlgorithm.AES_CFB_256,
+            name=get_name(),
         )
-        self.assertIsNotNone(key.result)
+        assert key.result
 
-        data: dict[str, str | list[bool | str]] = {"field1": [1, 2, "true", "false"], "field2": "data2"}
+        data: dict[str, str | list[int | str]] = {"field1": [1, 2, "true", "false"], "field2": "data2"}
 
-        encrypted = await self.vault.encrypt_structured(id=key.result.id, structured_data=data, filter="$.field1[2:4]")
-        self.assertIsNotNone(encrypted.result)
+        encrypted = await self.vault.encrypt_structured(
+            key_id=key.result.id, structured_data=data, filter_expr="$.field1[2:4]"
+        )
+        assert encrypted.result
 
         encrypted_data = encrypted.result.structured_data
         self.assertIn("field1", encrypted_data)
@@ -659,28 +756,25 @@ class TestVault(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(data["field2"], encrypted_data["field2"])
 
         decrypted = await self.vault.decrypt_structured(
-            id=key.result.id, structured_data=encrypted_data, filter="$.field1[2:4]"
+            key_id=key.result.id, structured_data=encrypted_data, filter_expr="$.field1[2:4]"
         )
-        self.assertIsNotNone(decrypted.result)
+        assert decrypted.result
 
         decrypted_data = decrypted.result.structured_data
         self.assertDictEqual(data, decrypted_data)
 
     async def test_sym_fpe_encrypting_life_cycle(self) -> None:
-        algorithms = [
-            SymmetricAlgorithm.AES128_FF3_1_BETA,
-            SymmetricAlgorithm.AES256_FF3_1_BETA,
-        ]
-        purpose = KeyPurpose.FPE
+        algorithms = list(SymmetricKeyFpeAlgorithm)
+        purpose = SymmetricKeyPurpose.FPE
         for algorithm in algorithms:
-            id = await self.sym_generate_default(algorithm=algorithm, purpose=purpose)
+            key_id = await self.sym_generate_default(algorithm=algorithm, purpose=purpose)
             try:
-                await self.encrypting_cycle_fpe(id)
-                await self.vault.delete(id=id)
+                await self.encrypting_cycle_fpe(key_id)
+                await self.vault.delete(item_id=key_id)
             except pe.PangeaAPIException as e:
                 print(f"Failed {get_function_name()} with {algorithm}")
                 print(e)
-                await self.vault.delete(id=id)
+                await self.vault.delete(item_id=key_id)
                 self.fail()
 
     async def encrypting_cycle_fpe(self, id: str) -> None:
@@ -689,23 +783,28 @@ class TestVault(unittest.IsolatedAsyncioTestCase):
 
         # Encrypt 1
         encrypt1_resp = await self.vault.encrypt_transform(
-            id=id, plain_text=msg, tweak=tweak, alphabet=TransformAlphabet.ALPHANUMERIC
+            item_id=id, plain_text=msg, tweak=tweak, alphabet=TransformAlphabet.ALPHANUMERIC
         )
-
+        assert encrypt1_resp.result
         self.assertEqual(id, encrypt1_resp.result.id)
         self.assertEqual(1, encrypt1_resp.result.version)
         cipher_v1 = encrypt1_resp.result.cipher_text
         self.assertIsNotNone(cipher_v1)
 
         # Rotate
-        rotate_resp = await self.vault.key_rotate(id=id, rotation_state=ItemVersionState.SUSPENDED)
-        self.assertEqual(2, rotate_resp.result.version)
+        rotate_resp = await self.vault.rotate_key(
+            id, key_type=ItemType.SYMMETRIC_KEY, rotation_state=RequestManualRotationState.SUSPENDED
+        )
+        assert rotate_resp.result
+        self.assertEqual(1, len(rotate_resp.result.item_versions))
+        self.assertEqual(2, rotate_resp.result.item_versions[0].version)
         self.assertEqual(id, rotate_resp.result.id)
 
         # Encrypt 2
         encrypt2_resp = await self.vault.encrypt_transform(
-            id=id, plain_text=msg, tweak=tweak, alphabet=TransformAlphabet.ALPHANUMERIC
+            item_id=id, plain_text=msg, tweak=tweak, alphabet=TransformAlphabet.ALPHANUMERIC
         )
+        assert encrypt2_resp.result
         self.assertEqual(id, encrypt2_resp.result.id)
         self.assertEqual(2, encrypt2_resp.result.version)
         cipher_v2 = encrypt2_resp.result.cipher_text
@@ -713,56 +812,63 @@ class TestVault(unittest.IsolatedAsyncioTestCase):
 
         # Decrypt 1
         decrypt1_resp = await self.vault.decrypt_transform(
-            id=id, cipher_text=cipher_v1, tweak=tweak, alphabet=TransformAlphabet.ALPHANUMERIC, version=1
+            item_id=id, cipher_text=cipher_v1, tweak=tweak, alphabet=TransformAlphabet.ALPHANUMERIC, version=1
         )
+        assert decrypt1_resp.result
         self.assertEqual(msg, decrypt1_resp.result.plain_text)
 
         # Decrypt 2
         decrypt2_resp = await self.vault.decrypt_transform(
-            id=id, cipher_text=cipher_v2, tweak=tweak, alphabet=TransformAlphabet.ALPHANUMERIC, version=2
+            item_id=id, cipher_text=cipher_v2, tweak=tweak, alphabet=TransformAlphabet.ALPHANUMERIC, version=2
         )
+        assert decrypt2_resp.result
         self.assertTrue(msg, decrypt2_resp.result.plain_text)
 
         # Update
         update_resp = await self.vault.update(id, folder="updated")
+        assert update_resp.result
         self.assertEqual(id, update_resp.result.id)
 
         # Decrypt default version
         decrypt_default_resp = await self.vault.decrypt_transform(
-            id=id, cipher_text=cipher_v2, tweak=tweak, alphabet=TransformAlphabet.ALPHANUMERIC
+            item_id=id, cipher_text=cipher_v2, tweak=tweak, alphabet=TransformAlphabet.ALPHANUMERIC
         )
+        assert decrypt_default_resp.result
         self.assertEqual(msg, decrypt_default_resp.result.plain_text)
 
         # Deactivate key
         change_state_resp = await self.vault.state_change(id, ItemVersionState.DEACTIVATED, version=1)
+        assert change_state_resp.result
         self.assertEqual(id, change_state_resp.result.id)
 
         # Decrypt after deactivated.
         decrypt1_deactivated_resp = await self.vault.decrypt_transform(
-            id=id, cipher_text=cipher_v1, tweak=tweak, alphabet=TransformAlphabet.ALPHANUMERIC, version=1
+            item_id=id, cipher_text=cipher_v1, tweak=tweak, alphabet=TransformAlphabet.ALPHANUMERIC, version=1
         )
+        assert decrypt1_deactivated_resp.result
         self.assertEqual(msg, decrypt1_deactivated_resp.result.plain_text)
 
     async def test_export_generate_asymmetric(self) -> None:
         name = get_name()
-        algorithm = AsymmetricAlgorithm.Ed25519
-        purpose = KeyPurpose.SIGNING
-        response = await self.vault.asymmetric_generate(
-            algorithm=algorithm, purpose=purpose, name=name, exportable=True
+        algorithm = AsymmetricKeySigningAlgorithm.ED25519
+        purpose = AsymmetricKeyPurpose.SIGNING
+        response = await self.vault.generate_key(
+            key_type=ItemType.ASYMMETRIC_KEY, algorithm=algorithm, purpose=purpose, name=name, exportable=True
         )
-        id = response.result.id
-        self.assertIsNotNone(id)
+        assert response.result
+        key_id = response.result.id
+        self.assertIsNotNone(key_id)
         self.assertEqual(ItemType.ASYMMETRIC_KEY.value, response.result.type)
 
         # export no encryption
-        exp_resp = await self.vault.export(id=id, version=1)
-        self.assertEqual(id, exp_resp.result.id)
+        exp_resp = await self.vault.export(item_id=key_id)
+        assert exp_resp.result
+        self.assertEqual(key_id, exp_resp.result.id)
         self.assertEqual(1, exp_resp.result.version)
-        self.assertEqual("asymmetric_key", exp_resp.result.type)
-        self.assertFalse(exp_resp.result.encrypted)
-        self.assertIsNone(exp_resp.result.key)
-        self.assertIsNotNone(exp_resp.result.public_key)
-        self.assertIsNotNone(exp_resp.result.private_key)
+        self.assertEqual(ItemType.ASYMMETRIC_KEY, exp_resp.result.type)
+        self.assertEqual(ExportEncryptionType.NONE, exp_resp.result.encryption_type)
+        assert exp_resp.result.public_key
+        assert exp_resp.result.private_key
 
         # generate key pair
         rsa_priv_key, rsa_pub_key = rsa.generate_key_pair()
@@ -770,43 +876,46 @@ class TestVault(unittest.IsolatedAsyncioTestCase):
 
         # export with encryption
         exp_encrypted_resp = await self.vault.export(
-            id=id,
-            version=1,
-            encryption_key=rsa_pub_key_pem,
-            encryption_algorithm=ExportEncryptionAlgorithm.RSA4096_OAEP_SHA512,
+            item_id=key_id,
+            asymmetric_public_key=rsa_pub_key_pem.decode("utf-8"),
+            asymmetric_algorithm=ExportEncryptionAlgorithm.RSA4096_OAEP_SHA512,
         )
-        self.assertEqual(id, exp_encrypted_resp.result.id)
+        assert exp_encrypted_resp.result
+        self.assertEqual(key_id, exp_encrypted_resp.result.id)
         self.assertEqual(1, exp_encrypted_resp.result.version)
-        self.assertEqual("asymmetric_key", exp_encrypted_resp.result.type)
-        self.assertTrue(exp_encrypted_resp.result.encrypted)
+        self.assertEqual(ItemType.ASYMMETRIC_KEY, exp_encrypted_resp.result.type)
+        self.assertEqual(ExportEncryptionType.ASYMMETRIC, exp_encrypted_resp.result.encryption_type)
+        assert exp_encrypted_resp.result.private_key
 
         # Decrypt key
-        exp_pub_key_decoded = str_b64_2bytes(exp_encrypted_resp.result.public_key)
         exp_priv_key_decoded = str_b64_2bytes(exp_encrypted_resp.result.private_key)
         exp_priv_key_pem = rsa.decrypt_sha512(rsa_priv_key, exp_priv_key_decoded)
-        exp_pub_key_pem = rsa.decrypt_sha512(rsa_priv_key, exp_pub_key_decoded)
 
         self.assertEqual(exp_priv_key_pem, exp_resp.result.private_key.encode("utf-8"))
-        self.assertEqual(exp_pub_key_pem, exp_resp.result.public_key.encode("utf-8"))
+        self.assertEqual(exp_encrypted_resp.result.public_key, exp_resp.result.public_key)
 
     async def test_export_generate_symmetric(self) -> None:
         name = get_name()
-        algorithm = SymmetricAlgorithm.AES128_CBC
-        purpose = KeyPurpose.ENCRYPTION
-        response = await self.vault.symmetric_generate(algorithm=algorithm, purpose=purpose, name=name, exportable=True)
-        id = response.result.id
-        self.assertIsNotNone(id)
-        self.assertEqual(ItemType.SYMMETRIC_KEY.value, response.result.type)
+        algorithm = SymmetricKeyEncryptionAlgorithm.AES_CBC_128
+        purpose = SymmetricKeyPurpose.ENCRYPTION
+        response = await self.vault.generate_key(
+            key_type=ItemType.SYMMETRIC_KEY, algorithm=algorithm, purpose=purpose, name=name, exportable=True
+        )
+        assert response.result
+        key_id = response.result.id
+        self.assertIsNotNone(key_id)
+        self.assertEqual(ItemType.SYMMETRIC_KEY, response.result.type)
 
         # export no encryption
-        exp_resp = await self.vault.export(id=id, version=1)
-        self.assertEqual(id, exp_resp.result.id)
+        exp_resp = await self.vault.export(item_id=key_id)
+        assert exp_resp.result
+        self.assertEqual(key_id, exp_resp.result.id)
         self.assertEqual(1, exp_resp.result.version)
-        self.assertEqual("symmetric_key", exp_resp.result.type)
-        self.assertFalse(exp_resp.result.encrypted)
+        self.assertEqual(ItemType.SYMMETRIC_KEY, exp_resp.result.type)
+        self.assertEqual(ExportEncryptionType.NONE, exp_resp.result.encryption_type)
         self.assertIsNone(exp_resp.result.public_key)
         self.assertIsNone(exp_resp.result.private_key)
-        self.assertIsNotNone(exp_resp.result.key)
+        assert exp_resp.result.key
 
         # generate key pair
         rsa_priv_key, rsa_pub_key = rsa.generate_key_pair()
@@ -814,15 +923,17 @@ class TestVault(unittest.IsolatedAsyncioTestCase):
 
         # export with encryption
         exp_encrypted_resp = await self.vault.export(
-            id=id,
+            item_id=key_id,
             version=1,
-            encryption_key=rsa_pub_key_pem,
-            encryption_algorithm=ExportEncryptionAlgorithm.RSA4096_OAEP_SHA512,
+            asymmetric_public_key=rsa_pub_key_pem.decode("utf-8"),
+            asymmetric_algorithm=ExportEncryptionAlgorithm.RSA4096_OAEP_SHA512,
         )
-        self.assertEqual(id, exp_encrypted_resp.result.id)
+        assert exp_encrypted_resp.result
+        self.assertEqual(key_id, exp_encrypted_resp.result.id)
         self.assertEqual(1, exp_encrypted_resp.result.version)
-        self.assertEqual("symmetric_key", exp_encrypted_resp.result.type)
-        self.assertTrue(exp_encrypted_resp.result.encrypted)
+        self.assertEqual(ItemType.SYMMETRIC_KEY, exp_encrypted_resp.result.type)
+        self.assertEqual(ExportEncryptionType.ASYMMETRIC, exp_encrypted_resp.result.encryption_type)
+        assert exp_encrypted_resp.result.key
 
         # Decrypt key
         exp_key_decoded = str_b64_2bytes(exp_encrypted_resp.result.key)
@@ -832,26 +943,28 @@ class TestVault(unittest.IsolatedAsyncioTestCase):
 
     async def test_export_store_asymmetric(self) -> None:
         name = get_name()
-        purpose = KeyPurpose.SIGNING
-        response = await self.vault.asymmetric_store(
+        purpose = AsymmetricKeyPurpose.SIGNING
+        response = await self.vault.store_key(  # type: ignore[call-overload]
+            key_type=ItemType.ASYMMETRIC_KEY,
             name=name,
             purpose=purpose,
             exportable=True,
             **KEY_ED25519,
         )
-        id = response.result.id
-        self.assertIsNotNone(id)
+        assert response.result
+        key_id = response.result.id
+        self.assertIsNotNone(key_id)
         self.assertEqual(ItemType.ASYMMETRIC_KEY.value, response.result.type)
 
         # export no encryption
-        exp_resp = await self.vault.export(id=id, version=1)
-        self.assertEqual(id, exp_resp.result.id)
+        exp_resp = await self.vault.export(item_id=key_id)
+        assert exp_resp.result
+        self.assertEqual(key_id, exp_resp.result.id)
         self.assertEqual(1, exp_resp.result.version)
-        self.assertEqual("asymmetric_key", exp_resp.result.type)
-        self.assertFalse(exp_resp.result.encrypted)
-        self.assertIsNone(exp_resp.result.key)
-        self.assertIsNotNone(exp_resp.result.public_key)
-        self.assertIsNotNone(exp_resp.result.private_key)
+        self.assertEqual(ItemType.ASYMMETRIC_KEY, exp_resp.result.type)
+        self.assertEqual(ExportEncryptionType.NONE, exp_resp.result.encryption_type)
+        assert exp_resp.result.public_key
+        assert exp_resp.result.private_key
 
         # generate key pair
         rsa_priv_key, rsa_pub_key = rsa.generate_key_pair()
@@ -859,43 +972,47 @@ class TestVault(unittest.IsolatedAsyncioTestCase):
 
         # export with encryption
         exp_encrypted_resp = await self.vault.export(
-            id=id,
-            version=1,
-            encryption_key=rsa_pub_key_pem,
-            encryption_algorithm=ExportEncryptionAlgorithm.RSA4096_OAEP_SHA512,
+            item_id=key_id,
+            asymmetric_public_key=rsa_pub_key_pem.decode("utf-8"),
+            asymmetric_algorithm=ExportEncryptionAlgorithm.RSA4096_OAEP_SHA512,
         )
-        self.assertEqual(id, exp_encrypted_resp.result.id)
+        assert exp_encrypted_resp.result
+        self.assertEqual(key_id, exp_encrypted_resp.result.id)
         self.assertEqual(1, exp_encrypted_resp.result.version)
-        self.assertEqual("asymmetric_key", exp_encrypted_resp.result.type)
-        self.assertTrue(exp_encrypted_resp.result.encrypted)
+        self.assertEqual(ItemType.ASYMMETRIC_KEY, exp_encrypted_resp.result.type)
+        self.assertEqual(ExportEncryptionType.ASYMMETRIC, exp_encrypted_resp.result.encryption_type)
+        assert exp_encrypted_resp.result.public_key
+        assert exp_encrypted_resp.result.private_key
 
         # Decrypt key
-        exp_pub_key_decoded = str_b64_2bytes(exp_encrypted_resp.result.public_key)
         exp_priv_key_decoded = str_b64_2bytes(exp_encrypted_resp.result.private_key)
         exp_priv_key_pem = rsa.decrypt_sha512(rsa_priv_key, exp_priv_key_decoded)
-        exp_pub_key_pem = rsa.decrypt_sha512(rsa_priv_key, exp_pub_key_decoded)
 
         self.assertEqual(exp_priv_key_pem, exp_resp.result.private_key.encode("utf-8"))
-        self.assertEqual(exp_pub_key_pem, exp_resp.result.public_key.encode("utf-8"))
+        self.assertEqual(exp_resp.result.public_key, exp_encrypted_resp.result.public_key)
 
     async def test_export_store_symmetric(self) -> None:
         name = get_name()
-        response = await self.vault.symmetric_store(
-            **KEY_AES, purpose=KeyPurpose.ENCRYPTION, name=name, exportable=True
+        response = await self.vault.store_key(  # type: ignore[call-overload]
+            **KEY_AES,
+            key_type=ItemType.SYMMETRIC_KEY,
+            purpose=SymmetricKeyPurpose.ENCRYPTION,
+            name=name,
+            exportable=True,
         )
-        id = response.result.id
-        self.assertIsNotNone(id)
+        assert response.result
+        key_id = response.result.id
+        self.assertIsNotNone(key_id)
         self.assertEqual(ItemType.SYMMETRIC_KEY.value, response.result.type)
 
         # export no encryption
-        exp_resp = await self.vault.export(id=id, version=1)
-        self.assertEqual(id, exp_resp.result.id)
+        exp_resp = await self.vault.export(item_id=key_id, version=1)
+        assert exp_resp.result
+        self.assertEqual(key_id, exp_resp.result.id)
         self.assertEqual(1, exp_resp.result.version)
-        self.assertEqual("symmetric_key", exp_resp.result.type)
-        self.assertFalse(exp_resp.result.encrypted)
-        self.assertIsNone(exp_resp.result.public_key)
-        self.assertIsNone(exp_resp.result.private_key)
-        self.assertIsNotNone(exp_resp.result.key)
+        self.assertEqual(ItemType.SYMMETRIC_KEY, exp_resp.result.type)
+        self.assertEqual(ExportEncryptionType.NONE, exp_resp.result.encryption_type)
+        assert exp_resp.result.key
 
         # generate key pair
         rsa_priv_key, rsa_pub_key = rsa.generate_key_pair()
@@ -903,15 +1020,16 @@ class TestVault(unittest.IsolatedAsyncioTestCase):
 
         # export with encryption
         exp_encrypted_resp = await self.vault.export(
-            id=id,
-            version=1,
-            encryption_key=rsa_pub_key_pem,
-            encryption_algorithm=ExportEncryptionAlgorithm.RSA4096_OAEP_SHA512,
+            item_id=key_id,
+            asymmetric_public_key=rsa_pub_key_pem.decode("utf-8"),
+            asymmetric_algorithm=ExportEncryptionAlgorithm.RSA4096_OAEP_SHA512,
         )
-        self.assertEqual(id, exp_encrypted_resp.result.id)
+        assert exp_encrypted_resp.result
+        self.assertEqual(key_id, exp_encrypted_resp.result.id)
         self.assertEqual(1, exp_encrypted_resp.result.version)
-        self.assertEqual("symmetric_key", exp_encrypted_resp.result.type)
-        self.assertTrue(exp_encrypted_resp.result.encrypted)
+        self.assertEqual(ItemType.SYMMETRIC_KEY, exp_encrypted_resp.result.type)
+        self.assertEqual(ExportEncryptionType.ASYMMETRIC, exp_encrypted_resp.result.encryption_type)
+        assert exp_encrypted_resp.result.key
 
         # Decrypt key
         exp_key_decoded = str_b64_2bytes(exp_encrypted_resp.result.key)

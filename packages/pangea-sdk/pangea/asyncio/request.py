@@ -9,7 +9,8 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple, Type, Union
 
 import aiohttp
 from aiohttp import FormData
-from typing_extensions import TypeVar
+from pydantic import BaseModel
+from typing_extensions import Any, TypeVar
 
 import pangea.exceptions as pe
 from pangea.request import MultipartResponse, PangeaRequestBase
@@ -32,7 +33,7 @@ class PangeaRequestAsync(PangeaRequestBase):
         self,
         endpoint: str,
         result_class: Type[TResult],
-        data: Union[str, Dict] = {},
+        data: str | BaseModel | dict[str, Any] | None = None,
         files: Optional[List[Tuple]] = None,
         poll_result: bool = True,
         url: Optional[str] = None,
@@ -47,6 +48,13 @@ class PangeaRequestAsync(PangeaRequestBase):
             PangeaResponse which contains the response in its entirety and
                various properties to retrieve individual fields
         """
+
+        if isinstance(data, BaseModel):
+            data = data.model_dump(exclude_none=True)
+
+        if data is None:
+            data = {}
+
         if url is None:
             url = self._url(endpoint)
 
@@ -209,8 +217,7 @@ class PangeaRequestAsync(PangeaRequestBase):
                 )
 
                 return AttachedFile(filename=filename, file=await response.read(), content_type=content_type)
-            else:
-                raise pe.DownloadFileError(f"Failed to download file. Status: {response.status}", await response.text())
+            raise pe.DownloadFileError(f"Failed to download file. Status: {response.status}", await response.text())
 
     async def _get_pangea_json(self, reader: aiohttp.multipart.MultipartResponseWrapper) -> Optional[Dict[str, Any]]:
         # Iterate through parts
@@ -369,8 +376,7 @@ class PangeaRequestAsync(PangeaRequestBase):
 
         if loop_resp.accepted_result is not None and not loop_resp.accepted_result.has_upload_url:
             return loop_resp
-        else:
-            raise loop_exc
+        raise loop_exc
 
     async def _handle_queued_result(self, response: PangeaResponse) -> PangeaResponse:
         if self._queued_retry_enabled and response.http_status == 202:
