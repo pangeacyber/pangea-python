@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - `attributes` field in `/check` endpoint. Now it's a `Dict[str, Any]` 
+- Vault APIs have been updated to v2.
 
 ### Fixed
 
