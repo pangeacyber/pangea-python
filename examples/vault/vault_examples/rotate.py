@@ -4,6 +4,7 @@ from secrets import token_hex
 import pangea.exceptions as pe
 from pangea.config import PangeaConfig
 from pangea.services import Vault
+from pangea.services.vault.models.common import ItemType
 
 
 def main() -> None:
@@ -21,20 +22,20 @@ def main() -> None:
         name = f"Python secret example {token_hex(8)}"
 
         # Store a secret.
-        create_response = vault.secret_store(name=name, secret=secret_1)
+        create_response = vault.store_secret(name=name, secret=secret_1)
         assert create_response.result
         secret_id = create_response.result.id
         print(f"Created success. ID: {secret_id}")
 
         # Rotate the secret.
-        vault.secret_rotate(secret_id, secret_2)
+        vault.rotate_secret(secret_id, secret_2)
 
         # Retrieve the latest version.
         get_response = vault.get(secret_id)
         assert get_response.result
-        assert get_response.result.current_version
+        assert get_response.result.type == ItemType.SECRET
 
-        if get_response.result.current_version.secret == secret_2:
+        if get_response.result.item_versions[0].secret == secret_2:
             print("version 2 ok")
         else:
             print("version 2 is wrong")
@@ -42,8 +43,9 @@ def main() -> None:
         # Retrieve version 1 of the secret.
         get_response = vault.get(secret_id, version=1)
         assert get_response.result
+        assert get_response.result.type == ItemType.SECRET
 
-        if get_response.result.versions[0].secret == secret_1:
+        if get_response.result.item_versions[0].secret == secret_1:
             print("version 1 ok")
         else:
             print("version 1 is wrong")

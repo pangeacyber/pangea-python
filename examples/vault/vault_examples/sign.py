@@ -4,8 +4,11 @@ from secrets import token_hex
 import pangea.exceptions as pe
 from pangea.config import PangeaConfig
 from pangea.services import Vault
-from pangea.services.vault.models.asymmetric import AsymmetricAlgorithm
-from pangea.services.vault.models.common import KeyPurpose
+from pangea.services.vault.models.asymmetric import (
+    AsymmetricKeyPurpose,
+    AsymmetricKeySigningAlgorithm,
+)
+from pangea.services.vault.models.common import ItemType
 from pangea.utils import str2str_b64
 
 
@@ -22,8 +25,11 @@ def main() -> None:
         name = f"Python sign example {token_hex(8)}"
 
         # Create an asymmetric key with the default parameters.
-        create_response = vault.asymmetric_generate(
-            algorithm=AsymmetricAlgorithm.Ed25519, purpose=KeyPurpose.SIGNING, name=name
+        create_response = vault.generate_key(
+            key_type=ItemType.ASYMMETRIC_KEY,
+            algorithm=AsymmetricKeySigningAlgorithm.ED25519,
+            purpose=AsymmetricKeyPurpose.SIGNING,
+            name=name,
         )
         assert create_response.result
         key_id = create_response.result.id

@@ -2,16 +2,9 @@ import unittest
 
 from pangea.services.audit.models import EventVerification, SearchOrder, SearchOrderBy
 from pangea.services.intel import HashType
-from pangea.services.vault.models.common import (
-    AsymmetricAlgorithm,
-    ItemOrder,
-    ItemOrderBy,
-    ItemState,
-    ItemType,
-    ItemVersionState,
-    KeyPurpose,
-    SymmetricAlgorithm,
-)
+from pangea.services.vault.models.asymmetric import AsymmetricKeyPurpose, AsymmetricKeySigningAlgorithm
+from pangea.services.vault.models.common import ItemOrder, ItemOrderBy, ItemState, ItemType, ItemVersionState
+from pangea.services.vault.models.symmetric import SymmetricKeyEncryptionAlgorithm
 from pangea.tools import TestEnvironment
 
 
@@ -34,38 +27,30 @@ class TestEnums(unittest.TestCase):
         repr(hash_type)
         self.assertEqual(str(hash_type), "sha256")
 
-    def test_vault_enums(self):
-        kp = KeyPurpose.ENCRYPTION
-        repr(kp)
-        self.assertEqual(str(kp), "encryption")
+    def test_vault_enums(self) -> None:
+        kp = AsymmetricKeyPurpose.ENCRYPTION
+        self.assertEqual(kp, "encryption")
 
-        aa = AsymmetricAlgorithm.Ed25519
-        repr(aa)
-        self.assertEqual(str(aa), "ED25519")
+        aa = AsymmetricKeySigningAlgorithm.ED25519
+        self.assertEqual(aa, "ED25519")
 
-        sa = SymmetricAlgorithm.AES
-        repr(sa)
-        self.assertEqual(str(sa), "AES-CFB-128")
+        sa = SymmetricKeyEncryptionAlgorithm.AES_CFB_128
+        self.assertEqual(sa, "AES-CFB-128")
 
         io = ItemOrder.ASC
-        repr(io)
-        self.assertEqual(str(io), "asc")
+        self.assertEqual(io, "asc")
 
         iob = ItemOrderBy.CREATED_AT
-        repr(iob)
-        self.assertEqual(str(iob), "created_at")
+        self.assertEqual(iob, "created_at")
 
         it = ItemType.ASYMMETRIC_KEY
-        repr(it)
-        self.assertEqual(str(it), "asymmetric_key")
+        self.assertEqual(it, "asymmetric_key")
 
         ivs = ItemVersionState.ACTIVE
-        repr(ivs)
-        self.assertEqual(str(ivs), "active")
+        self.assertEqual(ivs, "active")
 
         item_state = ItemState.DISABLED
-        repr(item_state)
-        self.assertEqual(str(item_state), "disabled")
+        self.assertEqual(item_state, "disabled")
 
     def test_tools_enums(self):
         te = TestEnvironment.DEVELOP
