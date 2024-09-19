@@ -23,7 +23,7 @@ share = ShareAsync(token, config=config)
 async def main():
     try:
         print("Creating folder...")
-        resp_create = await share.folder_create(path=path)
+        resp_create = await share.folder_create(folder=path)
 
         id = resp_create.result.object.id
         print(f"Folder created. ID: {id}")

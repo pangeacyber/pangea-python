@@ -103,9 +103,6 @@ class DeleteRequest(APIRequestModel):
     force: Optional[bool] = None
     """If true, delete a folder even if it's not empty. Deletes the contents of folder as well."""
 
-    path: Optional[str] = None
-    """The path of the object to delete."""
-
     bucket_id: Optional[str] = None
     """The bucket to use, if not the default."""
 
@@ -178,8 +175,8 @@ class FolderCreateRequest(APIRequestModel):
     parent_id: Optional[str] = None
     """The ID of a stored object."""
 
-    path: Optional[str] = None
-    """An case-sensitive path to an object. Contains a sequence of path segments delimited by the / character. Any path ending in a / character refers to a folder."""
+    folder: Optional[str] = None
+    """The folder to place the folder in. Must match `parent_id` if also set."""
 
     tags: Optional[Tags] = None
     """A list of user-defined tags"""
@@ -196,9 +193,6 @@ class FolderCreateResult(PangeaResponseResult):
 class GetRequest(APIRequestModel):
     id: Optional[str] = None
     """The ID of the object to retrieve."""
-
-    path: Optional[str] = None
-    """The path of the object to retrieve."""
 
     password: Optional[str] = None
     """If the file was protected with a password, the password to decrypt with."""
@@ -252,8 +246,8 @@ class PutRequest(APIRequestModel):
     parent_id: Optional[str] = None
     """The parent ID of the object (a folder). Leave blank to keep in the root folder."""
 
-    path: Optional[str] = None
-    """An optional path where the file should be placed. It will auto-create directories if necessary."""
+    folder: Optional[str] = None
+    """The path to the parent folder. Leave blank for the root folder. Path must resolve to `parent_id` if also set."""
 
     password: Optional[str] = None
     """An optional password to protect the file with. Downloading the file will require this password."""
@@ -279,8 +273,11 @@ class UpdateRequest(APIRequestModel):
     id: Optional[str]
     """An identifier for the file to update."""
 
-    path: Optional[str] = None
-    """An alternative to ID for identifying the target file."""
+    folder: Optional[str] = None
+    """
+    Set the parent (folder). Leave blank for the root folder. Path must resolve
+    to `parent_id` if also set.
+    """
 
     add_metadata: Optional[Metadata] = None
     """A list of Metadata key/values to set in the object. If a provided key exists, the value will be replaced."""
@@ -525,7 +522,7 @@ class ShareLinkItem(ShareLinkItemBase):
     last_accessed_at: Optional[str] = None
     """The date and time the share link was last accessed."""
 
-    link: str
+    link: Optional[str] = None
     """A URL to access the file/folders shared with a link."""
 
     bucket_id: str
@@ -695,7 +692,6 @@ class Share(ServiceBase):
     def delete(
         self,
         id: Optional[str] = None,
-        path: Optional[str] = None,
         force: Optional[bool] = None,
         bucket_id: Optional[str] = None,
     ) -> PangeaResponse[DeleteResult]:
@@ -709,7 +705,6 @@ class Share(ServiceBase):
 
         Args:
             id (str, optional): The ID of the object to delete.
-            path (str, optional): The path of the object to delete.
             force (bool, optional): If true, delete a folder even if it's not empty.
             bucket_id (str, optional): The bucket to use, if not the default.
 
@@ -719,7 +714,7 @@ class Share(ServiceBase):
         Examples:
             response = share.delete(id="pos_3djfmzg2db4c6donarecbyv5begtj2bm")
         """
-        input = DeleteRequest(id=id, path=path, force=force, bucket_id=bucket_id)
+        input = DeleteRequest(id=id, force=force, bucket_id=bucket_id)
         return self.request.post("v1/delete", DeleteResult, data=input.model_dump(exclude_none=True))
 
     def folder_create(
@@ -727,7 +722,7 @@ class Share(ServiceBase):
         name: Optional[str] = None,
         metadata: Optional[Metadata] = None,
         parent_id: Optional[str] = None,
-        path: Optional[str] = None,
+        folder: Optional[str] = None,
         tags: Optional[Tags] = None,
         bucket_id: Optional[str] = None,
     ) -> PangeaResponse[FolderCreateResult]:
@@ -742,7 +737,8 @@ class Share(ServiceBase):
             name (str, optional): The name of an object.
             metadata (Metadata, optional): A set of string-based key/value pairs used to provide additional data about an object.
             parent_id (str, optional): The ID of a stored object.
-            path (str, optional): A case-sensitive path to an object. Contains a sequence of path segments delimited by the the / character. Any path ending in a / character refers to a folder.
+            folder (str, optional): The folder to place the folder in. Must
+              match `parent_id` if also set.
             tags (Tags, optional): A list of user-defined tags.
             bucket_id (str, optional): The bucket to use, if not the default.
 
@@ -756,19 +752,18 @@ class Share(ServiceBase):
                     "priority": "medium",
                 },
                 parent_id="pos_3djfmzg2db4c6donarecbyv5begtj2bm",
-                path="/",
+                folder="/",
                 tags=["irs_2023", "personal"],
             )
         """
         input = FolderCreateRequest(
-            name=name, metadata=metadata, parent_id=parent_id, path=path, tags=tags, bucket_id=bucket_id
+            name=name, metadata=metadata, parent_id=parent_id, folder=folder, tags=tags, bucket_id=bucket_id
         )
         return self.request.post("v1/folder/create", FolderCreateResult, data=input.model_dump(exclude_none=True))
 
     def get(
         self,
         id: Optional[str] = None,
-        path: Optional[str] = None,
         transfer_method: Optional[TransferMethod] = None,
         bucket_id: Optional[str] = None,
         password: Optional[str] = None,
@@ -783,7 +778,6 @@ class Share(ServiceBase):
 
         Args:
             id (str, optional): The ID of the object to retrieve.
-            path (str, optional): The path of the object to retrieve.
             transfer_method (TransferMethod, optional): The requested transfer method for the file data.
             bucket_id (str, optional): The bucket to use, if not the default.
             password (str, optional): If the file was protected with a password, the password to decrypt with.
@@ -794,16 +788,10 @@ class Share(ServiceBase):
         Examples:
             response = share.get(
                 id="pos_3djfmzg2db4c6donarecbyv5begtj2bm",
-                path="/",
+                folder="/",
             )
         """
-        input = GetRequest(
-            id=id,
-            path=path,
-            transfer_method=transfer_method,
-            bucket_id=bucket_id,
-            password=password,
-        )
+        input = GetRequest(id=id, transfer_method=transfer_method, bucket_id=bucket_id, password=password)
         return self.request.post("v1/get", GetResult, data=input.model_dump(exclude_none=True))
 
     def get_archive(
@@ -881,7 +869,7 @@ class Share(ServiceBase):
         self,
         file: io.BufferedReader,
         name: Optional[str] = None,
-        path: Optional[str] = None,
+        folder: Optional[str] = None,
         format: Optional[FileFormat] = None,
         metadata: Optional[Metadata] = None,
         mimetype: Optional[str] = None,
@@ -908,7 +896,8 @@ class Share(ServiceBase):
         Args:
             file (io.BufferedReader):
             name (str, optional): The name of the object to store.
-            path (str, optional): An optional path where the file should be placed. Will auto-create directories if necessary.
+            folder (str, optional): The path to the parent folder. Leave blank
+              for the root folder. Path must resolve to `parent_id` if also set.
             format (FileFormat, optional): The format of the file, which will be verified by the server if provided. Uploads not matching the supplied format will be rejected.
             metadata (Metadata, optional): A set of string-based key/value pairs used to provide additional data about an object.
             mimetype (str, optional): The MIME type of the file, which will be verified by the server if provided. Uploads not matching the supplied MIME type will be rejected.
@@ -954,7 +943,7 @@ class Share(ServiceBase):
             metadata=metadata,
             mimetype=mimetype,
             parent_id=parent_id,
-            path=path,
+            folder=folder,
             tags=tags,
             transfer_method=transfer_method,
             crc32c=crc32c,
@@ -973,7 +962,7 @@ class Share(ServiceBase):
     def request_upload_url(
         self,
         name: Optional[str] = None,
-        path: Optional[str] = None,
+        folder: Optional[str] = None,
         format: Optional[FileFormat] = None,
         metadata: Optional[Metadata] = None,
         mimetype: Optional[str] = None,
@@ -997,7 +986,8 @@ class Share(ServiceBase):
 
         Args:
             name (str, optional): The name of the object to store.
-            path (str, optional): An optional path where the file should be placed. Will auto-create directories if necessary.
+            folder (str, optional): The path to the parent folder. Leave blank
+              for the root folder. Path must resolve to `parent_id` if also set.
             format (FileFormat, optional): The format of the file, which will be verified by the server if provided. Uploads not matching the supplied format will be rejected.
             metadata (Metadata, optional): A set of string-based key/value pairs used to provide additional data about an object.
             mimetype (str, optional): The MIME type of the file, which will be verified by the server if provided. Uploads not matching the supplied MIME type will be rejected.
@@ -1026,7 +1016,7 @@ class Share(ServiceBase):
                     "priority": "medium",
                 },
                 parent_id="pos_3djfmzg2db4c6donarecbyv5begtj2bm",
-                path="/",
+                folder="/",
                 tags=["irs_2023", "personal"],
             )
         """
@@ -1036,7 +1026,7 @@ class Share(ServiceBase):
             metadata=metadata,
             mimetype=mimetype,
             parent_id=parent_id,
-            path=path,
+            folder=folder,
             tags=tags,
             transfer_method=transfer_method,
             crc32c=crc32c,
@@ -1054,7 +1044,7 @@ class Share(ServiceBase):
     def update(
         self,
         id: Optional[str] = None,
-        path: Optional[str] = None,
+        folder: Optional[str] = None,
         add_metadata: Optional[Metadata] = None,
         remove_metadata: Optional[Metadata] = None,
         metadata: Optional[Metadata] = None,
@@ -1074,7 +1064,8 @@ class Share(ServiceBase):
 
         Args:
             id (str, optional): An identifier for the file to update.
-            path (str, optional): An alternative to ID for providing the target file.
+            path (str, optional): Set the parent (folder). Leave blank for the
+              root folder. Path must resolve to `parent_id` if also set.
             add_metadata (Metadata, optional): A list of Metadata key/values to set in the object. If a provided key exists, the value will be replaced.
             remove_metadata (Metadata, optional): A list of Metadata key/values to remove in the object. It is not an error for a provided key to not exist. If a provided key exists but doesn't match the provided value, it will not be removed.
             metadata (Metadata, optional): Set the object's Metadata.
@@ -1099,8 +1090,8 @@ class Share(ServiceBase):
             )
         """
         input = UpdateRequest(
-            id=id,  # noqa: F401
-            path=path,
+            id=id,
+            folder=folder,
             add_metadata=add_metadata,
             remove_metadata=remove_metadata,
             metadata=metadata,

@@ -86,7 +86,7 @@ def share(
     object_ids: list[str] = []
     for file in files:
         with file.open("rb") as f:
-            upload_response = share.put(f, path=f"{dest}/{file.name}")
+            upload_response = share.put(f, folder=f"{dest}/{file.name}")
             assert upload_response.result
             object_ids.append(upload_response.result.object.id)
 

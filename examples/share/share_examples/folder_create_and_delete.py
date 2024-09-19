@@ -22,7 +22,7 @@ share = Share(token, config=config)
 def main():
     try:
         print("Creating folder...")
-        resp_create = share.folder_create(path=path)
+        resp_create = share.folder_create(folder=path)
 
         id = resp_create.result.object.id
         print(f"Folder created. ID: {id}")
