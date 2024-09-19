@@ -33,7 +33,7 @@ def main():
     try:
         # Create a folder
         print("\nCreating folder...")
-        resp_create = share.folder_create(path=path)
+        resp_create = share.folder_create(folder=path)
         folder_id = resp_create.result.object.id
         print(f"Folder create success. Folder ID: {folder_id}.")
 
@@ -41,7 +41,7 @@ def main():
         print("\nUploading file with path...")
         with open(filepath_upload, "rb") as f:
             filepath_put = path + f"/{date}_file_multipart_1"
-            resp_put_path = share.put(file=f, path=filepath_put, transfer_method=TransferMethod.MULTIPART)
+            resp_put_path = share.put(file=f, folder=filepath_put, transfer_method=TransferMethod.MULTIPART)
 
         print(
             f"Put success.\n\tItem ID: {resp_put_path.result.object.id}\n\tParent ID: {resp_put_path.result.object.parent_id}"
