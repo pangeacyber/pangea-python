@@ -37,7 +37,6 @@ class ShareAsync(ServiceBaseAsync):
     async def delete(
         self,
         id: Optional[str] = None,
-        path: Optional[str] = None,
         force: Optional[bool] = None,
         bucket_id: Optional[str] = None,
     ) -> PangeaResponse[m.DeleteResult]:
@@ -51,7 +50,6 @@ class ShareAsync(ServiceBaseAsync):
 
         Args:
             id (str, optional): The ID of the object to delete.
-            path (str, optional): The path of the object to delete.
             force (bool, optional): If true, delete a folder even if it's not empty.
             bucket_id (str, optional): The bucket to use, if not the default.
 
@@ -62,7 +60,7 @@ class ShareAsync(ServiceBaseAsync):
             response = await share.delete(id="pos_3djfmzg2db4c6donarecbyv5begtj2bm")
         """
 
-        input = m.DeleteRequest(id=id, path=path, force=force, bucket_id=bucket_id)
+        input = m.DeleteRequest(id=id, force=force, bucket_id=bucket_id)
         return await self.request.post("v1/delete", m.DeleteResult, data=input.model_dump(exclude_none=True))
 
     async def folder_create(
@@ -70,7 +68,7 @@ class ShareAsync(ServiceBaseAsync):
         name: Optional[str] = None,
         metadata: Optional[m.Metadata] = None,
         parent_id: Optional[str] = None,
-        path: Optional[str] = None,
+        folder: Optional[str] = None,
         tags: Optional[m.Tags] = None,
         bucket_id: Optional[str] = None,
     ) -> PangeaResponse[m.FolderCreateResult]:
@@ -85,7 +83,8 @@ class ShareAsync(ServiceBaseAsync):
             name (str, optional): The name of an object.
             metadata (Metadata, optional): A set of string-based key/value pairs used to provide additional data about an object.
             parent_id (str, optional): The ID of a stored object.
-            path (str, optional): A case-sensitive path to an object. Contains a sequence of path segments delimited by the the / character. Any path ending in a / character refers to a folder.
+            folder (str, optional): The folder to place the folder in. Must
+              match `parent_id` if also set.
             tags (Tags, optional): A list of user-defined tags.
             bucket_id (str, optional): The bucket to use, if not the default.
 
@@ -99,13 +98,13 @@ class ShareAsync(ServiceBaseAsync):
                     "priority": "medium",
                 },
                 parent_id="pos_3djfmzg2db4c6donarecbyv5begtj2bm",
-                path="/",
+                folder="/",
                 tags=["irs_2023", "personal"],
             )
         """
 
         input = m.FolderCreateRequest(
-            name=name, metadata=metadata, parent_id=parent_id, path=path, tags=tags, bucket_id=bucket_id
+            name=name, metadata=metadata, parent_id=parent_id, folder=folder, tags=tags, bucket_id=bucket_id
         )
         return await self.request.post(
             "v1/folder/create", m.FolderCreateResult, data=input.model_dump(exclude_none=True)
@@ -114,7 +113,6 @@ class ShareAsync(ServiceBaseAsync):
     async def get(
         self,
         id: Optional[str] = None,
-        path: Optional[str] = None,
         transfer_method: Optional[TransferMethod] = None,
         bucket_id: Optional[str] = None,
         password: Optional[str] = None,
@@ -129,7 +127,6 @@ class ShareAsync(ServiceBaseAsync):
 
         Args:
             id (str, optional): The ID of the object to retrieve.
-            path (str, optional): The path of the object to retrieve.
             transfer_method (TransferMethod, optional): The requested transfer method for the file data.
             bucket_id (str, optional): The bucket to use, if not the default.
             password (str, optional): If the file was protected with a password, the password to decrypt with.
@@ -140,17 +137,11 @@ class ShareAsync(ServiceBaseAsync):
         Examples:
             response = await share.get(
                 id="pos_3djfmzg2db4c6donarecbyv5begtj2bm",
-                path="/",
+                folder="/",
             )
         """
 
-        input = m.GetRequest(
-            id=id,
-            path=path,
-            transfer_method=transfer_method,
-            bucket_id=bucket_id,
-            password=password,
-        )
+        input = m.GetRequest(id=id, transfer_method=transfer_method, bucket_id=bucket_id, password=password)
         return await self.request.post("v1/get", m.GetResult, data=input.model_dump(exclude_none=True))
 
     async def get_archive(
@@ -230,7 +221,7 @@ class ShareAsync(ServiceBaseAsync):
         self,
         file: io.BufferedReader,
         name: Optional[str] = None,
-        path: Optional[str] = None,
+        folder: Optional[str] = None,
         format: Optional[FileFormat] = None,
         metadata: Optional[m.Metadata] = None,
         mimetype: Optional[str] = None,
@@ -257,7 +248,8 @@ class ShareAsync(ServiceBaseAsync):
         Args:
             file (io.BufferedReader):
             name (str, optional): The name of the object to store.
-            path (str, optional): An optional path where the file should be placed. Will auto-create directories if necessary.
+            folder (str, optional): The path to the parent folder. Leave blank
+              for the root folder. Path must resolve to `parent_id` if also set.
             format (FileFormat, optional): The format of the file, which will be verified by the server if provided. Uploads not matching the supplied format will be rejected.
             metadata (Metadata, optional): A set of string-based key/value pairs used to provide additional data about an object.
             mimetype (str, optional): The MIME type of the file, which will be verified by the server if provided. Uploads not matching the supplied MIME type will be rejected.
@@ -304,7 +296,7 @@ class ShareAsync(ServiceBaseAsync):
             metadata=metadata,
             mimetype=mimetype,
             parent_id=parent_id,
-            path=path,
+            folder=folder,
             tags=tags,
             transfer_method=transfer_method,
             crc32c=crc32c,
@@ -323,7 +315,7 @@ class ShareAsync(ServiceBaseAsync):
     async def request_upload_url(
         self,
         name: Optional[str] = None,
-        path: Optional[str] = None,
+        folder: Optional[str] = None,
         format: Optional[FileFormat] = None,
         metadata: Optional[m.Metadata] = None,
         mimetype: Optional[str] = None,
@@ -347,7 +339,8 @@ class ShareAsync(ServiceBaseAsync):
 
         Args:
             name (str, optional): The name of the object to store.
-            path (str, optional): An optional path where the file should be placed. Will auto-create directories if necessary.
+            folder (str, optional): The path to the parent folder. Leave blank
+              for the root folder. Path must resolve to `parent_id` if also set.
             format (FileFormat, optional): The format of the file, which will be verified by the server if provided. Uploads not matching the supplied format will be rejected.
             metadata (Metadata, optional): A set of string-based key/value pairs used to provide additional data about an object.
             mimetype (str, optional): The MIME type of the file, which will be verified by the server if provided. Uploads not matching the supplied MIME type will be rejected.
@@ -376,7 +369,7 @@ class ShareAsync(ServiceBaseAsync):
                     "priority": "medium",
                 },
                 parent_id="pos_3djfmzg2db4c6donarecbyv5begtj2bm",
-                path="/",
+                folder="/",
                 tags=["irs_2023", "personal"],
             )
         """
@@ -387,7 +380,7 @@ class ShareAsync(ServiceBaseAsync):
             metadata=metadata,
             mimetype=mimetype,
             parent_id=parent_id,
-            path=path,
+            folder=folder,
             tags=tags,
             transfer_method=transfer_method,
             crc32c=crc32c,
@@ -405,7 +398,7 @@ class ShareAsync(ServiceBaseAsync):
     async def update(
         self,
         id: Optional[str] = None,
-        path: Optional[str] = None,
+        folder: Optional[str] = None,
         add_metadata: Optional[m.Metadata] = None,
         remove_metadata: Optional[m.Metadata] = None,
         metadata: Optional[m.Metadata] = None,
@@ -425,7 +418,8 @@ class ShareAsync(ServiceBaseAsync):
 
         Args:
             id (str, optional): An identifier for the file to update.
-            path (str, optional): An alternative to ID for providing the target file.
+            folder (str, optional): Set the parent (folder). Leave blank for the
+              root folder. Path must resolve to `parent_id` if also set.
             add_metadata (Metadata, optional): A list of Metadata key/values to set in the object. If a provided key exists, the value will be replaced.
             remove_metadata (Metadata, optional): A list of Metadata key/values to remove in the object. It is not an error for a provided key to not exist. If a provided key exists but doesn't match the provided value, it will not be removed.
             metadata (Metadata, optional): Set the object's Metadata.
@@ -452,7 +446,7 @@ class ShareAsync(ServiceBaseAsync):
 
         input = m.UpdateRequest(
             id=id,
-            path=path,
+            folder=folder,
             add_metadata=add_metadata,
             remove_metadata=remove_metadata,
             metadata=metadata,
