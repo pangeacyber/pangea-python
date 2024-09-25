@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - Dependency on the asyncio pypi package.
+- Lingering beta tags on AuthZ `/list-resources` and `/list-subjects` endpoints.
 
 ## 4.2.0 - 2024-07-16
 
