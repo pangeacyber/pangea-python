@@ -25,7 +25,7 @@ typing-extensions = "^4.12.2"
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.8.0"
-django-stubs = "^5.0.4"
+django-stubs = "^5.1.0"
 isort = "^5.13.2"
 mypy = "^1.11.2"
 pytest = "^8.3.3"
