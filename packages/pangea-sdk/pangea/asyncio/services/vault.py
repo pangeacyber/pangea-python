@@ -148,7 +148,7 @@ class VaultAsync(ServiceBaseAsync):
 
         Delete a secret or key
 
-        OperationId: vault_post_v2beta_delete
+        OperationId: vault_post_v2_delete
 
         Args:
             item_id: The item ID.
@@ -166,9 +166,7 @@ class VaultAsync(ServiceBaseAsync):
         Examples:
             await vault.delete(id="pvi_p6g5i3gtbvqvc3u6zugab6qs6r63tqf5")
         """
-        return await self.request.post(
-            "v2beta/delete", DeleteResult, data=DeleteRequest(id=item_id, recursive=recursive)
-        )
+        return await self.request.post("v2/delete", DeleteResult, data=DeleteRequest(id=item_id, recursive=recursive))
 
     async def get(
         self,
@@ -181,7 +179,7 @@ class VaultAsync(ServiceBaseAsync):
 
         Retrieve a secret, key or folder, and any associated information.
 
-        OperationId: vault_post_v2beta_get
+        OperationId: vault_post_v2_get
 
         Args:
             item_id: The item ID
@@ -204,9 +202,7 @@ class VaultAsync(ServiceBaseAsync):
                 version=1,
             )
         """
-        response = await self.request.post(
-            "v2beta/get", PangeaResponseResult, data=GetRequest(id=item_id, version=version)
-        )
+        response = await self.request.post("v2/get", PangeaResponseResult, data=GetRequest(id=item_id, version=version))
         response.result = vault_item_adapter.validate_python(response.json["result"])
         return cast(PangeaResponse[VaultItem], response)
 
@@ -224,7 +220,7 @@ class VaultAsync(ServiceBaseAsync):
 
         Retrieve a list of secrets, keys and folders, and their associated information.
 
-        OperationId: vault_post_v2beta_list
+        OperationId: vault_post_v2_list
 
         Args:
             filter: A set of filters to help you customize your search.
@@ -268,7 +264,7 @@ class VaultAsync(ServiceBaseAsync):
             )
         """
         return await self.request.post(
-            "v2beta/list",
+            "v2/list",
             ListResult,
             data=ListRequest(filter=filter, size=size, order=order, order_by=order_by, last=last),
         )
@@ -292,7 +288,7 @@ class VaultAsync(ServiceBaseAsync):
 
         Update information associated with a secret, key or folder.
 
-        OperationId: vault_post_v2beta_update
+        OperationId: vault_post_v2_update
 
         Args:
             item_id: The item ID.
@@ -332,7 +328,7 @@ class VaultAsync(ServiceBaseAsync):
             )
         """
         return await self.request.post(
-            "v2beta/update",
+            "v2/update",
             UpdateResult,
             data=UpdateRequest(
                 id=item_id,
@@ -361,7 +357,7 @@ class VaultAsync(ServiceBaseAsync):
         **kwargs: Any,
     ) -> PangeaResponse[TResult]:
         return await self.request.post(
-            "v2beta/secret/store",
+            "v2/secret/store",
             result_class,
             data=SecretStoreRequest(
                 type=item_type,
@@ -550,7 +546,7 @@ class VaultAsync(ServiceBaseAsync):
         """
 
         return await self.request.post(
-            "v2beta/secret/rotate",
+            "v2/secret/rotate",
             Secret,
             data=SecretRotateRequest(id=item_id, secret=secret, rotation_state=rotation_state),
         )
@@ -582,7 +578,7 @@ class VaultAsync(ServiceBaseAsync):
         """
 
         return await self.request.post(
-            "v2beta/secret/rotate",
+            "v2/secret/rotate",
             PangeaToken,
             data=PangeaTokenRotateRequest(
                 id=item_id, rotation_grace_period=rotation_grace_period, rotation_state=rotation_state
@@ -616,7 +612,7 @@ class VaultAsync(ServiceBaseAsync):
         """
 
         return await self.request.post(
-            "v2beta/secret/rotate",
+            "v2/secret/rotate",
             ClientSecret,
             data=ClientSecretRotateRequest(
                 id=item_id, rotation_grace_period=rotation_grace_period, rotation_state=rotation_state
@@ -1083,7 +1079,7 @@ class VaultAsync(ServiceBaseAsync):
         """
 
         return await self.request.post(
-            "v2beta/key/generate",
+            "v2/key/generate",
             AsymmetricKey if key_type == ItemType.ASYMMETRIC_KEY else SymmetricKey,
             data=CommonGenerateRequest(
                 type=key_type,
@@ -1504,7 +1500,7 @@ class VaultAsync(ServiceBaseAsync):
         """
 
         return await self.request.post(
-            "v2beta/key/store",
+            "v2/key/store",
             AsymmetricKey if key_type == ItemType.ASYMMETRIC_KEY else SymmetricKey,
             data=KeysStoreRequest(
                 type=key_type,
@@ -1614,7 +1610,7 @@ class VaultAsync(ServiceBaseAsync):
         """
 
         return await self.request.post(
-            "v2beta/key/rotate",
+            "v2/key/rotate",
             AsymmetricKey if key_type == ItemType.ASYMMETRIC_KEY else SymmetricKey,
             data=KeysRotateRequest(
                 id=key_id,
@@ -1633,7 +1629,7 @@ class VaultAsync(ServiceBaseAsync):
 
         Encrypt a message using a key.
 
-        OperationId: vault_post_v2beta_key_encrypt
+        OperationId: vault_post_v2_key_encrypt
 
         Args:
             item_id: The item ID.
@@ -1657,7 +1653,7 @@ class VaultAsync(ServiceBaseAsync):
             )
         """
         return await self.request.post(
-            "v2beta/encrypt",
+            "v2/encrypt",
             EncryptResult,
             data=EncryptRequest(id=item_id, plain_text=plain_text, version=version, additional_data=additional_data),
         )
@@ -1670,7 +1666,7 @@ class VaultAsync(ServiceBaseAsync):
 
         Decrypt a message using a key.
 
-        OperationId: vault_post_v2beta_key_decrypt
+        OperationId: vault_post_v2_key_decrypt
 
         Args:
             item_id: The item ID.
@@ -1693,7 +1689,7 @@ class VaultAsync(ServiceBaseAsync):
             )
         """
         return await self.request.post(
-            "v2beta/decrypt",
+            "v2/decrypt",
             DecryptResult,
             data=DecryptRequest(id=item_id, cipher_text=cipher_text, version=version, additional_data=additional_data),
         )
@@ -1704,7 +1700,7 @@ class VaultAsync(ServiceBaseAsync):
 
         Sign a message using a key
 
-        OperationId: vault_post_v2beta_sign
+        OperationId: vault_post_v2_sign
 
         Args:
             id: The item ID.
@@ -1727,7 +1723,7 @@ class VaultAsync(ServiceBaseAsync):
             )
         """
         return await self.request.post(
-            "v2beta/sign", SignResult, data=SignRequest(id=item_id, message=message, version=version)
+            "v2/sign", SignResult, data=SignRequest(id=item_id, message=message, version=version)
         )
 
     async def verify(
@@ -1738,7 +1734,7 @@ class VaultAsync(ServiceBaseAsync):
 
         Verify a signature using a key.
 
-        OperationId: vault_post_v2beta_key_verify
+        OperationId: vault_post_v2_key_verify
 
         Args:
             id: The item ID.
@@ -1763,7 +1759,7 @@ class VaultAsync(ServiceBaseAsync):
             )
         """
         return await self.request.post(
-            "v2beta/verify",
+            "v2/verify",
             VerifyResult,
             data=VerifyRequest(
                 id=item_id,
@@ -1779,7 +1775,7 @@ class VaultAsync(ServiceBaseAsync):
 
         Verify the signature of a JSON Web Token (JWT).
 
-        OperationId: vault_post_v2beta_key_verify_jwt
+        OperationId: vault_post_v2_key_verify_jwt
 
         Args:
             jws: The signed JSON Web Token (JWS).
@@ -1795,7 +1791,7 @@ class VaultAsync(ServiceBaseAsync):
         Examples:
             response = await vault.jwt_verify(jws="ewogICJhbGciO...")
         """
-        return await self.request.post("v2beta/jwt/verify", JWTVerifyResult, data=JWTVerifyRequest(jws=jws))
+        return await self.request.post("v2/jwt/verify", JWTVerifyResult, data=JWTVerifyRequest(jws=jws))
 
     async def jwt_sign(self, item_id: str, payload: str) -> PangeaResponse[JWTSignResult]:
         """
@@ -1803,7 +1799,7 @@ class VaultAsync(ServiceBaseAsync):
 
         Sign a JSON Web Token (JWT) using a key.
 
-        OperationId: vault_post_v2beta_jwt_sign
+        OperationId: vault_post_v2_jwt_sign
 
         Args:
             id: The item ID.
@@ -1823,9 +1819,7 @@ class VaultAsync(ServiceBaseAsync):
                 payload="{\\"sub\\": \\"1234567890\\",\\"name\\": \\"John Doe\\",\\"admin\\": true}"
             )
         """
-        return await self.request.post(
-            "v2beta/jwt/sign", JWTSignResult, data=JWTSignRequest(id=item_id, payload=payload)
-        )
+        return await self.request.post("v2/jwt/sign", JWTSignResult, data=JWTSignRequest(id=item_id, payload=payload))
 
     async def jwk_get(self, item_id: str, *, version: str | None = None) -> PangeaResponse[JWKGetResult]:
         """
@@ -1833,7 +1827,7 @@ class VaultAsync(ServiceBaseAsync):
 
         Retrieve a key in JWK format.
 
-        OperationId: vault_post_v2beta_jwk_get
+        OperationId: vault_post_v2_jwk_get
 
         Args:
             id: The item ID
@@ -1852,7 +1846,7 @@ class VaultAsync(ServiceBaseAsync):
         Examples:
             response = await vault.jwk_get("pvi_p6g5i3gtbvqvc3u6zugab6qs6r63tqf5")
         """
-        return await self.request.post("v2beta/jwk/get", JWKGetResult, data=JWKGetRequest(id=item_id, version=version))
+        return await self.request.post("v2/jwk/get", JWKGetResult, data=JWKGetRequest(id=item_id, version=version))
 
     async def state_change(
         self,
@@ -1867,7 +1861,7 @@ class VaultAsync(ServiceBaseAsync):
 
         Change the state of a specific version of a secret or key.
 
-        OperationId: vault_post_v2beta_state_change
+        OperationId: vault_post_v2_state_change
 
         Args:
             item_id: The item ID.
@@ -1891,7 +1885,7 @@ class VaultAsync(ServiceBaseAsync):
             )
         """
         response = await self.request.post(
-            "v2beta/state/change",
+            "v2/state/change",
             PangeaResponseResult,
             data=StateChangeRequest(id=item_id, state=state, version=version, destroy_period=destroy_period),
         )
@@ -1915,7 +1909,7 @@ class VaultAsync(ServiceBaseAsync):
 
         Creates a folder.
 
-        OperationId: vault_post_v2beta_folder_create
+        OperationId: vault_post_v2_folder_create
 
         Args:
             name: The name of this folder.
@@ -1940,7 +1934,7 @@ class VaultAsync(ServiceBaseAsync):
             )
         """
         return await self.request.post(
-            "v2beta/folder/create",
+            "v2/folder/create",
             FolderCreateResult,
             data=FolderCreateRequest(
                 name=name,
@@ -1968,7 +1962,7 @@ class VaultAsync(ServiceBaseAsync):
 
         Encrypt parts of a JSON object.
 
-        OperationId: vault_post_v2beta_encrypt_structured
+        OperationId: vault_post_v2_encrypt_structured
 
         Args:
             key_id: The ID of the key to use.
@@ -2002,7 +1996,7 @@ class VaultAsync(ServiceBaseAsync):
             additional_data=additional_data,
         )
         return await self.request.post(
-            "v2beta/encrypt_structured",
+            "v2/encrypt_structured",
             EncryptStructuredResult,
             data=data.model_dump(exclude_none=True),
         )
@@ -2021,7 +2015,7 @@ class VaultAsync(ServiceBaseAsync):
 
         Decrypt parts of a JSON object.
 
-        OperationId: vault_post_v2beta_decrypt_structured
+        OperationId: vault_post_v2_decrypt_structured
 
         Args:
             id: The ID of the key to use.
@@ -2055,7 +2049,7 @@ class VaultAsync(ServiceBaseAsync):
             additional_data=additional_data,
         )
         return await self.request.post(
-            "v2beta/decrypt_structured",
+            "v2/decrypt_structured",
             EncryptStructuredResult,
             data=data.model_dump(exclude_none=True),
         )
@@ -2074,7 +2068,7 @@ class VaultAsync(ServiceBaseAsync):
 
         Encrypt using a format-preserving algorithm (FPE).
 
-        OperationId: vault_post_v2beta_encrypt_transform
+        OperationId: vault_post_v2_encrypt_transform
 
         Args:
             item_id: The item ID.
@@ -2100,7 +2094,7 @@ class VaultAsync(ServiceBaseAsync):
         """
 
         return await self.request.post(
-            "v2beta/encrypt_transform",
+            "v2/encrypt_transform",
             EncryptTransformResult,
             data=EncryptTransformRequest(
                 id=item_id,
@@ -2119,7 +2113,7 @@ class VaultAsync(ServiceBaseAsync):
 
         Decrypt using a format-preserving algorithm (FPE).
 
-        OperationId: vault_post_v2beta_decrypt_transform
+        OperationId: vault_post_v2_decrypt_transform
 
         Args:
             id: The item ID.
@@ -2144,7 +2138,7 @@ class VaultAsync(ServiceBaseAsync):
         """
 
         return await self.request.post(
-            "v2beta/decrypt_transform",
+            "v2/decrypt_transform",
             DecryptTransformResult,
             data=DecryptTransformRequest(
                 id=item_id, cipher_text=cipher_text, tweak=tweak, alphabet=alphabet, version=version
@@ -2166,7 +2160,7 @@ class VaultAsync(ServiceBaseAsync):
 
         Export a symmetric or asymmetric key.
 
-        OperationId: vault_post_v2beta_export
+        OperationId: vault_post_v2_export
 
         Args:
             item_id: The item ID.
@@ -2197,7 +2191,7 @@ class VaultAsync(ServiceBaseAsync):
         """
 
         return await self.request.post(
-            "v2beta/export",
+            "v2/export",
             ExportResult,
             data=ExportRequest(
                 id=item_id,
