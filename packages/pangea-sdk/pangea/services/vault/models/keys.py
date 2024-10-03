@@ -47,7 +47,7 @@ class CommonGenerateRequest(APIRequestModel):
     exportable: bool = False
 
 
-class KeysStoreRequest(APIRequestModel):
+class KeyStoreRequest(APIRequestModel):
     # Required.
     type: Literal[ItemType.ASYMMETRIC_KEY, ItemType.SYMMETRIC_KEY]
     purpose: Union[AsymmetricKeyPurpose, SymmetricKeyPurpose]
@@ -79,7 +79,7 @@ class KeysStoreRequest(APIRequestModel):
     exportable: bool = False
 
 
-class KeysRotateRequest(APIRequestModel):
+class KeyRotateRequest(APIRequestModel):
     # Required.
     id: str
 

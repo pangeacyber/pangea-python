@@ -67,7 +67,7 @@ from pangea.services.vault.models.common import (
     UpdateRequest,
     UpdateResult,
 )
-from pangea.services.vault.models.keys import CommonGenerateRequest, KeysRotateRequest, KeysStoreRequest
+from pangea.services.vault.models.keys import CommonGenerateRequest, KeyRotateRequest, KeyStoreRequest
 from pangea.services.vault.models.secret import SecretRotateRequest, SecretStoreRequest, SecretStoreResult
 from pangea.services.vault.models.symmetric import (
     DecryptRequest,
@@ -1500,7 +1500,7 @@ class Vault(ServiceBase):
         return self.request.post(
             "v2/key/store",
             AsymmetricKey if key_type == ItemType.ASYMMETRIC_KEY else SymmetricKey,
-            data=KeysStoreRequest(
+            data=KeyStoreRequest(
                 type=key_type,
                 purpose=purpose,
                 algorithm=algorithm,
@@ -1610,7 +1610,7 @@ class Vault(ServiceBase):
         return self.request.post(
             "v2/key/rotate",
             AsymmetricKey if key_type == ItemType.ASYMMETRIC_KEY else SymmetricKey,
-            data=KeysRotateRequest(
+            data=KeyRotateRequest(
                 id=key_id,
                 public_key=public_key,
                 private_key=private_key,
