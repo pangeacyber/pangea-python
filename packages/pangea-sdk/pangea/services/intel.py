@@ -1255,7 +1255,7 @@ class UserBreachedBulkRequest(IntelCommonRequest):
     usernames (List[str]): An username' list to search for
     ips (List[str]): An ip's list to search for
     phone_numbers (List[str]): A phone number's list to search for. minLength: 7, maxLength: 15.
-    domains (List[str]): A domain's list to search for
+    domains (List[str]): Search for user under these domains.
     start (str): Earliest date for search
     end (str): Latest date for search
     """
@@ -1460,7 +1460,7 @@ class UserIntel(ServiceBase):
             usernames (List[str]): A list of usernames to search for
             ips (List[str]): A list of ips to search for
             phone_numbers (List[str]): A list of phone numbers to search for. minLength: 7, maxLength: 15.
-            domains (List[str]): A list of domains to search for
+            domains (List[str]): Search for user under these domains.
             start (str): Earliest date for search
             end (str): Latest date for search
             verbose (bool, optional): Echo the API parameters in the response
