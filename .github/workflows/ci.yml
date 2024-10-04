@@ -68,7 +68,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5.2.0
         with:
-          python-version: 3.11.7 # renovate: datasource=docker depName=python
+          python-version: 3.12
           cache: poetry
           cache-dependency-path: '**/poetry.lock'
 
@@ -85,7 +85,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5.2.0
         with:
-          python-version: 3.11.7 # renovate: datasource=docker depName=python
+          python-version: 3.12
 
       - uses: pre-commit/action@v3.0.1
 
@@ -239,7 +239,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5.2.0
         with:
-          python-version: 3.11.9 # renovate: datasource=docker depName=python
+          python-version: 3.12
           cache: poetry
           cache-dependency-path: ./packages/pangea-sdk/poetry.lock
 
@@ -283,7 +283,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5.2.0
         with:
-          python-version: 3.11.7 # renovate: datasource=docker depName=python
+          python-version: 3.12
           cache: poetry
           cache-dependency-path: ./examples/${{ matrix.example }}/poetry.lock
 

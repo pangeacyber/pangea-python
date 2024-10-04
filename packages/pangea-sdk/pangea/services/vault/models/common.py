@@ -112,7 +112,7 @@ class ExportEncryptionAlgorithm(str, enum.Enum):
     RSA4096_OAEP_SHA512 = "RSA-OAEP-4096-SHA512"
     """RSA 4096-bit key, OAEP padding, SHA512 digest."""
 
-    RSA_KEM_RAW_4096 = "RSA-KEM-RAW-4096"
+    RSA_NO_PADDING_4096_KEM = "RSA-NO-PADDING-4096-KEM"
 
 
 class CommonStoreResult(PangeaResponseResult):
@@ -611,16 +611,45 @@ class ExportResult(PangeaResponseResult):
     """The item version."""
 
     enabled: bool
-    """The state of the item."""
+    """True if the item is enabled."""
 
     algorithm: str
     """The algorithm of the key."""
+
+    asymmetric_algorithm: Optional[ExportEncryptionAlgorithm] = None
+    """The algorithm of the public key used to encrypt exported material."""
+
+    symmetric_algorithm: Optional[str] = None
 
     encryption_type: ExportEncryptionType
     """
     Encryption format of the exported key(s). It could be `none` if returned in
     plain text, `asymmetric` if it is encrypted just with the public key sent in
     `encryption_public_key`, or `kem` if it was encrypted using KEM protocol.
+    """
+
+    kdf: Optional[str] = None
+    """
+    Key derivation function used to derivate the symmetric key when
+    `encryption_type` is `kem`.
+    """
+
+    hash_algorithm: Optional[str] = None
+    """
+    Hash algorithm used to derivate the symmetric key when `encryption_type` is
+    `kem`.
+    """
+
+    iteration_count: Optional[int] = None
+    """
+    Iteration count used to derivate the symmetric key when `encryption_type` is
+    `kem`.
+    """
+
+    encrypted_salt: Optional[str] = None
+    """
+    Salt used to derivate the symmetric key when `encryption_type` is `kem`,
+    encrypted with the public key provided in `asymmetric_key`.
     """
 
     public_key: Optional[str] = None
