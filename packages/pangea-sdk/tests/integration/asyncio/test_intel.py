@@ -436,6 +436,13 @@ class TestUserIntel(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertEqual(len(response.result.data), 2)
 
+    async def test_user_breached_domains_bulk(self):
+        response = await self.intel_user.user_breached_bulk(
+            domains=["example.com"], provider="spycloud", verbose=True, raw=True
+        )
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertEqual(len(response.result.data), 1)
+
     async def test_user_breached_default_provider(self):
         response = await self.intel_user.user_breached(phone_number="8005550123", verbose=True, raw=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
