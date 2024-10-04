@@ -2146,7 +2146,6 @@ class Vault(ServiceBase):
         item_id: str,
         *,
         version: int | None = None,
-        encryption_type: ExportEncryptionType = ExportEncryptionType.NONE,
         kem_password: str | None = None,
         asymmetric_public_key: str | None = None,
         asymmetric_algorithm: ExportEncryptionAlgorithm | None = None,
@@ -2161,8 +2160,6 @@ class Vault(ServiceBase):
         Args:
             item_id: The item ID.
             version: The item version.
-            encryption_type: Default is `none`, in which case the key material
-              is returned unencrypted in PEM format.
             kem_password: This is the password that will be used along with a
               salt to derive the symmetric key that is used to encrypt the
               exported key material. Required if `encryption_type` is `kem`.
@@ -2192,7 +2189,6 @@ class Vault(ServiceBase):
             data=ExportRequest(
                 id=item_id,
                 version=version,
-                encryption_type=encryption_type,
                 kem_password=kem_password,
                 asymmetric_public_key=asymmetric_public_key,
                 asymmetric_algorithm=asymmetric_algorithm,
