@@ -12,6 +12,7 @@ from typing_extensions import Literal
 import pangea.exceptions as pe
 from pangea import PangeaConfig
 from pangea.crypto import rsa
+from pangea.crypto.rsa import kem_decrypt_export_result
 from pangea.services.vault.models.asymmetric import (
     AsymmetricKeyAlgorithm,
     AsymmetricKeyEncryptionAlgorithm,
@@ -1030,3 +1031,47 @@ class TestVault(unittest.TestCase):
         exp_key_pem = rsa.decrypt_sha512(rsa_priv_key, exp_key_decoded)
 
         self.assertEqual(exp_key_pem, exp_resp.result.key.encode("utf-8"))
+
+    def test_export_kem(self) -> None:
+        # Generate a key pair.
+        rsa_priv_key, rsa_pub_key = rsa.generate_key_pair()
+        rsa_pub_key_pem = rsa.public_key_to_pem(rsa_pub_key)
+
+        # Generate an exportable key.
+        generate_response = self.vault.generate_key(
+            key_type=ItemType.ASYMMETRIC_KEY,
+            algorithm=AsymmetricKeySigningAlgorithm.ED25519,
+            purpose=AsymmetricKeyPurpose.SIGNING,
+            name=get_name(),
+            exportable=True,
+        )
+        assert generate_response.result
+        key_id = generate_response.result.id
+        assert generate_response.result.type == ItemType.ASYMMETRIC_KEY
+
+        # Export without any encryption.
+        plain_export = self.vault.export(item_id=key_id)
+        assert plain_export.result
+        assert plain_export.result.id == key_id
+        assert plain_export.result.type == ItemType.ASYMMETRIC_KEY
+        assert plain_export.result.private_key
+
+        # Export with KEM.
+        kem_export = self.vault.export(
+            item_id=key_id,
+            asymmetric_algorithm=ExportEncryptionAlgorithm.RSA_NO_PADDING_4096_KEM,
+            asymmetric_public_key=rsa_pub_key_pem.decode("utf-8"),
+            kem_password="password",
+        )
+        assert kem_export.result
+        assert kem_export.result.id == key_id
+        assert kem_export.result.type == ItemType.ASYMMETRIC_KEY
+        assert kem_export.result.public_key == plain_export.result.public_key
+        assert kem_export.result.encryption_type == ExportEncryptionType.KEM
+
+        kem_decrypt = kem_decrypt_export_result(
+            result=kem_export.result,
+            password="password",
+            private_key=rsa_priv_key,
+        )
+        assert kem_decrypt == plain_export.result.private_key
