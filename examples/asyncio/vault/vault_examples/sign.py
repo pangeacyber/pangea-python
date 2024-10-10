@@ -5,14 +5,17 @@ import time
 import pangea.exceptions as pe
 from pangea.asyncio.services import VaultAsync
 from pangea.config import PangeaConfig
-from pangea.services.vault.models.asymmetric import AsymmetricAlgorithm
-from pangea.services.vault.models.common import KeyPurpose
+from pangea.services.vault.models.asymmetric import (
+    AsymmetricKeyPurpose,
+    AsymmetricKeySigningAlgorithm,
+)
+from pangea.services.vault.models.common import ItemType
 from pangea.utils import str2str_b64
 
 
-async def main():
-    token = os.getenv("PANGEA_VAULT_TOKEN")
-    domain = os.getenv("PANGEA_DOMAIN")
+async def main() -> None:
+    token = os.getenv("PANGEA_VAULT_TOKEN", "")
+    domain = os.getenv("PANGEA_DOMAIN", "")
     config = PangeaConfig(domain=domain)
     vault = VaultAsync(token, config=config)
 
@@ -21,9 +24,13 @@ async def main():
         name = f"Python sign example {int(time.time())}"
 
         # Create an asymmetric key with the default parameters.
-        create_response = await vault.asymmetric_generate(
-            algorithm=AsymmetricAlgorithm.Ed25519, purpose=KeyPurpose.SIGNING, name=name
+        create_response = await vault.generate_key(
+            key_type=ItemType.ASYMMETRIC_KEY,
+            algorithm=AsymmetricKeySigningAlgorithm.ED25519,
+            purpose=AsymmetricKeyPurpose.SIGNING,
+            name=name,
         )
+        assert create_response.result
         key_id = create_response.result.id
 
         # Sign a message.
@@ -31,12 +38,14 @@ async def main():
         msg = str2str_b64(text)
         print(f"text to sign: {text}")
         sign_response = await vault.sign(key_id, msg)
+        assert sign_response.result
         signature = sign_response.result.signature
         print(f"Signature: {signature}")
 
         # Verify the message's signature.
         print("Verifying...")
         verify_response = await vault.verify(key_id, msg, signature)
+        assert verify_response.result
         if verify_response.result.valid_signature:
             print("Signature verified succesfully")
         else:

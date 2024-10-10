@@ -6,10 +6,10 @@ from secrets import token_hex
 
 from pangea.config import PangeaConfig
 from pangea.services import Vault
-from pangea.services.vault.models.common import (
-    KeyPurpose,
-    SymmetricAlgorithm,
-    TransformAlphabet,
+from pangea.services.vault.models.common import ItemType, TransformAlphabet
+from pangea.services.vault.models.symmetric import (
+    SymmetricKeyFpeAlgorithm,
+    SymmetricKeyPurpose,
 )
 
 
@@ -29,9 +29,10 @@ def main() -> None:
     tweak = "MTIzMTIzMT=="
 
     # Generate an encryption key.
-    generated = vault.symmetric_generate(
-        algorithm=SymmetricAlgorithm.AES256_FF3_1_BETA,
-        purpose=KeyPurpose.FPE,
+    generated = vault.generate_key(
+        key_type=ItemType.SYMMETRIC_KEY,
+        algorithm=SymmetricKeyFpeAlgorithm.AES_FF3_1_256_BETA,
+        purpose=SymmetricKeyPurpose.FPE,
         name=f"python-fpe-example-{token_hex(8)}",
     )
     assert generated.result
@@ -39,7 +40,7 @@ def main() -> None:
 
     # Encrypt the plain text.
     encrypted = vault.encrypt_transform(
-        id=key_id,
+        item_id=key_id,
         plain_text=plain_text,
         tweak=tweak,
         alphabet=TransformAlphabet.NUMERIC,
@@ -50,7 +51,7 @@ def main() -> None:
 
     # Decrypt the result to get back the text we started with.
     decrypted = vault.decrypt_transform(
-        id=key_id,
+        item_id=key_id,
         cipher_text=encrypted_text,
         tweak=tweak,
         alphabet=TransformAlphabet.NUMERIC,

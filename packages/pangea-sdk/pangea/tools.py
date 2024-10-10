@@ -95,7 +95,7 @@ def file_events(root_hashes: Dict[int, str], f: io.TextIOWrapper) -> Iterator[Ev
             else:
                 raise ValueError("invalid data")
         except (json.JSONDecodeError, ValueError, KeyError) as e:
-            exit_with_error(f"failed to parse line {idx}: {str(e)}")
+            exit_with_error(f"failed to parse line {idx}: {e!s}")
 
 
 def init_audit(token: str, domain: str) -> Audit:
@@ -108,15 +108,14 @@ def init_audit(token: str, domain: str) -> Audit:
 def make_aware_datetime(d: datetime) -> datetime:
     if d.tzinfo is None or d.tzinfo.utcoffset(d) is None:
         return d.replace(tzinfo=timezone.utc)
-    else:
-        return d
+    return d
 
 
 def filter_deep_none(data: Dict) -> Dict:
     return {k: v if not isinstance(v, Dict) else filter_deep_none(v) for k, v in data.items() if v is not None}
 
 
-def _load_env_var(env_var_name: str):
+def _load_env_var(env_var_name: str) -> str:
     value = os.getenv(env_var_name)
     if not value:
         raise PangeaException(f"{env_var_name} env var need to be set")
@@ -124,12 +123,12 @@ def _load_env_var(env_var_name: str):
     return value
 
 
-def get_test_domain(environment: TestEnvironment):
+def get_test_domain(environment: TestEnvironment) -> str:
     env_var_name = f"PANGEA_INTEGRATION_DOMAIN_{environment}"
     return _load_env_var(env_var_name)
 
 
-def get_test_token(environment: TestEnvironment):
+def get_test_token(environment: TestEnvironment) -> str:
     env_var_name = f"PANGEA_INTEGRATION_TOKEN_{environment}"
     return _load_env_var(env_var_name)
 
@@ -200,7 +199,7 @@ loggers: Dict[str, bool] = {}
 
 
 def logger_set_pangea_config(logger_name: str, level=logging.DEBUG):
-    if loggers.get(logger_name, None) is not None:
+    if loggers.get(logger_name) is not None:
         return
 
     loggers[logger_name] = True
