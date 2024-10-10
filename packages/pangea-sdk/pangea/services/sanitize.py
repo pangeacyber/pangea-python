@@ -5,6 +5,8 @@ from __future__ import annotations
 import io
 from typing import Dict, List, Optional, Tuple
 
+from pydantic import Field
+
 from pangea.response import APIRequestModel, PangeaResponse, PangeaResponseResult, TransferMethod
 from pangea.services.base import ServiceBase
 from pangea.utils import FileUploadParams, get_file_upload_params
@@ -36,6 +38,12 @@ class SanitizeContent(APIRequestModel):
 
     redact: Optional[bool] = None
     """Redact sensitive content."""
+
+    redact_detect_only: Optional[bool] = None
+    """
+    If redact is enabled, avoids redacting the file and instead returns the PII
+    analysis engine results. Only works if redact is enabled.
+    """
 
     remove_attachments: Optional[bool] = None
     """Remove file attachments (PDF only)."""
@@ -104,12 +112,35 @@ class DefangData(PangeaResponseResult):
     """Processed N Domains: X are malicious, Y are suspicious, Z are unknown."""
 
 
+class RedactRecognizerResult(PangeaResponseResult):
+    field_type: str
+    """The entity name."""
+
+    score: float
+    """The certainty score that the entity matches this specific snippet."""
+
+    text: str
+    """The text snippet that matched."""
+
+    start: int
+    """The starting index of a snippet."""
+
+    end: int
+    """The ending index of a snippet."""
+
+    redacted: bool
+    """Indicates if this rule was used to anonymize a text snippet."""
+
+
 class RedactData(PangeaResponseResult):
-    redaction_count: Optional[int] = None
+    redaction_count: int
     """Number of items redacted"""
 
-    summary_counts: Dict = {}
+    summary_counts: Dict[str, int] = Field(default_factory=dict)
     """Summary counts."""
+
+    recognizer_results: Optional[List[RedactRecognizerResult]] = None
+    """The scoring result of a set of rules."""
 
 
 class CDR(PangeaResponseResult):
