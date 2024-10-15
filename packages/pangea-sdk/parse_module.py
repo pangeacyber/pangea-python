@@ -87,7 +87,7 @@ def _format_annotation(annotation: object, base_module: str | None = None) -> st
         return annotation
     if getattr(annotation, "__module__", None) == "typing":
         return repr(annotation).replace("typing.", "")
-    if isinstance(annotation, types.GenericAlias):  # type: ignore[attr-defined]
+    if isinstance(annotation, types.GenericAlias):
         return str(annotation)
     if isinstance(annotation, type):
         if annotation.__module__ in ("builtins", base_module):

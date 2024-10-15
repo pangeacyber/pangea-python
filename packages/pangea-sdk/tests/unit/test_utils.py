@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import unittest
 
-from google_crc32c import Checksum as CRC32C  # type: ignore[import-untyped]
+from google_crc32c import Checksum as CRC32C
 
 from pangea.services.audit.util import b64decode, b64decode_ascii, b64encode, b64encode_ascii
 from pangea.utils import default_encoder, get_prefix, hash_sha1, hash_sha256, str2str_b64

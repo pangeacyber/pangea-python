@@ -17,7 +17,7 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.8.0"
+python = "^3.9.0"
 requests = "^2.31.0"
 cryptography = "^43.0.1"
 python-dateutil = "^2.9.0"
@@ -47,7 +47,7 @@ src_paths = ["pangea", "tests"]
 known_local_folder = ["pangea", "tests"]
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.9"
 color_output = true
 error_summary = true
 pretty = true
