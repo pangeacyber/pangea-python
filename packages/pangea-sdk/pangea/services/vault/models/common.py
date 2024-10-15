@@ -132,6 +132,25 @@ class GetRequest(APIRequestModel):
     version: Union[Literal["all"], int, None] = None
 
 
+class GetBulkRequest(APIRequestModel):
+    filter: Mapping[str, str]
+    """Filters to customize a search."""
+
+    size: Optional[int] = None
+    """Maximum number of items in the response."""
+
+    order: Optional[ItemOrder] = None
+    """Direction for ordering the results."""
+
+    order_by: Optional[ItemOrderBy] = None
+    """Property by which to order the results."""
+
+    last: Optional[str] = None
+    """
+    Internal ID returned in the previous look up response. Used for pagination.
+    """
+
+
 class ItemVersion(PangeaResponseResult):
     version: int
     created_at: str
@@ -614,22 +633,61 @@ class ExportResult(PangeaResponseResult):
     """The key material."""
 
 
+class PangeaTokenVersion(ItemVersion):
+    token: Optional[str] = None
+    """Pangea token value."""
+
+
 class PangeaToken(PangeaResponseResult):
     id: str
+    """ID of the token."""
+
     type: Literal[ItemType.PANGEA_TOKEN] = ItemType.PANGEA_TOKEN
+    """Type of the Vault item."""
+
+    item_versions: List[PangeaTokenVersion]
+
+    metadata: Optional[Metadata] = None
+    """Metadata provided by the user."""
+
+    num_versions: int
+    """Total number of versions of the item."""
+
     enabled: bool
+    """`true` if the item is enabled."""
+
     name: str
+    """Name of the item."""
+
     folder: str
-    metadata: Metadata
+    """Folder where the item is stored."""
+
     tags: Tags
-    expiration: str
+    """List of user-defined tags."""
+
+    last_rotated: Optional[str] = None
+    """Timestamp of the last rotation."""
+
+    next_rotation: Optional[str] = None
+    """Timestamp of the next rotation if auto-rotation is enabled."""
+
+    disabled_at: Optional[str] = None
+    """Timestamp indicating when the item will be disabled."""
+
     created_at: str
-    encrypting_item_id: str
+    """Timestamp indicating when the item was created."""
+
     rotation_frequency: str
+    """Time interval between item rotations."""
+
     rotation_state: RotationState
+    """Target state for the previous version after rotation."""
+
     rotation_grace_period: str
+    """Grace period for the previous version."""
+
     inherited_settings: InheritedSettings
-    item_versions: List[SecretVersion]
+    """Full paths of the parent folders from which settings inherit their values."""
 
 
 class PangeaTokenRotateRequest(CommonRotateRequest):

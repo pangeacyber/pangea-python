@@ -66,13 +66,11 @@ async def main() -> None:
         assert exp_encrypted_resp.result.public_key
 
         # Decrypt exported key
-        exp_pub_key_decoded = str_b64_2bytes(exp_encrypted_resp.result.public_key)
         exp_priv_key_decoded = str_b64_2bytes(exp_encrypted_resp.result.private_key)
         exp_priv_key_pem = rsa.decrypt_sha512(rsa_priv_key, exp_priv_key_decoded)
-        exp_pub_key_pem = rsa.decrypt_sha512(rsa_priv_key, exp_pub_key_decoded)
 
         print("Private key:\n", exp_priv_key_pem.decode("ascii"))
-        print("Public key: \n", exp_pub_key_pem.decode("ascii"))
+        print("Public key: \n", exp_encrypted_resp.result.public_key)
 
     except pe.PangeaAPIException as e:
         print(f"Vault Request Error: {e.response.summary}")

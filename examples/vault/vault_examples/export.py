@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 from secrets import token_hex
 
@@ -25,7 +27,7 @@ def main() -> None:
         # Set a unique name.
         name = f"Python export example {token_hex(8)}"
 
-        # Create an asymmetric key with exportable set to true
+        # Create an asymmetric key that is exportable.
         create_response = vault.generate_key(
             key_type=ItemType.ASYMMETRIC_KEY,
             algorithm=AsymmetricKeySigningAlgorithm.ED25519,
@@ -37,7 +39,7 @@ def main() -> None:
         assert create_response.result
         key_id = create_response.result.id
 
-        # export with no encryption
+        # Export with no encryption.
         exp_resp = vault.export(item_id=key_id, version=1)
         assert exp_resp.result
         assert exp_resp.result.private_key
@@ -65,13 +67,11 @@ def main() -> None:
         assert exp_encrypted_resp.result.public_key
 
         # Decrypt exported key
-        exp_pub_key_decoded = str_b64_2bytes(exp_encrypted_resp.result.public_key)
         exp_priv_key_decoded = str_b64_2bytes(exp_encrypted_resp.result.private_key)
         exp_priv_key_pem = rsa.decrypt_sha512(rsa_priv_key, exp_priv_key_decoded)
-        exp_pub_key_pem = rsa.decrypt_sha512(rsa_priv_key, exp_pub_key_decoded)
 
         print("Private key:\n", exp_priv_key_pem.decode("ascii"))
-        print("Public key: \n", exp_pub_key_pem.decode("ascii"))
+        print("Public key: \n", exp_encrypted_resp.result.public_key)
 
     except pe.PangeaAPIException as e:
         print(f"Vault Request Error: {e.response.summary}")

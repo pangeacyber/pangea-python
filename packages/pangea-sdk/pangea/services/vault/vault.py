@@ -2,7 +2,7 @@
 # Author: Pangea Cyber Corporation
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Literal, Optional, Union, cast, overload
+from typing import TYPE_CHECKING, Any, List, Literal, Optional, Union, cast, overload
 
 from pydantic import Field, TypeAdapter
 from typing_extensions import Annotated
@@ -40,6 +40,7 @@ from pangea.services.vault.models.common import (
     Folder,
     FolderCreateRequest,
     FolderCreateResult,
+    GetBulkRequest,
     GetRequest,
     ItemOrder,
     ItemOrderBy,
@@ -90,8 +91,14 @@ if TYPE_CHECKING:
     from pangea.request import TResult
 
 
-VaultItem = Annotated[Union[AsymmetricKey, SymmetricKey, Secret, ClientSecret, Folder], Field(discriminator="type")]
+VaultItem = Annotated[
+    Union[AsymmetricKey, SymmetricKey, Secret, ClientSecret, Folder, PangeaToken], Field(discriminator="type")
+]
 vault_item_adapter: TypeAdapter[VaultItem] = TypeAdapter(VaultItem)
+
+
+class GetBulkResponse(PangeaResponseResult):
+    items: List[VaultItem]
 
 
 class Vault(ServiceBase):
@@ -204,6 +211,40 @@ class Vault(ServiceBase):
         response = self.request.post("v2/get", PangeaResponseResult, data=GetRequest(id=item_id, version=version))
         response.result = vault_item_adapter.validate_python(response.json["result"])
         return cast(PangeaResponse[VaultItem], response)
+
+    def get_bulk(
+        self,
+        filter_: Mapping[str, str],
+        *,
+        size: int | None = None,
+        order: ItemOrder | None = None,
+        order_by: ItemOrderBy | None = None,
+        last: str | None = None,
+    ) -> PangeaResponse[GetBulkResponse]:
+        """
+        Get bulk
+
+        Retrieve details for multiple Vault items, including keys, secrets,
+        tokens, or folders, that match a given filter specification.
+
+        OperationId: vault_post_v2_get_bulk
+
+        Args:
+            filter: Filters to customize your search.
+            size: Maximum number of items in the response.
+            order: Direction for ordering the results.
+            order_by: Property by which to order the results.
+            last: Internal ID returned in the previous look up response. Used
+              for pagination.
+
+        Examples:
+            response = vault.get_bulk({"id": "pvi_..."})
+        """
+        return self.request.post(
+            "v2/get_bulk",
+            GetBulkResponse,
+            data=GetBulkRequest(filter=filter_, size=size, order=order, order_by=order_by, last=last),
+        )
 
     def list(
         self,

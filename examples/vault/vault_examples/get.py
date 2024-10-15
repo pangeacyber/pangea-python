@@ -29,8 +29,8 @@ def main() -> None:
         # Fetch the Secure Audit Log token.
         create_response = vault.get(item_id=token_id)
         assert create_response.result
-        assert create_response.result.type == ItemType.SECRET
-        audit_token = create_response.result.item_versions[0].secret
+        assert create_response.result.type == ItemType.PANGEA_TOKEN
+        audit_token = create_response.result.item_versions[0].token
         assert audit_token
 
         # Use that token to log a message.

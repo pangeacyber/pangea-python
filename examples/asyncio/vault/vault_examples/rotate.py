@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import asyncio
 import os
 import time
@@ -20,17 +22,17 @@ async def main():
         name = f"Python secret example {int(time.time())}"
 
         # Store a secret.
-        create_response = await vault.secret_store(name=name, secret=secret_1)
+        create_response = await vault.store_secret(name=name, secret=secret_1)
         secret_id = create_response.result.id
         print(f"Created success. ID: {secret_id}")
 
         # Rotate the secret.
-        await vault.secret_rotate(secret_id, secret_2)
+        await vault.rotate_secret(secret_id, secret_2)
 
         # Retrieve latest version of the secret.
         get_response = await vault.get(secret_id)
 
-        if get_response.result.current_version.secret == secret_2:
+        if get_response.result.item_versions[0].secret == secret_2:
             print("version 2 ok")
         else:
             print("version 2 is wrong")
@@ -38,7 +40,7 @@ async def main():
         # Retrieve version 1 of the secret.
         get_response = await vault.get(secret_id, version=1)
 
-        if get_response.result.versions[0].secret == secret_1:
+        if get_response.result.item_versions[0].secret == secret_1:
             print("version 1 ok")
         else:
             print("version 1 is wrong")

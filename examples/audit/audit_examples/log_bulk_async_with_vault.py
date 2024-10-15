@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 
 from pangea.config import PangeaConfig
@@ -27,8 +29,8 @@ def main():
     # Create a Vault API client and fetch the previously-stored Secure Audit Log
     # token.
     vault = Vault(vault_token, config=config, logger_name="vault")
-    vault_response = vault.get(audit_token_vault_id)
-    audit_token = vault_response.result.current_version.secret
+    vault_response = vault.get_bulk({"id": audit_token_vault_id})
+    audit_token = vault_response.result.items[0].item_versions[0].token
 
     # Use that token to create a new Secure Audit Log API client and log a
     # message.
