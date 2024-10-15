@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Support for `domains` field in `v2/user/breached` endpoint in User Intel service
+- Detect-only Redact for Sanitize.
 
 ## 4.3.0 - 2024-09-25
 
