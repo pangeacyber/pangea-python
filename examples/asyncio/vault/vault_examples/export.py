@@ -6,8 +6,11 @@ import pangea.exceptions as pe
 from pangea.asyncio.services import VaultAsync
 from pangea.config import PangeaConfig
 from pangea.crypto import rsa
-from pangea.services.vault.models.asymmetric import AsymmetricAlgorithm
-from pangea.services.vault.models.common import ExportEncryptionAlgorithm, KeyPurpose
+from pangea.services.vault.models.asymmetric import (
+    AsymmetricKeyPurpose,
+    AsymmetricKeySigningAlgorithm,
+)
+from pangea.services.vault.models.common import ExportEncryptionAlgorithm, ItemType
 from pangea.utils import str_b64_2bytes
 
 
@@ -24,15 +27,19 @@ async def main() -> None:
         name = f"Python export example {token_hex(8)}"
 
         # Create an asymmetric key with exportable set to true
-        create_response = await vault.asymmetric_generate(
-            algorithm=AsymmetricAlgorithm.Ed25519, purpose=KeyPurpose.SIGNING, name=name, exportable=True
+        create_response = await vault.generate_key(
+            key_type=ItemType.ASYMMETRIC_KEY,
+            algorithm=AsymmetricKeySigningAlgorithm.ED25519,
+            purpose=AsymmetricKeyPurpose.SIGNING,
+            name=name,
+            exportable=True,
         )
 
         assert create_response.result
         key_id = create_response.result.id
 
         # export with no encryption
-        exp_resp = await vault.export(id=key_id, version=1)
+        exp_resp = await vault.export(key_id, version=1)
         assert exp_resp.result
         assert exp_resp.result.private_key
         assert exp_resp.result.public_key
@@ -48,10 +55,10 @@ async def main() -> None:
 
         # send export request with public key to encrypt exported key
         exp_encrypted_resp = await vault.export(
-            id=key_id,
+            key_id,
             version=1,
-            encryption_key=rsa_pub_key_pem.decode("utf8"),
-            encryption_algorithm=ExportEncryptionAlgorithm.RSA4096_OAEP_SHA512,
+            asymmetric_public_key=rsa_pub_key_pem.decode("utf8"),
+            asymmetric_algorithm=ExportEncryptionAlgorithm.RSA4096_OAEP_SHA512,
         )
 
         assert exp_encrypted_resp.result
@@ -59,13 +66,11 @@ async def main() -> None:
         assert exp_encrypted_resp.result.public_key
 
         # Decrypt exported key
-        exp_pub_key_decoded = str_b64_2bytes(exp_encrypted_resp.result.public_key)
         exp_priv_key_decoded = str_b64_2bytes(exp_encrypted_resp.result.private_key)
         exp_priv_key_pem = rsa.decrypt_sha512(rsa_priv_key, exp_priv_key_decoded)
-        exp_pub_key_pem = rsa.decrypt_sha512(rsa_priv_key, exp_pub_key_decoded)
 
         print("Private key:\n", exp_priv_key_pem.decode("ascii"))
-        print("Public key: \n", exp_pub_key_pem.decode("ascii"))
+        print("Public key: \n", exp_encrypted_resp.result.public_key)
 
     except pe.PangeaAPIException as e:
         print(f"Vault Request Error: {e.response.summary}")

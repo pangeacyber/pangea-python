@@ -2,8 +2,11 @@ import os
 from secrets import token_hex
 
 from pangea.config import PangeaConfig
-from pangea.services.vault.models.common import KeyPurpose
-from pangea.services.vault.models.symmetric import SymmetricAlgorithm
+from pangea.services.vault.models.common import ItemType
+from pangea.services.vault.models.symmetric import (
+    SymmetricKeyEncryptionAlgorithm,
+    SymmetricKeyPurpose,
+)
 from pangea.services.vault.vault import Vault
 
 
@@ -19,9 +22,10 @@ def main() -> None:
 
     # First create an encryption key, either from the Pangea Console or
     # programmatically as below.
-    create_response = vault.symmetric_generate(
-        purpose=KeyPurpose.ENCRYPTION,
-        algorithm=SymmetricAlgorithm.AES256_CFB,
+    create_response = vault.generate_key(
+        key_type=ItemType.SYMMETRIC_KEY,
+        purpose=SymmetricKeyPurpose.ENCRYPTION,
+        algorithm=SymmetricKeyEncryptionAlgorithm.AES_CFB_256,
         name=f"Python encrypt example {token_hex(8)}",
     )
     assert create_response.result

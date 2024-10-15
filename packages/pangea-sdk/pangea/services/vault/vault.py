@@ -2,45 +2,48 @@
 # Author: Pangea Cyber Corporation
 from __future__ import annotations
 
-import datetime
-from typing import Dict, Optional, Union
+from typing import TYPE_CHECKING, Any, List, Literal, Optional, Union, cast, overload
 
-from pangea.config import PangeaConfig
-from pangea.response import PangeaResponse
+from pydantic import Field, TypeAdapter
+from typing_extensions import Annotated
+
+from pangea.response import PangeaResponse, PangeaResponseResult
 from pangea.services.base import ServiceBase
 from pangea.services.vault.models.asymmetric import (
-    AsymmetricGenerateRequest,
-    AsymmetricGenerateResult,
-    AsymmetricStoreRequest,
-    AsymmetricStoreResult,
+    AsymmetricKey,
+    AsymmetricKeyAlgorithm,
+    AsymmetricKeyEncryptionAlgorithm,
+    AsymmetricKeyJwtAlgorithm,
+    AsymmetricKeyPkiAlgorithm,
+    AsymmetricKeyPurpose,
+    AsymmetricKeySigningAlgorithm,
     SignRequest,
     SignResult,
     VerifyRequest,
     VerifyResult,
 )
 from pangea.services.vault.models.common import (
-    AsymmetricAlgorithm,
+    ClientSecret,
+    ClientSecretRotateRequest,
     DecryptTransformRequest,
     DecryptTransformResult,
     DeleteRequest,
     DeleteResult,
-    EncodedPrivateKey,
-    EncodedPublicKey,
-    EncodedSymmetricKey,
     EncryptStructuredRequest,
     EncryptStructuredResult,
     EncryptTransformRequest,
     EncryptTransformResult,
     ExportEncryptionAlgorithm,
+    ExportEncryptionType,
     ExportRequest,
     ExportResult,
+    Folder,
     FolderCreateRequest,
     FolderCreateResult,
+    GetBulkRequest,
     GetRequest,
-    GetResult,
     ItemOrder,
     ItemOrderBy,
-    ItemState,
     ItemType,
     ItemVersionState,
     JWKGetRequest,
@@ -49,37 +52,53 @@ from pangea.services.vault.models.common import (
     JWTSignResult,
     JWTVerifyRequest,
     JWTVerifyResult,
-    KeyPurpose,
-    KeyRotateRequest,
-    KeyRotateResult,
     ListRequest,
     ListResult,
     Metadata,
+    PangeaToken,
+    PangeaTokenRotateRequest,
+    RequestManualRotationState,
+    RequestRotationState,
+    RotationState,
+    Secret,
     StateChangeRequest,
-    StateChangeResult,
-    SymmetricAlgorithm,
     Tags,
     TDict,
     TransformAlphabet,
     UpdateRequest,
     UpdateResult,
 )
-from pangea.services.vault.models.secret import (
-    SecretRotateRequest,
-    SecretRotateResult,
-    SecretStoreRequest,
-    SecretStoreResult,
-)
+from pangea.services.vault.models.keys import CommonGenerateRequest, KeyRotateRequest, KeyStoreRequest
+from pangea.services.vault.models.secret import SecretRotateRequest, SecretStoreRequest, SecretStoreResult
 from pangea.services.vault.models.symmetric import (
     DecryptRequest,
     DecryptResult,
     EncryptRequest,
     EncryptResult,
-    SymmetricGenerateRequest,
-    SymmetricGenerateResult,
-    SymmetricStoreRequest,
-    SymmetricStoreResult,
+    SymmetricKey,
+    SymmetricKeyAlgorithm,
+    SymmetricKeyEncryptionAlgorithm,
+    SymmetricKeyFpeAlgorithm,
+    SymmetricKeyJwtAlgorithm,
+    SymmetricKeyPurpose,
 )
+
+if TYPE_CHECKING:
+    import datetime
+    from collections.abc import Mapping
+
+    from pangea.config import PangeaConfig
+    from pangea.request import TResult
+
+
+VaultItem = Annotated[
+    Union[AsymmetricKey, SymmetricKey, Secret, ClientSecret, Folder, PangeaToken], Field(discriminator="type")
+]
+vault_item_adapter: TypeAdapter[VaultItem] = TypeAdapter(VaultItem)
+
+
+class GetBulkResponse(PangeaResponseResult):
+    items: List[VaultItem]
 
 
 class Vault(ServiceBase):
@@ -129,110 +148,137 @@ class Vault(ServiceBase):
         """
         super().__init__(token, config, logger_name)
 
-    # Delete endpoint
-    def delete(self, id: str) -> PangeaResponse[DeleteResult]:
+    def delete(self, item_id: str, *, recursive: bool = False) -> PangeaResponse[DeleteResult]:
         """
         Delete
 
         Delete a secret or key
 
-        OperationId: vault_post_v1_delete
+        OperationId: vault_post_v2_delete
 
         Args:
-            id (str): The item ID
-        Raises:
-            PangeaAPIException: If an API Error happens
+            item_id: The item ID.
+            recursive: Whether to delete the item and all its children
+              recursively. Only applicable to folders.
 
         Returns:
             A PangeaResponse where the id of the deleted secret or key
                 is returned in the response.result field.
                 Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#delete).
 
+        Raises:
+            PangeaAPIException: If an API Error happens
+
         Examples:
             vault.delete(id="pvi_p6g5i3gtbvqvc3u6zugab6qs6r63tqf5")
         """
-        input = DeleteRequest(
-            id=id,
-        )
-        return self.request.post("v1/delete", DeleteResult, data=input.model_dump(exclude_none=True))
+        return self.request.post("v2/delete", DeleteResult, data=DeleteRequest(id=item_id, recursive=recursive))
 
-    # Get endpoint
     def get(
         self,
-        id: str,
-        version: Optional[Union[str, int]] = None,
-        version_state: Optional[ItemVersionState] = None,
-        verbose: Optional[bool] = None,
-    ) -> PangeaResponse[GetResult]:
+        item_id: str,
+        *,
+        version: Union[Literal["all"], int, None] = None,
+    ) -> PangeaResponse[VaultItem]:
         """
         Retrieve
 
-        Retrieve a secret or key, and any associated information
+        Retrieve a secret, key or folder, and any associated information.
 
-        OperationId: vault_post_v1_get
+        OperationId: vault_post_v2_get
 
         Args:
-            id (str): The item ID
-            version (str, int, optional): The key version(s).
-                - `all` for all versions
-                - `num` for a specific version
-                - `-num` for the `num` latest versions
-            version_state (ItemVersionState, optional): The state of the item version
-            verbose (bool, optional): Return metadata and extra fields. Default is `False`.
-        Raises:
-            PangeaAPIException: If an API Error happens
+            item_id: The item ID
+            version: The key version(s).
+              - `all` for all versions
+              - `num` for a specific version
+              - `-num` for the `num` latest versions
 
         Returns:
             A PangeaResponse where the secret or key
                 is returned in the response.result field.
                 Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#retrieve).
 
+        Raises:
+            PangeaAPIException: If an API Error happens
+
         Examples:
             response = vault.get(
                 id="pvi_p6g5i3gtbvqvc3u6zugab6qs6r63tqf5",
                 version=1,
-                version_state=ItemVersionState.ACTIVE,
-                verbose=True,
             )
         """
-        input = GetRequest(
-            id=id,
-            version=version,
-            verbose=verbose,
-            version_state=version_state,
-        )
-        return self.request.post("v1/get", GetResult, data=input.model_dump(exclude_none=True))
+        response = self.request.post("v2/get", PangeaResponseResult, data=GetRequest(id=item_id, version=version))
+        response.result = vault_item_adapter.validate_python(response.json["result"])
+        return cast(PangeaResponse[VaultItem], response)
 
-    # List endpoint
+    def get_bulk(
+        self,
+        filter_: Mapping[str, str],
+        *,
+        size: int | None = None,
+        order: ItemOrder | None = None,
+        order_by: ItemOrderBy | None = None,
+        last: str | None = None,
+    ) -> PangeaResponse[GetBulkResponse]:
+        """
+        Get bulk
+
+        Retrieve details for multiple Vault items, including keys, secrets,
+        tokens, or folders, that match a given filter specification.
+
+        OperationId: vault_post_v2_get_bulk
+
+        Args:
+            filter: Filters to customize your search.
+            size: Maximum number of items in the response.
+            order: Direction for ordering the results.
+            order_by: Property by which to order the results.
+            last: Internal ID returned in the previous look up response. Used
+              for pagination.
+
+        Examples:
+            response = vault.get_bulk({"id": "pvi_..."})
+        """
+        return self.request.post(
+            "v2/get_bulk",
+            GetBulkResponse,
+            data=GetBulkRequest(filter=filter_, size=size, order=order, order_by=order_by, last=last),
+        )
+
     def list(
         self,
-        filter: Optional[Dict[str, str]] = None,
-        last: Optional[str] = None,
+        *,
+        filter: Optional[Mapping[str, str]] = None,
+        size: int = 50,
         order: Optional[ItemOrder] = None,
-        order_by: Optional[ItemOrderBy] = None,
-        size: Optional[int] = None,
+        order_by: ItemOrderBy | None = None,
+        last: str | None = None,
     ) -> PangeaResponse[ListResult]:
         """
         List
 
-        Look up a list of secrets, keys and folders, and their associated information
+        Retrieve a list of secrets, keys and folders, and their associated information.
 
-        OperationId: vault_post_v1_list
+        OperationId: vault_post_v2_list
 
         Args:
-            filter (dict, optional): A set of filters to help you customize your search. Examples:
-                - "folder": "/tmp"
-                - "tags": "personal"
-                - "name__contains": "xxx"
-                - "created_at__gt": "2020-02-05T10:00:00Z"
+            filter: A set of filters to help you customize your search.
 
-                For metadata, use: "metadata_": "\<value\>"
-            last (str, optional): Internal ID returned in the previous look up response. Used for pagination.
-            order (ItemOrder, optional): Ordering direction: `asc` or `desc`
-            order_by (ItemOrderBy, optional): Property used to order the results. Supported properties: `id`,
+              Examples:
+              - "folder": "/tmp"
+              - "tags": "personal"
+              - "name__contains": "xxx"
+              - "created_at__gt": "2020-02-05T10:00:00Z"
+
+              For metadata, use: "metadata_{key}": "{value}"
+            size: Maximum number of items in the response. Default is `50`.
+            order: Ordering direction: `asc` or `desc`
+            order_by: Property used to order the results. Supported properties: `id`,
                 `type`, `created_at`, `algorithm`, `purpose`, `expiration`, `last_rotated`, `next_rotation`,
                 `name`, `folder`, `item_state`.
-            size (int, optional): Maximum number of items in the response. Default is `50`.
+            last: Internal ID returned in the previous look up response. Used
+              for pagination.
         Raises:
             PangeaAPIException: If an API Error happens
 
@@ -256,55 +302,52 @@ class Vault(ServiceBase):
                 size=20,
             )
         """
-        input = ListRequest(filter=filter, last=last, order=order, order_by=order_by, size=size)
-        return self.request.post("v1/list", ListResult, data=input.model_dump(exclude_none=True))
+        return self.request.post(
+            "v2/list",
+            ListResult,
+            data=ListRequest(filter=filter, size=size, order=order, order_by=order_by, last=last),
+        )
 
-    # Update endpoint
     def update(
         self,
-        id: str,
-        name: Optional[str] = None,
-        folder: Optional[str] = None,
-        metadata: Optional[Metadata] = None,
-        tags: Optional[Tags] = None,
-        rotation_frequency: Optional[str] = None,
-        rotation_state: Optional[ItemVersionState] = None,
-        rotation_grace_period: Optional[str] = None,
-        expiration: Optional[datetime.datetime] = None,
-        item_state: Optional[ItemState] = None,
+        item_id: str,
+        *,
+        name: str | None = None,
+        folder: str | None = None,
+        metadata: Metadata | None = None,
+        tags: Tags | None = None,
+        disabled_at: str | None = None,
+        enabled: bool | None = None,
+        rotation_frequency: str | None = None,
+        rotation_state: RequestRotationState = RequestRotationState.INHERITED,
+        rotation_grace_period: str | None = None,
     ) -> PangeaResponse[UpdateResult]:
         """
         Update
 
-        Update information associated with a secret or key.
+        Update information associated with a secret, key or folder.
 
-        OperationId: vault_post_v1_update
+        OperationId: vault_post_v2_update
 
         Args:
-            id (str): The item ID
-            name (str, optional): The name of this item
-            folder (string, optional): The folder where this item is stored
-            metadata (dict, optional): User-provided metadata
-            tags (list[str], optional): A list of user-defined tags
-            rotation_frequency (str, optional): Period of time between item rotations
-            rotation_state (ItemVersionState, optional): State to which the previous version should transition upon rotation.
-                Supported options:
-                - `deactivated`
-                - `destroyed`
-
-                Default is `deactivated`.
-            rotation_grace_period (str, optional): Grace period for the previous version of the Pangea Token
-            expiration (str, optional): Expiration timestamp
-            item_state (ItemState, optional): The new state of the item. Supported options:
-                - `enabled`
-                - `disabled`
-        Raises:
-            PangeaAPIException: If an API Error happens
+            item_id: The item ID.
+            name: The name of this item
+            folder: The folder where this item is stored.
+            metadata: User-provided metadata.
+            tags: A list of user-defined tags.
+            disabled_at: Timestamp indicating when the item will be disabled.
+            enabled: True if the item is enabled.
+            rotation_frequency: Period of time between item rotations.
+            rotation_state: State to which the previous version should transition upon rotation.
+            rotation_grace_period: Grace period for the previous version of the Pangea Token.
 
         Returns:
-            A PangeaResponse where the item ID
-                is returned in the response.result field.
-                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#update).
+            A PangeaResponse where the item ID is returned in the
+            response.result field. Available response fields can be found in our
+            [API documentation](https://pangea.cloud/docs/api/vault#update).
+
+        Raises:
+            PangeaAPIException: If an API Error happens
 
         Examples:
             response = vault.update(
@@ -321,636 +364,1325 @@ class Vault(ServiceBase):
                 ],
                 rotation_frequency="10d",
                 rotation_state=ItemVersionState.DEACTIVATED,
-                rotation_grace_period="1d",
-                expiration="2025-01-01T10:00:00Z",
-                item_state=ItemState.DISABLED,
             )
         """
-        input = UpdateRequest(
-            id=id,
-            name=name,
-            folder=folder,
-            metadata=metadata,
-            tags=tags,
-            rotation_frequency=rotation_frequency,
-            rotation_state=rotation_state,
-            rotation_grace_period=rotation_grace_period,
-            expiration=expiration,
-            item_state=item_state,
+        return self.request.post(
+            "v2/update",
+            UpdateResult,
+            data=UpdateRequest(
+                id=item_id,
+                name=name,
+                folder=folder,
+                metadata=metadata,
+                tags=tags,
+                disabled_at=disabled_at,
+                enabled=enabled,
+                rotation_frequency=rotation_frequency,
+                rotation_state=rotation_state,
+                rotation_grace_period=rotation_grace_period,
+            ),
         )
-        return self.request.post("v1/update", UpdateResult, data=input.model_dump(exclude_none=True))
 
-    def secret_store(
+    def _secret_store(
+        self,
+        *,
+        item_type: Literal["secret", "pangea_token", "pangea_client_secret"] = "secret",
+        result_class: type[TResult] = SecretStoreResult,  # type: ignore[assignment]
+        name: str | None = None,
+        folder: str | None = None,
+        metadata: Metadata | None = None,
+        tags: Tags | None = None,
+        disabled_at: datetime.datetime | None = None,
+        **kwargs: Any,
+    ) -> PangeaResponse[TResult]:
+        return self.request.post(
+            "v2/secret/store",
+            result_class,
+            data=SecretStoreRequest(
+                type=item_type,
+                name=name,
+                folder=folder,
+                metadata=metadata,
+                tags=tags,
+                disabled_at=disabled_at,
+                **kwargs,
+            ),
+        )
+
+    def store_secret(
         self,
         secret: str,
-        name: str,
-        folder: Optional[str] = None,
-        metadata: Optional[Metadata] = None,
-        tags: Optional[Tags] = None,
-        rotation_frequency: Optional[str] = None,
-        rotation_state: Optional[ItemVersionState] = None,
-        expiration: Optional[datetime.datetime] = None,
-    ) -> PangeaResponse[SecretStoreResult]:
+        *,
+        name: str | None = None,
+        folder: str | None = None,
+        metadata: Metadata | None = None,
+        tags: Tags | None = None,
+        disabled_at: datetime.datetime | None = None,
+    ) -> PangeaResponse[Secret]:
         """
-        Secret store
+        Store secret
 
-        Import a secret
-
-        OperationId: vault_post_v1_secret_store 1
+        Store a secret.
 
         Args:
-            secret (str): The secret value
-            name (str): The name of this item
-            folder (str, optional): The folder where this item is stored
-            metadata (dict, optional): User-provided metadata
-            tags (list[str], optional): A list of user-defined tags
-            rotation_frequency (str, optional): Period of time between item rotations
-            rotation_state (ItemVersionState, optional): State to which the previous version should transition upon rotation.
-                Supported options:
-                - `deactivated`
-                - `destroyed`
-            expiration (str, optional): Expiration timestamp
+            secret: The secret value.
+            name: The name of this item.
+            folder: The folder where this item is stored.
+            metadata: User-provided metadata.
+            tags: A list of user-defined tags.
+            disabled_at: Timestamp indicating when the item will be disabled.
 
         Raises:
             PangeaAPIException: If an API Error happens
 
-        Returns:
-            A PangeaResponse where the secret
-                is returned in the response.result field.
-                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#import-a-secret).
-
         Examples:
-            response = vault.secret_store(
-                secret="12sdfgs4543qv@#%$casd",
-                name="my-very-secret-secret",
-                folder="/personal",
-                metadata={
-                    "created_by": "John Doe",
-                    "used_in": "Google products"
-                },
-                tags=[
-                    "irs_2023",
-                    "personal"
-                ],
-                rotation_frequency="10d",
-                rotation_state=ItemVersionState.DEACTIVATED,
-                expiration="2025-01-01T10:00:00Z",
-            )
+            response = vault.store_secret(secret="foobar")
         """
-        input = SecretStoreRequest(
-            type=ItemType.SECRET,
+
+        return self._secret_store(
+            item_type="secret",
+            result_class=Secret,
             secret=secret,
             name=name,
             folder=folder,
             metadata=metadata,
             tags=tags,
-            rotation_frequency=rotation_frequency,
-            rotation_state=rotation_state,
-            expiration=expiration,
+            disabled_at=disabled_at,
         )
-        return self.request.post("v1/secret/store", SecretStoreResult, data=input.model_dump(exclude_none=True))
 
-    def pangea_token_store(
+    def store_pangea_token(
         self,
-        pangea_token: str,
-        name: str,
-        folder: Optional[str] = None,
-        metadata: Optional[Metadata] = None,
-        tags: Optional[Tags] = None,
-        rotation_frequency: Optional[str] = None,
-        rotation_state: Optional[ItemVersionState] = None,
-        expiration: Optional[datetime.datetime] = None,
-    ) -> PangeaResponse[SecretStoreResult]:
+        token: str,
+        *,
+        name: str | None = None,
+        folder: str | None = None,
+        metadata: Metadata | None = None,
+        tags: Tags | None = None,
+        disabled_at: datetime.datetime | None = None,
+        rotation_frequency: str | None = None,
+        rotation_state: RotationState | None = None,
+        rotation_grace_period: str | None = None,
+    ) -> PangeaResponse[PangeaToken]:
         """
-        Pangea token store
+        Store secret
 
-        Import a secret
-
-        OperationId: vault_post_v1_secret_store 2
+        Store a Pangea token.
 
         Args:
-            pangea_token (str): The pangea token to store
-            name (str): the name of this item
-            folder (str, optional): The folder where this item is stored
-            metadata (dict, optional): User-provided metadata
-            tags (list[str], optional): A list of user-defined tags
-            rotation_frequency (str, optional): Period of time between item rotations
-            rotation_state (ItemVersionState, optional): State to which the previous version should
-                transition upon rotation. Supported options:
-                - `deactivated`
-                - `destroyed`
-            expiration (str, optional): Expiration timestamp
+            token: The Pangea token value.
+            name: The name of this item.
+            folder: The folder where this item is stored.
+            metadata: User-provided metadata.
+            tags: A list of user-defined tags.
+            disabled_at: Timestamp indicating when the item will be disabled.
 
         Raises:
             PangeaAPIException: If an API Error happens
 
-        Returns:
-            A PangeaResponse where the token
-                is returned in the response.result field.
-                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#import-a-secret).
-
         Examples:
-            response = vault.pangea_token_store(
-                pangea_token="ptv_x6fdiizbon6j3bsdvnpmwxsz2aan7fqd",
-                name="my-very-secret-secret",
-                folder="/personal",
-                metadata={
-                    "created_by": "John Doe",
-                    "used_in": "Google products"
-                },
-                tags=[
-                    "irs_2023",
-                    "personal"
-                ],
-                rotation_frequency="10d",
-                rotation_state=ItemVersionState.DEACTIVATED,
-                expiration="2025-01-01T10:00:00Z",
-            )
+            response = vault.store_pangea_token(token="foobar")
         """
-        input = SecretStoreRequest(
-            type=ItemType.PANGEA_TOKEN,
-            secret=pangea_token,
+
+        return self._secret_store(
+            item_type="pangea_token",
+            result_class=PangeaToken,
+            token=token,
             name=name,
             folder=folder,
             metadata=metadata,
             tags=tags,
+            disabled_at=disabled_at,
             rotation_frequency=rotation_frequency,
             rotation_state=rotation_state,
-            expiration=expiration,
+            rotation_grace_period=rotation_grace_period,
         )
-        return self.request.post("v1/secret/store", SecretStoreResult, data=input.model_dump(exclude_none=True))
 
-    # Rotate endpoint
-    def secret_rotate(
-        self, id: str, secret: str, rotation_state: Optional[ItemVersionState] = None
-    ) -> PangeaResponse[SecretRotateResult]:
-        """
-        Secret rotate
-
-        Rotate a secret
-
-        OperationId: vault_post_v1_secret_rotate 1
-
-        Args:
-            id (str): The item ID
-            secret (str): The secret value
-            rotation_state (ItemVersionState, optional): State to which the previous version should transition upon rotation.
-                Supported options:
-                - `deactivated`
-                - `suspended`
-                - `destroyed`
-
-                Default is `deactivated`.
-
-        Raises:
-            PangeaAPIException: If an API Error happens
-
-        Returns:
-            A PangeaResponse where the secret
-                is returned in the response.result field.
-                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#rotate-a-secret).
-
-        Examples:
-            response = vault.secret_rotate(
-                id="pvi_p6g5i3gtbvqvc3u6zugab6qs6r63tqf5",
-                secret="12sdfgs4543qv@#%$casd",
-                rotation_state=ItemVersionState.DEACTIVATED,
-            )
-        """
-        input = SecretRotateRequest(id=id, secret=secret, rotation_state=rotation_state)
-        return self.request.post("v1/secret/rotate", SecretRotateResult, data=input.model_dump(exclude_none=True))
-
-    # Rotate endpoint
-    def pangea_token_rotate(self, id: str) -> PangeaResponse[SecretRotateResult]:
-        """
-        Token rotate
-
-        Rotate a Pangea token
-
-        OperationId: vault_post_v1_secret_rotate 2
-
-        Args:
-            id (str): The item ID
-
-        Raises:
-            PangeaAPIException: If an API Error happens
-
-        Returns:
-            A PangeaResponse where the token
-                is returned in the response.result field.
-                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#rotate-a-secret).
-
-        Examples:
-            response = vault.pangea_token_rotate(
-                id="pvi_p6g5i3gtbvqvc3u6zugab6qs6r63tqf5",
-            )
-        """
-        input = SecretRotateRequest(id=id)  # type: ignore[call-arg]
-        return self.request.post("v1/secret/rotate", SecretRotateResult, data=input.model_dump(exclude_none=True))
-
-    def symmetric_generate(
+    def store_pangea_client_secret(
         self,
-        algorithm: SymmetricAlgorithm,
-        purpose: KeyPurpose,
-        name: Optional[str] = None,
-        folder: Optional[str] = None,
-        metadata: Optional[Metadata] = None,
-        tags: Optional[Tags] = None,
-        rotation_frequency: Optional[str] = None,
-        rotation_state: Optional[ItemVersionState] = None,
-        expiration: Optional[datetime.datetime] = None,
-        exportable: Optional[bool] = None,
-    ) -> PangeaResponse[SymmetricGenerateResult]:
+        client_secret: str,
+        client_id: str,
+        client_secret_id: str,
+        *,
+        name: str | None = None,
+        folder: str | None = None,
+        metadata: Metadata | None = None,
+        tags: Tags | None = None,
+        disabled_at: datetime.datetime | None = None,
+        rotation_frequency: str | None = None,
+        rotation_state: RotationState | None = None,
+        rotation_grace_period: str | None = None,
+    ) -> PangeaResponse[ClientSecret]:
         """
-        Symmetric generate
+        Store secret
 
-        Generate a symmetric key
-
-        OperationId: vault_post_v1_key_generate 2
+        Store a Pangea client secret.
 
         Args:
-            algorithm (SymmetricAlgorithm): The algorithm of the key
-            purpose (KeyPurpose): The purpose of this key
-            name (str): The name of this item
-            folder (str, optional): The folder where this item is stored
-            metadata (dict, optional): User-provided metadata
-            tags (list[str], optional): A list of user-defined tags
-            rotation_frequency (str, optional): Period of time between item rotations, or `never` to disallow rotation
-            rotation_state (ItemVersionState, optional): State to which the previous version should transition upon rotation.
-                Supported options:
-                - `deactivated`
-                - `destroyed`
-            expiration (str, optional): Expiration timestamp
-            exportable (bool, optional): Whether the key is exportable or not
+            client_secret: The oauth client secret.
+            client_id: The oauth client ID.
+            client_secret_id: The oauth client secret ID.
+            name: The name of this item.
+            folder: The folder where this item is stored.
+            metadata: User-provided metadata.
+            tags: A list of user-defined tags.
+            disabled_at: Timestamp indicating when the item will be disabled.
+            rotation_frequency: Period of time between item rotations.
+            rotation_state: State to which the previous version should
+              transition upon rotation.
+            rotation_grace_period: Grace period for the previous version of the
+              Pangea Token.
 
         Raises:
             PangeaAPIException: If an API Error happens
 
-        Returns:
-            A PangeaResponse where the ID of the key
-                is returned in the response.result field.
-                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#generate).
-
         Examples:
-            response = vault.symmetric_generate(
-                algorithm=SymmetricAlgorithm.AES,
-                purpose=KeyPurpose.ENCRYPTION,
-                name="my-very-secret-secret",
-                folder="/personal",
-                metadata={
-                    "created_by": "John Doe",
-                    "used_in": "Google products"
-                },
-                tags=[
-                    "irs_2023",
-                    "personal"
-                ],
-                rotation_frequency="10d",
-                rotation_state=ItemVersionState.DEACTIVATED,
-                expiration="2025-01-01T10:00:00Z",
+            response = vault.store_pangea_client_secret(
+                client_secret="foo",
+                client_id="bar",
+                client_secret_id="baz",
             )
         """
-        input = SymmetricGenerateRequest(
-            type=ItemType.SYMMETRIC_KEY,
-            algorithm=algorithm,
-            purpose=purpose,
-            name=name,  # type: ignore[arg-type]
-            folder=folder,
-            metadata=metadata,
-            tags=tags,
-            rotation_frequency=rotation_frequency,
-            rotation_state=rotation_state,
-            expiration=expiration,
-            exportable=exportable,
-        )
-        return self.request.post(
-            "v1/key/generate",
-            SymmetricGenerateResult,
-            data=input.model_dump(exclude_none=True),
-        )
 
-    def asymmetric_generate(
-        self,
-        algorithm: AsymmetricAlgorithm,
-        purpose: KeyPurpose,
-        name: Optional[str] = None,
-        folder: Optional[str] = None,
-        metadata: Optional[Metadata] = None,
-        tags: Optional[Tags] = None,
-        rotation_frequency: Optional[str] = None,
-        rotation_state: Optional[ItemVersionState] = None,
-        expiration: Optional[datetime.datetime] = None,
-        exportable: Optional[bool] = None,
-    ) -> PangeaResponse[AsymmetricGenerateResult]:
-        """
-        Asymmetric generate
-
-        Generate an asymmetric key
-
-        OperationId: vault_post_v1_key_generate 1
-
-        Args:
-            algorithm (AsymmetricAlgorithm): The algorithm of the key
-            purpose (KeyPurpose): The purpose of this key
-            name (str): The name of this item
-            folder (str, optional): The folder where this item is stored
-            metadata (dict, optional): User-provided metadata
-            tags (list[str], optional): A list of user-defined tags
-            rotation_frequency (str, optional): Period of time between item rotations, or `never` to disallow rotation
-            rotation_state (ItemVersionState, optional): State to which the previous version should transition upon rotation.
-                Supported options:
-                - `deactivated`
-                - `destroyed`
-            expiration (str, optional): Expiration timestamp
-            exportable (bool, optional): Whether the key is exportable or not
-
-        Raises:
-            PangeaAPIException: If an API Error happens
-
-        Returns:
-            A PangeaResponse where the ID of the key
-                is returned in the response.result field.
-                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#generate).
-
-        Examples:
-            response = vault.asymmetric_generate(
-                algorithm=AsymmetricAlgorithm.RSA,
-                purpose=KeyPurpose.SIGNING,
-                name="my-very-secret-secret",
-                folder="/personal",
-                metadata={
-                    "created_by": "John Doe",
-                    "used_in": "Google products"
-                },
-                tags=[
-                    "irs_2023",
-                    "personal"
-                ],
-                rotation_frequency="10d",
-                rotation_state=ItemVersionState.DEACTIVATED,
-                expiration="2025-01-01T10:00:00Z",
-            )
-        """
-        input = AsymmetricGenerateRequest(
-            type=ItemType.ASYMMETRIC_KEY,
-            algorithm=algorithm,
-            purpose=purpose,
-            name=name,  # type: ignore[arg-type]
-            folder=folder,
-            metadata=metadata,
-            tags=tags,
-            rotation_frequency=rotation_frequency,
-            rotation_state=rotation_state,
-            expiration=expiration,
-            exportable=exportable,
-        )
-        return self.request.post(
-            "v1/key/generate",
-            AsymmetricGenerateResult,
-            data=input.model_dump(exclude_none=True),
-        )
-
-    # Store endpoints
-    def asymmetric_store(
-        self,
-        private_key: EncodedPrivateKey,
-        public_key: EncodedPublicKey,
-        algorithm: AsymmetricAlgorithm,
-        purpose: KeyPurpose,
-        name: str,
-        folder: Optional[str] = None,
-        metadata: Optional[Metadata] = None,
-        tags: Optional[Tags] = None,
-        rotation_frequency: Optional[str] = None,
-        rotation_state: Optional[ItemVersionState] = None,
-        expiration: Optional[datetime.datetime] = None,
-        exportable: Optional[bool] = None,
-    ) -> PangeaResponse[AsymmetricStoreResult]:
-        """
-        Asymmetric store
-
-        Import an asymmetric key
-
-        OperationId: vault_post_v1_key_store 1
-
-        Args:
-            private_key (EncodedPrivateKey): The private key in PEM format
-            public_key (EncodedPublicKey): The public key in PEM format
-            algorithm (AsymmetricAlgorithm): The algorithm of the key
-            purpose (KeyPurpose): The purpose of this key. `signing`, `encryption`, or `jwt`.
-            name (str): The name of this item
-            folder (str, optional): The folder where this item is stored
-            metadata (dict, optional): User-provided metadata
-            tags (list[str], optional): A list of user-defined tags
-            rotation_frequency (str, optional): Period of time between item rotations, or `never` to disallow rotation
-            rotation_state (ItemVersionState, optional): State to which the previous version should transition upon rotation.
-                Supported options:
-                - `deactivated`
-                - `destroyed`
-            expiration (str, optional): Expiration timestamp
-            exportable (bool, optional): Whether the key is exportable or not
-
-        Raises:
-            PangeaAPIException: If an API Error happens
-
-        Returns:
-            A PangeaResponse where the ID and public key
-                is returned in the response.result field.
-                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#import-a-key).
-
-        Examples:
-            response = vault.asymmetric_store(
-                private_key="private key example",
-                public_key="-----BEGIN PUBLIC KEY-----\\nMCowBQYDK2VwAyEA8s5JopbEPGBylPBcMK+L5PqHMqPJW/5KYPgBHzZGncc=\\n-----END PUBLIC KEY-----",
-                algorithm=AsymmetricAlgorithm.RSA,
-                purpose=KeyPurpose.SIGNING,
-                name="my-very-secret-secret",
-                folder="/personal",
-                metadata={
-                    "created_by": "John Doe",
-                    "used_in": "Google products"
-                },
-                tags=[
-                    "irs_2023",
-                    "personal"
-                ],
-                rotation_frequency="10d",
-                rotation_state=ItemVersionState.DEACTIVATED,
-                expiration="2025-01-01T10:00:00Z",
-            )
-        """
-        input = AsymmetricStoreRequest(
-            type=ItemType.ASYMMETRIC_KEY,
-            algorithm=algorithm,
-            purpose=purpose,
-            public_key=public_key,
-            private_key=private_key,
+        return self._secret_store(
+            item_type="pangea_client_secret",
+            result_class=ClientSecret,
+            client_secret=client_secret,
+            client_id=client_id,
+            client_secret_id=client_secret_id,
             name=name,
             folder=folder,
             metadata=metadata,
             tags=tags,
+            disabled_at=disabled_at,
             rotation_frequency=rotation_frequency,
             rotation_state=rotation_state,
-            expiration=expiration,
-            exportable=exportable,
+            rotation_grace_period=rotation_grace_period,
         )
-        return self.request.post("v1/key/store", AsymmetricStoreResult, data=input.model_dump(exclude_none=True))
 
-    def symmetric_store(
+    def rotate_secret(
         self,
+        item_id: str,
+        secret: str,
+        *,
+        rotation_state: RequestManualRotationState = RequestManualRotationState.DEACTIVATED,
+    ) -> PangeaResponse[Secret]:
+        """
+        Rotate secret
+
+        Rotate a secret.
+
+        Args:
+            item_id: The item ID.
+            secret: The secret value.
+            rotation_state: State to which the previous version should
+              transition upon rotation.
+
+        Raises:
+            PangeaAPIException: If an API Error happens
+
+        Examples:
+            response = vault.rotate_secret(item_id="foo", secret="bar")
+        """
+
+        return self.request.post(
+            "v2/secret/rotate",
+            Secret,
+            data=SecretRotateRequest(id=item_id, secret=secret, rotation_state=rotation_state),
+        )
+
+    def rotate_pangea_token(
+        self,
+        item_id: str,
+        *,
+        rotation_grace_period: str | None = None,
+        rotation_state: RequestManualRotationState = RequestManualRotationState.DEACTIVATED,
+    ) -> PangeaResponse[PangeaToken]:
+        """
+        Rotate secret
+
+        Rotate a Pangea token.
+
+        Args:
+            item_id: The item ID.
+            rotation_grace_period: Grace period for the previous version of the
+              Pangea Token.
+            rotation_state: State to which the previous version should
+              transition upon rotation.
+
+        Raises:
+            PangeaAPIException: If an API Error happens.
+
+        Examples:
+            response = vault.rotate_pangea_token(item_id="foo")
+        """
+
+        return self.request.post(
+            "v2/secret/rotate",
+            PangeaToken,
+            data=PangeaTokenRotateRequest(
+                id=item_id, rotation_grace_period=rotation_grace_period, rotation_state=rotation_state
+            ),
+        )
+
+    def rotate_client_secret(
+        self,
+        item_id: str,
+        *,
+        rotation_grace_period: str | None = None,
+        rotation_state: RequestManualRotationState = RequestManualRotationState.DEACTIVATED,
+    ) -> PangeaResponse[ClientSecret]:
+        """
+        Rotate secret
+
+        Rotate a client secret.
+
+        Args:
+            item_id: The item ID.
+            rotation_grace_period: Grace period for the previous version of the
+              Pangea Token.
+            rotation_state: State to which the previous version should
+              transition upon rotation.
+
+        Raises:
+            PangeaAPIException: If an API Error happens.
+
+        Examples:
+            response = vault.rotate_client_secret(item_id="foo")
+        """
+
+        return self.request.post(
+            "v2/secret/rotate",
+            ClientSecret,
+            data=ClientSecretRotateRequest(
+                id=item_id, rotation_grace_period=rotation_grace_period, rotation_state=rotation_state
+            ),
+        )
+
+    @overload
+    def generate_key(
+        self,
+        *,
+        key_type: Literal[ItemType.ASYMMETRIC_KEY],
+        purpose: Literal[AsymmetricKeyPurpose.SIGNING],
+        algorithm: AsymmetricKeySigningAlgorithm,
+        name: str | None = None,
+        folder: str | None = None,
+        metadata: Metadata | None = None,
+        tags: Tags | None = None,
+        rotation_frequency: str | None = None,
+        rotation_state: RequestRotationState | None = RequestRotationState.INHERITED,
+        disabled_at: datetime.datetime | None = None,
+        exportable: bool = False,
+    ) -> PangeaResponse[AsymmetricKey]:
+        """
+        Generate key
+
+        Generate an asymmetric signing key.
+
+        Args:
+            key_type: Key type.
+            purpose: The purpose of this key.
+            algorithm: The algorithm of the key.
+            name: The name of this item.
+            folder: The folder where this item is stored.
+            metadata: User-provided metadata.
+            tags: A list of user-defined tags.
+            rotation_frequency: Period of time between item rotations.
+            rotation_state: State to which the previous version should
+              transition upon rotation.
+            disabled_at: Timestamp indicating when the item will be disabled.
+            exportable: Whether the key is exportable or not.
+
+        Raises:
+            PangeaAPIException: If an API Error happens.
+
+        Examples:
+            response = vault.generate_key(
+                key_type=ItemType.ASYMMETRIC_KEY,
+                purpose=AsymmetricKeyPurpose.SIGNING,
+                algorithm=AsymmetricKeySigningAlgorithm.ED25519,
+            )
+        """
+
+    @overload
+    def generate_key(
+        self,
+        *,
+        key_type: Literal[ItemType.ASYMMETRIC_KEY],
+        purpose: Literal[AsymmetricKeyPurpose.ENCRYPTION],
+        algorithm: AsymmetricKeyEncryptionAlgorithm,
+        name: str | None = None,
+        folder: str | None = None,
+        metadata: Metadata | None = None,
+        tags: Tags | None = None,
+        rotation_frequency: str | None = None,
+        rotation_state: RequestRotationState | None = RequestRotationState.INHERITED,
+        disabled_at: datetime.datetime | None = None,
+        exportable: bool = False,
+    ) -> PangeaResponse[AsymmetricKey]:
+        """
+        Generate key
+
+        Generate an asymmetric encryption key.
+
+        Args:
+            key_type: Key type.
+            purpose: The purpose of this key.
+            algorithm: The algorithm of the key.
+            name: The name of this item.
+            folder: The folder where this item is stored.
+            metadata: User-provided metadata.
+            tags: A list of user-defined tags.
+            rotation_frequency: Period of time between item rotations.
+            rotation_state: State to which the previous version should
+              transition upon rotation.
+            disabled_at: Timestamp indicating when the item will be disabled.
+            exportable: Whether the key is exportable or not.
+
+        Raises:
+            PangeaAPIException: If an API Error happens.
+
+        Examples:
+            response = vault.generate_key(
+                key_type=ItemType.ASYMMETRIC_KEY,
+                purpose=AsymmetricKeyPurpose.ENCRYPTION,
+                algorithm=AsymmetricKeyEncryptionAlgorithm.RSA_OAEP_2048_SHA1,
+            )
+        """
+
+    @overload
+    def generate_key(
+        self,
+        *,
+        key_type: Literal[ItemType.ASYMMETRIC_KEY],
+        purpose: Literal[AsymmetricKeyPurpose.JWT],
+        algorithm: AsymmetricKeyJwtAlgorithm,
+        name: str | None = None,
+        folder: str | None = None,
+        metadata: Metadata | None = None,
+        tags: Tags | None = None,
+        rotation_frequency: str | None = None,
+        rotation_state: RequestRotationState | None = RequestRotationState.INHERITED,
+        disabled_at: datetime.datetime | None = None,
+        exportable: bool = False,
+    ) -> PangeaResponse[AsymmetricKey]:
+        """
+        Generate key
+
+        Generate an asymmetric JWT key.
+
+        Args:
+            key_type: Key type.
+            purpose: The purpose of this key.
+            algorithm: The algorithm of the key.
+            name: The name of this item.
+            folder: The folder where this item is stored.
+            metadata: User-provided metadata.
+            tags: A list of user-defined tags.
+            rotation_frequency: Period of time between item rotations.
+            rotation_state: State to which the previous version should
+              transition upon rotation.
+            disabled_at: Timestamp indicating when the item will be disabled.
+            exportable: Whether the key is exportable or not.
+
+        Raises:
+            PangeaAPIException: If an API Error happens.
+
+        Examples:
+            response = vault.generate_key(
+                key_type=ItemType.ASYMMETRIC_KEY,
+                purpose=AsymmetricKeyPurpose.JWT,
+                algorithm=AsymmetricKeyJwtAlgorithm.ES512,
+            )
+        """
+
+    @overload
+    def generate_key(
+        self,
+        *,
+        key_type: Literal[ItemType.ASYMMETRIC_KEY],
+        purpose: Literal[AsymmetricKeyPurpose.PKI],
+        algorithm: AsymmetricKeyPkiAlgorithm,
+        name: str | None = None,
+        folder: str | None = None,
+        metadata: Metadata | None = None,
+        tags: Tags | None = None,
+        rotation_frequency: str | None = None,
+        rotation_state: RequestRotationState | None = RequestRotationState.INHERITED,
+        disabled_at: datetime.datetime | None = None,
+        exportable: bool = False,
+    ) -> PangeaResponse[AsymmetricKey]:
+        """
+        Generate key
+
+        Generate an asymmetric PKI key.
+
+        Args:
+            key_type: Key type.
+            purpose: The purpose of this key.
+            algorithm: The algorithm of the key.
+            name: The name of this item.
+            folder: The folder where this item is stored.
+            metadata: User-provided metadata.
+            tags: A list of user-defined tags.
+            rotation_frequency: Period of time between item rotations.
+            rotation_state: State to which the previous version should
+              transition upon rotation.
+            disabled_at: Timestamp indicating when the item will be disabled.
+            exportable: Whether the key is exportable or not.
+
+        Raises:
+            PangeaAPIException: If an API Error happens.
+
+        Examples:
+            response = vault.generate_key(
+                key_type=ItemType.ASYMMETRIC_KEY,
+                purpose=AsymmetricKeyPurpose.PKI,
+                algorithm=AsymmetricKeyPkiAlgorithm.ED25519,
+            )
+        """
+
+    @overload
+    def generate_key(
+        self,
+        *,
+        key_type: Literal[ItemType.ASYMMETRIC_KEY],
+        purpose: AsymmetricKeyPurpose,
+        algorithm: AsymmetricKeyAlgorithm,
+        name: str | None = None,
+        folder: str | None = None,
+        metadata: Metadata | None = None,
+        tags: Tags | None = None,
+        rotation_frequency: str | None = None,
+        rotation_state: RequestRotationState | None = RequestRotationState.INHERITED,
+        disabled_at: datetime.datetime | None = None,
+        exportable: bool = False,
+    ) -> PangeaResponse[AsymmetricKey]:
+        """
+        Generate key
+
+        Generate an asymmetric key.
+
+        Args:
+            key_type: Key type.
+            purpose: The purpose of this key.
+            algorithm: The algorithm of the key.
+            name: The name of this item.
+            folder: The folder where this item is stored.
+            metadata: User-provided metadata.
+            tags: A list of user-defined tags.
+            rotation_frequency: Period of time between item rotations.
+            rotation_state: State to which the previous version should
+              transition upon rotation.
+            disabled_at: Timestamp indicating when the item will be disabled.
+            exportable: Whether the key is exportable or not.
+
+        Raises:
+            PangeaAPIException: If an API Error happens.
+
+        Examples:
+            response = vault.generate_key(
+                key_type=ItemType.ASYMMETRIC_KEY,
+                purpose=AsymmetricKeyPurpose.PKI,
+                algorithm=AsymmetricKeyPkiAlgorithm.ED25519,
+            )
+        """
+
+    @overload
+    def generate_key(
+        self,
+        *,
+        key_type: Literal[ItemType.SYMMETRIC_KEY],
+        purpose: Literal[SymmetricKeyPurpose.ENCRYPTION],
+        algorithm: SymmetricKeyEncryptionAlgorithm,
+        name: str | None = None,
+        folder: str | None = None,
+        metadata: Metadata | None = None,
+        tags: Tags | None = None,
+        rotation_frequency: str | None = None,
+        rotation_state: RequestRotationState | None = RequestRotationState.INHERITED,
+        disabled_at: datetime.datetime | None = None,
+        exportable: bool = False,
+    ) -> PangeaResponse[SymmetricKey]:
+        """
+        Generate key
+
+        Generate a symmetric encryption key.
+
+        Args:
+            key_type: Key type.
+            purpose: The purpose of this key.
+            algorithm: The algorithm of the key.
+            name: The name of this item.
+            folder: The folder where this item is stored.
+            metadata: User-provided metadata.
+            tags: A list of user-defined tags.
+            rotation_frequency: Period of time between item rotations.
+            rotation_state: State to which the previous version should
+              transition upon rotation.
+            disabled_at: Timestamp indicating when the item will be disabled.
+            exportable: Whether the key is exportable or not.
+
+        Raises:
+            PangeaAPIException: If an API Error happens.
+
+        Examples:
+            response = vault.generate_key(
+                key_type=ItemType.SYMMETRIC_KEY,
+                purpose=SymmetricKeyPurpose.ENCRYPTION,
+                algorithm=SymmetricKeyEncryptionAlgorithm.AES_CFB_128,
+            )
+        """
+
+    @overload
+    def generate_key(
+        self,
+        *,
+        key_type: Literal[ItemType.SYMMETRIC_KEY],
+        purpose: Literal[SymmetricKeyPurpose.JWT],
+        algorithm: SymmetricKeyJwtAlgorithm,
+        name: str | None = None,
+        folder: str | None = None,
+        metadata: Metadata | None = None,
+        tags: Tags | None = None,
+        rotation_frequency: str | None = None,
+        rotation_state: RequestRotationState | None = RequestRotationState.INHERITED,
+        disabled_at: datetime.datetime | None = None,
+        exportable: bool = False,
+    ) -> PangeaResponse[SymmetricKey]:
+        """
+        Generate key
+
+        Generate a symmetric JWT key.
+
+        Args:
+            key_type: Key type.
+            purpose: The purpose of this key.
+            algorithm: The algorithm of the key.
+            name: The name of this item.
+            folder: The folder where this item is stored.
+            metadata: User-provided metadata.
+            tags: A list of user-defined tags.
+            rotation_frequency: Period of time between item rotations.
+            rotation_state: State to which the previous version should
+              transition upon rotation.
+            disabled_at: Timestamp indicating when the item will be disabled.
+            exportable: Whether the key is exportable or not.
+
+        Raises:
+            PangeaAPIException: If an API Error happens.
+
+        Examples:
+            response = vault.generate_key(
+                key_type=ItemType.SYMMETRIC_KEY,
+                purpose=SymmetricKeyPurpose.JWT,
+                algorithm=SymmetricKeyJwtAlgorithm.HS512,
+            )
+        """
+
+    @overload
+    def generate_key(
+        self,
+        *,
+        key_type: Literal[ItemType.SYMMETRIC_KEY],
+        purpose: Literal[SymmetricKeyPurpose.FPE],
+        algorithm: SymmetricKeyFpeAlgorithm,
+        name: str | None = None,
+        folder: str | None = None,
+        metadata: Metadata | None = None,
+        tags: Tags | None = None,
+        rotation_frequency: str | None = None,
+        rotation_state: RequestRotationState | None = RequestRotationState.INHERITED,
+        disabled_at: datetime.datetime | None = None,
+        exportable: bool = False,
+    ) -> PangeaResponse[SymmetricKey]:
+        """
+        Generate key
+
+        Generate a symmetric FPE key.
+
+        Args:
+            key_type: Key type.
+            purpose: The purpose of this key.
+            algorithm: The algorithm of the key.
+            name: The name of this item.
+            folder: The folder where this item is stored.
+            metadata: User-provided metadata.
+            tags: A list of user-defined tags.
+            rotation_frequency: Period of time between item rotations.
+            rotation_state: State to which the previous version should
+              transition upon rotation.
+            disabled_at: Timestamp indicating when the item will be disabled.
+            exportable: Whether the key is exportable or not.
+
+        Raises:
+            PangeaAPIException: If an API Error happens.
+
+        Examples:
+            response = vault.generate_key(
+                key_type=ItemType.SYMMETRIC_KEY,
+                purpose=SymmetricKeyPurpose.FPE,
+                algorithm=SymmetricKeyFpeAlgorithm.AES_FF3_1_256_BETA,
+            )
+        """
+
+    @overload
+    def generate_key(
+        self,
+        *,
+        key_type: Literal[ItemType.SYMMETRIC_KEY],
+        purpose: SymmetricKeyPurpose,
+        algorithm: SymmetricKeyAlgorithm,
+        name: str | None = None,
+        folder: str | None = None,
+        metadata: Metadata | None = None,
+        tags: Tags | None = None,
+        rotation_frequency: str | None = None,
+        rotation_state: RequestRotationState | None = RequestRotationState.INHERITED,
+        disabled_at: datetime.datetime | None = None,
+        exportable: bool = False,
+    ) -> PangeaResponse[SymmetricKey]:
+        """
+        Generate key
+
+        Generate a symmetric key.
+
+        Args:
+            key_type: Key type.
+            purpose: The purpose of this key.
+            algorithm: The algorithm of the key.
+            name: The name of this item.
+            folder: The folder where this item is stored.
+            metadata: User-provided metadata.
+            tags: A list of user-defined tags.
+            rotation_frequency: Period of time between item rotations.
+            rotation_state: State to which the previous version should
+              transition upon rotation.
+            disabled_at: Timestamp indicating when the item will be disabled.
+            exportable: Whether the key is exportable or not.
+
+        Raises:
+            PangeaAPIException: If an API Error happens.
+
+        Examples:
+            response = vault.generate_key(
+                key_type=ItemType.SYMMETRIC_KEY,
+                purpose=SymmetricKeyPurpose.FPE,
+                algorithm=SymmetricKeyFpeAlgorithm.AES_FF3_1_256_BETA,
+            )
+        """
+
+    def generate_key(
+        self,
+        *,
+        key_type: Literal[ItemType.ASYMMETRIC_KEY, ItemType.SYMMETRIC_KEY],
+        purpose: SymmetricKeyPurpose | AsymmetricKeyPurpose,
+        algorithm: AsymmetricKeyAlgorithm | SymmetricKeyAlgorithm,
+        name: str | None = None,
+        folder: str | None = None,
+        metadata: Metadata | None = None,
+        tags: Tags | None = None,
+        rotation_frequency: str | None = None,
+        rotation_state: RequestRotationState | None = RequestRotationState.INHERITED,
+        disabled_at: datetime.datetime | None = None,
+        exportable: bool = False,
+    ) -> PangeaResponse[Any]:
+        """
+        Generate key
+
+        Generate a key.
+
+        Args:
+            key_type: Key type.
+            purpose: The purpose of this key.
+            algorithm: The algorithm of the key.
+            name: The name of this item.
+            folder: The folder where this item is stored.
+            metadata: User-provided metadata.
+            tags: A list of user-defined tags.
+            rotation_frequency: Period of time between item rotations.
+            rotation_state: State to which the previous version should
+              transition upon rotation.
+            disabled_at: Timestamp indicating when the item will be disabled.
+            exportable: Whether the key is exportable or not.
+
+        Raises:
+            PangeaAPIException: If an API Error happens.
+
+        Examples:
+            response = vault.generate_key(
+                key_type=ItemType.SYMMETRIC_KEY,
+                purpose=SymmetricKeyPurpose.FPE,
+                algorithm=SymmetricKeyFpeAlgorithm.AES_FF3_1_256_BETA,
+            )
+        """
+
+        return self.request.post(
+            "v2/key/generate",
+            AsymmetricKey if key_type == ItemType.ASYMMETRIC_KEY else SymmetricKey,
+            data=CommonGenerateRequest(
+                type=key_type,
+                purpose=purpose,
+                algorithm=algorithm,
+                name=name,
+                folder=folder,
+                metadata=metadata,
+                tags=tags,
+                rotation_frequency=rotation_frequency,
+                rotation_state=rotation_state,
+                disabled_at=disabled_at,
+                exportable=exportable,
+            ),
+        )
+
+    @overload
+    def store_key(
+        self,
+        *,
+        key_type: Literal[ItemType.ASYMMETRIC_KEY],
+        purpose: Literal[AsymmetricKeyPurpose.SIGNING],
+        algorithm: AsymmetricKeySigningAlgorithm,
+        public_key: str,
+        private_key: str,
+        name: str | None = None,
+        folder: str | None = None,
+        metadata: Metadata | None = None,
+        tags: Tags | None = None,
+        rotation_frequency: str | None = None,
+        rotation_state: RequestRotationState | None = RequestRotationState.INHERITED,
+        disabled_at: datetime.datetime | None = None,
+        exportable: bool = False,
+    ) -> PangeaResponse[AsymmetricKey]:
+        """
+        Store key
+
+        Import an asymmetric signing key.
+
+        Args:
+            key_type: Key type.
+            purpose: The purpose of this key.
+            algorithm: The algorithm of the key.
+            public_key: The public key (in PEM format).
+            private_key: The private key (in PEM format).
+            name: The name of this item.
+            folder: The folder where this item is stored.
+            metadata: User-provided metadata.
+            tags: A list of user-defined tags.
+            rotation_frequency: Period of time between item rotations.
+            rotation_state: State to which the previous version should
+              transition upon rotation.
+            disabled_at: Timestamp indicating when the item will be disabled.
+            exportable: Whether the key is exportable or not.
+
+        Raises:
+            PangeaAPIException: If an API Error happens.
+
+        Examples:
+            response = vault.store_key(
+                key_type=ItemType.ASYMMETRIC_KEY,
+                purpose=AsymmetricKeyPurpose.SIGNING,
+                algorithm=AsymmetricKeySigningAlgorithm.ED25519,
+            )
+        """
+
+    @overload
+    def store_key(
+        self,
+        *,
+        key_type: Literal[ItemType.ASYMMETRIC_KEY],
+        purpose: Literal[AsymmetricKeyPurpose.ENCRYPTION],
+        algorithm: AsymmetricKeyEncryptionAlgorithm,
+        public_key: str,
+        private_key: str,
+        name: str | None = None,
+        folder: str | None = None,
+        metadata: Metadata | None = None,
+        tags: Tags | None = None,
+        rotation_frequency: str | None = None,
+        rotation_state: RequestRotationState | None = RequestRotationState.INHERITED,
+        disabled_at: datetime.datetime | None = None,
+        exportable: bool = False,
+    ) -> PangeaResponse[AsymmetricKey]:
+        """
+        Store key
+
+        Import an asymmetric encryption key.
+
+        Args:
+            key_type: Key type.
+            purpose: The purpose of this key.
+            algorithm: The algorithm of the key.
+            public_key: The public key (in PEM format).
+            private_key: The private key (in PEM format).
+            name: The name of this item.
+            folder: The folder where this item is stored.
+            metadata: User-provided metadata.
+            tags: A list of user-defined tags.
+            rotation_frequency: Period of time between item rotations.
+            rotation_state: State to which the previous version should
+              transition upon rotation.
+            disabled_at: Timestamp indicating when the item will be disabled.
+            exportable: Whether the key is exportable or not.
+
+        Raises:
+            PangeaAPIException: If an API Error happens.
+
+        Examples:
+            response = vault.store_key(
+                key_type=ItemType.ASYMMETRIC_KEY,
+                purpose=AsymmetricKeyPurpose.ENCRYPTION,
+                algorithm=AsymmetricKeyEncryptionAlgorithm.RSA_OAEP_2048_SHA1,
+            )
+        """
+
+    @overload
+    def store_key(
+        self,
+        *,
+        key_type: Literal[ItemType.ASYMMETRIC_KEY],
+        purpose: Literal[AsymmetricKeyPurpose.JWT],
+        algorithm: AsymmetricKeyJwtAlgorithm,
+        public_key: str,
+        private_key: str,
+        name: str | None = None,
+        folder: str | None = None,
+        metadata: Metadata | None = None,
+        tags: Tags | None = None,
+        rotation_frequency: str | None = None,
+        rotation_state: RequestRotationState | None = RequestRotationState.INHERITED,
+        disabled_at: datetime.datetime | None = None,
+        exportable: bool = False,
+    ) -> PangeaResponse[AsymmetricKey]:
+        """
+        Store key
+
+        Import an asymmetric JWT key.
+
+        Args:
+            key_type: Key type.
+            purpose: The purpose of this key.
+            algorithm: The algorithm of the key.
+            public_key: The public key (in PEM format).
+            private_key: The private key (in PEM format).
+            name: The name of this item.
+            folder: The folder where this item is stored.
+            metadata: User-provided metadata.
+            tags: A list of user-defined tags.
+            rotation_frequency: Period of time between item rotations.
+            rotation_state: State to which the previous version should
+              transition upon rotation.
+            disabled_at: Timestamp indicating when the item will be disabled.
+            exportable: Whether the key is exportable or not.
+
+        Raises:
+            PangeaAPIException: If an API Error happens.
+
+        Examples:
+            response = vault.store_key(
+                key_type=ItemType.ASYMMETRIC_KEY,
+                purpose=AsymmetricKeyPurpose.JWT,
+                algorithm=AsymmetricKeyJwtAlgorithm.ES512,
+            )
+        """
+
+    @overload
+    def store_key(
+        self,
+        *,
+        key_type: Literal[ItemType.ASYMMETRIC_KEY],
+        purpose: Literal[AsymmetricKeyPurpose.PKI],
+        algorithm: AsymmetricKeyPkiAlgorithm,
+        public_key: str,
+        private_key: str,
+        name: str | None = None,
+        folder: str | None = None,
+        metadata: Metadata | None = None,
+        tags: Tags | None = None,
+        rotation_frequency: str | None = None,
+        rotation_state: RequestRotationState | None = RequestRotationState.INHERITED,
+        disabled_at: datetime.datetime | None = None,
+        exportable: bool = False,
+    ) -> PangeaResponse[AsymmetricKey]:
+        """
+        Store key
+
+        Import an asymmetric PKI key.
+
+        Args:
+            key_type: Key type.
+            purpose: The purpose of this key.
+            algorithm: The algorithm of the key.
+            public_key: The public key (in PEM format).
+            private_key: The private key (in PEM format).
+            name: The name of this item.
+            folder: The folder where this item is stored.
+            metadata: User-provided metadata.
+            tags: A list of user-defined tags.
+            rotation_frequency: Period of time between item rotations.
+            rotation_state: State to which the previous version should
+              transition upon rotation.
+            disabled_at: Timestamp indicating when the item will be disabled.
+            exportable: Whether the key is exportable or not.
+
+        Raises:
+            PangeaAPIException: If an API Error happens.
+
+        Examples:
+            response = vault.store_key(
+                key_type=ItemType.ASYMMETRIC_KEY,
+                purpose=AsymmetricKeyPurpose.PKI,
+                algorithm=AsymmetricKeyPkiAlgorithm.ED25519,
+            )
+        """
+
+    @overload
+    def store_key(
+        self,
+        *,
+        key_type: Literal[ItemType.SYMMETRIC_KEY],
+        purpose: Literal[SymmetricKeyPurpose.ENCRYPTION],
+        algorithm: SymmetricKeyEncryptionAlgorithm,
         key: str,
-        algorithm: SymmetricAlgorithm,
-        purpose: KeyPurpose,
-        name: str,
-        folder: Optional[str] = None,
-        metadata: Optional[Metadata] = None,
-        tags: Optional[Tags] = None,
-        rotation_frequency: Optional[str] = None,
-        rotation_state: Optional[ItemVersionState] = None,
-        expiration: Optional[datetime.datetime] = None,
-        exportable: Optional[bool] = None,
-    ) -> PangeaResponse[SymmetricStoreResult]:
+        name: str | None = None,
+        folder: str | None = None,
+        metadata: Metadata | None = None,
+        tags: Tags | None = None,
+        rotation_frequency: str | None = None,
+        rotation_state: RequestRotationState | None = RequestRotationState.INHERITED,
+        disabled_at: datetime.datetime | None = None,
+        exportable: bool = False,
+    ) -> PangeaResponse[SymmetricKey]:
         """
-        Symmetric store
+        Store key
 
-        Import a symmetric key
-
-        OperationId: vault_post_v1_key_store 2
+        Import a symmetric encryption key.
 
         Args:
-            key (str): The key material (in base64)
-            algorithm (SymmetricAlgorithm): The algorithm of the key
-            purpose (KeyPurpose): The purpose of this key. `encryption` or `jwt`
-            name (str): The name of this item
-            folder (str, optional): The folder where this item is stored
-            metadata (dict, optional): User-provided metadata
-            tags (list[str], optional): A list of user-defined tags
-            rotation_frequency (str, optional): Period of time between item rotations, or `never` to disallow rotation
-            rotation_state (ItemVersionState, optional): State to which the previous version should transition upon rotation.
-                Supported options:
-                - `deactivated`
-                - `destroyed`
-            expiration (str, optional): Expiration timestamp
-            exportable (bool, optional): Whether the key is exportable or not
+            key_type: Key type.
+            purpose: The purpose of this key.
+            algorithm: The algorithm of the key.
+            key: The key material.
+            name: The name of this item.
+            folder: The folder where this item is stored.
+            metadata: User-provided metadata.
+            tags: A list of user-defined tags.
+            rotation_frequency: Period of time between item rotations.
+            rotation_state: State to which the previous version should
+              transition upon rotation.
+            disabled_at: Timestamp indicating when the item will be disabled.
+            exportable: Whether the key is exportable or not.
 
         Raises:
-            PangeaAPIException: If an API Error happens
-
-        Returns:
-            A PangeaResponse where the ID
-                is returned in the response.result field.
-                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#import-a-key).
+            PangeaAPIException: If an API Error happens.
 
         Examples:
-            response = vault.symmetric_store(
-                key="lJkk0gCLux+Q+rPNqLPEYw==",
-                algorithm=SymmetricAlgorithm.AES,
-                purpose=KeyPurpose.ENCRYPTION,
-                name="my-very-secret-secret",
-                folder="/personal",
-                metadata={
-                    "created_by": "John Doe",
-                    "used_in": "Google products"
-                },
-                tags=[
-                    "irs_2023",
-                    "personal"
-                ],
-                rotation_frequency="10d",
-                rotation_state=ItemVersionState.DEACTIVATED,
-                expiration="2025-01-01T10:00:00Z",
+            response = vault.store_key(
+                key_type=ItemType.SYMMETRIC_KEY,
+                purpose=SymmetricKeyPurpose.ENCRYPTION,
+                algorithm=SymmetricKeyEncryptionAlgorithm.AES_CFB_128,
             )
         """
-        input = SymmetricStoreRequest(
-            type=ItemType.SYMMETRIC_KEY,
-            algorithm=algorithm,
-            purpose=purpose,
-            key=key,  # type: ignore[arg-type]
-            name=name,
-            folder=folder,
-            metadata=metadata,
-            tags=tags,
-            rotation_frequency=rotation_frequency,
-            rotation_state=rotation_state,
-            expiration=expiration,
-            exportable=exportable,
-        )
-        return self.request.post("v1/key/store", SymmetricStoreResult, data=input.model_dump(exclude_none=True))
 
-    # Rotate endpoint
-    def key_rotate(
+    @overload
+    def store_key(
         self,
-        id: str,
-        rotation_state: ItemVersionState,
-        public_key: Optional[EncodedPublicKey] = None,
-        private_key: Optional[EncodedPrivateKey] = None,
-        key: Optional[EncodedSymmetricKey] = None,
-    ) -> PangeaResponse[KeyRotateResult]:
+        *,
+        key_type: Literal[ItemType.SYMMETRIC_KEY],
+        purpose: Literal[SymmetricKeyPurpose.JWT],
+        algorithm: SymmetricKeyJwtAlgorithm,
+        key: str,
+        name: str | None = None,
+        folder: str | None = None,
+        metadata: Metadata | None = None,
+        tags: Tags | None = None,
+        rotation_frequency: str | None = None,
+        rotation_state: RequestRotationState | None = RequestRotationState.INHERITED,
+        disabled_at: datetime.datetime | None = None,
+        exportable: bool = False,
+    ) -> PangeaResponse[SymmetricKey]:
         """
-        Key rotate
+        Store key
 
-        Manually rotate a symmetric or asymmetric key
-
-        OperationId: vault_post_v1_key_rotate
+        Import a symmetric JWT key.
 
         Args:
-            id (str): The ID of the item
-            rotation_state (ItemVersionState, optional): State to which the previous version should transition upon rotation.
-                Supported options:
-                - `deactivated`
-                - `suspended`
-                - `destroyed`
-
-                Default is `deactivated`.
-            public_key (EncodedPublicKey, optional): The public key (in PEM format)
-            private_key (EncodedPrivateKey, optional): The private key (in PEM format)
-            key (EncodedSymmetricKey, optional): The key material (in base64)
+            key_type: Key type.
+            purpose: The purpose of this key.
+            algorithm: The algorithm of the key.
+            key: The key material.
+            name: The name of this item.
+            folder: The folder where this item is stored.
+            metadata: User-provided metadata.
+            tags: A list of user-defined tags.
+            rotation_frequency: Period of time between item rotations.
+            rotation_state: State to which the previous version should
+              transition upon rotation.
+            disabled_at: Timestamp indicating when the item will be disabled.
+            exportable: Whether the key is exportable or not.
 
         Raises:
-            PangeaAPIException: If an API Error happens
-
-        Returns:
-            A PangeaResponse where the ID
-                is returned in the response.result field.
-                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#rotate).
+            PangeaAPIException: If an API Error happens.
 
         Examples:
-            response = vault.key_rotate(
-                id="pvi_p6g5i3gtbvqvc3u6zugab6qs6r63tqf5",
-                rotation_state=ItemVersionState.DEACTIVATED,
-                key="lJkk0gCLux+Q+rPNqLPEYw==",
+            response = vault.store_key(
+                key_type=ItemType.SYMMETRIC_KEY,
+                purpose=SymmetricKeyPurpose.JWT,
+                algorithm=SymmetricKeyJwtAlgorithm.HS512,
             )
         """
-        input = KeyRotateRequest(
-            id=id,
-            public_key=public_key,
-            private_key=private_key,
-            key=key,
-            rotation_state=rotation_state,
-        )
-        return self.request.post("v1/key/rotate", KeyRotateResult, data=input.model_dump(exclude_none=True))
 
-    # Encrypt
-    def encrypt(self, id: str, plain_text: str, version: Optional[int] = None) -> PangeaResponse[EncryptResult]:
+    @overload
+    def store_key(
+        self,
+        *,
+        key_type: Literal[ItemType.SYMMETRIC_KEY],
+        purpose: Literal[SymmetricKeyPurpose.FPE],
+        algorithm: SymmetricKeyFpeAlgorithm,
+        key: str,
+        name: str | None = None,
+        folder: str | None = None,
+        metadata: Metadata | None = None,
+        tags: Tags | None = None,
+        rotation_frequency: str | None = None,
+        rotation_state: RequestRotationState | None = RequestRotationState.INHERITED,
+        disabled_at: datetime.datetime | None = None,
+        exportable: bool = False,
+    ) -> PangeaResponse[SymmetricKey]:
+        """
+        Store key
+
+        Import a symmetric FPE key.
+
+        Args:
+            key_type: Key type.
+            purpose: The purpose of this key.
+            algorithm: The algorithm of the key.
+            key: The key material.
+            name: The name of this item.
+            folder: The folder where this item is stored.
+            metadata: User-provided metadata.
+            tags: A list of user-defined tags.
+            rotation_frequency: Period of time between item rotations.
+            rotation_state: State to which the previous version should
+              transition upon rotation.
+            disabled_at: Timestamp indicating when the item will be disabled.
+            exportable: Whether the key is exportable or not.
+
+        Raises:
+            PangeaAPIException: If an API Error happens.
+
+        Examples:
+            response = vault.store_key(
+                key_type=ItemType.SYMMETRIC_KEY,
+                purpose=SymmetricKeyPurpose.FPE,
+                algorithm=SymmetricKeyFpeAlgorithm.AES_FF3_1_256_BETA,
+            )
+        """
+
+    def store_key(
+        self,
+        *,
+        key_type: Literal[ItemType.ASYMMETRIC_KEY, ItemType.SYMMETRIC_KEY],
+        purpose: SymmetricKeyPurpose | AsymmetricKeyPurpose,
+        algorithm: (
+            AsymmetricKeySigningAlgorithm
+            | AsymmetricKeyEncryptionAlgorithm
+            | AsymmetricKeyJwtAlgorithm
+            | AsymmetricKeyPkiAlgorithm
+            | SymmetricKeyEncryptionAlgorithm
+            | SymmetricKeyJwtAlgorithm
+            | SymmetricKeyFpeAlgorithm
+        ),
+        public_key: str | None = None,
+        private_key: str | None = None,
+        key: str | None = None,
+        name: str | None = None,
+        folder: str | None = None,
+        metadata: Metadata | None = None,
+        tags: Tags | None = None,
+        rotation_frequency: str | None = None,
+        rotation_state: RequestRotationState | None = RequestRotationState.INHERITED,
+        disabled_at: datetime.datetime | None = None,
+        exportable: bool = False,
+    ) -> PangeaResponse[Any]:
+        """
+        Store key
+
+        Import a key.
+
+        Args:
+            key_type: Key type.
+            purpose: The purpose of this key.
+            algorithm: The algorithm of the key.
+            public_key: The public key (in PEM format).
+            private_key: The private key (in PEM format).
+            key: The key material.
+            name: The name of this item.
+            folder: The folder where this item is stored.
+            metadata: User-provided metadata.
+            tags: A list of user-defined tags.
+            rotation_frequency: Period of time between item rotations.
+            rotation_state: State to which the previous version should
+              transition upon rotation.
+            disabled_at: Timestamp indicating when the item will be disabled.
+            exportable: Whether the key is exportable or not.
+
+        Raises:
+            PangeaAPIException: If an API Error happens.
+
+        Examples:
+            response = vault.store_key(
+                key_type=ItemType.SYMMETRIC_KEY,
+                purpose=SymmetricKeyPurpose.FPE,
+                algorithm=SymmetricKeyFpeAlgorithm.AES_FF3_1_256_BETA,
+            )
+        """
+
+        return self.request.post(
+            "v2/key/store",
+            AsymmetricKey if key_type == ItemType.ASYMMETRIC_KEY else SymmetricKey,
+            data=KeyStoreRequest(
+                type=key_type,
+                purpose=purpose,
+                algorithm=algorithm,
+                public_key=public_key,
+                private_key=private_key,
+                key=key,
+                name=name,
+                folder=folder,
+                metadata=metadata,
+                tags=tags,
+                rotation_frequency=rotation_frequency,
+                rotation_state=rotation_state,
+                disabled_at=disabled_at,
+                exportable=exportable,
+            ),
+        )
+
+    @overload
+    def rotate_key(
+        self,
+        key_id: str,
+        *,
+        key_type: Literal[ItemType.ASYMMETRIC_KEY],
+        rotation_state: RequestManualRotationState = RequestManualRotationState.DEACTIVATED,
+        public_key: str | None = None,
+        private_key: str | None = None,
+    ) -> PangeaResponse[AsymmetricKey]:
+        """
+        Rotate key
+
+        Manually rotate an asymmetric key.
+
+        Args:
+            key_id: The ID of the key.
+            key_type: Key type.
+            rotation_state: State to which the previous version should
+              transition upon rotation.
+            public_key: The public key (in PEM format).
+            private_key: The private key (in PEM format).
+
+        Raises:
+            PangeaAPIException: If an API Error happens.
+
+        Examples:
+            response = vault.rotate_key("pvi_...", key_type=ItemType.ASYMMETRIC_KEY)
+        """
+
+    @overload
+    def rotate_key(
+        self,
+        key_id: str,
+        *,
+        key_type: Literal[ItemType.SYMMETRIC_KEY],
+        rotation_state: RequestManualRotationState = RequestManualRotationState.DEACTIVATED,
+        key: str | None = None,
+    ) -> PangeaResponse[SymmetricKey]:
+        """
+        Rotate key
+
+        Manually rotate a symmetric key.
+
+        Args:
+            key_id: The ID of the key.
+            key_type: Key type.
+            rotation_state: State to which the previous version should
+              transition upon rotation.
+            key: The key material.
+
+        Raises:
+            PangeaAPIException: If an API Error happens.
+
+        Examples:
+            response = vault.rotate_key("pvi_...", key_type=ItemType.SYMMETRIC_KEY)
+        """
+
+    def rotate_key(
+        self,
+        key_id: str,
+        *,
+        key_type: Literal[ItemType.ASYMMETRIC_KEY, ItemType.SYMMETRIC_KEY],
+        rotation_state: RequestManualRotationState = RequestManualRotationState.DEACTIVATED,
+        public_key: str | None = None,
+        private_key: str | None = None,
+        key: str | None = None,
+    ) -> PangeaResponse[Any]:
+        """
+        Rotate key
+
+        Manually rotate an asymmetric or symmetric key.
+
+        Args:
+            key_id: The ID of the key.
+            key_type: Key type.
+            rotation_state: State to which the previous version should
+              transition upon rotation.
+            public_key: The public key (in PEM format).
+            private_key: The private key (in PEM format).
+            key: The key material.
+
+        Raises:
+            PangeaAPIException: If an API Error happens.
+
+        Examples:
+            response = vault.rotate_key("pvi_...", key_type=ItemType.SYMMETRIC_KEY)
+        """
+
+        return self.request.post(
+            "v2/key/rotate",
+            AsymmetricKey if key_type == ItemType.ASYMMETRIC_KEY else SymmetricKey,
+            data=KeyRotateRequest(
+                id=key_id,
+                public_key=public_key,
+                private_key=private_key,
+                key=key,
+                rotation_state=rotation_state,
+            ),
+        )
+
+    def encrypt(
+        self, item_id: str, plain_text: str, *, version: int | None = None, additional_data: str | None = None
+    ) -> PangeaResponse[EncryptResult]:
         """
         Encrypt
 
-        Encrypt a message using a key
+        Encrypt a message using a key.
 
-        OperationId: vault_post_v1_key_encrypt
+        OperationId: vault_post_v2_key_encrypt
 
         Args:
-            id (str): The item ID
-            plain_text (str): A message to be in encrypted (in base64)
-            version (int, optional): The item version
+            item_id: The item ID.
+            plain_text: A message to be encrypted (in base64).
+            version: The item version.
+            additional_data: User provided authentication data.
+
+        Returns:
+            A PangeaResponse where the encrypted message in base64 is returned
+            in the response.result field. Available response fields can be found
+            in our [API documentation](https://pangea.cloud/docs/api/vault#encrypt).
 
         Raises:
             PangeaAPIException: If an API Error happens
-
-        Returns:
-            A PangeaResponse where the encrypted message in base64
-                is returned in the response.result field.
-                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#encrypt).
 
         Examples:
             response = vault.encrypt(
@@ -959,30 +1691,34 @@ class Vault(ServiceBase):
                 version=1,
             )
         """
-        input = EncryptRequest(id=id, plain_text=plain_text, version=version)
-        return self.request.post("v1/key/encrypt", EncryptResult, data=input.model_dump(exclude_none=True))
+        return self.request.post(
+            "v2/encrypt",
+            EncryptResult,
+            data=EncryptRequest(id=item_id, plain_text=plain_text, version=version, additional_data=additional_data),
+        )
 
-    # Decrypt
-    def decrypt(self, id: str, cipher_text: str, version: Optional[int] = None) -> PangeaResponse[DecryptResult]:
+    def decrypt(
+        self, item_id: str, cipher_text: str, *, version: int | None = None, additional_data: str | None = None
+    ) -> PangeaResponse[DecryptResult]:
         """
         Decrypt
 
-        Decrypt a message using a key
+        Decrypt a message using a key.
 
-        OperationId: vault_post_v1_key_decrypt
+        OperationId: vault_post_v2_key_decrypt
 
         Args:
-            id (str): The item ID
-            cipher_text (str): A message encrypted by Vault (in base64)
-            version (int, optional): The item version
+            item_id: The item ID.
+            cipher_text: A message encrypted by Vault (in base64).
+            version: The item version.
+            additional_data: User provided authentication data.
+
+        Returns:
+            A PangeaResponse where the decrypted message in base64 is returned
+            in the response.result field. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#decrypt).
 
         Raises:
             PangeaAPIException: If an API Error happens
-
-        Returns:
-            A PangeaResponse where the decrypted message in base64
-                is returned in the response.result field.
-                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#decrypt).
 
         Examples:
             response = vault.decrypt(
@@ -991,30 +1727,32 @@ class Vault(ServiceBase):
                 version=1,
             )
         """
-        input = DecryptRequest(id=id, cipher_text=cipher_text, version=version)
-        return self.request.post("v1/key/decrypt", DecryptResult, data=input.model_dump(exclude_none=True))
+        return self.request.post(
+            "v2/decrypt",
+            DecryptResult,
+            data=DecryptRequest(id=item_id, cipher_text=cipher_text, version=version, additional_data=additional_data),
+        )
 
-    # Sign
-    def sign(self, id: str, message: str, version: Optional[int] = None) -> PangeaResponse[SignResult]:
+    def sign(self, item_id: str, message: str, *, version: int | None = None) -> PangeaResponse[SignResult]:
         """
         Sign
 
         Sign a message using a key
 
-        OperationId: vault_post_v1_key_sign
+        OperationId: vault_post_v2_sign
 
         Args:
-            id (str): The item ID
-            message (str): The message to be signed, in base64
-            version (int, optional): The item version
+            id: The item ID.
+            message: The message to be signed, in base64.
+            version: The item version.
+
+        Returns:
+            A PangeaResponse where the signature of the message in base64 is
+            returned in the response.result field. Available response fields can
+            be found in our [API documentation](https://pangea.cloud/docs/api/vault#sign).
 
         Raises:
             PangeaAPIException: If an API Error happens
-
-        Returns:
-            A PangeaResponse where the signature of the message in base64
-                is returned in the response.result field.
-                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#sign).
 
         Examples:
             response = vault.sign(
@@ -1023,25 +1761,23 @@ class Vault(ServiceBase):
                 version=1,
             )
         """
-        input = SignRequest(id=id, message=message, version=version)
-        return self.request.post("v1/key/sign", SignResult, data=input.model_dump(exclude_none=True))
+        return self.request.post("v2/sign", SignResult, data=SignRequest(id=item_id, message=message, version=version))
 
-    # Verify
     def verify(
-        self, id: str, message: str, signature: str, version: Optional[int] = None
+        self, item_id: str, message: str, signature: str, *, version: int | None = None
     ) -> PangeaResponse[VerifyResult]:
         """
         Verify
 
-        Verify a signature using a key
+        Verify a signature using a key.
 
-        OperationId: vault_post_v1_key_verify
+        OperationId: vault_post_v2_key_verify
 
         Args:
-            id (str): The item ID
-            message (str): A message to be verified (in base64)
-            signature (str): The message signature (in base64)
-            version (int, optional): The item version
+            id: The item ID.
+            message: A message to be verified (in base64).
+            signature: The message signature (in base64).
+            version: The item version.
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -1059,24 +1795,27 @@ class Vault(ServiceBase):
                 version=1,
             )
         """
-        input = VerifyRequest(
-            id=id,
-            message=message,
-            signature=signature,
-            version=version,
+        return self.request.post(
+            "v2/verify",
+            VerifyResult,
+            data=VerifyRequest(
+                id=item_id,
+                message=message,
+                signature=signature,
+                version=version,
+            ),
         )
-        return self.request.post("v1/key/verify", VerifyResult, data=input.model_dump(exclude_none=True))
 
     def jwt_verify(self, jws: str) -> PangeaResponse[JWTVerifyResult]:
         """
         JWT Verify
 
-        Verify the signature of a JSON Web Token (JWT)
+        Verify the signature of a JSON Web Token (JWT).
 
-        OperationId: vault_post_v1_key_verify_jwt
+        OperationId: vault_post_v2_key_verify_jwt
 
         Args:
-            jws (str): The signed JSON Web Token (JWS)
+            jws: The signed JSON Web Token (JWS).
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -1087,32 +1826,29 @@ class Vault(ServiceBase):
                 Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#verify-jwt).
 
         Examples:
-            response = vault.jwt_verify(
-                jws="ewogICJhbGciO...",
-            )
+            response = vault.jwt_verify(jws="ewogICJhbGciO...")
         """
-        input = JWTVerifyRequest(jws=jws)
-        return self.request.post("v1/key/verify/jwt", JWTVerifyResult, data=input.model_dump(exclude_none=True))
+        return self.request.post("v2/jwt/verify", JWTVerifyResult, data=JWTVerifyRequest(jws=jws))
 
-    def jwt_sign(self, id: str, payload: str) -> PangeaResponse[JWTSignResult]:
+    def jwt_sign(self, item_id: str, payload: str) -> PangeaResponse[JWTSignResult]:
         """
         JWT Sign
 
-        Sign a JSON Web Token (JWT) using a key
+        Sign a JSON Web Token (JWT) using a key.
 
-        OperationId: vault_post_v1_key_sign_jwt
+        OperationId: vault_post_v2_jwt_sign
 
         Args:
-            id (str): The item ID
-            payload (str): The JWT payload (in JSON)
+            id: The item ID.
+            payload: The JWT payload (in JSON).
 
         Raises:
             PangeaAPIException: If an API Error happens
 
         Returns:
-            A PangeaResponse where the signed JSON Web Token (JWS)
-                is returned in the response.result field.
-                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#sign-a-jwt).
+            A PangeaResponse where the signed JSON Web Token (JWS) is returned
+            in the response.result field. Available response fields can be found
+            in our [API documentation](https://pangea.cloud/docs/api/vault#sign-a-jwt).
 
         Examples:
             response = vault.jwt_sign(
@@ -1120,73 +1856,64 @@ class Vault(ServiceBase):
                 payload="{\\"sub\\": \\"1234567890\\",\\"name\\": \\"John Doe\\",\\"admin\\": true}"
             )
         """
-        input = JWTSignRequest(id=id, payload=payload)
-        return self.request.post("v1/key/sign/jwt", JWTSignResult, data=input.model_dump(exclude_none=True))
+        return self.request.post("v2/jwt/sign", JWTSignResult, data=JWTSignRequest(id=item_id, payload=payload))
 
-    # Get endpoint
-    def jwk_get(self, id: str, version: Optional[str] = None) -> PangeaResponse[JWKGetResult]:
+    def jwk_get(self, item_id: str, *, version: str | None = None) -> PangeaResponse[JWKGetResult]:
         """
         JWT Retrieve
 
-        Retrieve a key in JWK format
+        Retrieve a key in JWK format.
 
-        OperationId: vault_post_v1_get_jwk
+        OperationId: vault_post_v2_jwk_get
 
         Args:
-            id (str): The item ID
-            version (str, optional): The key version(s).
-                - `all` for all versions
-                - `num` for a specific version
-                - `-num` for the `num` latest versions
+            id: The item ID
+            version: The key version(s).
+              - `all` for all versions
+              - `num` for a specific version
+              - `-num` for the `num` latest versions
         Raises:
             PangeaAPIException: If an API Error happens
 
         Returns:
-            A PangeaResponse where the JSON Web Key Set (JWKS) object
-                is returned in the response.result field.
-                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#retrieve-jwk).
+            A PangeaResponse where the JSON Web Key Set (JWKS) object is
+            returned in the response.result field. Available response fields can
+            be found in our [API documentation](https://pangea.cloud/docs/api/vault#retrieve-jwk).
 
         Examples:
-            response = vault.jwk_get(
-                id="pvi_p6g5i3gtbvqvc3u6zugab6qs6r63tqf5",
-            )
+            response = vault.jwk_get("pvi_p6g5i3gtbvqvc3u6zugab6qs6r63tqf5")
         """
-        input = JWKGetRequest(id=id, version=version)
-        return self.request.post("v1/get/jwk", JWKGetResult, data=input.model_dump(exclude_none=True))
+        return self.request.post("v2/jwk/get", JWKGetResult, data=JWKGetRequest(id=item_id, version=version))
 
-    # State change
     def state_change(
         self,
-        id: str,
+        item_id: str,
         state: ItemVersionState,
-        version: Optional[int] = None,
-        destroy_period: Optional[str] = None,
-    ) -> PangeaResponse[StateChangeResult]:
+        *,
+        version: int | None = None,
+        destroy_period: str | None = None,
+    ) -> PangeaResponse[VaultItem]:
         """
         State change
 
-        Change the state of a specific version of a secret or key
+        Change the state of a specific version of a secret or key.
 
-        OperationId: vault_post_v1_state_change
+        OperationId: vault_post_v2_state_change
 
         Args:
-            id (str): The item ID
-            state (ItemVersionState): The new state of the item version. Supported options:
-                - `active`
-                - `deactivated`
-                - `suspended`
-                - `compromised`
-                - `destroyed`
-            version (int, optional): the item version
-            destroy_period (str, optional): Period of time for the destruction of a compromised key.
-                Only valid if state=`compromised`
-        Raises:
-            PangeaAPIException: If an API Error happens
+            item_id: The item ID.
+            state: The new state of the item version.
+            version: The item version.
+            destroy_period: Period of time for the destruction of a compromised
+              key. Only valid if state=`compromised`.
 
         Returns:
-            A PangeaResponse where the state change object
-                is returned in the response.result field.
-                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#change-state).
+            A PangeaResponse where the state change object is returned in the
+            response.result field. Available response fields can be found in our
+            [API documentation](https://pangea.cloud/docs/api/vault#change-state).
+
+        Raises:
+            PangeaAPIException: If an API Error happens
 
         Examples:
             response = vault.state_change(
@@ -1194,36 +1921,48 @@ class Vault(ServiceBase):
                 state=ItemVersionState.DEACTIVATED,
             )
         """
-        input = StateChangeRequest(id=id, state=state, version=version, destroy_period=destroy_period)
-        return self.request.post("v1/state/change", StateChangeResult, data=input.model_dump(exclude_none=True))
+        response = self.request.post(
+            "v2/state/change",
+            PangeaResponseResult,
+            data=StateChangeRequest(id=item_id, state=state, version=version, destroy_period=destroy_period),
+        )
+        response.result = vault_item_adapter.validate_python(response.json["result"])
+        return cast(PangeaResponse[VaultItem], response)
 
-    # Folder create
     def folder_create(
         self,
         name: str,
         folder: str,
-        metadata: Optional[Metadata] = None,
-        tags: Optional[Tags] = None,
+        *,
+        metadata: Metadata | None = None,
+        tags: Tags | None = None,
+        rotation_frequency: str | None = None,
+        rotation_state: RequestRotationState = RequestRotationState.INHERITED,
+        rotation_grace_period: str | None = None,
+        disabled_at: datetime.datetime | None = None,
     ) -> PangeaResponse[FolderCreateResult]:
         """
         Create
 
-        Creates a folder
+        Creates a folder.
 
-        OperationId: vault_post_v1_folder_create
+        OperationId: vault_post_v2_folder_create
 
         Args:
-            name (str): The name of this folder
-            folder (str): The parent folder where this folder is stored
-            metadata (Metadata, optional): User-provided metadata
-            tags (Tags, optional): A list of user-defined tags
+            name: The name of this folder.
+            folder: The parent folder where this folder is stored.
+            metadata: User-provided metadata.
+            tags: A list of user-defined tags.
+            rotation_frequency: Period of time between item rotations.
+            rotation_state: State to which the previous version should
+              transition upon rotation.
+            rotation_grace_period: Grace period for the previous version.
+            disabled_at: Timestamp indicating when the item will be disabled.
+
+        Returns: The created folder object.
+
         Raises:
             PangeaAPIException: If an API Error happens
-
-        Returns:
-            A PangeaResponse where the state change object
-                is returned in the response.result field.
-                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#create).
 
         Examples:
             response = vault.folder_create(
@@ -1231,39 +1970,51 @@ class Vault(ServiceBase):
                 folder="parent/folder/name",
             )
         """
-        input = FolderCreateRequest(name=name, folder=folder, metadata=metadata, tags=tags)
-        return self.request.post("v1/folder/create", FolderCreateResult, data=input.model_dump(exclude_none=True))
+        return self.request.post(
+            "v2/folder/create",
+            FolderCreateResult,
+            data=FolderCreateRequest(
+                name=name,
+                folder=folder,
+                metadata=metadata,
+                tags=tags,
+                rotation_frequency=rotation_frequency,
+                rotation_state=rotation_state,
+                rotation_grace_period=rotation_grace_period,
+                disabled_at=disabled_at,
+            ),
+        )
 
-    # Encrypt structured
     def encrypt_structured(
         self,
-        id: str,
+        key_id: str,
         structured_data: TDict,
-        filter: str,
-        version: Optional[int] = None,
-        additional_data: Optional[str] = None,
+        filter_expr: str,
+        *,
+        version: int | None = None,
+        additional_data: str | None = None,
     ) -> PangeaResponse[EncryptStructuredResult[TDict]]:
         """
         Encrypt structured
 
         Encrypt parts of a JSON object.
 
-        OperationId: vault_post_v1_key_encrypt_structured
+        OperationId: vault_post_v2_encrypt_structured
 
         Args:
-            id (str): The item ID.
-            structured_data (dict): Structured data for applying bulk operations.
-            filter (str): A filter expression for applying bulk operations to the data field.
-            version (int, optional): The item version. Defaults to the current version.
-            additional_data (str, optional): User provided authentication data.
-
-        Raises:
-            PangeaAPIException: If an API error happens.
+            key_id: The ID of the key to use.
+            structured_data: Structured data for applying bulk operations.
+            filter_expr: A filter expression.
+            version: The item version. Defaults to the current version.
+            additional_data: User provided authentication data.
 
         Returns:
             A `PangeaResponse` where the encrypted object is returned in the
             `response.result` field. Available response fields can be found in
             our [API documentation](https://pangea.cloud/docs/api/vault#encrypt-structured).
+
+        Raises:
+            PangeaAPIException: If an API error happens.
 
         Examples:
             data = {"field1": [1, 2, "true", "false"], "field2": "data2"}
@@ -1274,37 +2025,41 @@ class Vault(ServiceBase):
             )
         """
 
-        input: EncryptStructuredRequest[TDict] = EncryptStructuredRequest(
-            id=id, structured_data=structured_data, filter=filter, version=version, additional_data=additional_data
+        data: EncryptStructuredRequest[TDict] = EncryptStructuredRequest(
+            id=key_id,
+            structured_data=structured_data,
+            filter=filter_expr,
+            version=version,
+            additional_data=additional_data,
         )
         return self.request.post(
-            "v1/key/encrypt/structured",
+            "v2/encrypt_structured",
             EncryptStructuredResult,
-            data=input.model_dump(exclude_none=True),
+            data=data.model_dump(exclude_none=True),
         )
 
-    # Decrypt structured
     def decrypt_structured(
         self,
-        id: str,
+        key_id: str,
         structured_data: TDict,
-        filter: str,
-        version: Optional[int] = None,
-        additional_data: Optional[str] = None,
+        filter_expr: str,
+        *,
+        version: int | None = None,
+        additional_data: str | None = None,
     ) -> PangeaResponse[EncryptStructuredResult[TDict]]:
         """
         Decrypt structured
 
         Decrypt parts of a JSON object.
 
-        OperationId: vault_post_v1_key_decrypt_structured
+        OperationId: vault_post_v2_decrypt_structured
 
         Args:
-            id (str): The item ID.
-            structured_data (dict): Structured data to decrypt.
-            filter (str): A filter expression for applying bulk operations to the data field.
-            version (int, optional): The item version. Defaults to the current version.
-            additional_data (str, optional): User provided authentication data.
+            id: The ID of the key to use.
+            structured_data: Structured data for applying bulk operations.
+            filter: A filter expression.
+            version: The item version. Defaults to the current version.
+            additional_data: User provided authentication data.
 
         Raises:
             PangeaAPIException: If an API error happens.
@@ -1323,20 +2078,25 @@ class Vault(ServiceBase):
             )
         """
 
-        input: EncryptStructuredRequest[TDict] = EncryptStructuredRequest(
-            id=id, structured_data=structured_data, filter=filter, version=version, additional_data=additional_data
+        data: EncryptStructuredRequest[TDict] = EncryptStructuredRequest(
+            id=key_id,
+            structured_data=structured_data,
+            filter=filter_expr,
+            version=version,
+            additional_data=additional_data,
         )
         return self.request.post(
-            "v1/key/decrypt/structured",
+            "v2/decrypt_structured",
             EncryptStructuredResult,
-            data=input.model_dump(exclude_none=True),
+            data=data.model_dump(exclude_none=True),
         )
 
     def encrypt_transform(
         self,
-        id: str,
+        item_id: str,
         plain_text: str,
         alphabet: TransformAlphabet,
+        *,
         tweak: str | None = None,
         version: int | None = None,
     ) -> PangeaResponse[EncryptTransformResult]:
@@ -1345,13 +2105,14 @@ class Vault(ServiceBase):
 
         Encrypt using a format-preserving algorithm (FPE).
 
-        OperationId: vault_post_v1_key_encrypt_transform
+        OperationId: vault_post_v2_encrypt_transform
 
         Args:
-            id: The item ID.
+            item_id: The item ID.
             plain_text: A message to be encrypted.
             alphabet: Set of characters to use for format-preserving encryption (FPE).
-            tweak: User provided tweak string. If not provided, a random string will be generated and returned.
+            tweak: User provided tweak string. If not provided, a random string
+              will be generated and returned.
             version: The item version. Defaults to the current version.
 
         Raises:
@@ -1369,28 +2130,27 @@ class Vault(ServiceBase):
             )
         """
 
-        input = EncryptTransformRequest(
-            id=id,
-            plain_text=plain_text,
-            tweak=tweak,
-            alphabet=alphabet,
-            version=version,
-        )
         return self.request.post(
-            "v1/key/encrypt/transform",
+            "v2/encrypt_transform",
             EncryptTransformResult,
-            data=input.model_dump(exclude_none=True),
+            data=EncryptTransformRequest(
+                id=item_id,
+                plain_text=plain_text,
+                tweak=tweak,
+                alphabet=alphabet,
+                version=version,
+            ),
         )
 
     def decrypt_transform(
-        self, id: str, cipher_text: str, tweak: str, alphabet: TransformAlphabet, version: int | None = None
+        self, item_id: str, cipher_text: str, tweak: str, alphabet: TransformAlphabet, *, version: int | None = None
     ) -> PangeaResponse[DecryptTransformResult]:
         """
         Decrypt transform
 
         Decrypt using a format-preserving algorithm (FPE).
 
-        OperationId: vault_post_v1_key_decrypt_transform
+        OperationId: vault_post_v2_decrypt_transform
 
         Args:
             id: The item ID.
@@ -1399,11 +2159,11 @@ class Vault(ServiceBase):
             alphabet: Set of characters to use for format-preserving encryption (FPE).
             version: The item version. Defaults to the current version.
 
-        Raises:
-            PangeaAPIException: If an API error happens.
-
         Returns:
             A `PangeaResponse` containing the decrypted message.
+
+        Raises:
+            PangeaAPIException: If an API error happens.
 
         Examples:
             vault.decrypt_transform(
@@ -1414,55 +2174,64 @@ class Vault(ServiceBase):
             )
         """
 
-        input = DecryptTransformRequest(id=id, cipher_text=cipher_text, tweak=tweak, alphabet=alphabet, version=version)
         return self.request.post(
-            "v1/key/decrypt/transform",
+            "v2/decrypt_transform",
             DecryptTransformResult,
-            data=input.model_dump(exclude_none=True),
+            data=DecryptTransformRequest(
+                id=item_id, cipher_text=cipher_text, tweak=tweak, alphabet=alphabet, version=version
+            ),
         )
 
     def export(
         self,
-        id: str,
+        item_id: str,
+        *,
         version: int | None = None,
-        encryption_key: str | None = None,
-        encryption_algorithm: ExportEncryptionAlgorithm | None = None,
+        kem_password: str | None = None,
+        asymmetric_public_key: str | None = None,
+        asymmetric_algorithm: ExportEncryptionAlgorithm | None = None,
     ) -> PangeaResponse[ExportResult]:
         """
         Export
 
         Export a symmetric or asymmetric key.
 
-        OperationId: vault_post_v1_export
+        OperationId: vault_post_v2_export
 
         Args:
-            id: The ID of the item.
+            item_id: The item ID.
             version: The item version.
-            encryption_key: Public key in pem format used to encrypt exported key(s).
-            encryption_algorithm: The algorithm of the public key.
-
-        Raises:
-            PangeaAPIException: If an API error happens.
+            kem_password: This is the password that will be used along with a
+              salt to derive the symmetric key that is used to encrypt the
+              exported key material.
+            asymmetric_public_key: Public key in pem format used to encrypt
+              exported key(s).
+            asymmetric_algorithm: The algorithm of the public key.
 
         Returns:
             A `PangeaResponse` where the exported key is returned in the
             `response.result` field. Available response fields can be found in
             our [API documentation](https://pangea.cloud/docs/api/vault#export).
 
+        Raises:
+            PangeaAPIException: If an API error happens.
+
         Examples:
             exp_encrypted_resp = self.vault.export(
                 id=id,
-                version=1,
-                encryption_key=rsa_pub_key_pem,
-                encryption_algorithm=ExportEncryptionAlgorithm.RSA4096_OAEP_SHA512,
+                asymmetric_public_key=rsa_pub_key_pem,
+                asymmetric_algorithm=ExportEncryptionAlgorithm.RSA4096_OAEP_SHA512,
             )
         """
 
-        input: ExportRequest = ExportRequest(
-            id=id, version=version, encryption_algorithm=encryption_algorithm, encryption_key=encryption_key
-        )
         return self.request.post(
-            "v1/export",
+            "v2/export",
             ExportResult,
-            data=input.model_dump(exclude_none=True),
+            data=ExportRequest(
+                id=item_id,
+                version=version,
+                kem_password=kem_password,
+                asymmetric_public_key=asymmetric_public_key,
+                asymmetric_algorithm=asymmetric_algorithm,
+            ),
         )

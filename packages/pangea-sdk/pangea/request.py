@@ -1,5 +1,6 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+from __future__ import annotations
 
 import copy
 import json
@@ -8,6 +9,7 @@ import time
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Sequence, Tuple, Type, Union
 
 import requests
+from pydantic import BaseModel
 from requests.adapters import HTTPAdapter, Retry
 from requests_toolbelt import MultipartDecoder  # type: ignore
 from typing_extensions import TypeVar
@@ -22,7 +24,7 @@ if TYPE_CHECKING:
     import aiohttp
 
 
-class MultipartResponse(object):
+class MultipartResponse:
     pangea_json: Dict[str, str]
     attached_files: List = []
 
@@ -31,7 +33,7 @@ class MultipartResponse(object):
         self.attached_files = attached_files
 
 
-class PangeaRequestBase(object):
+class PangeaRequestBase:
     def __init__(
         self, config: PangeaConfig, token: str, service: str, logger: logging.Logger, config_id: Optional[str] = None
     ):
@@ -129,8 +131,7 @@ class PangeaRequestBase(object):
         filename_parts = content_disposition.split("name=")
         if len(filename_parts) > 1:
             return filename_parts[1].split(";")[0].strip('"')
-        else:
-            return None
+        return None
 
     def _get_filename_from_url(self, url: str) -> Optional[str]:
         return url.split("/")[-1].split("?")[0]
@@ -157,35 +158,35 @@ class PangeaRequestBase(object):
 
         if status == ResponseStatus.VALIDATION_ERR.value:
             raise pe.ValidationException(summary, response)
-        elif status == ResponseStatus.TOO_MANY_REQUESTS.value:
+        if status == ResponseStatus.TOO_MANY_REQUESTS.value:
             raise pe.RateLimitException(summary, response)
-        elif status == ResponseStatus.NO_CREDIT.value:
+        if status == ResponseStatus.NO_CREDIT.value:
             raise pe.NoCreditException(summary, response)
-        elif status == ResponseStatus.UNAUTHORIZED.value:
+        if status == ResponseStatus.UNAUTHORIZED.value:
             raise pe.UnauthorizedException(self.service, response)
-        elif status == ResponseStatus.SERVICE_NOT_ENABLED.value:
+        if status == ResponseStatus.SERVICE_NOT_ENABLED.value:
             raise pe.ServiceNotEnabledException(self.service, response)
-        elif status == ResponseStatus.PROVIDER_ERR.value:
+        if status == ResponseStatus.PROVIDER_ERR.value:
             raise pe.ProviderErrorException(summary, response)
-        elif status in (ResponseStatus.MISSING_CONFIG_ID_SCOPE.value, ResponseStatus.MISSING_CONFIG_ID.value):
+        if status in (ResponseStatus.MISSING_CONFIG_ID_SCOPE.value, ResponseStatus.MISSING_CONFIG_ID.value):
             raise pe.MissingConfigID(self.service, response)
-        elif status == ResponseStatus.SERVICE_NOT_AVAILABLE.value:
+        if status == ResponseStatus.SERVICE_NOT_AVAILABLE.value:
             raise pe.ServiceNotAvailableException(summary, response)
-        elif status == ResponseStatus.TREE_NOT_FOUND.value:
+        if status == ResponseStatus.TREE_NOT_FOUND.value:
             raise pe.TreeNotFoundException(summary, response)
-        elif status == ResponseStatus.IP_NOT_FOUND.value:
+        if status == ResponseStatus.IP_NOT_FOUND.value:
             raise pe.IPNotFoundException(summary, response)
-        elif status == ResponseStatus.BAD_OFFSET.value:
+        if status == ResponseStatus.BAD_OFFSET.value:
             raise pe.BadOffsetException(summary, response)
-        elif status == ResponseStatus.FORBIDDEN_VAULT_OPERATION.value:
+        if status == ResponseStatus.FORBIDDEN_VAULT_OPERATION.value:
             raise pe.ForbiddenVaultOperation(summary, response)
-        elif status == ResponseStatus.VAULT_ITEM_NOT_FOUND.value:
+        if status == ResponseStatus.VAULT_ITEM_NOT_FOUND.value:
             raise pe.VaultItemNotFound(summary, response)
-        elif status == ResponseStatus.NOT_FOUND.value:
+        if status == ResponseStatus.NOT_FOUND.value:
             raise pe.NotFound(str(response.raw_response.url) if response.raw_response is not None else "", response)
-        elif status == ResponseStatus.INTERNAL_SERVER_ERROR.value:
+        if status == ResponseStatus.INTERNAL_SERVER_ERROR.value:
             raise pe.InternalServerError(response)
-        elif status == ResponseStatus.ACCEPTED.value:
+        if status == ResponseStatus.ACCEPTED.value:
             raise pe.AcceptedRequestException(response)
         raise pe.PangeaAPIException(f"{summary} ", response)
 
@@ -209,7 +210,7 @@ class PangeaRequest(PangeaRequestBase):
         self,
         endpoint: str,
         result_class: Type[TResult],
-        data: Union[str, Dict] = {},
+        data: str | BaseModel | dict[str, Any] | None = None,
         files: Optional[List[Tuple]] = None,
         poll_result: bool = True,
         url: Optional[str] = None,
@@ -224,6 +225,13 @@ class PangeaRequest(PangeaRequestBase):
             PangeaResponse which contains the response in its entirety and
                various properties to retrieve individual fields
         """
+
+        if isinstance(data, BaseModel):
+            data = data.model_dump(exclude_none=True)
+
+        if data is None:
+            data = {}
+
         if url is None:
             url = self._url(endpoint)
 
@@ -336,19 +344,17 @@ class PangeaRequest(PangeaRequestBase):
                 multi.extend(files)
                 files = multi
                 return None, files
-            else:
-                # Post to presigned url as form
-                data_send: list = []  # type: ignore[no-redef]
-                for k, v in data.items():  # type: ignore[union-attr]
-                    data_send.append((k, v))  # type: ignore[attr-defined]
-                # When posting to presigned url, file key should be 'file'
-                files = {  # type: ignore[assignment]
-                    "file": files[0][1],
-                }
-                return data_send, files
-        else:
-            data_send = json.dumps(data, default=default_encoder) if isinstance(data, dict) else data
-            return data_send, None
+            # Post to presigned url as form
+            data_send: list = []  # type: ignore[no-redef]
+            for k, v in data.items():  # type: ignore[union-attr]
+                data_send.append((k, v))  # type: ignore[attr-defined]
+            # When posting to presigned url, file key should be 'file'
+            files = {  # type: ignore[assignment]
+                "file": files[0][1],
+            }
+            return data_send, files
+        data_send = json.dumps(data, default=default_encoder) if isinstance(data, dict) else data
+        return data_send, None
 
         return data, files
 
@@ -432,8 +438,7 @@ class PangeaRequest(PangeaRequestBase):
                 )
             )
             return AttachedFile(filename=filename, file=response.content, content_type=content_type)
-        else:
-            raise pe.DownloadFileError(f"Failed to download file. Status: {response.status_code}", response.text)
+        raise pe.DownloadFileError(f"Failed to download file. Status: {response.status_code}", response.text)
 
     def poll_result_by_id(
         self, request_id: str, result_class: Type[TResult], check_response: bool = True
@@ -589,8 +594,7 @@ class PangeaRequest(PangeaRequestBase):
 
         if loop_resp.accepted_result is not None and not loop_resp.accepted_result.has_upload_url:
             return loop_resp
-        else:
-            raise loop_exc
+        raise loop_exc
 
     def _init_session(self) -> requests.Session:
         retry_config = Retry(
