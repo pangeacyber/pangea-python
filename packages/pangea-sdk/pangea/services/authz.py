@@ -316,7 +316,7 @@ class AuthZ(ServiceBase):
     def list_resources(
         self, type: str, action: str, subject: Subject, attributes: Optional[Dict[str, Any]] = None
     ) -> PangeaResponse[ListResourcesResult]:
-        """List resources. (Beta)
+        """List resources.
 
         Given a type, action, and subject, list all the resources in the
         type that the subject has access to the action with.
@@ -351,7 +351,7 @@ class AuthZ(ServiceBase):
     def list_subjects(
         self, resource: Resource, action: str, attributes: Optional[Dict[str, Any]] = None
     ) -> PangeaResponse[ListSubjectsResult]:
-        """List subjects. (Beta)
+        """List subjects.
 
         Given a resource and an action, return the list of subjects who have
         access to the action for the given resource.

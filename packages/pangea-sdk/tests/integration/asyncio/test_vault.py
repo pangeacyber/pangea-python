@@ -110,7 +110,7 @@ class TestVault(unittest.IsolatedAsyncioTestCase):
         # self.assertNotEqual(data_b64, decrypt_bad.result.plain_text)
 
         # Decrypt wrong id
-        with self.assertRaises(pe.ValidationException):
+        with self.assertRaises(pe.VaultItemNotFound):
             await self.vault.decrypt("thisisnotandid", cipher_v2, 2)
 
         # Deactivate key
@@ -170,7 +170,7 @@ class TestVault(unittest.IsolatedAsyncioTestCase):
             await self.vault.verify(id, data, signature_v2, 10)
 
         # Verify wrong id
-        with self.assertRaises(pe.ValidationException):
+        with self.assertRaises(pe.VaultItemNotFound):
             await self.vault.verify("thisisnotandid", data, signature_v2, 2)
 
         # Verify wrong signature

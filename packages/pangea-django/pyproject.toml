@@ -20,12 +20,12 @@ include = ["CHANGELOG.md"]
 [tool.poetry.dependencies]
 python = "^3.8.0"
 "Django" = "^4.2.16"
-"pangea-sdk" = "^4.2.0"
+"pangea-sdk" = "^4.3.0"
 typing-extensions = "^4.12.2"
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.8.0"
-django-stubs = "^5.0.4"
+django-stubs = "^5.1.0"
 isort = "^5.13.2"
 mypy = "^1.11.2"
 pytest = "^8.3.3"
