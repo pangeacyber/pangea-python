@@ -865,7 +865,7 @@ class UserIntelAsync(ServiceBaseAsync):
             usernames (List[str]): An username's list to search for
             ips (List[str]): An ip's list to search for
             phone_numbers (List[str]): A phone number's list to search for. minLength: 7, maxLength: 15.
-            domains (List[str]): An domain's list to search for
+            domains (List[str]): Search for user under these domains.
             start (str): Earliest date for search
             end (str): Latest date for search
             verbose (bool, optional): Echo the API parameters in the response
