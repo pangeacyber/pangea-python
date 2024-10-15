@@ -118,7 +118,6 @@ sdk-integration-tests:
 
 sdk-asyncio-integration-tests:
   extends: .sdk-test-base
-  image: python:3.8-bullseye
   stage: integration_tests
   script:
     - poetry run python -m unittest tests.integration.asyncio.${TEST}

@@ -7,7 +7,7 @@ readme = "README.md"
 packages = [{include = "intel_examples"}]
 
 [tool.poetry.dependencies]
-python = "^3.8.18"
+python = "^3.9.20"
 pangea-sdk = "^4.3.0"
 
 [tool.poetry.group.dev.dependencies]
@@ -23,7 +23,7 @@ profile = "black"
 known_local_folder = ["intel_examples"]
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.9"
 warn_unused_ignores = true
 
 [build-system]
