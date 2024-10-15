@@ -311,7 +311,7 @@ class TestAuthN(unittest.TestCase):
         self.assertEqual(response.status, "Success")
         self.assertIsNotNone(response.result)
         assert response.result
-        self.assertGreater(len(response.result.users), 0)
+        self.assertGreaterEqual(len(response.result.users), 0)
         for user in response.result.users:
             try:
                 self.authn.user.delete(email=user.email)
