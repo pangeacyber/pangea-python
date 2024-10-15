@@ -755,7 +755,6 @@ class TestVault(unittest.TestCase):
     def test_list(self) -> None:
         list_resp = self.vault.list()
         assert list_resp.result
-        self.assertGreater(list_resp.result.count, 0)
         self.assertGreater(len(list_resp.result.items), 0)
 
         for i in list_resp.result.items:
@@ -793,7 +792,7 @@ class TestVault(unittest.TestCase):
         # List
         list_resp = self.vault.list(filter={"folder": FOLDER_PARENT})
         assert list_resp.result
-        self.assertEqual(1, list_resp.result.count)
+        self.assertEqual(1, len(list_resp.result.items))
         self.assertEqual(create_folder_resp.result.id, list_resp.result.items[0].id)
         self.assertEqual("folder", list_resp.result.items[0].type)
         self.assertEqual(FOLDER_NAME_NEW, list_resp.result.items[0].name)

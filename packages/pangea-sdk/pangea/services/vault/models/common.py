@@ -259,9 +259,6 @@ class ListItemData(PangeaResponseResult):
 class ListResult(PangeaResponseResult):
     items: List[ListItemData]
 
-    count: int
-    """Total number of items matching the given query."""
-
     last: Optional[str] = None
     """Internal ID returned in the previous look up response. Used for pagination."""
 
