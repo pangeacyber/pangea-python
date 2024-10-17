@@ -5,11 +5,12 @@ from __future__ import annotations
 import asyncio
 import json
 import time
-from typing import Any, Dict, List, Optional, Sequence, Tuple, Type, Union
+from typing import Dict, List, Optional, Sequence, Tuple, Type, Union, cast
 
 import aiohttp
 from aiohttp import FormData
 from pydantic import BaseModel
+from pydantic_core import to_jsonable_python
 from typing_extensions import Any, TypeVar
 
 import pangea.exceptions as pe
@@ -55,17 +56,20 @@ class PangeaRequestAsync(PangeaRequestBase):
         if data is None:
             data = {}
 
+        # Normalize.
+        data = cast(dict[str, Any], to_jsonable_python(data))
+
         if url is None:
             url = self._url(endpoint)
 
         # Set config ID if available
-        if self.config_id and data.get("config_id", None) is None:  # type: ignore[union-attr]
-            data["config_id"] = self.config_id  # type: ignore[index]
+        if self.config_id and data.get("config_id", None) is None:
+            data["config_id"] = self.config_id
 
         self.logger.debug(
             json.dumps({"service": self.service, "action": "post", "url": url, "data": data}, default=default_encoder)
         )
-        transfer_method = data.get("transfer_method", None)  # type: ignore[union-attr]
+        transfer_method = data.get("transfer_method", None)
 
         if files and type(data) is dict and (transfer_method == TransferMethod.POST_URL.value):
             requests_response = await self._full_post_presigned_url(

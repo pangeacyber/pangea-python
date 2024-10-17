@@ -6,10 +6,11 @@ import copy
 import json
 import logging
 import time
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Sequence, Tuple, Type, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Sequence, Tuple, Type, Union, cast
 
 import requests
 from pydantic import BaseModel
+from pydantic_core import to_jsonable_python
 from requests.adapters import HTTPAdapter, Retry
 from requests_toolbelt import MultipartDecoder  # type: ignore[import-untyped]
 from typing_extensions import TypeVar
@@ -231,6 +232,9 @@ class PangeaRequest(PangeaRequestBase):
 
         if data is None:
             data = {}
+
+        # Normalize.
+        data = cast(dict[str, Any], to_jsonable_python(data))
 
         if url is None:
             url = self._url(endpoint)

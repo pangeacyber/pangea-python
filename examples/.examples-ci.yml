@@ -8,9 +8,11 @@
           - audit
           - authn
           - authz
+          - data_guard
           - embargo
           - file_scan
           - intel
+          - prompt_guard
           - redact
           - sanitize
           - vault
@@ -24,10 +26,12 @@
     - export PANGEA_AUDIT_TOKEN="${PANGEA_INTEGRATION_TOKEN_LVE_AWS}"
     - export PANGEA_AUTHN_TOKEN="${PANGEA_INTEGRATION_TOKEN_LVE_AWS}"
     - export PANGEA_AUTHZ_TOKEN="${PANGEA_INTEGRATION_TOKEN_LVE_AWS}"
+    - export PANGEA_DATA_GUARD_TOKEN="${PANGEA_INTEGRATION_DOMAIN_LVE_AWS}"
     - export PANGEA_DOMAIN="${PANGEA_INTEGRATION_DOMAIN_LVE_AWS}"
     - export PANGEA_EMBARGO_TOKEN="${PANGEA_INTEGRATION_TOKEN_LVE_AWS}"
     - export PANGEA_FILE_SCAN_TOKEN="${PANGEA_INTEGRATION_TOKEN_LVE_AWS}"
     - export PANGEA_INTEL_TOKEN="${PANGEA_INTEGRATION_TOKEN_LVE_AWS}"
+    - export PANGEA_PROMPT_GUARD_TOKEN="${PANGEA_INTEGRATION_TOKEN_LVE_AWS}"
     - export PANGEA_REDACT_CONFIG_ID="${PANGEA_REDACT_CONFIG_ID_1_LVE_AWS}"
     - export PANGEA_REDACT_MULTICONFIG_TOKEN="${PANGEA_INTEGRATION_MULTI_CONFIG_TOKEN_LVE_AWS}"
     - export PANGEA_REDACT_TOKEN="${PANGEA_INTEGRATION_TOKEN_LVE_AWS}"
