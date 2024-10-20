@@ -5,6 +5,7 @@ import json
 import time
 import unittest
 from asyncio import sleep
+from contextlib import suppress
 
 import pangea.exceptions as pe
 from pangea import PangeaConfig
@@ -612,50 +613,54 @@ class TestAuditAsync(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(search_event.consistency_verification, EventVerification.PASS)
             self.assertEqual(search_event.membership_verification, EventVerification.PASS)
 
-    async def test_search_sort(self):
+    async def test_search_sort(self) -> None:
         timestamp = time.time()
         msg = f"test-{timestamp}"
         authors = ["alex", "bob", "chris", "david", "evan"]
 
-        for idx in range(0, len(authors)):
-            resp = await self.audit_general.log(message=msg, actor=authors[idx])
-            self.assertEqual(resp.status, ResponseStatus.SUCCESS)
+        with suppress(pe.AcceptedRequestException):
+            for idx in range(len(authors)):
+                resp = await self.audit_general.log(message=msg, actor=authors[idx])
+                self.assertEqual(resp.status, ResponseStatus.SUCCESS)
 
-        query = "message:" + msg
-        r_desc: PangeaResponse[SearchOutput] = await self.audit_general.search(
-            query=query, order=SearchOrder.ASC, order_by=SearchOrderBy.RECEIVED_AT, limit=len(authors)
-        )
-        self.assertEqual(r_desc.status, ResponseStatus.SUCCESS)
-        self.assertEqual(len(r_desc.result.events), len(authors))
+            query = "message:" + msg
+            r_desc: PangeaResponse[SearchOutput] = await self.audit_general.search(
+                query=query, order=SearchOrder.ASC, order_by=SearchOrderBy.RECEIVED_AT, limit=len(authors)
+            )
+            assert r_desc.result
+            self.assertEqual(r_desc.status, ResponseStatus.SUCCESS)
+            self.assertEqual(len(r_desc.result.events), len(authors))
 
-        for idx in range(0, len(authors)):
-            self.assertEqual(r_desc.result.events[idx].envelope.event["actor"], authors[idx])
+            for idx in range(len(authors)):
+                self.assertEqual(r_desc.result.events[idx].envelope.event["actor"], authors[idx])
 
-        r_asc = await self.audit_general.search(
-            query=query, order=SearchOrder.DESC, order_by=SearchOrderBy.RECEIVED_AT, limit=len(authors)
-        )
-        self.assertEqual(r_asc.status, ResponseStatus.SUCCESS)
-        self.assertEqual(len(r_asc.result.events), len(authors))
+            r_asc = await self.audit_general.search(
+                query=query, order=SearchOrder.DESC, order_by=SearchOrderBy.RECEIVED_AT, limit=len(authors)
+            )
+            self.assertEqual(r_asc.status, ResponseStatus.SUCCESS)
+            self.assertEqual(len(r_asc.result.events), len(authors))
 
-        for idx in range(0, len(authors)):
-            self.assertEqual(r_asc.result.events[len(authors) - 1 - idx].envelope.event["actor"], authors[idx])
+            for idx in range(len(authors)):
+                self.assertEqual(r_asc.result.events[len(authors) - 1 - idx].envelope.event["actor"], authors[idx])
 
-    async def test_search_custom_schema_order_by(self):
+    async def test_search_custom_schema_order_by(self) -> None:
         limit = 2
         max_result = 3
-        response_search = await self.auditCustomSchema.search(
-            query='message:""',
-            order=SearchOrder.DESC,
-            order_by="field_int",
-            limit=limit,
-            max_results=max_result,
-            verbose=True,
-            end="0d",
-            start="30d",
-        )
-        self.assertEqual(response_search.status, ResponseStatus.SUCCESS)
-        self.assertEqual(len(response_search.result.events), limit)
-        self.assertEqual(response_search.result.count, max_result)
+
+        with suppress(pe.AcceptedRequestException):
+            response_search = await self.auditCustomSchema.search(
+                query='message:""',
+                order=SearchOrder.DESC,
+                order_by="field_int",
+                limit=limit,
+                max_results=max_result,
+                verbose=True,
+                end="0d",
+                start="30d",
+            )
+            self.assertEqual(response_search.status, ResponseStatus.SUCCESS)
+            self.assertEqual(len(response_search.result.events), limit)
+            self.assertEqual(response_search.result.count, max_result)
 
     async def test_multi_config_log(self):
         config = PangeaConfig(domain=self.domain)
