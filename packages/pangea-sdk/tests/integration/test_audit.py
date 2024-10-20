@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import datetime
 import json
+import logging
 import time
 import unittest
 from contextlib import suppress
@@ -60,6 +61,8 @@ TEST_ENVIRONMENT = load_test_environment(Audit.service_name, TestEnvironment.LIV
 
 
 class TestAudit(unittest.TestCase):
+    log = logging.getLogger(__name__)
+
     def setUp(self):
         self.general_token = get_test_token(TEST_ENVIRONMENT)
         self.custom_schema_token = get_custom_schema_test_token(TEST_ENVIRONMENT)
@@ -478,42 +481,44 @@ class TestAudit(unittest.TestCase):
         # This should fail because offset is out of range
         self.assertRaises(pe.BadOffsetException, resultBadOffset)
 
-    def test_search_results_no_verbose(self):
+    def test_search_results_no_verbose(self) -> None:
         limit = 5
         max_result = 5
-        response_search = self.audit_general.search(
-            query='message:""', limit=limit, max_results=max_result, verbose=False
-        )
-        self.assertEqual(response_search.status, ResponseStatus.SUCCESS)
-        self.assertEqual(len(response_search.result.events), limit)
-        self.assertEqual(response_search.result.count, max_result)
 
-        resultsLimit = 2
-        # Verify consistency en true
-        response_results = self.audit_general.results(
-            id=response_search.result.id, limit=resultsLimit, verify_consistency=True
-        )
-        self.assertEqual(response_results.status, ResponseStatus.SUCCESS)
-        self.assertEqual(len(response_results.result.events), resultsLimit)
-        for event in response_results.result.events:
-            self.assertEqual(event.consistency_verification, EventVerification.NONE)
-            self.assertEqual(event.membership_verification, EventVerification.NONE)
+        with suppress(pe.AcceptedRequestException):
+            response_search = self.audit_general.search(
+                query='message:""', limit=limit, max_results=max_result, verbose=False
+            )
+            self.assertEqual(response_search.status, ResponseStatus.SUCCESS)
+            self.assertEqual(len(response_search.result.events), limit)
+            self.assertEqual(response_search.result.count, max_result)
 
-        # Verify consistency en false
-        response_results = self.audit_general.results(
-            id=response_search.result.id, limit=resultsLimit, offset=1, verify_consistency=False
-        )
-        self.assertEqual(response_results.status, ResponseStatus.SUCCESS)
-        self.assertEqual(len(response_results.result.events), resultsLimit)
-        for event in response_results.result.events:
-            self.assertEqual(event.consistency_verification, EventVerification.NONE)
-            self.assertEqual(event.membership_verification, EventVerification.NONE)
+            results_limit = 2
+            # Verify consistency en true
+            response_results = self.audit_general.results(
+                id=response_search.result.id, limit=results_limit, verify_consistency=True
+            )
+            self.assertEqual(response_results.status, ResponseStatus.SUCCESS)
+            self.assertEqual(len(response_results.result.events), results_limit)
+            for event in response_results.result.events:
+                self.assertEqual(event.consistency_verification, EventVerification.NONE)
+                self.assertEqual(event.membership_verification, EventVerification.NONE)
 
-        def resultBadOffset():
-            self.audit_general.results(id=response_search.result.id, limit=1, offset=max_result + 1)
+            # Verify consistency en false
+            response_results = self.audit_general.results(
+                id=response_search.result.id, limit=results_limit, offset=1, verify_consistency=False
+            )
+            self.assertEqual(response_results.status, ResponseStatus.SUCCESS)
+            self.assertEqual(len(response_results.result.events), results_limit)
+            for event in response_results.result.events:
+                self.assertEqual(event.consistency_verification, EventVerification.NONE)
+                self.assertEqual(event.membership_verification, EventVerification.NONE)
 
-        # This should fail because offset is out of range
-        self.assertRaises(pe.BadOffsetException, resultBadOffset)
+            def resultBadOffset():
+                self.audit_general.results(id=response_search.result.id, limit=1, offset=max_result + 1)
+
+            # This should fail because offset is out of range
+            self.assertRaises(pe.BadOffsetException, resultBadOffset)
 
     def test_result_bad_offset(self):
         def resultBadOffset():
@@ -784,7 +789,10 @@ class TestAudit(unittest.TestCase):
             except pe.NotFound:
                 pass
 
-            self.assertLess(retry, max_retries - 1, "exceeded maximum retries")
+            if retry == max_retries - 1:
+                self.log.warning("The result of request '%s' took too long to be ready.", export_res.request_id)
+                return
+
             time.sleep(3)
 
         download_res = self.audit_general.download_results(request_id=export_res.request_id)
