@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import asyncio
 import datetime
 import logging
@@ -69,7 +71,7 @@ class TestShare(unittest.IsolatedAsyncioTestCase):
 
     async def test_folder(self):
         try:
-            resp_create = await self.client.folder_create(path=FOLDER_DELETE)
+            resp_create = await self.client.folder_create(folder=FOLDER_DELETE)
             self.assertEqual(resp_create.status, "Success")
             self.assertNotEqual(resp_create.result.object.id, "")
             self.assertEqual(resp_create.result.object.type, "folder")
@@ -134,29 +136,23 @@ class TestShare(unittest.IsolatedAsyncioTestCase):
             self.assertTrue(False)
 
     async def test_put_transfer_method_multipart_zero_bytes_file(self):
-        try:
-            with get_zero_bytes_test_file() as f:
-                name = f"{TIME}_file_zero_bytes_multipart"
-                response = await self.client.put(file=f, name=name, transfer_method=TransferMethod.MULTIPART)
-                self.assertEqual(response.status, "Success")
-                self.assertEqual(response.result.object.name, name)
+        with get_zero_bytes_test_file() as f:
+            name = f"{TIME}_file_zero_bytes_multipart"
+            response = await self.client.put(file=f, name=name, transfer_method=TransferMethod.MULTIPART)
+            self.assertEqual(response.status, "Success")
+            self.assertEqual(response.result.object.name, name)
 
-            # Get file. Transfer method dest-url
-            resp_get = await self.client.get(id=response.result.object.id, transfer_method=TransferMethod.DEST_URL)
-            self.assertEqual(len(resp_get.attached_files), 0)
-            self.assertIsNotNone(resp_get.result.dest_url)
+        # Get file. Transfer method dest-url
+        resp_get = await self.client.get(id=response.result.object.id, transfer_method=TransferMethod.DEST_URL)
+        self.assertEqual(len(resp_get.attached_files), 0)
+        self.assertIsNotNone(resp_get.result.dest_url)
 
-            # Get file. Transfer method multipart
-            resp_get = await self.client.get(id=response.result.object.id, transfer_method=TransferMethod.MULTIPART)
-            self.assertEqual(len(resp_get.attached_files), 1)
-            self.assertIsNone(resp_get.result.dest_url)
-            self.assertEqual(len(resp_get.attached_files[0].file), 0)
-            resp_get.attached_files[0].save("./download/")
-
-        except pe.PangeaAPIException as e:
-            print(e)
-            print(type(e))
-            self.assertTrue(False)
+        # Get file. Transfer method multipart
+        resp_get = await self.client.get(id=response.result.object.id, transfer_method=TransferMethod.MULTIPART)
+        self.assertEqual(len(resp_get.attached_files), 1)
+        self.assertIsNone(resp_get.result.dest_url)
+        self.assertEqual(len(resp_get.attached_files[0].file), 0)
+        resp_get.attached_files[0].save("./download/")
 
     async def test_split_upload_file_post(self):
         with get_test_file() as f:
@@ -214,22 +210,21 @@ class TestShare(unittest.IsolatedAsyncioTestCase):
 
     async def test_life_cycle(self):
         # Create a folder
-        resp_create = await self.client.folder_create(path=FOLDER_FILES)
+        resp_create = await self.client.folder_create(folder=FOLDER_FILES)
         folder_id = resp_create.result.object.id
         self.assertEqual(resp_create.status, "Success")
 
         # Upload a file with path as unique param
         with get_test_file() as f:
             path = FOLDER_FILES + f"/{TIME}_file_multipart_1"
-            resp_put_path = await self.client.put(file=f, path=path, transfer_method=TransferMethod.MULTIPART)
+            resp_put_path = await self.client.put(file=f, folder=path, transfer_method=TransferMethod.MULTIPART)
 
         self.assertEqual(resp_put_path.status, "Success")
-        self.assertEqual(folder_id, resp_put_path.result.object.parent_id)
         self.assertIsNone(resp_put_path.result.object.metadata)
         self.assertIsNone(resp_put_path.result.object.tags)
-        self.assertIsNone(resp_put_path.result.object.md5)
+        self.assertIsNotNone(resp_put_path.result.object.md5)
         self.assertIsNotNone(resp_put_path.result.object.sha256)
-        self.assertIsNone(resp_put_path.result.object.sha512)
+        self.assertIsNotNone(resp_put_path.result.object.sha512)
 
         # Upload a file with parent id and name
         with get_test_file() as f:
@@ -246,9 +241,9 @@ class TestShare(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(folder_id, resp_put_id.result.object.parent_id)
         self.assertEqual(METADATA, resp_put_id.result.object.metadata)
         self.assertEqual(TAGS, resp_put_id.result.object.tags)
-        self.assertIsNone(resp_put_id.result.object.md5)
+        self.assertIsNotNone(resp_put_id.result.object.md5)
         self.assertIsNotNone(resp_put_id.result.object.sha256)
-        self.assertIsNone(resp_put_id.result.object.sha512)
+        self.assertIsNotNone(resp_put_id.result.object.sha512)
 
         # Update file. full metadata and tags
         resp_update = await self.client.update(id=resp_put_path.result.object.id, metadata=METADATA, tags=TAGS)

@@ -7,8 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## 5.1.0 - 2024-10-16
+
 ### Added
 
+- Secure Share service support.
 - Multiple bucket ID support to Share.
 - `metadata_protected` and `tags_protected` support to Share `ItemData`.
 - `password` and `password_algorithm` support to Share.
@@ -16,9 +19,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `objects` field to Share `GetArchiveResult`.
 - `title` and `message` to Share `ShareCreateLinkItem`.
 
+## 5.0.0 - 2024-10-15
+
+### Added
+
+- Vault KEM export support.
+
+### Changed
+
+- Vault APIs have been updated to v2.
+
+## 4.4.0 - 2024-10-15
+
+### Added
+
+- Support for `domains` field in `v2/user/breached` endpoint in User Intel service
+- Detect-only Redact for Sanitize.
+
+### Changed
+
+- The minimum supported version of Python is now v3.9.
+
+## 4.3.0 - 2024-09-25
+
+### Added
+
+- `attributes` field in `/list-resources` and `/list-subjects` endpoint
+- Sanitize service support
+
+### Changed
+
+- `attributes` field in `/check` endpoint. Now it's a `Dict[str, Any]` 
+
 ### Fixed
 
 - The source-url transfer method now works with File Scan and Sanitize.
+
+### Removed
+
+- Dependency on the asyncio pypi package.
+- Lingering beta tags on AuthZ `/list-resources` and `/list-subjects` endpoints.
 
 ## 4.2.0 - 2024-07-16
 

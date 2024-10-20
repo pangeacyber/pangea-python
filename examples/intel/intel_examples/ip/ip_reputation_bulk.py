@@ -1,3 +1,7 @@
+# Retrieve a reputation score for an IP address.
+# This score will fall under one of these categories: benign, suspicious,
+# malicious, or unknown.
+
 import os
 
 import pangea.exceptions as pe
@@ -14,16 +18,13 @@ config = PangeaConfig(domain=domain)
 intel = IpIntel(token, config=config)
 
 
-def main():
+def main() -> None:
     print("Checking IPs...")
-
-    try:
-        ip_list = ["93.231.182.110", "190.28.74.251"]
-        response = intel.reputation_bulk(ips=ip_list, provider="crowdstrike", verbose=True, raw=True)
-        print("Result:")
-        print_reputation_bulk_data(response.result.data)
-    except pe.PangeaAPIException as e:
-        print(e)
+    ip_list = ["93.231.182.110", "190.28.74.251"]
+    response = intel.reputation_bulk(ips=ip_list, provider="crowdstrike", verbose=True, raw=True)
+    assert response.result
+    print("Result:")
+    print_reputation_bulk_data(response.result.data)
 
 
 if __name__ == "__main__":

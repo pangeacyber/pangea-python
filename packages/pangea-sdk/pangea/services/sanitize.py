@@ -1,7 +1,11 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+from __future__ import annotations
+
 import io
 from typing import Dict, List, Optional, Tuple
+
+from pydantic import Field
 
 from pangea.response import APIRequestModel, PangeaResponse, PangeaResponseResult, TransferMethod
 from pangea.services.base import ServiceBase
@@ -11,9 +15,6 @@ from pangea.utils import FileUploadParams, get_file_upload_params
 class SanitizeFile(APIRequestModel):
     scan_provider: Optional[str] = None
     """Provider to use for File Scan."""
-
-    cdr_provider: Optional[str] = None
-    """Provider to use for CDR."""
 
 
 class SanitizeContent(APIRequestModel):
@@ -37,6 +38,12 @@ class SanitizeContent(APIRequestModel):
 
     redact: Optional[bool] = None
     """Redact sensitive content."""
+
+    redact_detect_only: Optional[bool] = None
+    """
+    If redact is enabled, avoids redacting the file and instead returns the PII
+    analysis engine results. Only works if redact is enabled.
+    """
 
     remove_attachments: Optional[bool] = None
     """Remove file attachments (PDF only)."""
@@ -64,45 +71,112 @@ class SanitizeRequest(APIRequestModel):
     """A URL where the file to be sanitized can be downloaded."""
 
     share_id: Optional[str] = None
+    """A Pangea Secure Share ID where the file to be Sanitized is stored."""
+
     file: Optional[SanitizeFile] = None
+    """File."""
+
     content: Optional[SanitizeContent] = None
+    """Content."""
+
     share_output: Optional[SanitizeShareOutput] = None
+    """Share output."""
+
     size: Optional[int] = None
+    """The size (in bytes) of the file. If the upload doesn't match, the call will fail."""
+
     crc32c: Optional[str] = None
+    """The CRC32C hash of the file data, which will be verified by the server if provided."""
+
     sha256: Optional[str] = None
+    """The hexadecimal-encoded SHA256 hash of the file data, which will be verified by the server if provided."""
+
     uploaded_file_name: Optional[str] = None
+    """Name of the user-uploaded file, required for transfer-method 'put-url' and 'post-url'."""
 
 
 class DefangData(PangeaResponseResult):
     external_urls_count: Optional[int] = None
+    """Number of external links found."""
+
     external_domains_count: Optional[int] = None
+    """Number of external domains found."""
+
     defanged_count: Optional[int] = None
+    """Number of items defanged per provided rules and detections."""
+
     url_intel_summary: Optional[str] = None
+    """Processed N URLs: X are malicious, Y are suspicious, Z are unknown."""
+
     domain_intel_summary: Optional[str] = None
+    """Processed N Domains: X are malicious, Y are suspicious, Z are unknown."""
+
+
+class RedactRecognizerResult(PangeaResponseResult):
+    field_type: str
+    """The entity name."""
+
+    score: float
+    """The certainty score that the entity matches this specific snippet."""
+
+    text: str
+    """The text snippet that matched."""
+
+    start: int
+    """The starting index of a snippet."""
+
+    end: int
+    """The ending index of a snippet."""
+
+    redacted: bool
+    """Indicates if this rule was used to anonymize a text snippet."""
 
 
 class RedactData(PangeaResponseResult):
-    redaction_count: Optional[int] = None
-    summary_counts: Dict = {}
+    redaction_count: int
+    """Number of items redacted"""
+
+    summary_counts: Dict[str, int] = Field(default_factory=dict)
+    """Summary counts."""
+
+    recognizer_results: Optional[List[RedactRecognizerResult]] = None
+    """The scoring result of a set of rules."""
 
 
 class CDR(PangeaResponseResult):
     file_attachments_removed: Optional[int] = None
+    """Number of file attachments removed."""
+
     interactive_contents_removed: Optional[int] = None
+    """Number of interactive content items removed."""
 
 
 class SanitizeData(PangeaResponseResult):
     defang: Optional[DefangData] = None
+    """Defang."""
+
     redact: Optional[RedactData] = None
+    """Redact."""
+
     malicious_file: Optional[bool] = None
+    """If the file scanned was malicious."""
+
     cdr: Optional[CDR] = None
+    """Content Disarm and Reconstruction."""
 
 
 class SanitizeResult(PangeaResponseResult):
     dest_url: Optional[str] = None
+    """A URL where the Sanitized file can be downloaded."""
+
     dest_share_id: Optional[str] = None
+    """Pangea Secure Share ID of the Sanitized file."""
+
     data: SanitizeData
+    """Sanitize data."""
+
     parameters: Dict = {}
+    """The parameters, which were passed in the request, echoed back."""
 
 
 class Sanitize(ServiceBase):
@@ -140,12 +214,11 @@ class Sanitize(ServiceBase):
         sync_call: bool = True,
     ) -> PangeaResponse[SanitizeResult]:
         """
-        Sanitize (Beta)
+        Sanitize
 
         Apply file sanitization actions according to specified rules.
-        How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
 
-        OperationId: sanitize_post_v1beta_sanitize
+        OperationId: sanitize_post_v1_sanitize
 
         Args:
             transfer_method: The transfer method used to upload the file data.
@@ -219,9 +292,7 @@ class Sanitize(ServiceBase):
         )
         data = input.model_dump(exclude_none=True)
         try:
-            response = self.request.post(
-                "v1beta/sanitize", SanitizeResult, data=data, files=files, poll_result=sync_call
-            )
+            response = self.request.post("v1/sanitize", SanitizeResult, data=data, files=files, poll_result=sync_call)
         finally:
             if file_path and file is not None:
                 file.close()
@@ -240,13 +311,12 @@ class Sanitize(ServiceBase):
         uploaded_file_name: Optional[str] = None,
     ) -> PangeaResponse[SanitizeResult]:
         """
-        Sanitize via presigned URL (Beta)
+        Sanitize via presigned URL
 
         Apply file sanitization actions according to specified rules via a
         [presigned URL](https://pangea.cloud/docs/api/transfer-methods).
-        How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
 
-        OperationId: sanitize_post_v1beta_sanitize 2
+        OperationId: sanitize_post_v1_sanitize 2
 
         Args:
             transfer_method: The transfer method used to upload the file data.
@@ -293,4 +363,4 @@ class Sanitize(ServiceBase):
             input.size = params.size
 
         data = input.model_dump(exclude_none=True)
-        return self.request.request_presigned_url("v1beta/sanitize", SanitizeResult, data=data)
+        return self.request.request_presigned_url("v1/sanitize", SanitizeResult, data=data)

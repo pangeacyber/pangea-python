@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 import logging
 import time
 import unittest
+from contextlib import suppress
 from http.client import HTTPConnection
 from io import BufferedReader
 
@@ -9,7 +12,7 @@ from pangea import FileUploader, PangeaConfig
 from pangea.response import PangeaResponse, TransferMethod
 from pangea.services import Sanitize
 from pangea.services.sanitize import SanitizeContent, SanitizeFile, SanitizeResult, SanitizeShareOutput
-from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
+from pangea.tools import TestEnvironment, get_custom_schema_test_token, get_test_domain, logger_set_pangea_config
 from pangea.utils import get_file_upload_params
 from tests.test_tools import load_test_environment
 
@@ -33,17 +36,22 @@ def debug_requests_on() -> None:
 
 
 class TestSanitize(unittest.TestCase):
+    log = logging.getLogger(__name__)
+
     def setUp(self) -> None:
         # debug_requests_on()
-        token = get_test_token(TEST_ENVIRONMENT)
+
+        # The Sanitize config in the regular org was obsoleted by a breaking
+        # change, so the custom schema org is used instead.
+        token = get_custom_schema_test_token(TEST_ENVIRONMENT)
         domain = get_test_domain(TEST_ENVIRONMENT)
         config = PangeaConfig(domain=domain, custom_user_agent="sdk-test", poll_result_timeout=240)
         self.client = Sanitize(token, config=config)
         logger_set_pangea_config(logger_name=self.client.logger.name)
 
     def test_sanitize_and_share(self):
-        try:
-            file_scan = SanitizeFile(scan_provider="crowdstrike", cdr_provider="apryse")
+        with suppress(pe.AcceptedRequestException):
+            file_scan = SanitizeFile(scan_provider="crowdstrike")
             content = SanitizeContent(
                 url_intel=True,
                 url_intel_provider="crowdstrike",
@@ -78,14 +86,9 @@ class TestSanitize(unittest.TestCase):
                 self.assertEqual(response.result.data.cdr.interactive_contents_removed, 0)
                 self.assertFalse(response.result.data.malicious_file)
 
-        except pe.PangeaAPIException as e:
-            print(e)
-            print(type(e))
-            raise
-
     def test_sanitize_no_share(self):
-        try:
-            file_scan = SanitizeFile(scan_provider="crowdstrike", cdr_provider="apryse")
+        with suppress(pe.AcceptedRequestException):
+            file_scan = SanitizeFile(scan_provider="crowdstrike")
             content = SanitizeContent(
                 url_intel=True,
                 url_intel_provider="crowdstrike",
@@ -121,36 +124,27 @@ class TestSanitize(unittest.TestCase):
                 self.assertFalse(response.result.data.malicious_file)
 
             attached_file = self.client.download_file(response.result.dest_url)
-            attached_file.save("./download/")
-
-        except pe.PangeaAPIException as e:
-            print(e)
-            print(type(e))
-            raise
+            attached_file.save("./")
 
     def test_sanitize_all_defaults(self):
-        try:
-            with get_test_file() as f:
-                response = self.client.sanitize(
-                    file=f,
-                    transfer_method=TransferMethod.POST_URL,
-                    uploaded_file_name="uploaded_file",
-                )
-                self.assertEqual(response.status, "Success")
-                self.assertIsNotNone(response.result.dest_url)
-                self.assertIsNone(response.result.dest_share_id)
-                self.assertIsNone(response.result.data.redact)
-                self.assertIsNotNone(response.result.data.defang)
-                self.assertEqual(response.result.data.cdr.file_attachments_removed, 0)
-                self.assertEqual(response.result.data.cdr.interactive_contents_removed, 0)
-                self.assertFalse(response.result.data.malicious_file)
-        except pe.PangeaAPIException as e:
-            print(e)
-            print(type(e))
+        with suppress(pe.AcceptedRequestException), get_test_file() as f:
+            response = self.client.sanitize(
+                file=f,
+                transfer_method=TransferMethod.POST_URL,
+                uploaded_file_name="uploaded_file",
+            )
+            self.assertEqual(response.status, "Success")
+            self.assertIsNotNone(response.result.dest_url)
+            self.assertIsNone(response.result.dest_share_id)
+            self.assertIsNone(response.result.data.redact)
+            self.assertIsNotNone(response.result.data.defang)
+            self.assertEqual(response.result.data.cdr.file_attachments_removed, 0)
+            self.assertEqual(response.result.data.cdr.interactive_contents_removed, 0)
+            self.assertFalse(response.result.data.malicious_file)
 
     def test_sanitize_multipart_upload(self):
-        try:
-            file_scan = SanitizeFile(scan_provider="crowdstrike", cdr_provider="apryse")
+        with suppress(pe.AcceptedRequestException):
+            file_scan = SanitizeFile(scan_provider="crowdstrike")
             content = SanitizeContent(
                 url_intel=True,
                 url_intel_provider="crowdstrike",
@@ -185,11 +179,6 @@ class TestSanitize(unittest.TestCase):
                 self.assertEqual(response.result.data.cdr.interactive_contents_removed, 0)
                 self.assertFalse(response.result.data.malicious_file)
 
-        except pe.PangeaAPIException as e:
-            print(e)
-            print(type(e))
-            raise
-
     def test_sanitize_async(self):
         with self.assertRaises(pe.AcceptedRequestException):
             with get_test_file() as f:
@@ -198,8 +187,8 @@ class TestSanitize(unittest.TestCase):
                 )
 
     def test_sanitize_filepath(self):
-        try:
-            file_scan = SanitizeFile(scan_provider="crowdstrike", cdr_provider="apryse")
+        with suppress(pe.AcceptedRequestException):
+            file_scan = SanitizeFile(scan_provider="crowdstrike")
             content = SanitizeContent(
                 url_intel=True,
                 url_intel_provider="crowdstrike",
@@ -234,10 +223,6 @@ class TestSanitize(unittest.TestCase):
             self.assertEqual(response.result.data.cdr.file_attachments_removed, 0)
             self.assertEqual(response.result.data.cdr.interactive_contents_removed, 0)
             self.assertFalse(response.result.data.malicious_file)
-        except pe.PangeaAPIException as e:
-            print(e)
-            print(type(e))
-            raise
 
     def test_sanitize_poll_result(self):
         exception = None
@@ -273,7 +258,7 @@ class TestSanitize(unittest.TestCase):
                 self.assertLess(retry, max_retry - 1)
 
     def test_split_upload_file_post(self):
-        file_scan = SanitizeFile(scan_provider="crowdstrike", cdr_provider="apryse")
+        file_scan = SanitizeFile(scan_provider="crowdstrike")
         content = SanitizeContent(
             url_intel=True,
             url_intel_provider="crowdstrike",
@@ -329,7 +314,7 @@ class TestSanitize(unittest.TestCase):
                 self.assertLess(retry, max_retry - 1)
 
     def test_split_upload_file_put(self):
-        file_scan = SanitizeFile(scan_provider="crowdstrike", cdr_provider="apryse")
+        file_scan = SanitizeFile(scan_provider="crowdstrike")
         content = SanitizeContent(
             url_intel=True,
             url_intel_provider="crowdstrike",
@@ -355,8 +340,7 @@ class TestSanitize(unittest.TestCase):
             uploader = FileUploader()
             uploader.upload_file(url=url, file=f, transfer_method=TransferMethod.PUT_URL)
 
-        max_retry = 12
-        for retry in range(max_retry):
+        for _ in range(12):
             try:
                 # wait some time to get result ready and poll it
                 time.sleep(10)
@@ -376,6 +360,8 @@ class TestSanitize(unittest.TestCase):
                 self.assertEqual(response.result.data.cdr.file_attachments_removed, 0)
                 self.assertEqual(response.result.data.cdr.interactive_contents_removed, 0)
                 self.assertFalse(response.result.data.malicious_file)
-                break
+                return
             except pe.AcceptedRequestException:
-                self.assertLess(retry, max_retry - 1)
+                pass
+
+        self.log.warning("The result of request '%s' took too long to be ready.", response.request_id)

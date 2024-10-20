@@ -1,5 +1,7 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from typing import Optional
 
@@ -10,7 +12,7 @@ from cryptography.hazmat.primitives.asymmetric.types import PrivateKeyTypes, Pub
 
 from pangea.exceptions import PangeaException
 from pangea.services.audit.util import b64decode, b64decode_ascii, b64encode_ascii
-from pangea.services.vault.models.common import AsymmetricAlgorithm
+from pangea.services.vault.models.asymmetric import AsymmetricKeySigningAlgorithm
 
 
 class AlgorithmSigner(ABC):
@@ -43,7 +45,7 @@ class ED25519Signer(AlgorithmSigner):
         )
 
     def get_algorithm(self) -> str:
-        return AsymmetricAlgorithm.Ed25519.value
+        return AsymmetricKeySigningAlgorithm.ED25519.value
 
 
 signers = {
@@ -144,8 +146,7 @@ class Verifier:
         for cls, verifier in verifiers.items():
             if isinstance(pubkey, cls):
                 return verifier(pubkey).verify(message_bytes, signature_bytes)
-        else:
-            raise PangeaException(f"Not supported public key type: {type(pubkey)}")
+        raise PangeaException(f"Not supported public key type: {type(pubkey)}")
 
     def _decode_public_key(self, public_key: bytes):
         """Parse a public key in PEM or ssh format"""

@@ -3,7 +3,7 @@
   retry: 2
   parallel:
     matrix:
-      - PYTHON_VERSION: ["3.8", "3.9", "3.10", "3.11"]
+      - PYTHON_VERSION: ["3.9", "3.10", "3.11", "3.12", "3.13"]
         EXAMPLE_FOLDER:
           - audit
           - authn
@@ -12,9 +12,9 @@
           - file_scan
           - intel
           - redact
+          - sanitize
           - vault
           - share
-          - sanitize
   image: python:${PYTHON_VERSION}-bookworm
   before_script:
     - export PANGEA_AUDIT_AUTH0_CONFIG_ID="${PANGEA_AUDIT_CONFIG_ID_3_LVE_AWS}"
@@ -31,9 +31,9 @@
     - export PANGEA_REDACT_CONFIG_ID="${PANGEA_REDACT_CONFIG_ID_1_LVE_AWS}"
     - export PANGEA_REDACT_MULTICONFIG_TOKEN="${PANGEA_INTEGRATION_MULTI_CONFIG_TOKEN_LVE_AWS}"
     - export PANGEA_REDACT_TOKEN="${PANGEA_INTEGRATION_TOKEN_LVE_AWS}"
+    - export PANGEA_SANITIZE_TOKEN="${PANGEA_INTEGRATION_TOKEN_LVE_AWS}"
     - export PANGEA_VAULT_TOKEN="${PANGEA_INTEGRATION_TOKEN_LVE_AWS}"
     - export PANGEA_SHARE_TOKEN="${PANGEA_INTEGRATION_TOKEN_LVE_AWS}"
-    - export PANGEA_SANITIZE_TOKEN="${PANGEA_INTEGRATION_TOKEN_LVE_AWS}"
     - !reference [.setup, update-pip]
     - !reference [.setup, update-poetry]
   rules:

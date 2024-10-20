@@ -423,6 +423,13 @@ class TestUserIntel(unittest.TestCase):
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertEqual(len(response.result.data), 2)
 
+    def test_user_breached_domain_bulk(self):
+        response = self.intel_user.user_breached_bulk(
+            domains=["example.com"], provider="spycloud", verbose=True, raw=True
+        )
+        self.assertEqual(response.status, ResponseStatus.SUCCESS)
+        self.assertEqual(len(response.result.data), 1)
+
     def test_user_breached_default_provider(self):
         response = self.intel_user.user_breached(phone_number="8005550123", verbose=True, raw=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)

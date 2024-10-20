@@ -1,8 +1,11 @@
+# Retrieve a secret or key from Pangea Vault.
+
 import os
 
 import pangea.exceptions as pe
 from pangea.config import PangeaConfig
 from pangea.services import Audit, Vault
+from pangea.services.vault.models.common import ItemType
 
 
 def main() -> None:
@@ -24,10 +27,10 @@ def main() -> None:
 
     try:
         # Fetch the Secure Audit Log token.
-        create_response = vault.get(id=token_id)
+        create_response = vault.get(item_id=token_id)
         assert create_response.result
-        assert create_response.result.current_version
-        audit_token = create_response.result.current_version.secret
+        assert create_response.result.type == ItemType.PANGEA_TOKEN
+        audit_token = create_response.result.item_versions[0].token
         assert audit_token
 
         # Use that token to log a message.

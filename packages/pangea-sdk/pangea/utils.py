@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import base64
 import copy
 import datetime
@@ -6,7 +8,7 @@ import json
 from hashlib import md5, new, sha1, sha256, sha512
 from typing import Union
 
-from google_crc32c import Checksum as CRC32C  # type: ignore[import-untyped]
+from google_crc32c import Checksum as CRC32C
 from pydantic import BaseModel
 
 

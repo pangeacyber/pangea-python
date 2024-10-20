@@ -1,6 +1,9 @@
-import asyncio
+from __future__ import annotations
+
 import logging
 import unittest
+from asyncio import sleep
+from contextlib import suppress
 from http.client import HTTPConnection
 
 import pangea.exceptions as pe
@@ -9,7 +12,7 @@ from pangea.asyncio import FileUploaderAsync
 from pangea.asyncio.services import SanitizeAsync
 from pangea.response import PangeaResponse, TransferMethod
 from pangea.services.sanitize import SanitizeContent, SanitizeFile, SanitizeResult, SanitizeShareOutput
-from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
+from pangea.tools import TestEnvironment, get_custom_schema_test_token, get_test_domain, logger_set_pangea_config
 from pangea.utils import get_file_upload_params
 from tests.test_tools import load_test_environment
 
@@ -33,9 +36,14 @@ def debug_requests_on():
 
 
 class TestSanitize(unittest.IsolatedAsyncioTestCase):
+    log = logging.getLogger(__name__)
+
     def setUp(self) -> None:
         # debug_requests_on()
-        token = get_test_token(TEST_ENVIRONMENT)
+
+        # The Sanitize config in the regular org was obsoleted by a breaking
+        # change, so the custom schema org is used instead.
+        token = get_custom_schema_test_token(TEST_ENVIRONMENT)
         domain = get_test_domain(TEST_ENVIRONMENT)
         config = PangeaConfig(domain=domain, custom_user_agent="sdk-test", poll_result_timeout=240)
         self.client = SanitizeAsync(token, config=config)
@@ -45,154 +53,131 @@ class TestSanitize(unittest.IsolatedAsyncioTestCase):
         await self.client.close()
 
     async def test_sanitize_and_share(self):
-        try:
-            file_scan = SanitizeFile(scan_provider="crowdstrike", cdr_provider="apryse")
-            content = SanitizeContent(
-                url_intel=True,
-                url_intel_provider="crowdstrike",
-                domain_intel=True,
-                domain_intel_provider="crowdstrike",
-                defang=True,
-                defang_threshold=20,
-                remove_interactive=True,
-                remove_attachments=True,
-                redact=True,
+        file_scan = SanitizeFile(scan_provider="crowdstrike")
+        content = SanitizeContent(
+            url_intel=True,
+            url_intel_provider="crowdstrike",
+            domain_intel=True,
+            domain_intel_provider="crowdstrike",
+            defang=True,
+            defang_threshold=20,
+            remove_interactive=True,
+            remove_attachments=True,
+            redact=True,
+        )
+        share_output = SanitizeShareOutput(enabled=True, output_folder="sdk_test/sanitize/")
+        with suppress(pe.AcceptedRequestException), get_test_file() as f:
+            response = await self.client.sanitize(
+                file=f,
+                transfer_method=TransferMethod.POST_URL,
+                file_scan=file_scan,
+                content=content,
+                share_output=share_output,
+                uploaded_file_name="uploaded_file",
             )
-            share_output = SanitizeShareOutput(enabled=True, output_folder="sdk_test/sanitize/")
-            with get_test_file() as f:
-                response = await self.client.sanitize(
-                    file=f,
-                    transfer_method=TransferMethod.POST_URL,
-                    file_scan=file_scan,
-                    content=content,
-                    share_output=share_output,
-                    uploaded_file_name="uploaded_file",
-                )
-                self.assertEqual(response.status, "Success")
-                self.assertIsNone(response.result.dest_url)
-                self.assertIsNotNone(response.result.dest_share_id)
-                self.assertGreater(response.result.data.redact.redaction_count, 0)
-                self.assertNotEqual(response.result.data.redact.summary_counts, {})
-                self.assertGreater(response.result.data.defang.external_urls_count, 0)
-                self.assertGreater(response.result.data.defang.external_domains_count, 0)
-                self.assertEqual(response.result.data.defang.defanged_count, 0)
-                self.assertIsNotNone(response.result.data.defang.domain_intel_summary)
-                self.assertEqual(response.result.data.cdr.file_attachments_removed, 0)
-                self.assertEqual(response.result.data.cdr.interactive_contents_removed, 0)
-                self.assertFalse(response.result.data.malicious_file)
-
-        except pe.PangeaAPIException as e:
-            print(e)
-            print(type(e))
-            raise
+            self.assertEqual(response.status, "Success")
+            self.assertIsNone(response.result.dest_url)
+            self.assertIsNotNone(response.result.dest_share_id)
+            self.assertGreater(response.result.data.redact.redaction_count, 0)
+            self.assertNotEqual(response.result.data.redact.summary_counts, {})
+            self.assertGreater(response.result.data.defang.external_urls_count, 0)
+            self.assertGreater(response.result.data.defang.external_domains_count, 0)
+            self.assertEqual(response.result.data.defang.defanged_count, 0)
+            self.assertIsNotNone(response.result.data.defang.domain_intel_summary)
+            self.assertEqual(response.result.data.cdr.file_attachments_removed, 0)
+            self.assertEqual(response.result.data.cdr.interactive_contents_removed, 0)
+            self.assertFalse(response.result.data.malicious_file)
 
     async def test_sanitize_no_share(self):
-        try:
-            file_scan = SanitizeFile(scan_provider="crowdstrike", cdr_provider="apryse")
-            content = SanitizeContent(
-                url_intel=True,
-                url_intel_provider="crowdstrike",
-                domain_intel=True,
-                domain_intel_provider="crowdstrike",
-                defang=True,
-                defang_threshold=20,
-                remove_interactive=True,
-                remove_attachments=True,
-                redact=True,
+        file_scan = SanitizeFile(scan_provider="crowdstrike")
+        content = SanitizeContent(
+            url_intel=True,
+            url_intel_provider="crowdstrike",
+            domain_intel=True,
+            domain_intel_provider="crowdstrike",
+            defang=True,
+            defang_threshold=20,
+            remove_interactive=True,
+            remove_attachments=True,
+            redact=True,
+        )
+        share_output = SanitizeShareOutput(enabled=False)
+        with suppress(pe.AcceptedRequestException), get_test_file() as f:
+            response = await self.client.sanitize(
+                file=f,
+                transfer_method=TransferMethod.POST_URL,
+                file_scan=file_scan,
+                content=content,
+                share_output=share_output,
+                uploaded_file_name="uploaded_file",
             )
-            share_output = SanitizeShareOutput(enabled=False)
-            with get_test_file() as f:
-                response = await self.client.sanitize(
-                    file=f,
-                    transfer_method=TransferMethod.POST_URL,
-                    file_scan=file_scan,
-                    content=content,
-                    share_output=share_output,
-                    uploaded_file_name="uploaded_file",
-                )
-                self.assertEqual(response.status, "Success")
-                self.assertIsNotNone(response.result.dest_url)
-                self.assertIsNone(response.result.dest_share_id)
-                self.assertGreater(response.result.data.redact.redaction_count, 0)
-                self.assertNotEqual(response.result.data.redact.summary_counts, {})
-                self.assertGreater(response.result.data.defang.external_urls_count, 0)
-                self.assertGreater(response.result.data.defang.external_domains_count, 0)
-                self.assertEqual(response.result.data.defang.defanged_count, 0)
-                self.assertIsNotNone(response.result.data.defang.domain_intel_summary)
-                self.assertEqual(response.result.data.cdr.file_attachments_removed, 0)
-                self.assertEqual(response.result.data.cdr.interactive_contents_removed, 0)
-                self.assertFalse(response.result.data.malicious_file)
+            self.assertEqual(response.status, "Success")
+            self.assertIsNotNone(response.result.dest_url)
+            self.assertIsNone(response.result.dest_share_id)
+            self.assertGreater(response.result.data.redact.redaction_count, 0)
+            self.assertNotEqual(response.result.data.redact.summary_counts, {})
+            self.assertGreater(response.result.data.defang.external_urls_count, 0)
+            self.assertGreater(response.result.data.defang.external_domains_count, 0)
+            self.assertEqual(response.result.data.defang.defanged_count, 0)
+            self.assertIsNotNone(response.result.data.defang.domain_intel_summary)
+            self.assertEqual(response.result.data.cdr.file_attachments_removed, 0)
+            self.assertEqual(response.result.data.cdr.interactive_contents_removed, 0)
+            self.assertFalse(response.result.data.malicious_file)
 
             attached_file = await self.client.download_file(response.result.dest_url)
             attached_file.save("./")
 
-        except pe.PangeaAPIException as e:
-            print(e)
-            print(type(e))
-            raise
-
     async def test_sanitize_all_defaults(self):
-        try:
-            with get_test_file() as f:
-                response = await self.client.sanitize(
-                    file=f,
-                    transfer_method=TransferMethod.POST_URL,
-                    uploaded_file_name="uploaded_file",
-                )
-                self.assertEqual(response.status, "Success")
-                self.assertIsNotNone(response.result.dest_url)
-                self.assertIsNone(response.result.dest_share_id)
-                self.assertIsNone(response.result.data.redact)
-                self.assertIsNotNone(response.result.data.defang)
-                self.assertEqual(response.result.data.cdr.file_attachments_removed, 0)
-                self.assertEqual(response.result.data.cdr.interactive_contents_removed, 0)
-                self.assertFalse(response.result.data.malicious_file)
-        except pe.PangeaAPIException as e:
-            print(e)
-            print(type(e))
-            raise
+        with suppress(pe.AcceptedRequestException), get_test_file() as f:
+            response = await self.client.sanitize(
+                file=f,
+                transfer_method=TransferMethod.POST_URL,
+                uploaded_file_name="uploaded_file",
+            )
+            self.assertEqual(response.status, "Success")
+            self.assertIsNotNone(response.result.dest_url)
+            self.assertIsNone(response.result.dest_share_id)
+            self.assertIsNone(response.result.data.redact)
+            self.assertIsNotNone(response.result.data.defang)
+            self.assertEqual(response.result.data.cdr.file_attachments_removed, 0)
+            self.assertEqual(response.result.data.cdr.interactive_contents_removed, 0)
+            self.assertFalse(response.result.data.malicious_file)
 
     async def test_sanitize_multipart_upload(self):
-        try:
-            file_scan = SanitizeFile(scan_provider="crowdstrike", cdr_provider="apryse")
-            content = SanitizeContent(
-                url_intel=True,
-                url_intel_provider="crowdstrike",
-                domain_intel=True,
-                domain_intel_provider="crowdstrike",
-                defang=True,
-                defang_threshold=20,
-                remove_interactive=True,
-                remove_attachments=True,
-                redact=True,
+        file_scan = SanitizeFile(scan_provider="crowdstrike")
+        content = SanitizeContent(
+            url_intel=True,
+            url_intel_provider="crowdstrike",
+            domain_intel=True,
+            domain_intel_provider="crowdstrike",
+            defang=True,
+            defang_threshold=20,
+            remove_interactive=True,
+            remove_attachments=True,
+            redact=True,
+        )
+        share_output = SanitizeShareOutput(enabled=True, output_folder="sdk_test/sanitize/")
+        with suppress(pe.AcceptedRequestException), get_test_file() as f:
+            response = await self.client.sanitize(
+                file=f,
+                transfer_method=TransferMethod.MULTIPART,
+                file_scan=file_scan,
+                content=content,
+                share_output=share_output,
+                uploaded_file_name="uploaded_file",
             )
-            share_output = SanitizeShareOutput(enabled=True, output_folder="sdk_test/sanitize/")
-            with get_test_file() as f:
-                response = await self.client.sanitize(
-                    file=f,
-                    transfer_method=TransferMethod.MULTIPART,
-                    file_scan=file_scan,
-                    content=content,
-                    share_output=share_output,
-                    uploaded_file_name="uploaded_file",
-                )
-                self.assertEqual(response.status, "Success")
-                self.assertIsNone(response.result.dest_url)
-                self.assertIsNotNone(response.result.dest_share_id)
-                self.assertGreater(response.result.data.redact.redaction_count, 0)
-                self.assertNotEqual(response.result.data.redact.summary_counts, {})
-                self.assertGreater(response.result.data.defang.external_urls_count, 0)
-                self.assertGreater(response.result.data.defang.external_domains_count, 0)
-                self.assertEqual(response.result.data.defang.defanged_count, 0)
-                self.assertIsNotNone(response.result.data.defang.domain_intel_summary)
-                self.assertEqual(response.result.data.cdr.file_attachments_removed, 0)
-                self.assertEqual(response.result.data.cdr.interactive_contents_removed, 0)
-                self.assertFalse(response.result.data.malicious_file)
-
-        except pe.PangeaAPIException as e:
-            print(e)
-            print(type(e))
-            raise
+            self.assertEqual(response.status, "Success")
+            self.assertIsNone(response.result.dest_url)
+            self.assertIsNotNone(response.result.dest_share_id)
+            self.assertGreater(response.result.data.redact.redaction_count, 0)
+            self.assertNotEqual(response.result.data.redact.summary_counts, {})
+            self.assertGreater(response.result.data.defang.external_urls_count, 0)
+            self.assertGreater(response.result.data.defang.external_domains_count, 0)
+            self.assertEqual(response.result.data.defang.defanged_count, 0)
+            self.assertIsNotNone(response.result.data.defang.domain_intel_summary)
+            self.assertEqual(response.result.data.cdr.file_attachments_removed, 0)
+            self.assertEqual(response.result.data.cdr.interactive_contents_removed, 0)
+            self.assertFalse(response.result.data.malicious_file)
 
     async def test_sanitize_async(self):
         with self.assertRaises(pe.AcceptedRequestException):
@@ -202,8 +187,8 @@ class TestSanitize(unittest.IsolatedAsyncioTestCase):
                 )
 
     async def test_sanitize_filepath(self):
-        try:
-            file_scan = SanitizeFile(scan_provider="crowdstrike", cdr_provider="apryse")
+        with suppress(pe.AcceptedRequestException):
+            file_scan = SanitizeFile(scan_provider="crowdstrike")
             content = SanitizeContent(
                 url_intel=True,
                 url_intel_provider="crowdstrike",
@@ -238,10 +223,6 @@ class TestSanitize(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(response.result.data.cdr.file_attachments_removed, 0)
             self.assertEqual(response.result.data.cdr.interactive_contents_removed, 0)
             self.assertFalse(response.result.data.malicious_file)
-        except pe.PangeaAPIException as e:
-            print(e)
-            print(type(e))
-            raise
 
     async def test_sanitize_poll_result(self):
         exception = None
@@ -257,11 +238,10 @@ class TestSanitize(unittest.IsolatedAsyncioTestCase):
         except pe.AcceptedRequestException as e:
             exception = e
 
-        max_retry = 12
-        for retry in range(max_retry):
+        for _ in range(12):
             try:
                 # wait some time to get result ready and poll it
-                await asyncio.sleep(10)
+                await sleep(10)
 
                 response: PangeaResponse[SanitizeResult] = await self.client.poll_result(exception)
                 self.assertEqual(response.status, "Success")
@@ -272,12 +252,14 @@ class TestSanitize(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(response.result.data.cdr.file_attachments_removed, 0)
                 self.assertEqual(response.result.data.cdr.interactive_contents_removed, 0)
                 self.assertFalse(response.result.data.malicious_file)
-                break
+                return
             except pe.AcceptedRequestException:
-                self.assertLess(retry, max_retry - 1)
+                pass
+
+        self.log.warning("The result of request '%s' took too long to be ready.", exception.request_id)
 
     async def test_split_upload_file_post(self):
-        file_scan = SanitizeFile(scan_provider="crowdstrike", cdr_provider="apryse")
+        file_scan = SanitizeFile(scan_provider="crowdstrike")
         content = SanitizeContent(
             url_intel=True,
             url_intel_provider="crowdstrike",
@@ -309,11 +291,10 @@ class TestSanitize(unittest.IsolatedAsyncioTestCase):
             )
             await uploader.close()
 
-        max_retry = 12
-        for retry in range(max_retry):
+        for _ in range(12):
             try:
                 # wait some time to get result ready and poll it
-                await asyncio.sleep(10)
+                await sleep(10)
 
                 response: PangeaResponse[SanitizeResult] = await self.client.poll_result(response=response)
                 self.assertEqual(response.status, "Success")
@@ -331,12 +312,14 @@ class TestSanitize(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(response.result.data.cdr.file_attachments_removed, 0)
                 self.assertEqual(response.result.data.cdr.interactive_contents_removed, 0)
                 self.assertFalse(response.result.data.malicious_file)
-                break
+                return
             except pe.AcceptedRequestException:
-                self.assertLess(retry, max_retry - 1)
+                pass
+
+        self.log.warning("The result of request '%s' took too long to be ready.", response.request_id)
 
     async def test_split_upload_file_put(self):
-        file_scan = SanitizeFile(scan_provider="crowdstrike", cdr_provider="apryse")
+        file_scan = SanitizeFile(scan_provider="crowdstrike")
         content = SanitizeContent(
             url_intel=True,
             url_intel_provider="crowdstrike",
@@ -363,11 +346,10 @@ class TestSanitize(unittest.IsolatedAsyncioTestCase):
             await uploader.upload_file(url=url, file=f, transfer_method=TransferMethod.PUT_URL)
             await uploader.close()
 
-        max_retry = 12
-        for retry in range(max_retry):
+        for _ in range(12):
             try:
                 # wait some time to get result ready and poll it
-                await asyncio.sleep(10)
+                await sleep(10)
 
                 response: PangeaResponse[SanitizeResult] = await self.client.poll_result(response=response)
                 self.assertEqual(response.status, "Success")
@@ -384,6 +366,8 @@ class TestSanitize(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(response.result.data.cdr.file_attachments_removed, 0)
                 self.assertEqual(response.result.data.cdr.interactive_contents_removed, 0)
                 self.assertFalse(response.result.data.malicious_file)
-                break
+                return
             except pe.AcceptedRequestException:
-                self.assertLess(retry, max_retry - 1)
+                pass
+
+        self.log.warning("The result of request '%s' took too long to be ready.", response.request_id)

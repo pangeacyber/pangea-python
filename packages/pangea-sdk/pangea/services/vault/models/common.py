@@ -1,8 +1,9 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+from __future__ import annotations
 
 import enum
-from typing import Dict, Generic, List, NewType, Optional, TypeVar, Union
+from typing import Dict, Generic, List, Literal, Mapping, NewType, Optional, TypeVar, Union
 
 from pangea.response import APIRequestModel, PangeaDateTime, PangeaResponseResult
 
@@ -16,87 +17,6 @@ EncodedPrivateKey = NewType("EncodedPrivateKey", str)
 
 # EncodedSymmetricKey is a base64 encoded key
 EncodedSymmetricKey = NewType("EncodedSymmetricKey", str)
-
-
-class KeyPurpose(str, enum.Enum):
-    SIGNING = "signing"
-    ENCRYPTION = "encryption"
-    JWT = "jwt"
-    FPE = "fpe"
-    """Format-preserving encryption."""
-
-    def __str__(self):
-        return str(self.value)
-
-    def __repr__(self):
-        return str(self.value)
-
-
-class AsymmetricAlgorithm(str, enum.Enum):
-    Ed25519 = "ED25519"
-    RSA2048_PKCS1V15_SHA256 = "RSA-PKCS1V15-2048-SHA256"
-    RSA2048_OAEP_SHA256 = "RSA-OAEP-2048-SHA256"
-    ES256 = "ES256"
-    ES384 = "ES384"
-    ES512 = "ES512"
-    ES256K = "ES256K"
-    RSA2048_OAEP_SHA1 = "RSA-OAEP-2048-SHA1"
-    RSA2048_OAEP_SHA512 = "RSA-OAEP-2048-SHA512"
-    RSA3072_OAEP_SHA1 = "RSA-OAEP-3072-SHA1"
-    RSA3072_OAEP_SHA256 = "RSA-OAEP-3072-SHA256"
-    RSA3072_OAEP_SHA512 = "RSA-OAEP-3072-SHA512"
-    RSA4096_OAEP_SHA1 = "RSA-OAEP-4096-SHA1"
-    RSA4096_OAEP_SHA256 = "RSA-OAEP-4096-SHA256"
-    RSA4096_OAEP_SHA512 = "RSA-OAEP-4096-SHA512"
-    RSA2048_PSS_SHA256 = "RSA-PSS-2048-SHA256"
-    RSA3072_PSS_SHA256 = "RSA-PSS-3072-SHA256"
-    RSA4096_PSS_SHA256 = "RSA-PSS-4096-SHA256"
-    RSA4096_PSS_SHA512 = "RSA-PSS-4096-SHA512"
-    RSA = "RSA-PKCS1V15-2048-SHA256"  # deprecated, use RSA2048_PKCS1V15_SHA256 instead
-    Ed25519_DILITHIUM2_BETA = "ED25519-DILITHIUM2-BETA"
-    Ed448_DILITHIUM3_BETA = "ED448-DILITHIUM3-BETA"
-    SPHINCSPLUS_128F_SHAKE256_SIMPLE_BETA = "SPHINCSPLUS-128F-SHAKE256-SIMPLE-BETA"
-    SPHINCSPLUS_128F_SHAKE256_ROBUST_BETA = "SPHINCSPLUS-128F-SHAKE256-ROBUST-BETA"
-    SPHINCSPLUS_192F_SHAKE256_SIMPLE_BETA = "SPHINCSPLUS-192F-SHAKE256-SIMPLE-BETA"
-    SPHINCSPLUS_192F_SHAKE256_ROBUST_BETA = "SPHINCSPLUS-192F-SHAKE256-ROBUST-BETA"
-    SPHINCSPLUS_256F_SHAKE256_SIMPLE_BETA = "SPHINCSPLUS-256F-SHAKE256-SIMPLE-BETA"
-    SPHINCSPLUS_256F_SHAKE256_ROBUST_BETA = "SPHINCSPLUS-256F-SHAKE256-ROBUST-BETA"
-    SPHINCSPLUS_128F_SHA256_SIMPLE_BETA = "SPHINCSPLUS-128F-SHA256-SIMPLE-BETA"
-    SPHINCSPLUS_128F_SHA256_ROBUST_BETA = "SPHINCSPLUS-128F-SHA256-ROBUST-BETA"
-    SPHINCSPLUS_192F_SHA256_SIMPLE_BETA = "SPHINCSPLUS-192F-SHA256-SIMPLE-BETA"
-    SPHINCSPLUS_192F_SHA256_ROBUST_BETA = "SPHINCSPLUS-192F-SHA256-ROBUST-BETA"
-    SPHINCSPLUS_256F_SHA256_SIMPLE_BETA = "SPHINCSPLUS-256F-SHA256-SIMPLE-BETA"
-    SPHINCSPLUS_256F_SHA256_ROBUST_BETA = "SPHINCSPLUS-256F-SHA256-ROBUST-BETA"
-    FALCON_1024_BETA = "FALCON-1024-BETA"
-
-    def __str__(self):
-        return str(self.value)
-
-    def __repr__(self):
-        return str(self.value)
-
-
-class SymmetricAlgorithm(str, enum.Enum):
-    HS256 = "HS256"
-    HS384 = "HS384"
-    HS512 = "HS512"
-    AES128_CFB = "AES-CFB-128"
-    AES256_CFB = "AES-CFB-256"
-    AES256_GCM = "AES-GCM-256"
-    AES128_CBC = "AES-CBC-128"
-    AES256_CBC = "AES-CBC-256"
-    AES = "AES-CFB-128"  # deprecated, use AES128_CFB instead
-    AES128_FF3_1_BETA = "AES-FF3-1-128-BETA"
-    """128-bit encryption using the FF3-1 algorithm."""
-
-    AES256_FF3_1_BETA = "AES-FF3-1-256-BETA"
-    """256-bit encryption using the FF3-1 algorithm."""
-
-    def __str__(self):
-        return str(self.value)
-
-    def __repr__(self):
-        return str(self.value)
 
 
 Metadata = NewType("Metadata", Dict[str, str])
@@ -139,12 +59,11 @@ class ItemType(str, enum.Enum):
     SYMMETRIC_KEY = "symmetric_key"
     SECRET = "secret"
     PANGEA_TOKEN = "pangea_token"
-
-    def __str__(self):
-        return str(self.value)
-
-    def __repr__(self):
-        return str(self.value)
+    PANGEA_CLIENT_SECRET = "pangea_client_secret"
+    FOLDER = "folder"
+    CERTIFICATE = "certificate"
+    CERTIFICATE_AUTHORITY = "ca"
+    CERTIFICATE_REVOCATION_LIST = "crl"
 
 
 class ItemVersionState(str, enum.Enum):
@@ -155,22 +74,36 @@ class ItemVersionState(str, enum.Enum):
     DESTROYED = "destroyed"
     INHERITED = "inherited"
 
-    def __str__(self):
-        return str(self.value)
 
-    def __repr__(self):
-        return str(self.value)
+class RotationState(str, enum.Enum):
+    DEACTIVATED = "deactivated"
+    DESTROYED = "destroyed"
+
+
+class RequestRotationState(str, enum.Enum):
+    DEACTIVATED = "deactivated"
+    DESTROYED = "destroyed"
+    INHERITED = "inherited"
+
+
+class RequestManualRotationState(str, enum.Enum):
+    DEACTIVATED = "deactivated"
+    SUSPENDED = "suspended"
+    DESTROYED = "destroyed"
+    INHERITED = "inherited"
 
 
 class ItemState(str, enum.Enum):
     ENABLED = "enabled"
     DISABLED = "disabled"
 
-    def __str__(self):
-        return str(self.value)
+    value: str
 
-    def __repr__(self):
-        return str(self.value)
+
+class ExportEncryptionType(str, enum.Enum):
+    NONE = "none"
+    ASYMMETRIC = "asymmetric"
+    KEM = "kem"
 
 
 class ExportEncryptionAlgorithm(str, enum.Enum):
@@ -179,39 +112,13 @@ class ExportEncryptionAlgorithm(str, enum.Enum):
     RSA4096_OAEP_SHA512 = "RSA-OAEP-4096-SHA512"
     """RSA 4096-bit key, OAEP padding, SHA512 digest."""
 
-    def __str__(self):
-        return str(self.value)
-
-    def __repr__(self):
-        return str(self.value)
-
-
-class CommonStoreRequest(APIRequestModel):
-    type: ItemType
-    name: str
-    folder: Optional[str] = None
-    metadata: Optional[Metadata] = None
-    tags: Optional[Tags] = None
-    rotation_frequency: Optional[str] = None
-    rotation_state: Optional[ItemVersionState] = None
-    expiration: Optional[PangeaDateTime] = None
+    RSA_NO_PADDING_4096_KEM = "RSA-NO-PADDING-4096-KEM"
 
 
 class CommonStoreResult(PangeaResponseResult):
     id: str
     type: str
     version: int
-
-
-class CommonGenerateRequest(APIRequestModel):
-    type: ItemType
-    name: str
-    folder: Optional[str] = None
-    metadata: Optional[Metadata] = None
-    tags: Optional[Tags] = None
-    rotation_frequency: Optional[str] = None
-    rotation_state: Optional[ItemVersionState] = None
-    expiration: Optional[PangeaDateTime] = None
 
 
 class CommonGenerateResult(PangeaResponseResult):
@@ -222,25 +129,40 @@ class CommonGenerateResult(PangeaResponseResult):
 
 class GetRequest(APIRequestModel):
     id: str
-    version: Optional[Union[str, int]] = None
-    verbose: Optional[bool] = None
-    version_state: Optional[ItemVersionState] = None
+    version: Union[Literal["all"], int, None] = None
 
 
-class ItemVersionData(PangeaResponseResult):
+class GetBulkRequest(APIRequestModel):
+    filter: Mapping[str, str]
+    """Filters to customize a search."""
+
+    size: Optional[int] = None
+    """Maximum number of items in the response."""
+
+    order: Optional[ItemOrder] = None
+    """Direction for ordering the results."""
+
+    order_by: Optional[ItemOrderBy] = None
+    """Property by which to order the results."""
+
+    last: Optional[str] = None
+    """
+    Internal ID returned in the previous look up response. Used for pagination.
+    """
+
+
+class ItemVersion(PangeaResponseResult):
     version: int
-    state: str
     created_at: str
-    destroy_at: Optional[str] = None
-    public_key: Optional[EncodedPublicKey] = None
-    secret: Optional[str] = None
+    state: ItemVersionState
+    destroyed_at: Optional[str] = None
 
 
 class ItemData(PangeaResponseResult):
     type: str
     id: Optional[str] = None
     item_state: Optional[str] = None
-    current_version: Optional[ItemVersionData] = None
+    current_version: Optional[ItemVersion] = None
     name: Optional[str] = None
     folder: Optional[str] = None
     metadata: Optional[Metadata] = None
@@ -263,24 +185,105 @@ class InheritedSettings(PangeaResponseResult):
     rotation_grace_period: Optional[str] = None
 
 
-class GetResult(ItemData):
-    versions: List[ItemVersionData] = []
-    rotation_grace_period: Optional[str] = None
+class Key(PangeaResponseResult):
+    id: str
+    type: ItemType
+    item_state: Optional[ItemState] = None
+    enabled: bool
+    current_version: Optional[ItemVersion] = None
+    name: str
+    folder: str
+    metadata: Optional[Metadata] = None
+    tags: Optional[Tags] = None
+    rotation_frequency: str
+    rotation_state: RotationState
+    last_rotated: Optional[str] = None
+    next_rotation: str
+    disabled_at: Optional[str] = None
+    created_at: str
+    algorithm: str
+    purpose: str
+    encrypting_item_id: Optional[str] = None
+    inherited_settings: InheritedSettings
+    exportable: bool
+    """Whether the key is exportable or not."""
+
+
+class SecretVersion(ItemVersion):
+    secret: Optional[str] = None
+
+
+class Secret(PangeaResponseResult):
+    id: str
+    type: Literal[ItemType.SECRET] = ItemType.SECRET
+    enabled: bool
+    name: str
+    folder: str
+    metadata: Optional[Metadata] = None
+    tags: Optional[Tags] = None
+    expiration: Optional[str] = None
+    created_at: str
+    encrypting_item_id: Optional[str] = None
+    item_versions: List[SecretVersion]
+
+
+class ClientSecret(PangeaResponseResult):
+    id: str
+    type: Literal[ItemType.PANGEA_CLIENT_SECRET] = ItemType.PANGEA_CLIENT_SECRET
+    enabled: bool
+    name: str
+    folder: str
+    metadata: Metadata
+    tags: Tags
+    expiration: str
+    created_at: str
+    encrypting_item_id: str
+    rotation_frequency: str
+    rotation_state: RotationState
+    rotation_grace_period: str
+    inherited_settings: InheritedSettings
+    item_versions: List[SecretVersion]
+
+
+class Folder(PangeaResponseResult):
+    id: str
+    type: Literal[ItemType.FOLDER] = ItemType.FOLDER
+    name: str
+    folder: str
+    metadata: Metadata
+    tags: Tags
+    created_at: str
+    inherited_settings: InheritedSettings
+
+
+class ListItemData(PangeaResponseResult):
+    id: str
+    type: ItemType
+    name: str
+    folder: str
+    created_at: str
+    tags: Optional[Tags] = None
+    metadata: Optional[Metadata] = None
+    last_rotated: Optional[str] = None
+    next_rotation: Optional[str] = None
+    disabled_at: Optional[str] = None
+    rotation_frequency: Optional[str] = None
+    rotation_state: Optional[RotationState] = None
+    algorithm: Optional[str] = None
+    purpose: Optional[str] = None
     inherited_settings: Optional[InheritedSettings] = None
-
-
-class ListItemData(ItemData):
-    compromised_versions: Optional[List[ItemVersionData]] = None
+    compromised_versions: Optional[List[ItemVersion]] = None
 
 
 class ListResult(PangeaResponseResult):
-    items: List[ListItemData] = []
-    count: int
+    items: List[ListItemData]
+
     last: Optional[str] = None
+    """Internal ID returned in the previous look up response. Used for pagination."""
 
 
 class ListRequest(APIRequestModel):
-    filter: Optional[Dict[str, str]] = None
+    filter: Optional[Mapping[str, str]] = None
     size: Optional[int] = None
     order: Optional[ItemOrder] = None
     order_by: Optional[ItemOrderBy] = None
@@ -289,19 +292,13 @@ class ListRequest(APIRequestModel):
 
 class CommonRotateRequest(APIRequestModel):
     id: str
-    rotation_state: Optional[ItemVersionState] = None
+    rotation_state: RequestManualRotationState = RequestManualRotationState.DEACTIVATED
 
 
 class CommonRotateResult(PangeaResponseResult):
     id: str
     version: int
     type: str
-
-
-class KeyRotateRequest(CommonRotateRequest):
-    key: Optional[str] = None
-    public_key: Optional[EncodedPublicKey] = None
-    private_key: Optional[EncodedPrivateKey] = None
 
 
 class KeyRotateResult(CommonRotateResult):
@@ -312,10 +309,12 @@ class KeyRotateResult(CommonRotateResult):
 
 class DeleteRequest(APIRequestModel):
     id: str
+    recursive: bool = False
 
 
 class DeleteResult(PangeaResponseResult):
     id: str
+    """The ID of the item."""
 
 
 class UpdateRequest(APIRequestModel):
@@ -324,11 +323,11 @@ class UpdateRequest(APIRequestModel):
     folder: Optional[str] = None
     metadata: Optional[Metadata] = None
     tags: Optional[Tags] = None
+    disabled_at: Optional[str] = None
+    enabled: Optional[bool] = None
     rotation_frequency: Optional[str] = None
-    rotation_state: Optional[ItemVersionState] = None
+    rotation_state: RequestRotationState = RequestRotationState.INHERITED
     rotation_grace_period: Optional[str] = None
-    expiration: Optional[PangeaDateTime] = None
-    item_state: Optional[ItemState] = None
 
 
 class UpdateResult(PangeaResponseResult):
@@ -377,6 +376,7 @@ class JWTVerifyRequest(APIRequestModel):
 
 class JWTVerifyResult(PangeaResponseResult):
     valid_signature: bool
+    """Indicates if messages have been verified."""
 
 
 class JWTSignRequest(APIRequestModel):
@@ -386,6 +386,7 @@ class JWTSignRequest(APIRequestModel):
 
 class JWTSignResult(PangeaResponseResult):
     jws: str
+    """The signed JSON Web Token (JWS)."""
 
 
 class StateChangeRequest(APIRequestModel):
@@ -408,12 +409,38 @@ class FolderCreateRequest(APIRequestModel):
     metadata: Optional[Metadata] = None
     tags: Optional[Tags] = None
     rotation_frequency: Optional[str] = None
-    rotation_state: Optional[ItemVersionState] = None
+    rotation_state: Optional[RequestRotationState] = None
     rotation_grace_period: Optional[str] = None
+    disabled_at: Optional[PangeaDateTime] = None
 
 
 class FolderCreateResult(PangeaResponseResult):
     id: str
+    """The ID of the item."""
+
+    type: str
+    """The type of the folder."""
+
+    name: str
+    """The name of this item."""
+
+    folder: str
+    """The folder where this item is stored."""
+
+    metadata: Optional[Metadata] = None
+    """User-provided metadata."""
+
+    tags: Optional[Tags] = None
+    """A list of user-defined tags."""
+
+    created_at: str
+    """Timestamp indicating when the item was created."""
+
+    inherited_settings: InheritedSettings
+    """
+    For settings that inherit a value from a parent folder, the full path of the
+    folder where the value is set.
+    """
 
 
 TDict = TypeVar("TDict", bound=Dict)
@@ -471,12 +498,6 @@ class TransformAlphabet(str, enum.Enum):
 
     ALPHANUMERIC = "alphanumeric"
     """Alphanumeric (a-z, A-Z, 0-9)."""
-
-    def __str__(self) -> str:
-        return str(self.value)
-
-    def __repr__(self) -> str:
-        return str(self.value)
 
 
 class EncryptTransformRequest(APIRequestModel):
@@ -566,28 +587,70 @@ class ExportRequest(APIRequestModel):
     version: Optional[int] = None
     """The item version."""
 
-    encryption_key: Optional[str] = None
+    kem_password: Optional[str] = None
+    """
+    This is the password that will be used along with a salt to derive the
+    symmetric key that is used to encrypt the exported key material.
+    """
+
+    asymmetric_public_key: Optional[str] = None
     """Public key in pem format used to encrypt exported key(s)."""
 
-    encryption_algorithm: Optional[ExportEncryptionAlgorithm] = None
+    asymmetric_algorithm: Optional[ExportEncryptionAlgorithm] = None
     """The algorithm of the public key."""
 
 
 class ExportResult(PangeaResponseResult):
     id: str
-    """The ID of the item."""
+    """The ID of the key."""
+
+    type: ItemType
+    """The type of the key."""
 
     version: int
     """The item version."""
 
-    type: str
-    """The type of the key."""
-
-    item_state: str
-    """The state of the item."""
+    enabled: bool
+    """True if the item is enabled."""
 
     algorithm: str
     """The algorithm of the key."""
+
+    asymmetric_algorithm: Optional[ExportEncryptionAlgorithm] = None
+    """The algorithm of the public key used to encrypt exported material."""
+
+    symmetric_algorithm: Optional[str] = None
+
+    encryption_type: ExportEncryptionType
+    """
+    Encryption format of the exported key(s). It could be `none` if returned in
+    plain text, `asymmetric` if it is encrypted just with the public key sent in
+    `encryption_public_key`, or `kem` if it was encrypted using KEM protocol.
+    """
+
+    kdf: Optional[str] = None
+    """
+    Key derivation function used to derivate the symmetric key when
+    `encryption_type` is `kem`.
+    """
+
+    hash_algorithm: Optional[str] = None
+    """
+    Hash algorithm used to derivate the symmetric key when `encryption_type` is
+    `kem`.
+    """
+
+    iteration_count: Optional[int] = None
+    """
+    Iteration count used to derivate the symmetric key when `encryption_type` is
+    `kem`.
+    """
+
+    encrypted_salt: Optional[str] = None
+    """
+    Salt used to derivate the symmetric key when `encryption_type` is `kem`,
+    encrypted with the public key provided in `asymmetric_key`.
+    """
 
     public_key: Optional[str] = None
     """The public key (in PEM format)."""
@@ -598,8 +661,67 @@ class ExportResult(PangeaResponseResult):
     key: Optional[str] = None
     """The key material."""
 
-    encrypted: bool
-    """
-    Whether exported key(s) are encrypted with encryption_key sent on the request or not.
-    If encrypted, the result is sent in base64, any other case they are in PEM format plain text.
-    """
+
+class PangeaTokenVersion(ItemVersion):
+    token: Optional[str] = None
+    """Pangea token value."""
+
+
+class PangeaToken(PangeaResponseResult):
+    id: str
+    """ID of the token."""
+
+    type: Literal[ItemType.PANGEA_TOKEN] = ItemType.PANGEA_TOKEN
+    """Type of the Vault item."""
+
+    item_versions: List[PangeaTokenVersion]
+
+    metadata: Optional[Metadata] = None
+    """Metadata provided by the user."""
+
+    num_versions: int
+    """Total number of versions of the item."""
+
+    enabled: bool
+    """`true` if the item is enabled."""
+
+    name: str
+    """Name of the item."""
+
+    folder: str
+    """Folder where the item is stored."""
+
+    tags: Tags
+    """List of user-defined tags."""
+
+    last_rotated: Optional[str] = None
+    """Timestamp of the last rotation."""
+
+    next_rotation: Optional[str] = None
+    """Timestamp of the next rotation if auto-rotation is enabled."""
+
+    disabled_at: Optional[str] = None
+    """Timestamp indicating when the item will be disabled."""
+
+    created_at: str
+    """Timestamp indicating when the item was created."""
+
+    rotation_frequency: str
+    """Time interval between item rotations."""
+
+    rotation_state: RotationState
+    """Target state for the previous version after rotation."""
+
+    rotation_grace_period: str
+    """Grace period for the previous version."""
+
+    inherited_settings: InheritedSettings
+    """Full paths of the parent folders from which settings inherit their values."""
+
+
+class PangeaTokenRotateRequest(CommonRotateRequest):
+    rotation_grace_period: Optional[str] = None
+
+
+class ClientSecretRotateRequest(CommonRotateRequest):
+    rotation_grace_period: Optional[str] = None

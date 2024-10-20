@@ -1,3 +1,5 @@
+# Retrieve information about the location of an IP address.
+
 import asyncio
 import os
 
@@ -13,7 +15,7 @@ config = PangeaConfig(domain=domain)
 intel = IpIntelAsync(token, config=config)
 
 
-async def main():
+async def main() -> None:
     print("Geolocate IP...")
 
     try:
@@ -22,8 +24,8 @@ async def main():
     except pe.PangeaAPIException as e:
         print(f"Request Error: {e.response.summary}")
         print(e)
-
-    await intel.close()
+    finally:
+        await intel.close()
 
 
 if __name__ == "__main__":

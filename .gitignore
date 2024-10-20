@@ -40,6 +40,6 @@ payload
 *.zip
 *.gz
 search_results_*.json
+sanitized*
 prq_*
 packages/pangea-sdk/download/
-sanitized*

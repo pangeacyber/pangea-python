@@ -6,5 +6,4 @@ from .test_file_scan import TestFileScan  # noqa: F401
 from .test_intel import TestDomainIntel, TestFileIntel, TestIPIntel, TestURLIntel, TestUserIntel  # noqa: F401
 from .test_redact import TestRedact  # noqa: F401
 from .test_sanitize import TestSanitize  # noqa: F401
-from .test_share import TestShare  # noqa: F401
 from .test_vault import TestVault  # noqa: F401

@@ -32,8 +32,8 @@ async def main() -> None:
 
     client = SanitizeAsync(token, config)
     try:
-        # Create Sanitize file information, setting scan and crd providers
-        file_scan = SanitizeFile(scan_provider="crowdstrike", cdr_provider="apryse")
+        # Create Sanitize file information
+        file_scan = SanitizeFile(scan_provider="crowdstrike")
 
         # Create content sanitization config
         content = SanitizeContent(

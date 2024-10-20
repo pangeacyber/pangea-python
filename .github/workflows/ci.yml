@@ -36,7 +36,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.1.7
+        uses: actions/checkout@v4.2.1
 
       - name: Calculate `examples-matrix` output
         id: examples-matrix
@@ -53,7 +53,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.1.7
+        uses: actions/checkout@v4.2.1
 
       - name: Update pip
         run: |
@@ -66,9 +66,9 @@ jobs:
           poetry --version
 
       - name: Setup Python
-        uses: actions/setup-python@v5.1.1
+        uses: actions/setup-python@v5.2.0
         with:
-          python-version: 3.11.7 # renovate: datasource=docker depName=python
+          python-version: 3.12
           cache: poetry
           cache-dependency-path: '**/poetry.lock'
 
@@ -80,12 +80,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.1.7
+        uses: actions/checkout@v4.2.1
 
       - name: Setup Python
-        uses: actions/setup-python@v5.1.1
+        uses: actions/setup-python@v5.2.0
         with:
-          python-version: 3.11.7 # renovate: datasource=docker depName=python
+          python-version: 3.12
 
       - uses: pre-commit/action@v3.0.1
 
@@ -100,7 +100,7 @@ jobs:
         working-directory: ./packages/${{ matrix.package }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.1.7
+        uses: actions/checkout@v4.2.1
 
       - name: Install poetry
         run: |
@@ -108,9 +108,9 @@ jobs:
           poetry --version
 
       - name: Setup Python
-        uses: actions/setup-python@v5.1.1
+        uses: actions/setup-python@v5.2.0
         with:
-          python-version: 3.8
+          python-version: 3.9
           cache: poetry
           cache-dependency-path: ./packages/${{ matrix.package }}/poetry.lock
 
@@ -133,7 +133,7 @@ jobs:
         working-directory: ./packages/${{ matrix.package }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.1.7
+        uses: actions/checkout@v4.2.1
 
       - name: Install poetry
         run: |
@@ -141,9 +141,9 @@ jobs:
           poetry --version
 
       - name: Setup Python
-        uses: actions/setup-python@v5.1.1
+        uses: actions/setup-python@v5.2.0
         with:
-          python-version: 3.8
+          python-version: 3.9
           cache: poetry
           cache-dependency-path: ./packages/${{ matrix.package }}/poetry.lock
 
@@ -166,7 +166,7 @@ jobs:
         working-directory: ./packages/${{ matrix.package }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.1.7
+        uses: actions/checkout@v4.2.1
 
       - name: Install poetry
         run: |
@@ -174,9 +174,9 @@ jobs:
           poetry --version
 
       - name: Setup Python
-        uses: actions/setup-python@v5.1.1
+        uses: actions/setup-python@v5.2.0
         with:
-          python-version: 3.8
+          python-version: 3.9
           cache: poetry
           cache-dependency-path: ./packages/${{ matrix.package }}/poetry.lock
 
@@ -193,13 +193,13 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.8', '3.9', '3.10', '3.11']
+        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13']
     defaults:
       run:
         working-directory: ./packages/pangea-sdk
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.1.7
+        uses: actions/checkout@v4.2.1
 
       - name: Install poetry
         run: |
@@ -207,7 +207,7 @@ jobs:
           poetry --version
 
       - name: Setup Python
-        uses: actions/setup-python@v5.1.1
+        uses: actions/setup-python@v5.2.0
         with:
           python-version: ${{ matrix.python-version }}
           cache: poetry
@@ -229,7 +229,7 @@ jobs:
         working-directory: ./packages/pangea-sdk
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.1.7
+        uses: actions/checkout@v4.2.1
 
       - name: Install poetry
         run: |
@@ -237,9 +237,9 @@ jobs:
           poetry --version
 
       - name: Setup Python
-        uses: actions/setup-python@v5.1.1
+        uses: actions/setup-python@v5.2.0
         with:
-          python-version: 3.11.9 # renovate: datasource=docker depName=python
+          python-version: 3.12
           cache: poetry
           cache-dependency-path: ./packages/pangea-sdk/poetry.lock
 
@@ -252,7 +252,7 @@ jobs:
         run: poetry run python parse_module.py > python_sdk.json
 
       - name: Upload
-        uses: actions/upload-artifact@v4.3.4
+        uses: actions/upload-artifact@v4.4.3
         with:
           name: python_sdk.json
           path: ./packages/pangea-sdk/python_sdk.json
@@ -268,7 +268,7 @@ jobs:
         working-directory: ./examples/${{ matrix.example }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.1.7
+        uses: actions/checkout@v4.2.1
 
       - name: Update pip
         run: |
@@ -281,9 +281,9 @@ jobs:
           poetry --version
 
       - name: Setup Python
-        uses: actions/setup-python@v5.1.1
+        uses: actions/setup-python@v5.2.0
         with:
-          python-version: 3.11.7 # renovate: datasource=docker depName=python
+          python-version: 3.12
           cache: poetry
           cache-dependency-path: ./examples/${{ matrix.example }}/poetry.lock
 
@@ -306,13 +306,13 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.8', '3.9', '3.10', '3.11']
+        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13']
     defaults:
       run:
         working-directory: ./packages/pangea-django
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.1.7
+        uses: actions/checkout@v4.2.1
 
       - name: Install poetry
         run: |
@@ -320,7 +320,7 @@ jobs:
           poetry --version
 
       - name: Setup Python
-        uses: actions/setup-python@v5.1.1
+        uses: actions/setup-python@v5.2.0
         with:
           python-version: ${{ matrix.python-version }}
           cache: poetry

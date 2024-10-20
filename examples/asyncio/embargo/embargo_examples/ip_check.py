@@ -1,3 +1,5 @@
+# Check an IP against known sanction and trade embargo lists.
+
 import asyncio
 import os
 
@@ -15,7 +17,7 @@ embargo = EmbargoAsync(token, config=config, logger_name="embargo")
 logger_set_pangea_config(logger_name=embargo.logger.name)
 
 
-async def main():
+async def main() -> None:
     ip = "213.24.238.26"
     print(f"Checking Embargo IP: {ip}")
     try:
@@ -25,8 +27,8 @@ async def main():
         print(f"Embargo Request Error: {e.response.summary}")
         for err in e.errors:
             print(f"\t{err.detail} \n")
-
-    await embargo.close()
+    finally:
+        await embargo.close()
 
 
 if __name__ == "__main__":

@@ -7,13 +7,13 @@ readme = "README.md"
 packages = [{include = "vault_examples"}]
 
 [tool.poetry.dependencies]
-python = "^3.8.18"
+python = "^3.9.20"
 pangea-sdk = { path = "../../../packages/pangea-sdk", develop = true }
 
 [tool.poetry.group.dev.dependencies]
-black = "^24.4.2"
+black = "^24.8.0"
 isort = "^5.13.2"
-mypy = "^1.11.0"
+mypy = "^1.11.2"
 
 [tool.black]
 line-length = 120

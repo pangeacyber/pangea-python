@@ -1,6 +1,9 @@
+# Retrieve reputation scores for a list of URLs.
+
+from __future__ import annotations
+
 import os
 
-import pangea.exceptions as pe
 from pangea.config import PangeaConfig
 from pangea.services import UrlIntel
 
@@ -14,20 +17,17 @@ config = PangeaConfig(domain=domain)
 intel = UrlIntel(token, config=config)
 
 
-def main():
+def main() -> None:
     print("Checking URL...")
-
-    try:
-        url_list = [
-            "http://113.235.101.11:54384",
-            "http://45.14.49.109:54819",
-            "https://chcial.ru/uplcv?utm_term%3Dcost%2Bto%2Brezone%2Bland",
-        ]
-        response = intel.reputation_bulk(urls=url_list, provider="crowdstrike", verbose=True, raw=True)
-        print("Result:")
-        print_reputation_bulk_data(response.result.data)
-    except pe.PangeaAPIException as e:
-        print(e)
+    url_list = [
+        "http://113.235.101.11:54384",
+        "http://45.14.49.109:54819",
+        "https://chcial.ru/uplcv?utm_term%3Dcost%2Bto%2Brezone%2Bland",
+    ]
+    response = intel.reputation_bulk(urls=url_list, provider="crowdstrike", verbose=True, raw=True)
+    assert response.result
+    print("Result:")
+    print_reputation_bulk_data(response.result.data)
 
 
 if __name__ == "__main__":

@@ -211,7 +211,7 @@ def _fetch_roots(tree_name: str, tree_size: int, leaf_index: Optional[int]) -> S
         # try Arweave first
         try:
             logger.debug(f"Fetching root(s) {comma_sep(pending_roots)} from Arweave")
-            arweave_roots |= {int(k): v for k, v in get_arweave_published_roots(tree_name, pending_roots).items()}  # type: ignore[operator]
+            arweave_roots |= {int(k): v for k, v in get_arweave_published_roots(tree_name, pending_roots).items()}
             update_pending_roots()
         except:
             pass
@@ -224,7 +224,7 @@ def _fetch_roots(tree_name: str, tree_size: int, leaf_index: Optional[int]) -> S
             # and then Pangea (if we've set an audit client)
             try:
                 logger.debug(f"Fetching root(s) {comma_sep(pending_roots)} from Pangea")
-                pangea_roots |= {int(k): v for k, v in get_pangea_roots(tree_name, pending_roots).items()}  # type: ignore[operator]
+                pangea_roots |= {int(k): v for k, v in get_pangea_roots(tree_name, pending_roots).items()}
                 update_pending_roots()
                 status = Status.SUCCEEDED_PANGEA
             except:
@@ -244,7 +244,7 @@ def _fetch_roots(tree_name: str, tree_size: int, leaf_index: Optional[int]) -> S
 
 
 def _verify_membership_proof(tree_size: int, node_hash: str, proof: Optional[str]) -> Status:
-    pub_roots: Dict[int, Union[Root, PublishedRoot]] = arweave_roots | pangea_roots  # type: ignore[operator]
+    pub_roots: Dict[int, Union[Root, PublishedRoot]] = arweave_roots | pangea_roots
 
     log_section("Checking membership proof")
 
@@ -311,7 +311,7 @@ def _fix_consistency_proof(pub_roots: Dict[int, Union[Root, PublishedRoot]], tre
 
 
 def _verify_consistency_proof(tree_name: str, leaf_index: Optional[int]) -> Status:
-    pub_roots: Dict[int, Union[Root, PublishedRoot]] = arweave_roots | pangea_roots  # type: ignore[operator]
+    pub_roots: Dict[int, Union[Root, PublishedRoot]] = arweave_roots | pangea_roots
 
     log_section("Checking consistency proof")
 

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pangea-sdk"
-version = "3.8.0beta4"
+version = "5.1.0"
 description = "Pangea API SDK"
 authors = ["Glenn Gallien <glenn.gallien@pangea.cloud>"]
 license = "MIT"
@@ -17,23 +17,22 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.8.0"
+python = "^3.9.0"
 requests = "^2.31.0"
-cryptography = "^43.0.0"
+cryptography = "^43.0.1"
 python-dateutil = "^2.9.0"
-pydantic = "^2.8.2"
+pydantic = "^2.9.2"
 deprecated = "^1.2.14"
-aiohttp = "^3.9.3"
-asyncio = "^3.4.3"
+aiohttp = "^3.10.10"
 google-crc32c = "^1.5.0"
 requests-toolbelt = "^1.0.0"
 typing-extensions = "^4.12.2"
 
 [tool.poetry.group.dev.dependencies]
-black = "^24.4.2"
+black = "^24.8.0"
 docstring-parser = "^0.15"
 isort = "^5.13.2"
-mypy = "1.11.0"
+mypy = "1.11.2"
 types-Deprecated = "^1.2.9.3"
 types-python-dateutil = "^2.8.19.14"
 types-requests = "^2.31.0.10"
@@ -48,7 +47,7 @@ src_paths = ["pangea", "tests"]
 known_local_folder = ["pangea", "tests"]
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.9"
 color_output = true
 error_summary = true
 pretty = true
@@ -56,5 +55,5 @@ show_column_numbers = true
 warn_unused_ignores = true
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
+requires = ["poetry-core>=1.9.1"]
 build-backend = "poetry.core.masonry.api"
