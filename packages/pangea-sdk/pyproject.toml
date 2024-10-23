@@ -29,7 +29,7 @@ requests-toolbelt = "^1.0.0"
 typing-extensions = "^4.12.2"
 
 [tool.poetry.group.dev.dependencies]
-black = "^24.8.0"
+black = "^24.10.0"
 docstring-parser = "^0.15"
 isort = "^5.13.2"
 mypy = "1.12.1"
