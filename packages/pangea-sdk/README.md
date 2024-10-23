@@ -40,13 +40,13 @@ compatibility guarantees as stable releases. [Beta changelog](https://github.com
 Via pip:
 
 ```bash
-$ pip3 install pangea-sdk==3.8.0b4
+$ pip3 install pangea-sdk==5.2.0b1
 ```
 
 Via poetry:
 
 ```bash
-$ poetry add pangea-sdk==3.8.0b4
+$ poetry add pangea-sdk==5.2.0b1
 ```
 
 ## Usage
