@@ -853,13 +853,13 @@ files = [
 
 [[package]]
 name = "pangea-sdk"
-version = "4.4.0"
+version = "5.1.0"
 description = "Pangea API SDK"
 optional = false
-python-versions = "<4.0.0,>=3.8.0"
+python-versions = "<4.0.0,>=3.9.0"
 files = [
-    {file = "pangea_sdk-4.4.0-py3-none-any.whl", hash = "sha256:b76e7229a47ac0db7f0ee0010e294d6861200c7fdb51ed6455b8706d4ca7b052"},
-    {file = "pangea_sdk-4.4.0.tar.gz", hash = "sha256:863fc5d2333f336808176844d079569fdfb7ecc3e5ef3a63c00ff2ee20696f37"},
+    {file = "pangea_sdk-5.1.0-py3-none-any.whl", hash = "sha256:deac6d9df2768fe65b57cfe59b580780c3fff340d2a46b25ddbaff2d2fc41673"},
+    {file = "pangea_sdk-5.1.0.tar.gz", hash = "sha256:a1f4fb4ea5c64285c2a7bcddbe0e9abab91a3dfb263c15c8af783bea6749d7fb"},
 ]
 
 [package.dependencies]
@@ -1419,4 +1419,4 @@ propcache = ">=0.2.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9.20"
-content-hash = "868aafae8431da0e3e2d5564500a3226c48fdb22d2248ab983520793a884671f"
+content-hash = "579fda22ab648946c9782282530e519871bcffc988377eeb7f210c4d9a31de10"
