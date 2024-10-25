@@ -80,7 +80,8 @@ class ServiceBase(object):
         Returns request's result that has been accepted by the server
 
         Args:
-            exception (AcceptedRequestException): Exception raise by SDK on the call that is been processed.
+            exception: Exception that was previously raised by the SDK on a call
+              that is being processed.
 
         Returns:
             PangeaResponse
