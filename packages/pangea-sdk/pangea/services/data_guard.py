@@ -15,7 +15,7 @@ class TextGuardSecurityIssues(PangeaResponseResult):
     malicious_domain_count: int
     malicious_ip_count: int
     malicious_url_count: int
-    matched_rules_count: int
+    redact_rule_match_count: int
 
 
 class TextGuardFindings(PangeaResponseResult):
