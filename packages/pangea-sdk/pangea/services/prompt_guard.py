@@ -15,9 +15,10 @@ class Message(APIRequestModel):
 
 
 class GuardResult(PangeaResponseResult):
-    prompt_injection_detected: bool
-    prompt_injection_type: Optional[str] = None
-    prompt_injection_detector: Optional[str] = None
+    detected: bool
+    type: Optional[str] = None
+    detector: Optional[str] = None
+    confidence: int
 
 
 class PromptGuard(ServiceBase):
@@ -36,7 +37,7 @@ class PromptGuard(ServiceBase):
 
         How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
 
-        OperationId: prompt_guard_post_v1_guard
+        OperationId: prompt_guard_post_v1beta_guard
 
         Args:
             messages: Messages.
@@ -45,4 +46,4 @@ class PromptGuard(ServiceBase):
             response = prompt_guard.guard([Message(role="user", content="hello world")])
         """
 
-        return self.request.post("v1/guard", GuardResult, data={"messages": messages})
+        return self.request.post("v1beta/guard", GuardResult, data={"messages": messages})

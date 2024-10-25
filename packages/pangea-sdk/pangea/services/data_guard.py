@@ -14,7 +14,7 @@ class TextGuardSecurityIssues(PangeaResponseResult):
     malicious_domain_count: int
     malicious_ip_count: int
     malicious_url_count: int
-    redacted_item_count: int
+    matched_rules_count: int
 
 
 class TextGuardFindings(PangeaResponseResult):
@@ -109,7 +109,7 @@ class DataGuard(ServiceBase):
 
         How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
 
-        OperationId: data_guard_post_v1_text_guard
+        OperationId: data_guard_post_v1beta_text_guard
 
         Args:
             text: Text.
@@ -121,27 +121,5 @@ class DataGuard(ServiceBase):
         """
 
         return self.request.post(
-            "v1/text/guard", TextGuardResult, data={"text": text, "recipe": recipe, "debug": debug}
+            "v1beta/text/guard", TextGuardResult, data={"text": text, "recipe": recipe, "debug": debug}
         )
-
-    def guard_file(
-        self,
-        file_url: str,
-    ) -> PangeaResponse[PangeaResponseResult]:
-        """
-        File guard (Beta)
-
-        Guard a file URL.
-
-        How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
-
-        OperationId: data_guard_post_v1_file_guard
-
-        Args:
-            file_url: File URL.
-
-        Examples:
-            response = data_guard.guard_file("https://example.org/file.txt")
-        """
-
-        return self.request.post("v1/file/guard", PangeaResponseResult, data={"file_url": file_url})

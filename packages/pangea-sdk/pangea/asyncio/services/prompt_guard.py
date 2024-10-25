@@ -27,7 +27,7 @@ class PromptGuard(ServiceBaseAsync):
 
         How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
 
-        OperationId: prompt_guard_post_v1_guard
+        OperationId: prompt_guard_post_v1beta_guard
 
         Args:
             messages: Messages..
@@ -36,4 +36,4 @@ class PromptGuard(ServiceBaseAsync):
             response = await prompt_guard.guard([Message(role="user", content="hello world")])
         """
 
-        return await self.request.post("v1/guard", GuardResult, data={"messages": messages})
+        return await self.request.post("v1beta/guard", GuardResult, data={"messages": messages})

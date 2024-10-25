@@ -27,7 +27,7 @@ class DataGuard(ServiceBaseAsync):
 
         How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
 
-        OperationId: data_guard_post_v1_text_guard
+        OperationId: data_guard_post_v1beta_text_guard
 
         Args:
             text: Text.
@@ -39,27 +39,5 @@ class DataGuard(ServiceBaseAsync):
         """
 
         return await self.request.post(
-            "v1/text/guard", TextGuardResult, data={"text": text, "recipe": recipe, "debug": debug}
+            "v1beta/text/guard", TextGuardResult, data={"text": text, "recipe": recipe, "debug": debug}
         )
-
-    async def guard_file(
-        self,
-        file_url: str,
-    ) -> PangeaResponse[PangeaResponseResult]:
-        """
-        File guard (Beta)
-
-        Guard a file URL.
-
-        How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
-
-        OperationId: data_guard_post_v1_file_guard
-
-        Args:
-            file_url: File URL.
-
-        Examples:
-            response = await data_guard.guard_file("https://example.org/file.txt")
-        """
-
-        return await self.request.post("v1/file/guard", PangeaResponseResult, data={"file_url": file_url})
