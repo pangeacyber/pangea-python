@@ -26,6 +26,13 @@ class PromptGuard(ServiceBase):
     """Prompt Guard service client.
 
     Provides methods to interact with Pangea's Prompt Guard service.
+
+    Examples:
+        from pangea import PangeaConfig
+        from pangea.services import PromptGuard
+
+        config = PangeaConfig(domain="aws.us.pangea.cloud")
+        prompt_guard = PromptGuard(token="pangea_token", config=config)
     """
 
     service_name = "prompt-guard"
@@ -40,11 +47,14 @@ class PromptGuard(ServiceBase):
 
         Args:
             token: Pangea API token.
-            config: Configuration.
+            config: Pangea service configuration.
             logger_name: Logger name.
             config_id: Configuration ID.
 
         Examples:
+            from pangea import PangeaConfig
+            from pangea.services import PromptGuard
+
             config = PangeaConfig(domain="aws.us.pangea.cloud")
             prompt_guard = PromptGuard(token="pangea_token", config=config)
         """
@@ -65,6 +75,8 @@ class PromptGuard(ServiceBase):
             messages: Messages.
 
         Examples:
+            from pangea.services.prompt_guard import Message
+
             response = prompt_guard.guard([Message(role="user", content="hello world")])
         """
 

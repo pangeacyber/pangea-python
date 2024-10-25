@@ -92,6 +92,13 @@ class DataGuard(ServiceBase):
     """Data Guard service client.
 
     Provides methods to interact with Pangea's Data Guard service.
+
+    Examples:
+        from pangea import PangeaConfig
+        from pangea.services import DataGuard
+
+        config = PangeaConfig(domain="aws.us.pangea.cloud")
+        data_guard = DataGuard(token="pangea_token", config=config)
     """
 
     service_name = "data-guard"
@@ -106,11 +113,14 @@ class DataGuard(ServiceBase):
 
         Args:
             token: Pangea API token.
-            config: Configuration.
+            config: Pangea service configuration.
             logger_name: Logger name.
             config_id: Configuration ID.
 
         Examples:
+            from pangea import PangeaConfig
+            from pangea.services import DataGuard
+
             config = PangeaConfig(domain="aws.us.pangea.cloud")
             data_guard = DataGuard(token="pangea_token", config=config)
         """
