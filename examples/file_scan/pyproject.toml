@@ -8,7 +8,7 @@ packages = [{include = "file_scan_examples"}]
 
 [tool.poetry.dependencies]
 python = "^3.9.20"
-pangea-sdk = "^4.4.0"
+pangea-sdk = "^5.1.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.10.0"
