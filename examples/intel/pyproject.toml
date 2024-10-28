@@ -8,7 +8,7 @@ packages = [{include = "intel_examples"}]
 
 [tool.poetry.dependencies]
 python = "^3.9.20"
-pangea-sdk = "^5.1.0"
+pangea-sdk = { path = "../../packages/pangea-sdk", develop = true }
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.10.0"
