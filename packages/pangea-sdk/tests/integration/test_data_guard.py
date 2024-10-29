@@ -32,8 +32,3 @@ class TestDataGuard(unittest.TestCase):
         assert response.result.redacted_prompt
         assert response.result.findings.artifact_count == 1
         assert response.result.findings.malicious_count == 0
-
-    def test_file_guard(self) -> None:
-        response = self.client.guard_file("https://pangea.cloud/robots.txt")
-        assert response.status == "Success"
-        assert response.result

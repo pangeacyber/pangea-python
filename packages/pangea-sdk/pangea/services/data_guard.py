@@ -4,6 +4,7 @@ from typing import List, Optional
 
 from typing_extensions import Literal
 
+from pangea.config import PangeaConfig
 from pangea.response import PangeaResponse, PangeaResponseResult
 from pangea.services.base import ServiceBase
 from pangea.services.intel import UserBreachedData
@@ -14,7 +15,7 @@ class TextGuardSecurityIssues(PangeaResponseResult):
     malicious_domain_count: int
     malicious_ip_count: int
     malicious_url_count: int
-    redacted_item_count: int
+    redact_rule_match_count: int
 
 
 class TextGuardFindings(PangeaResponseResult):
@@ -91,9 +92,40 @@ class DataGuard(ServiceBase):
     """Data Guard service client.
 
     Provides methods to interact with Pangea's Data Guard service.
+
+    Examples:
+        from pangea import PangeaConfig
+        from pangea.services import DataGuard
+
+        config = PangeaConfig(domain="aws.us.pangea.cloud")
+        data_guard = DataGuard(token="pangea_token", config=config)
     """
 
     service_name = "data-guard"
+
+    def __init__(
+        self, token: str, config: PangeaConfig | None = None, logger_name: str = "pangea", config_id: str | None = None
+    ) -> None:
+        """
+        Data Guard service client.
+
+        Initializes a new Data Guard client.
+
+        Args:
+            token: Pangea API token.
+            config: Pangea service configuration.
+            logger_name: Logger name.
+            config_id: Configuration ID.
+
+        Examples:
+            from pangea import PangeaConfig
+            from pangea.services import DataGuard
+
+            config = PangeaConfig(domain="aws.us.pangea.cloud")
+            data_guard = DataGuard(token="pangea_token", config=config)
+        """
+
+        super().__init__(token, config, logger_name, config_id)
 
     def guard_text(
         self,
@@ -109,7 +141,7 @@ class DataGuard(ServiceBase):
 
         How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
 
-        OperationId: data_guard_post_v1_text_guard
+        OperationId: data_guard_post_v1beta_text_guard
 
         Args:
             text: Text.
@@ -121,27 +153,5 @@ class DataGuard(ServiceBase):
         """
 
         return self.request.post(
-            "v1/text/guard", TextGuardResult, data={"text": text, "recipe": recipe, "debug": debug}
+            "v1beta/text/guard", TextGuardResult, data={"text": text, "recipe": recipe, "debug": debug}
         )
-
-    def guard_file(
-        self,
-        file_url: str,
-    ) -> PangeaResponse[PangeaResponseResult]:
-        """
-        File guard (Beta)
-
-        Guard a file URL.
-
-        How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
-
-        OperationId: data_guard_post_v1_file_guard
-
-        Args:
-            file_url: File URL.
-
-        Examples:
-            response = data_guard.guard_file("https://example.org/file.txt")
-        """
-
-        return self.request.post("v1/file/guard", PangeaResponseResult, data={"file_url": file_url})

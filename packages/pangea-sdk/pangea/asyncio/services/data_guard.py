@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from pangea.asyncio.services.base import ServiceBaseAsync
-from pangea.response import PangeaResponse, PangeaResponseResult
+from pangea.config import PangeaConfig
+from pangea.response import PangeaResponse
 from pangea.services.data_guard import TextGuardResult
 
 
@@ -9,9 +10,40 @@ class DataGuard(ServiceBaseAsync):
     """Data Guard service client.
 
     Provides methods to interact with Pangea's Data Guard service.
+
+    Examples:
+        from pangea import PangeaConfig
+        from pangea.asyncio.services.data_guard import DataGuard
+
+        config = PangeaConfig(domain="aws.us.pangea.cloud")
+        data_guard = DataGuard(token="pangea_token", config=config)
     """
 
     service_name = "data-guard"
+
+    def __init__(
+        self, token: str, config: PangeaConfig | None = None, logger_name: str = "pangea", config_id: str | None = None
+    ) -> None:
+        """
+        Data Guard service client.
+
+        Initializes a new Data Guard client.
+
+        Args:
+            token: Pangea API token.
+            config: Pangea service configuration.
+            logger_name: Logger name.
+            config_id: Configuration ID.
+
+        Examples:
+            from pangea import PangeaConfig
+            from pangea.asyncio.services.data_guard import DataGuard
+
+            config = PangeaConfig(domain="aws.us.pangea.cloud")
+            data_guard = DataGuard(token="pangea_token", config=config)
+        """
+
+        super().__init__(token, config, logger_name, config_id)
 
     async def guard_text(
         self,
@@ -27,7 +59,7 @@ class DataGuard(ServiceBaseAsync):
 
         How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
 
-        OperationId: data_guard_post_v1_text_guard
+        OperationId: data_guard_post_v1beta_text_guard
 
         Args:
             text: Text.
@@ -39,27 +71,5 @@ class DataGuard(ServiceBaseAsync):
         """
 
         return await self.request.post(
-            "v1/text/guard", TextGuardResult, data={"text": text, "recipe": recipe, "debug": debug}
+            "v1beta/text/guard", TextGuardResult, data={"text": text, "recipe": recipe, "debug": debug}
         )
-
-    async def guard_file(
-        self,
-        file_url: str,
-    ) -> PangeaResponse[PangeaResponseResult]:
-        """
-        File guard (Beta)
-
-        Guard a file URL.
-
-        How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
-
-        OperationId: data_guard_post_v1_file_guard
-
-        Args:
-            file_url: File URL.
-
-        Examples:
-            response = await data_guard.guard_file("https://example.org/file.txt")
-        """
-
-        return await self.request.post("v1/file/guard", PangeaResponseResult, data={"file_url": file_url})
