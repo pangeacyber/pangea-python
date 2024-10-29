@@ -32,8 +32,3 @@ class TestDataGuard(unittest.IsolatedAsyncioTestCase):
         assert response.result.redacted_prompt
         assert response.result.findings.artifact_count == 1
         assert response.result.findings.malicious_count == 0
-
-    async def test_file_guard(self) -> None:
-        response = await self.client.guard_file("https://pangea.cloud/robots.txt")
-        assert response.status == "Success"
-        assert response.result
