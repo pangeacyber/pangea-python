@@ -3,31 +3,31 @@ from __future__ import annotations
 from pangea.asyncio.services.base import ServiceBaseAsync
 from pangea.config import PangeaConfig
 from pangea.response import PangeaResponse
-from pangea.services.data_guard import TextGuardResult
+from pangea.services.ai_guard import TextGuardResult
 
 
-class DataGuard(ServiceBaseAsync):
-    """Data Guard service client.
+class AIGuardAsync(ServiceBaseAsync):
+    """AI Guard service client.
 
-    Provides methods to interact with Pangea's Data Guard service.
+    Provides methods to interact with Pangea's AI Guard service.
 
     Examples:
         from pangea import PangeaConfig
-        from pangea.asyncio.services.data_guard import DataGuard
+        from pangea.asyncio.services import AIGuardAsync
 
         config = PangeaConfig(domain="aws.us.pangea.cloud")
-        data_guard = DataGuard(token="pangea_token", config=config)
+        ai_guard = AIGuardAsync(token="pangea_token", config=config)
     """
 
-    service_name = "data-guard"
+    service_name = "ai-guard"
 
     def __init__(
         self, token: str, config: PangeaConfig | None = None, logger_name: str = "pangea", config_id: str | None = None
     ) -> None:
         """
-        Data Guard service client.
+        AI Guard service client.
 
-        Initializes a new Data Guard client.
+        Initializes a new AI Guard client.
 
         Args:
             token: Pangea API token.
@@ -37,10 +37,10 @@ class DataGuard(ServiceBaseAsync):
 
         Examples:
             from pangea import PangeaConfig
-            from pangea.asyncio.services.data_guard import DataGuard
+            from pangea.asyncio.services import AIGuardAsync
 
             config = PangeaConfig(domain="aws.us.pangea.cloud")
-            data_guard = DataGuard(token="pangea_token", config=config)
+            ai_guard = AIGuardAsync(token="pangea_token", config=config)
         """
 
         super().__init__(token, config, logger_name, config_id)
@@ -59,7 +59,7 @@ class DataGuard(ServiceBaseAsync):
 
         How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
 
-        OperationId: data_guard_post_v1beta_text_guard
+        OperationId: ai_guard_post_v1beta_text_guard
 
         Args:
             text: Text.
@@ -67,7 +67,7 @@ class DataGuard(ServiceBaseAsync):
             debug: Debug.
 
         Examples:
-            response = await data_guard.guard_text("text")
+            response = await ai_guard.guard_text("text")
         """
 
         return await self.request.post(
