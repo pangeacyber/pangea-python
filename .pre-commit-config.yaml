@@ -18,7 +18,7 @@ repos:
           - --branch
           - main
   - repo: https://github.com/psf/black
-    rev: 24.8.0
+    rev: 24.10.0
     hooks:
       - id: black
         args:
@@ -35,7 +35,7 @@ repos:
           - "120"
           - --resolve-all-configs
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.11.2
+    rev: v1.13.0
     hooks:
       - id: mypy
         args:

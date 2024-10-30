@@ -36,7 +36,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v4.2.2
 
       - name: Calculate `examples-matrix` output
         id: examples-matrix
@@ -53,7 +53,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v4.2.2
 
       - name: Update pip
         run: |
@@ -66,7 +66,7 @@ jobs:
           poetry --version
 
       - name: Setup Python
-        uses: actions/setup-python@v5.2.0
+        uses: actions/setup-python@v5.3.0
         with:
           python-version: 3.12
           cache: poetry
@@ -80,10 +80,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v4.2.2
 
       - name: Setup Python
-        uses: actions/setup-python@v5.2.0
+        uses: actions/setup-python@v5.3.0
         with:
           python-version: 3.12
 
@@ -100,7 +100,7 @@ jobs:
         working-directory: ./packages/${{ matrix.package }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v4.2.2
 
       - name: Install poetry
         run: |
@@ -108,7 +108,7 @@ jobs:
           poetry --version
 
       - name: Setup Python
-        uses: actions/setup-python@v5.2.0
+        uses: actions/setup-python@v5.3.0
         with:
           python-version: 3.9
           cache: poetry
@@ -133,7 +133,7 @@ jobs:
         working-directory: ./packages/${{ matrix.package }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v4.2.2
 
       - name: Install poetry
         run: |
@@ -141,7 +141,7 @@ jobs:
           poetry --version
 
       - name: Setup Python
-        uses: actions/setup-python@v5.2.0
+        uses: actions/setup-python@v5.3.0
         with:
           python-version: 3.9
           cache: poetry
@@ -166,7 +166,7 @@ jobs:
         working-directory: ./packages/${{ matrix.package }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v4.2.2
 
       - name: Install poetry
         run: |
@@ -174,7 +174,7 @@ jobs:
           poetry --version
 
       - name: Setup Python
-        uses: actions/setup-python@v5.2.0
+        uses: actions/setup-python@v5.3.0
         with:
           python-version: 3.9
           cache: poetry
@@ -199,7 +199,7 @@ jobs:
         working-directory: ./packages/pangea-sdk
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v4.2.2
 
       - name: Install poetry
         run: |
@@ -207,7 +207,7 @@ jobs:
           poetry --version
 
       - name: Setup Python
-        uses: actions/setup-python@v5.2.0
+        uses: actions/setup-python@v5.3.0
         with:
           python-version: ${{ matrix.python-version }}
           cache: poetry
@@ -229,7 +229,7 @@ jobs:
         working-directory: ./packages/pangea-sdk
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v4.2.2
 
       - name: Install poetry
         run: |
@@ -237,7 +237,7 @@ jobs:
           poetry --version
 
       - name: Setup Python
-        uses: actions/setup-python@v5.2.0
+        uses: actions/setup-python@v5.3.0
         with:
           python-version: 3.12
           cache: poetry
@@ -268,7 +268,7 @@ jobs:
         working-directory: ./examples/${{ matrix.example }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v4.2.2
 
       - name: Update pip
         run: |
@@ -281,7 +281,7 @@ jobs:
           poetry --version
 
       - name: Setup Python
-        uses: actions/setup-python@v5.2.0
+        uses: actions/setup-python@v5.3.0
         with:
           python-version: 3.12
           cache: poetry
@@ -312,7 +312,7 @@ jobs:
         working-directory: ./packages/pangea-django
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v4.2.2
 
       - name: Install poetry
         run: |
@@ -320,7 +320,7 @@ jobs:
           poetry --version
 
       - name: Setup Python
-        uses: actions/setup-python@v5.2.0
+        uses: actions/setup-python@v5.3.0
         with:
           python-version: ${{ matrix.python-version }}
           cache: poetry

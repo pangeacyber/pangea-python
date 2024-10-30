@@ -6,7 +6,6 @@ import datetime
 import io
 import json
 from hashlib import md5, new, sha1, sha256, sha512
-from typing import Union
 
 from google_crc32c import Checksum as CRC32C
 from pydantic import BaseModel
@@ -67,7 +66,7 @@ def canonicalize(data: dict) -> str:
         return str(data)
 
 
-def hash_sha256(input: Union[str, io.BufferedReader]) -> str:
+def hash_sha256(input: str | io.BufferedReader) -> str:
     # Return SHA256 hash in hex format
     hash = sha256()
     if isinstance(input, io.BufferedReader):
@@ -80,12 +79,12 @@ def hash_sha256(input: Union[str, io.BufferedReader]) -> str:
 
         input.seek(0)  # restart reading
     else:
-        hash.update(input)  # type: ignore
+        hash.update(input.encode("utf-8"))
 
     return hash.hexdigest()
 
 
-def hash_sha1(input: Union[str, io.BufferedReader]) -> str:
+def hash_sha1(input: str | io.BufferedReader) -> str:
     # Return SHA1 hash in hex format
     hash = sha1()
     if isinstance(input, io.BufferedReader):
@@ -98,12 +97,12 @@ def hash_sha1(input: Union[str, io.BufferedReader]) -> str:
 
         input.seek(0)  # restart reading
     else:
-        hash.update(input)  # type: ignore
+        hash.update(input.encode("utf-8"))
 
     return hash.hexdigest()
 
 
-def hash_sha512(input: Union[str, io.BufferedReader]) -> str:
+def hash_sha512(input: str | io.BufferedReader) -> str:
     # Return SHA512 hash in hex format
     hash = sha512()
     if isinstance(input, io.BufferedReader):
@@ -116,7 +115,7 @@ def hash_sha512(input: Union[str, io.BufferedReader]) -> str:
 
         input.seek(0)  # restart reading
     else:
-        hash.update(input)  # type: ignore
+        hash.update(input.encode("utf-8"))
 
     return hash.hexdigest()
 
@@ -126,7 +125,7 @@ def hash_ntlm(data: str) -> str:
     return new("md4", data.encode("utf-16le")).hexdigest()
 
 
-def hash_md5(input: Union[str, io.BufferedReader]) -> str:
+def hash_md5(input: str | io.BufferedReader) -> str:
     # Return MD5 hash in hex format
     hash = md5()
     if isinstance(input, io.BufferedReader):
@@ -140,7 +139,7 @@ def hash_md5(input: Union[str, io.BufferedReader]) -> str:
 
         input.seek(0)  # restart reading
     else:
-        hash.update(input)  # type: ignore
+        hash.update(input.encode("utf-8"))
 
     return hash.hexdigest()
 

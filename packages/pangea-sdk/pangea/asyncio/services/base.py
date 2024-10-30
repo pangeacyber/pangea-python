@@ -1,7 +1,10 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+from __future__ import annotations
 
 from typing import Dict, Optional, Type, Union
+
+from typing_extensions import override
 
 from pangea.asyncio.request import PangeaRequestAsync
 from pangea.exceptions import AcceptedRequestException
@@ -23,6 +26,7 @@ class ServiceBaseAsync(ServiceBase):
 
         return self._request
 
+    @override
     async def poll_result(  # type: ignore[override]
         self,
         exception: Optional[AcceptedRequestException] = None,
@@ -36,7 +40,8 @@ class ServiceBaseAsync(ServiceBase):
         Returns request's result that has been accepted by the server
 
         Args:
-            exception (AcceptedRequestException): Exception raise by SDK on the call that is been processed.
+            exception: Exception that was previously raised by the SDK on a call
+              that is being processed.
 
         Returns:
             PangeaResponse
