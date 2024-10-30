@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Updates to beta services Data Guard and Prompt Guard.
+- Renamed Data Guard to AI Guard.
 
 ## 5.2.0beta1 - 2024-10-23
 

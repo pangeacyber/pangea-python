@@ -12,17 +12,17 @@ if TYPE_CHECKING:
     from pangea.response import PangeaResponse
 
 
-class PromptGuard(ServiceBaseAsync):
+class PromptGuardAsync(ServiceBaseAsync):
     """Prompt Guard service client.
 
     Provides methods to interact with Pangea's Prompt Guard service.
 
     Examples:
         from pangea import PangeaConfig
-        from pangea.asyncio.services.prompt_guard import PromptGuard
+        from pangea.asyncio.services import PromptGuardAsync
 
         config = PangeaConfig(domain="aws.us.pangea.cloud")
-        prompt_guard = PromptGuard(token="pangea_token", config=config)
+        prompt_guard = PromptGuardAsync(token="pangea_token", config=config)
     """
 
     service_name = "prompt-guard"
@@ -43,10 +43,10 @@ class PromptGuard(ServiceBaseAsync):
 
         Examples:
             from pangea import PangeaConfig
-            from pangea.asyncio.services.prompt_guard import PromptGuard
+            from pangea.asyncio.services import PromptGuardAsync
 
             config = PangeaConfig(domain="aws.us.pangea.cloud")
-            prompt_guard = PromptGuard(token="pangea_token", config=config)
+            prompt_guard = PromptGuardAsync(token="pangea_token", config=config)
         """
 
         super().__init__(token, config, logger_name, config_id)

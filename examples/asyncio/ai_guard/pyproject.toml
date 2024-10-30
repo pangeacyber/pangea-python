@@ -1,5 +1,5 @@
 [project]
-name = "data-guard-examples"
+name = "ai-guard-examples"
 requires-python = ">=3.9"
 
 [tool.poetry]

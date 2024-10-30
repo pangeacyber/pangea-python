@@ -88,28 +88,28 @@ class TextGuardResult(PangeaResponseResult):
     report: Optional[TextGuardReport] = None
 
 
-class DataGuard(ServiceBase):
-    """Data Guard service client.
+class AIGuard(ServiceBase):
+    """AI Guard service client.
 
-    Provides methods to interact with Pangea's Data Guard service.
+    Provides methods to interact with Pangea's AI Guard service.
 
     Examples:
         from pangea import PangeaConfig
-        from pangea.services import DataGuard
+        from pangea.services import AIGuard
 
         config = PangeaConfig(domain="aws.us.pangea.cloud")
-        data_guard = DataGuard(token="pangea_token", config=config)
+        ai_guard = AIGuard(token="pangea_token", config=config)
     """
 
-    service_name = "data-guard"
+    service_name = "ai-guard"
 
     def __init__(
         self, token: str, config: PangeaConfig | None = None, logger_name: str = "pangea", config_id: str | None = None
     ) -> None:
         """
-        Data Guard service client.
+        AI Guard service client.
 
-        Initializes a new Data Guard client.
+        Initializes a new AI Guard client.
 
         Args:
             token: Pangea API token.
@@ -119,10 +119,10 @@ class DataGuard(ServiceBase):
 
         Examples:
             from pangea import PangeaConfig
-            from pangea.services import DataGuard
+            from pangea.services import AIGuard
 
             config = PangeaConfig(domain="aws.us.pangea.cloud")
-            data_guard = DataGuard(token="pangea_token", config=config)
+            ai_guard = AIGuard(token="pangea_token", config=config)
         """
 
         super().__init__(token, config, logger_name, config_id)
@@ -141,7 +141,7 @@ class DataGuard(ServiceBase):
 
         How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
 
-        OperationId: data_guard_post_v1beta_text_guard
+        OperationId: ai_guard_post_v1beta_text_guard
 
         Args:
             text: Text.
@@ -149,7 +149,7 @@ class DataGuard(ServiceBase):
             debug: Debug.
 
         Examples:
-            response = data_guard.guard_text("text")
+            response = ai_guard.guard_text("text")
         """
 
         return self.request.post(

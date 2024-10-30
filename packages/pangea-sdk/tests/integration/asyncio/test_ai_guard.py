@@ -3,19 +3,19 @@ from __future__ import annotations
 import unittest
 
 from pangea import PangeaConfig
-from pangea.asyncio.services.data_guard import DataGuard
+from pangea.asyncio.services import AIGuardAsync
 from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
 from tests.test_tools import load_test_environment
 
-TEST_ENVIRONMENT = load_test_environment(DataGuard.service_name, TestEnvironment.LIVE)
+TEST_ENVIRONMENT = load_test_environment(AIGuardAsync.service_name, TestEnvironment.LIVE)
 
 
-class TestDataGuard(unittest.IsolatedAsyncioTestCase):
+class TestAIGuardAsync(unittest.IsolatedAsyncioTestCase):
     def setUp(self) -> None:
         token = get_test_token(TEST_ENVIRONMENT)
         domain = get_test_domain(TEST_ENVIRONMENT)
         config = PangeaConfig(domain=domain, custom_user_agent="sdk-test")
-        self.client = DataGuard(token, config=config)
+        self.client = AIGuardAsync(token, config=config)
         logger_set_pangea_config(logger_name=self.client.logger.name)
 
     async def test_text_guard(self) -> None:
