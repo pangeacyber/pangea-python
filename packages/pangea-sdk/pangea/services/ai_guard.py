@@ -19,8 +19,8 @@ class TextGuardSecurityIssues(PangeaResponseResult):
 
 
 class TextGuardFindings(PangeaResponseResult):
-    artifact_count: int
-    malicious_count: int
+    artifact_count: Optional[int] = None
+    malicious_count: Optional[int] = None
     security_issues: TextGuardSecurityIssues
 
 

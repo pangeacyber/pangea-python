@@ -23,12 +23,12 @@ class TestAIGuard(unittest.TestCase):
         assert response.status == "Success"
         assert response.result
         assert response.result.redacted_prompt
-        assert response.result.findings.artifact_count == 0
-        assert response.result.findings.malicious_count == 0
+        assert response.result.findings.artifact_count is None
+        assert response.result.findings.malicious_count is None
 
         response = self.client.guard_text("security@pangea.cloud")
         assert response.status == "Success"
         assert response.result
         assert response.result.redacted_prompt
         assert response.result.findings.artifact_count == 1
-        assert response.result.findings.malicious_count == 0
+        assert response.result.findings.malicious_count is None
