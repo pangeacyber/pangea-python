@@ -5,10 +5,10 @@
     matrix:
       - PYTHON_VERSION: ["3.9", "3.10", "3.11", "3.12", "3.13"]
         EXAMPLE_FOLDER:
+          - ai_guard
           - audit
           - authn
           - authz
-          - data_guard
           - embargo
           - file_scan
           - intel
@@ -19,6 +19,7 @@
           - share
   image: python:${PYTHON_VERSION}-bookworm
   before_script:
+    - export PANGEA_AI_GUARD_TOKEN="${PANGEA_INTEGRATION_TOKEN_LVE_AWS}"
     - export PANGEA_AUDIT_AUTH0_CONFIG_ID="${PANGEA_AUDIT_CONFIG_ID_3_LVE_AWS}"
     - export PANGEA_AUDIT_CONFIG_ID="${PANGEA_AUDIT_CONFIG_ID_1_LVE_AWS}"
     - export PANGEA_AUDIT_CUSTOM_SCHEMA_TOKEN="${PANGEA_INTEGRATION_CUSTOM_SCHEMA_TOKEN_LVE_AWS}"
@@ -26,7 +27,6 @@
     - export PANGEA_AUDIT_TOKEN="${PANGEA_INTEGRATION_TOKEN_LVE_AWS}"
     - export PANGEA_AUTHN_TOKEN="${PANGEA_INTEGRATION_TOKEN_LVE_AWS}"
     - export PANGEA_AUTHZ_TOKEN="${PANGEA_INTEGRATION_TOKEN_LVE_AWS}"
-    - export PANGEA_DATA_GUARD_TOKEN="${PANGEA_INTEGRATION_DOMAIN_LVE_AWS}"
     - export PANGEA_DOMAIN="${PANGEA_INTEGRATION_DOMAIN_LVE_AWS}"
     - export PANGEA_EMBARGO_TOKEN="${PANGEA_INTEGRATION_TOKEN_LVE_AWS}"
     - export PANGEA_FILE_SCAN_TOKEN="${PANGEA_INTEGRATION_TOKEN_LVE_AWS}"
