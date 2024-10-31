@@ -1,10 +1,13 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+from __future__ import annotations
+
 import io
 from typing import List, Optional, Tuple
 
 import pangea.services.sanitize as m
 from pangea.asyncio.services.base import ServiceBaseAsync
+from pangea.config import PangeaConfig
 from pangea.response import PangeaResponse, TransferMethod
 from pangea.utils import FileUploadParams, get_file_upload_params
 
@@ -16,16 +19,37 @@ class SanitizeAsync(ServiceBaseAsync):
         import os
 
         # Pangea SDK
+        from pangea.asyncio.services import SanitizeAsync
         from pangea.config import PangeaConfig
-        from pangea.asyncio.services import Sanitize
 
         PANGEA_SANITIZE_TOKEN = os.getenv("PANGEA_SANITIZE_TOKEN")
         config = PangeaConfig(domain="pangea.cloud")
 
-        sanitize = Sanitize(token=PANGEA_SANITIZE_TOKEN, config=config)
+        sanitize = SanitizeAsync(token=PANGEA_SANITIZE_TOKEN, config=config)
     """
 
     service_name = "sanitize"
+
+    def __init__(
+        self, token: str, config: PangeaConfig | None = None, logger_name: str = "pangea", config_id: str | None = None
+    ) -> None:
+        """
+        Sanitize client
+
+        Initializes a new Sanitize client.
+
+        Args:
+            token: Pangea API token.
+            config: Configuration.
+            logger_name: Logger name.
+            config_id: Configuration ID.
+
+        Examples:
+             config = PangeaConfig(domain="aws.us.pangea.cloud")
+             authz = SanitizeAsync(token="pangea_token", config=config)
+        """
+
+        super().__init__(token, config, logger_name, config_id=config_id)
 
     async def sanitize(
         self,

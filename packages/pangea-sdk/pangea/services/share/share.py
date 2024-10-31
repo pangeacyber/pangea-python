@@ -6,6 +6,7 @@ import enum
 import io
 from typing import Dict, List, NewType, Optional, Tuple, Union
 
+from pangea.config import PangeaConfig
 from pangea.response import APIRequestModel, PangeaResponse, PangeaResponseResult, TransferMethod
 from pangea.services.base import ServiceBase
 from pangea.services.share.file_format import FileFormat
@@ -669,9 +670,30 @@ class BucketsResult(PangeaResponseResult):
 
 
 class Share(ServiceBase):
-    """Share service client."""
+    """Secure Share service client."""
 
     service_name = "share"
+
+    def __init__(
+        self, token: str, config: PangeaConfig | None = None, logger_name: str = "pangea", config_id: str | None = None
+    ) -> None:
+        """
+        Secure Share client
+
+        Initializes a new Secure Share client.
+
+        Args:
+            token: Pangea API token.
+            config: Configuration.
+            logger_name: Logger name.
+            config_id: Configuration ID.
+
+        Examples:
+             config = PangeaConfig(domain="aws.us.pangea.cloud")
+             authz = Share(token="pangea_token", config=config)
+        """
+
+        super().__init__(token, config, logger_name, config_id=config_id)
 
     def buckets(self) -> PangeaResponse[BucketsResult]:
         """

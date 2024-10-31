@@ -7,6 +7,7 @@ from typing import Dict, List, Optional, Tuple
 
 from pydantic import Field
 
+from pangea.config import PangeaConfig
 from pangea.response import APIRequestModel, PangeaResponse, PangeaResponseResult, TransferMethod
 from pangea.services.base import ServiceBase
 from pangea.utils import FileUploadParams, get_file_upload_params
@@ -196,6 +197,27 @@ class Sanitize(ServiceBase):
     """
 
     service_name = "sanitize"
+
+    def __init__(
+        self, token: str, config: PangeaConfig | None = None, logger_name: str = "pangea", config_id: str | None = None
+    ) -> None:
+        """
+        Sanitize client
+
+        Initializes a new Sanitize client.
+
+        Args:
+            token: Pangea API token.
+            config: Configuration.
+            logger_name: Logger name.
+            config_id: Configuration ID.
+
+        Examples:
+             config = PangeaConfig(domain="aws.us.pangea.cloud")
+             authz = Sanitize(token="pangea_token", config=config)
+        """
+
+        super().__init__(token, config, logger_name, config_id=config_id)
 
     def sanitize(
         self,
