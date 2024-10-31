@@ -1,9 +1,11 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+from __future__ import annotations
 
 import enum
 from typing import Any, Dict, List, Optional, Union
 
+from pangea.config import PangeaConfig
 from pangea.response import APIRequestModel, APIResponseModel, PangeaResponse, PangeaResponseResult
 from pangea.services.base import ServiceBase
 
@@ -171,7 +173,25 @@ class AuthZ(ServiceBase):
 
     service_name = "authz"
 
-    def __init__(self, token: str, config=None, logger_name="pangea", config_id: Optional[str] = None):
+    def __init__(
+        self, token: str, config: PangeaConfig | None = None, logger_name: str = "pangea", config_id: str | None = None
+    ) -> None:
+        """
+        AuthZ client
+
+        Initializes a new AuthZ client.
+
+        Args:
+            token: Pangea API token.
+            config: Configuration.
+            logger_name: Logger name.
+            config_id: Configuration ID.
+
+        Examples:
+             config = PangeaConfig(domain="aws.us.pangea.cloud")
+             authz = AuthZ(token="pangea_token", config=config)
+        """
+
         super().__init__(token, config, logger_name, config_id=config_id)
 
     def tuple_create(self, tuples: List[Tuple]) -> PangeaResponse[TupleCreateResult]:

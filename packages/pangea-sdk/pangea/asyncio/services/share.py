@@ -7,15 +7,37 @@ from typing import Dict, List, Optional, Tuple, Union
 
 import pangea.services.share.share as m
 from pangea.asyncio.services.base import ServiceBaseAsync
+from pangea.config import PangeaConfig
 from pangea.response import PangeaResponse, TransferMethod
 from pangea.services.share.file_format import FileFormat
 from pangea.utils import get_file_size, get_file_upload_params
 
 
 class ShareAsync(ServiceBaseAsync):
-    """Share service client."""
+    """Secure Share service client."""
 
     service_name = "share"
+
+    def __init__(
+        self, token: str, config: PangeaConfig | None = None, logger_name: str = "pangea", config_id: str | None = None
+    ) -> None:
+        """
+        Secure Share client
+
+        Initializes a new Secure Share client.
+
+        Args:
+            token: Pangea API token.
+            config: Configuration.
+            logger_name: Logger name.
+            config_id: Configuration ID.
+
+        Examples:
+             config = PangeaConfig(domain="aws.us.pangea.cloud")
+             authz = ShareAsync(token="pangea_token", config=config)
+        """
+
+        super().__init__(token, config, logger_name, config_id=config_id)
 
     async def buckets(self) -> PangeaResponse[m.BucketsResult]:
         """
