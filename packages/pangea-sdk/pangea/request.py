@@ -406,7 +406,7 @@ class PangeaRequest(PangeaRequestBase):
         """
         Download file
 
-        Downloads a file from the specified URL and saves it with the given
+        Download a file from the specified URL and save it with the given
         filename.
 
         Args:
