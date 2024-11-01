@@ -1,5 +1,7 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+from __future__ import annotations
+
 import enum
 import hashlib
 from typing import Dict, List, Optional
@@ -1592,6 +1594,17 @@ class UserIntel(ServiceBase):
 
     @staticmethod
     def is_password_breached(response: PangeaResponse[UserBreachedResult], hash: str) -> PasswordStatus:
+        """
+        Check if a password was breached
+
+        Helper function that simplifies searching the response's raw data for
+        the full hash.
+
+        Args:
+            response: API response from an earlier request
+            hash: Password hash
+        """
+
         if response.result.raw_data is None:  # type: ignore[union-attr]
             raise PangeaException("Need raw data to check if hash is breached. Send request with raw=true")
 
