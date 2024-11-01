@@ -63,7 +63,21 @@ class ServiceBaseAsync(ServiceBase):
         else:
             raise AttributeError("Need to set exception, response or request_id")
 
-    async def download_file(self, url: str, filename: Optional[str] = None) -> AttachedFile:  # type: ignore[override]
+    @override
+    async def download_file(self, url: str, filename: str | None = None) -> AttachedFile:  # type: ignore[override]
+        """
+        Download file
+
+        Downloads a file from the specified URL and saves it with the given
+        filename.
+
+        Args:
+            url: URL of the file to download
+            filename: Name to save the downloaded file as. If not provided, the
+              filename will be determined from the Content-Disposition header or
+              the URL.
+        """
+
         return await self.request.download_file(url=url, filename=filename)
 
     async def close(self):

@@ -101,5 +101,18 @@ class ServiceBase(object):
         else:
             raise AttributeError("Need to set exception, response or request_id")
 
-    def download_file(self, url: str, filename: Optional[str] = None) -> AttachedFile:
+    def download_file(self, url: str, filename: str | None = None) -> AttachedFile:
+        """
+        Download file
+
+        Downloads a file from the specified URL and saves it with the given
+        filename.
+
+        Args:
+            url: URL of the file to download
+            filename: Name to save the downloaded file as. If not provided, the
+              filename will be determined from the Content-Disposition header or
+              the URL.
+        """
+
         return self.request.download_file(url=url, filename=filename)
