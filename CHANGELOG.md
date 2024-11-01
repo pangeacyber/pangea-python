@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- `Audit.fix_consistency_proofs` is now a private method.
+
 ## 5.1.0 - 2024-10-16
 
 ### Added

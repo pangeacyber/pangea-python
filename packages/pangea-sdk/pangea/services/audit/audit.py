@@ -961,9 +961,9 @@ class Audit(ServiceBase, AuditBase):
             if pub_root is not None:
                 self.pub_roots[tree_size] = pub_root
 
-        self.fix_consistency_proofs(tree_sizes)
+        self._fix_consistency_proofs(tree_sizes)
 
-    def fix_consistency_proofs(self, tree_sizes: Iterable[int]):
+    def _fix_consistency_proofs(self, tree_sizes: Iterable[int]) -> None:
         # on very rare occasions, the consistency proof in Arweave may be wrong
         # override it with the proof from pangea (not the root hash, just the proof)
         for tree_size in tree_sizes:
