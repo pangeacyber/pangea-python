@@ -174,14 +174,16 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
         verbose: Optional[bool] = None,
     ) -> PangeaResponse[LogResult]:
         """
-        Log an entry
+        Log an event
 
         Create a log entry in the Secure Audit Log.
+
         Args:
             event (dict[str, Any]): event to be logged
             verify (bool, optional): True to verify logs consistency after response.
             sign_local (bool, optional): True to sign event with local key.
             verbose (bool, optional): True to get a more verbose response.
+
         Raises:
             AuditException: If an audit based api exception happens
             PangeaAPIException: If an API Error happens
@@ -192,13 +194,7 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
                 Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/audit#log-an-entry).
 
         Examples:
-            try:
-                log_response = audit.log({"message"="Hello world"}, verbose=False)
-                print(f"Response. Hash: {log_response.result.hash}")
-            except pe.PangeaAPIException as e:
-                print(f"Request Error: {e.response.summary}")
-                for err in e.errors:
-                    print(f"\\t{err.detail} \\n")
+            response = await audit.log_event({"message": "hello world"}, verbose=True)
         """
 
         input = self._get_log_request(event, sign_local=sign_local, verify=verify, verbose=verbose)
