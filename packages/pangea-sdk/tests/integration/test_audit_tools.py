@@ -37,7 +37,13 @@ class TestAuditTools(unittest.TestCase):
         audit = init_audit(self.token, self.domain)
         with Path(self.dump_filename).open() as file:
             errors = deep_verify(audit, file)
-            print("\n\nTotal errors:")
+            print("\n\nWarnings:")
+            val1 = errors["not_persisted"]
+            print(f"\tnot_persisted: {val1}")
+
+            print("\nTotal errors:")
             for key, val in errors.items():
+                if key == "not_persisted":
+                    continue
                 print(f"\t{key.title()}: {val}")
             print()
