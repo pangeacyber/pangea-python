@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - `Audit.fix_consistency_proofs` is now a private method.
+- `pangea.deep_verify` error message to `warning` when `not_persisted` event.
+
+### Fixed 
+
+- `pangea.audit_dump` only dump before events if the leaf_index is not None.
+
 
 ## 5.1.0 - 2024-10-16
 
