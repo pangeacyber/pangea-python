@@ -63,11 +63,12 @@ def dump_before(audit: Audit, output: io.TextIOWrapper, start: datetime) -> int:
     cnt = 0
     if search_res.result and search_res.result.count > 0:
         leaf_index = search_res.result.events[0].leaf_index
-        for row in reversed(search_res.result.events):
-            if row.leaf_index != leaf_index:
-                break
-            dump_event(output, row, search_res)
-            cnt += 1
+        if leaf_index is not None:
+            for row in reversed(search_res.result.events):
+                if row.leaf_index != leaf_index:
+                    break
+                dump_event(output, row, search_res)
+                cnt += 1
     print(f"Dumping before... {cnt} events")
     return cnt
 
@@ -89,7 +90,7 @@ def dump_after(audit: Audit, output: io.TextIOWrapper, start: datetime, last_eve
     cnt = 0
     if search_res.result and search_res.result.count > 0:
         leaf_index = search_res.result.events[0].leaf_index
-        if leaf_index == last_leaf_index:
+        if leaf_index is not None and leaf_index == last_leaf_index:
             start_idx: int = 1 if last_event_hash == search_res.result.events[0].hash else 0
             for row in search_res.result.events[start_idx:]:
                 if row.leaf_index != leaf_index:
@@ -124,7 +125,7 @@ def dump_page(
     msg = f"Dumping... {search_res.result.count} events"
 
     if search_res.result.count <= 1:
-        return end, 0  # type: ignore[return-value]
+        return end, 0, True, "", 0
 
     offset = 0
     result_id = search_res.result.id
