@@ -58,6 +58,9 @@
       - CLOUD: [AWS, GCP]
         ENV: ${SERVICE_AUDIT_ENV}
         TEST: test_audit
+      - CLOUD: [AWS]
+        ENV: ${SERVICE_AUDIT_ENV}
+        TEST: test_audit_tools
       - CLOUD: [AWS, GCP]
         ENV: ${SERVICE_AUTHN_ENV}
         TEST: test_authn

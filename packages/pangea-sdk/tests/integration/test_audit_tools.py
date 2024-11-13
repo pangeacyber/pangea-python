@@ -6,9 +6,11 @@ from pathlib import Path
 
 from pangea.deep_verify import deep_verify
 from pangea.dump_audit import dump_audit
+from pangea.services import Audit
 from pangea.tools import TestEnvironment, get_test_domain, get_test_token, init_audit
+from tests.test_tools import load_test_environment
 
-TEST_ENVIRONMENT = TestEnvironment.LIVE
+TEST_ENVIRONMENT = load_test_environment(Audit.service_name, TestEnvironment.LIVE)
 
 
 class TestAuditTools(unittest.TestCase):
@@ -20,8 +22,6 @@ class TestAuditTools(unittest.TestCase):
         self.dump_filename = "./tests/testdata/dump.json"
         self.artifact_filename = "./tests/testdata/log_artifact.json"
 
-    # TODO: broken test, the search yields 0 events.
-    @unittest.expectedFailure
     def test_01_dump_audit(self) -> None:
         audit = init_audit(self.token, self.domain)
         with Path(self.dump_filename).open("a") as file:
