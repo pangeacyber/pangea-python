@@ -1,5 +1,5 @@
 default:
-  image: python:3.9.20@sha256:f83187e2807d7e5087fd3d76b700aa9f2a208077bc59744c14878f7200107204
+  image: python:3.9.20@sha256:332741499f49a3f3e7749dad70e6ecf1129f00a269fdd6111da2ed2693fbe50e
   tags:
     - pangea-internal
 
