@@ -1239,6 +1239,7 @@ class UserBreachedRequest(IntelCommonRequest):
     phone_number (str): A phone number to search for. minLength: 7, maxLength: 15.
     start (str): Earliest date for search
     end (str): Latest date for search
+    cursor (str, optional): A token given in the raw response from SpyCloud. Post this back to paginate results
     """
 
     email: Optional[str] = None
@@ -1247,6 +1248,7 @@ class UserBreachedRequest(IntelCommonRequest):
     phone_number: Optional[str] = None
     start: Optional[str] = None
     end: Optional[str] = None
+    cursor: Optional[str] = None
 
 
 class UserBreachedBulkRequest(IntelCommonRequest):
@@ -1389,6 +1391,7 @@ class UserIntel(ServiceBase):
         verbose: Optional[bool] = None,
         raw: Optional[bool] = None,
         provider: Optional[str] = None,
+        cursor: Optional[str] = None,
     ) -> PangeaResponse[UserBreachedResult]:
         """
         Look up breached users
@@ -1407,6 +1410,7 @@ class UserIntel(ServiceBase):
             verbose (bool, optional): Echo the API parameters in the response
             raw (bool, optional): Include raw data from this provider
             provider (str, optional): Use reputation data from this provider: "spycloud"
+            cursor (str, optional): A token given in the raw response from SpyCloud. Post this back to paginate results
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -1434,6 +1438,7 @@ class UserIntel(ServiceBase):
             end=end,
             verbose=verbose,
             raw=raw,
+            cursor=cursor,
         )
         return self.request.post("v1/user/breached", UserBreachedResult, data=input.model_dump(exclude_none=True))
 

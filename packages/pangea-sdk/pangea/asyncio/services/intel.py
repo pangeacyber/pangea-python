@@ -790,6 +790,7 @@ class UserIntelAsync(ServiceBaseAsync):
         verbose: Optional[bool] = None,
         raw: Optional[bool] = None,
         provider: Optional[str] = None,
+        cursor: Optional[str] = None,
     ) -> PangeaResponse[m.UserBreachedResult]:
         """
         Look up breached users
@@ -808,6 +809,7 @@ class UserIntelAsync(ServiceBaseAsync):
             verbose (bool, optional): Echo the API parameters in the response
             raw (bool, optional): Include raw data from this provider
             provider (str, optional): Use reputation data from this provider: "crowdstrike"
+            cursor (str, optional): A token given in the raw response from SpyCloud. Post this back to paginate results
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -835,6 +837,7 @@ class UserIntelAsync(ServiceBaseAsync):
             end=end,
             verbose=verbose,
             raw=raw,
+            cursor=cursor,
         )
         return await self.request.post(
             "v1/user/breached", m.UserBreachedResult, data=input.model_dump(exclude_none=True)
