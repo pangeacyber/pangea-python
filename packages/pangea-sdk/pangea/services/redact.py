@@ -74,7 +74,7 @@ class RedactRequest(APIRequestModel):
 
 class VaultParameters(APIRequestModel):
     fpe_key_id: Optional[str] = None
-    """ A vault key ID of an exportable key used to redact with FPE instead of using the service config default."""
+    """A vault key ID of an exportable key used to redact with FPE instead of using the service config default."""
 
     salt_secret_id: Optional[str] = None
     """A vault secret ID of a secret used to salt a hash instead of using the service config default."""
