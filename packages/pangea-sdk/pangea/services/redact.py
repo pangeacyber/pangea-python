@@ -66,6 +66,18 @@ class RedactRequest(APIRequestModel):
     rulesets: Optional[List[str]] = None
     return_result: Optional[bool] = None
     redaction_method_overrides: Optional[RedactionMethodOverrides] = None
+    vault_parameters: Optional[VaultParameters] = None
+
+    llm_request: Optional[bool] = None
+    """Is this redact call going to be used in an LLM request?"""
+
+
+class VaultParameters(APIRequestModel):
+    fpe_key_id: Optional[str] = None
+    """A vault key ID of an exportable key used to redact with FPE instead of using the service config default."""
+
+    salt_secret_id: Optional[str] = None
+    """A vault secret ID of a secret used to salt a hash instead of using the service config default."""
 
 
 class RecognizerResult(APIResponseModel):
@@ -134,6 +146,10 @@ class StructuredRequest(APIRequestModel):
     rulesets: Optional[List[str]] = None
     return_result: Optional[bool] = None
     redaction_method_overrides: Optional[RedactionMethodOverrides] = None
+    vault_parameters: Optional[VaultParameters] = None
+
+    llm_request: Optional[bool] = None
+    """Is this redact call going to be used in an LLM request?"""
 
 
 class StructuredResult(PangeaResponseResult):
