@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Fixed 
+- exposed `vault_parameters` and `llm_request` fields to redact api
+
 ## 5.2.0 - 2024-12-18
 
 ### Added
@@ -22,7 +25,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed 
 
 - `pangea.audit_dump` only dump before events if the leaf_index is not None.
-- exposed `vault_parameters` and `llm_request` fields to redact api
 
 
 ## 5.1.0 - 2024-10-16
