@@ -67,7 +67,6 @@ class RedactRequest(APIRequestModel):
     return_result: Optional[bool] = None
     redaction_method_overrides: Optional[RedactionMethodOverrides] = None
     vault_parameters: Optional[VaultParameters] = None
-
     llm_request: Optional[bool] = None
     """Is this redact call going to be used in an LLM request?"""
 
@@ -147,7 +146,6 @@ class StructuredRequest(APIRequestModel):
     return_result: Optional[bool] = None
     redaction_method_overrides: Optional[RedactionMethodOverrides] = None
     vault_parameters: Optional[VaultParameters] = None
-
     llm_request: Optional[bool] = None
     """Is this redact call going to be used in an LLM request?"""
 
@@ -244,6 +242,8 @@ class Redact(ServiceBase):
         rulesets: Optional[List[str]] = None,
         return_result: Optional[bool] = None,
         redaction_method_overrides: Optional[RedactionMethodOverrides] = None,
+        llm_request: Optional[bool] = None,
+        vault_parameters: Optional[VaultParameters] = None,
     ) -> PangeaResponse[RedactResult]:
         """
         Redact
@@ -280,6 +280,8 @@ class Redact(ServiceBase):
             rulesets=rulesets,
             return_result=return_result,
             redaction_method_overrides=redaction_method_overrides,
+            llm_request=llm_request,
+            vault_parameters=vault_parameters,
         )
         return self.request.post("v1/redact", RedactResult, data=input.model_dump(exclude_none=True))
 
@@ -293,6 +295,8 @@ class Redact(ServiceBase):
         rulesets: Optional[List[str]] = None,
         return_result: Optional[bool] = None,
         redaction_method_overrides: Optional[RedactionMethodOverrides] = None,
+        llm_request: Optional[bool] = None,
+        vault_parameters: Optional[VaultParameters] = None,
     ) -> PangeaResponse[StructuredResult]:
         """
         Redact structured
@@ -340,6 +344,8 @@ class Redact(ServiceBase):
             rulesets=rulesets,
             return_result=return_result,
             redaction_method_overrides=redaction_method_overrides,
+            llm_request=llm_request,
+            vault_parameters=vault_parameters,
         )
         return self.request.post("v1/redact_structured", StructuredResult, data=input.model_dump(exclude_none=True))
 
