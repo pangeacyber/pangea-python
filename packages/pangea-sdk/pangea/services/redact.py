@@ -243,7 +243,7 @@ class Redact(ServiceBase):
         return_result: Optional[bool] = None,
         redaction_method_overrides: Optional[RedactionMethodOverrides] = None,
         llm_request: Optional[bool] = None,
-        vault_parameters: Optional[VaultParameters] = None
+        vault_parameters: Optional[VaultParameters] = None,
     ) -> PangeaResponse[RedactResult]:
         """
         Redact
@@ -281,7 +281,7 @@ class Redact(ServiceBase):
             return_result=return_result,
             redaction_method_overrides=redaction_method_overrides,
             llm_request=llm_request,
-            vault_parameters=vault_parameters
+            vault_parameters=vault_parameters,
         )
         return self.request.post("v1/redact", RedactResult, data=input.model_dump(exclude_none=True))
 
@@ -345,7 +345,7 @@ class Redact(ServiceBase):
             return_result=return_result,
             redaction_method_overrides=redaction_method_overrides,
             llm_request=llm_request,
-            vault_parameters=vault_parameters
+            vault_parameters=vault_parameters,
         )
         return self.request.post("v1/redact_structured", StructuredResult, data=input.model_dump(exclude_none=True))
 
