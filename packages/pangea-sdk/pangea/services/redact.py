@@ -68,6 +68,7 @@ class RedactRequest(APIRequestModel):
     redaction_method_overrides: Optional[RedactionMethodOverrides] = None
     vault_parameters: Optional[VaultParameters] = None
     llm_request: Optional[bool] = None
+    """Is this redact call going to be used in an LLM request?"""
 
 
 class VaultParameters(APIRequestModel):
@@ -146,6 +147,7 @@ class StructuredRequest(APIRequestModel):
     redaction_method_overrides: Optional[RedactionMethodOverrides] = None
     vault_parameters: Optional[VaultParameters] = None
     llm_request: Optional[bool] = None
+    """Is this redact call going to be used in an LLM request?"""
 
 
 class StructuredResult(PangeaResponseResult):
