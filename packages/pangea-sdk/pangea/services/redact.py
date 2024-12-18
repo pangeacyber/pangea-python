@@ -296,7 +296,7 @@ class Redact(ServiceBase):
         return_result: Optional[bool] = None,
         redaction_method_overrides: Optional[RedactionMethodOverrides] = None,
         llm_request: Optional[bool] = None,
-        vault_parameters: Optional[VaultParameters] = None
+        vault_parameters: Optional[VaultParameters] = None,
     ) -> PangeaResponse[StructuredResult]:
         """
         Redact structured
