@@ -7,8 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
-### Fixed 
-- exposed `vault_parameters` and `llm_request` fields to redact api
+### Fixed
+
+- Exposed `vault_parameters` and `llm_request` parameters in Redact.
+- Added `fpe_context` to `RedactResult`.
 
 ## 5.2.0 - 2024-12-18
 

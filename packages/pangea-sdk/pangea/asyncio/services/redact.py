@@ -65,6 +65,8 @@ class RedactAsync(ServiceBaseAsync):
         rulesets: Optional[List[str]] = None,
         return_result: Optional[bool] = None,
         redaction_method_overrides: Optional[m.RedactionMethodOverrides] = None,
+        llm_request: Optional[bool] = None,
+        vault_parameters: Optional[m.VaultParameters] = None,
     ) -> PangeaResponse[m.RedactResult]:
         """
         Redact
@@ -81,6 +83,8 @@ class RedactAsync(ServiceBaseAsync):
             rulesets (list[str], optional): An array of redact rulesets short names
             return_result(bool, optional): Setting this value to false will omit the redacted result only returning count
             redaction_method_overrides: A set of redaction method overrides for any enabled rule. These methods override the config declared methods
+            llm_request: Boolean flag to enable FPE redaction for LLM requests
+            vault_parameters: A set of vault parameters to use for redaction
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -101,6 +105,8 @@ class RedactAsync(ServiceBaseAsync):
             rulesets=rulesets,
             return_result=return_result,
             redaction_method_overrides=redaction_method_overrides,
+            llm_request=llm_request,
+            vault_parameters=vault_parameters,
         )
         return await self.request.post("v1/redact", m.RedactResult, data=input.model_dump(exclude_none=True))
 
@@ -114,6 +120,8 @@ class RedactAsync(ServiceBaseAsync):
         rulesets: Optional[List[str]] = None,
         return_result: Optional[bool] = None,
         redaction_method_overrides: Optional[m.RedactionMethodOverrides] = None,
+        llm_request: bool | None = None,
+        vault_parameters: m.VaultParameters | None = None,
     ) -> PangeaResponse[m.StructuredResult]:
         """
         Redact structured
@@ -134,6 +142,8 @@ class RedactAsync(ServiceBaseAsync):
             rulesets (list[str], optional): An array of redact rulesets short names
             return_result(bool, optional): Setting this value to false will omit the redacted result only returning count
             redaction_method_overrides: A set of redaction method overrides for any enabled rule. These methods override the config declared methods
+            llm_request: Boolean flag to enable FPE redaction for LLM requests
+            vault_parameters: A set of vault parameters to use for redaction
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -161,6 +171,8 @@ class RedactAsync(ServiceBaseAsync):
             rulesets=rulesets,
             return_result=return_result,
             redaction_method_overrides=redaction_method_overrides,
+            llm_request=llm_request,
+            vault_parameters=vault_parameters,
         )
         return await self.request.post(
             "v1/redact_structured", m.StructuredResult, data=input.model_dump(exclude_none=True)
