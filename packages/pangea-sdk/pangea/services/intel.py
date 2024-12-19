@@ -1672,7 +1672,7 @@ class UserIntel(ServiceBase):
             PangeaAPIException: If an API Error happens
 
         Returns:
-            A PangeaResponse where the sanctioned source(s) are in the
+            A PangeaResponse where the breach details are in the
                 response.result field.  Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/user-intel)
 
         Examples:
