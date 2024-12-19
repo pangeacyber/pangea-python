@@ -119,11 +119,13 @@ class RedactResult(PangeaResponseResult):
     redact_text: Redacted text result
     count: Number of redactions present in the text
     report: Describes the decision process for redactions
+    fpe_context: FPE context used to encrypt and redact data
     """
 
     redacted_text: Optional[str] = None
     count: int
     report: Optional[DebugReport] = None
+    fpe_context: Optional[str] = None
 
 
 class StructuredRequest(APIRequestModel):
@@ -260,6 +262,8 @@ class Redact(ServiceBase):
             rulesets (list[str], optional): An array of redact rulesets short names
             return_result(bool, optional): Setting this value to false will omit the redacted result only returning count
             redaction_method_overrides: A set of redaction method overrides for any enabled rule. These methods override the config declared methods
+            llm_request: Boolean flag to enable FPE redaction for LLM requests
+            vault_parameters: A set of vault parameters to use for redaction
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -317,6 +321,8 @@ class Redact(ServiceBase):
             rulesets (list[str], optional): An array of redact rulesets short names
             return_result(bool, optional): Setting this value to false will omit the redacted result only returning count
             redaction_method_overrides: A set of redaction method overrides for any enabled rule. These methods override the config declared methods
+            llm_request: Boolean flag to enable FPE redaction for LLM requests
+            vault_parameters: A set of vault parameters to use for redaction
 
         Raises:
             PangeaAPIException: If an API Error happens
