@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Support for `severity` field on `v1/user/breached` and `v2/user/breached` of `user-intel` service.
+- `/v1/breach` endpoint support on `user-intel` service.
+
 ## 5.2.1 - 2024-12-19
 
 ### Fixed
@@ -18,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Support for `cursor` field on `v1/user/breached` of `user-intel`
+- Support for `cursor` field on `v1/user/breached` of `user-intel` service.
 - `vault_parameters` and `llm_request` fields support on Redact service.
 
 ### Changed
