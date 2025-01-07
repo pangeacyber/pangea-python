@@ -1,8 +1,10 @@
-[tool.poetry]
+[project]
 name = "pangea-sdk"
 version = "5.2.1"
 description = "Pangea API SDK"
-authors = ["Glenn Gallien <glenn.gallien@pangea.cloud>"]
+authors = [
+    {name = "Glenn Gallien", email = "glenn.gallien@pangea.cloud"}
+]
 license = "MIT"
 readme = "README.md"
 homepage = "https://pangea.cloud/docs/sdk/python/"
@@ -12,19 +14,33 @@ classifiers = [
     "Topic :: Software Development",
     "Topic :: Software Development :: Libraries",
 ]
+requires-python = ">=3.9"
+dependencies = [
+  "aiohttp",
+  "cryptography",
+  "deprecated",
+  "google-crc32c",
+  "pydantic",
+  "python-dateutil",
+  "requests-toolbelt",
+  "requests",
+  "typing-extensions"
+]
+
+[tool.poetry]
 packages = [
     { include = "pangea" }
 ]
 
 [tool.poetry.dependencies]
 python = "^3.9.0"
-requests = "^2.31.0"
-cryptography = "^43.0.3"
-python-dateutil = "^2.9.0"
-pydantic = "^2.10.4"
-deprecated = "^1.2.15"
 aiohttp = "^3.11.11"
+cryptography = "^43.0.3"
+deprecated = "^1.2.15"
 google-crc32c = "^1.5.0"
+pydantic = "^2.10.4"
+python-dateutil = "^2.9.0"
+requests = "^2.31.0"
 requests-toolbelt = "^1.0.0"
 typing-extensions = "^4.12.2"
 
@@ -55,5 +71,5 @@ show_column_numbers = true
 warn_unused_ignores = true
 
 [build-system]
-requires = ["poetry-core>=1.9.1"]
+requires = ["poetry-core>=2.0.0"]
 build-backend = "poetry.core.masonry.api"

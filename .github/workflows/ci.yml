@@ -25,11 +25,11 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  POETRY_VERSION: 1.8.3
+  POETRY_VERSION: 2.0.0
 
 jobs:
   setup:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     outputs:
       examples-matrix: ${{ steps.examples-matrix.outputs.examples-matrix }}
@@ -50,7 +50,7 @@ jobs:
           echo "$examples" >> "$GITHUB_OUTPUT"
 
   prefetch:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout code
         uses: actions/checkout@v4.2.2
@@ -77,7 +77,7 @@ jobs:
     # allow it.
     if: ${{ github.ref != 'refs/heads/main' }}
     needs: [prefetch]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout code
         uses: actions/checkout@v4.2.2
@@ -91,7 +91,7 @@ jobs:
 
   lint-black:
     needs: [prefetch]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         package: [pangea-django, pangea-sdk]
@@ -124,7 +124,7 @@ jobs:
 
   lint-isort:
     needs: [prefetch]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         package: [pangea-django, pangea-sdk]
@@ -157,7 +157,7 @@ jobs:
 
   sdk-lint-mypy:
     needs: [prefetch]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         package: [pangea-django, pangea-sdk]
@@ -190,7 +190,7 @@ jobs:
 
   sdk-test-unit:
     needs: [prefetch]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         python-version: ['3.9', '3.10', '3.11', '3.12', '3.13']
@@ -223,7 +223,7 @@ jobs:
 
   sdk-docs:
     needs: [prefetch]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: ./packages/pangea-sdk
@@ -259,7 +259,7 @@ jobs:
 
   examples:
     needs: [setup, prefetch]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         example: ${{ fromJSON(needs.setup.outputs.examples-matrix) }}
@@ -303,7 +303,7 @@ jobs:
 
   django-test-unit:
     needs: [prefetch]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         python-version: ['3.9', '3.10', '3.11', '3.12', '3.13']

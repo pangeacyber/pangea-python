@@ -1,9 +1,13 @@
-[tool.poetry]
+[project]
 name = "authz-examples"
 version = "0.0.0"
 description = "AuthZ examples."
 authors = []
 readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+  "pangea-sdk"
+]
 
 [tool.poetry.dependencies]
 python = "^3.9.20"
@@ -21,5 +25,5 @@ line-length = 120
 profile = "black"
 
 [build-system]
-requires = ["poetry-core==1.9.1"]
+requires = ["poetry-core>=2.0.0"]
 build-backend = "poetry.core.masonry.api"
