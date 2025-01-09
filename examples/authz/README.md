@@ -11,11 +11,10 @@ In the example root directory (`./examples/authz`), run the following command:
 $ poetry install
 ```
 
-Set up the environment variables ([Instructions][set-environment-variables])
+Set up the environment variables ([Instructions][set-your-environment-variables])
 `PANGEA_AUTHZ_TOKEN` and `PANGEA_DOMAIN` with your project token configured on
 the Pangea User Console (token should have access to the AuthZ service, see
-["Configure a Pangea service"][configure-a-pangea-service]) and with your Pangea
-domain.
+[the Tokens page][tokens]) and with your Pangea domain.
 
 ## Run
 
@@ -25,5 +24,5 @@ To run the example:
 $ poetry run python authz_examples/example.py
 ```
 
-[configure-a-pangea-service]: https://pangea.cloud/docs/getting-started/configure-services/#configure-a-pangea-service
-[set-environment-variables]: https://pangea.cloud/docs/getting-started/integrate/#set-environment-variables
+[set-your-environment-variables]: https://pangea.cloud/docs/authz/#set-your-environment-variables
+[tokens]: https://pangea.cloud/docs/admin-guide/tokens
