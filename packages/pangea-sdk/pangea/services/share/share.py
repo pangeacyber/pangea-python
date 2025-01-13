@@ -6,6 +6,7 @@ import enum
 import io
 from typing import Dict, List, NewType, Optional, Tuple, Union
 
+from pangea.config import PangeaConfig
 from pangea.response import APIRequestModel, PangeaResponse, PangeaResponseResult, TransferMethod
 from pangea.services.base import ServiceBase
 from pangea.services.share.file_format import FileFormat
@@ -159,6 +160,21 @@ class ItemData(PangeaResponseResult):
     external_bucket_key: Optional[str] = None
     """The key in the external bucket that contains this file."""
 
+    file_ttl: Optional[str] = None
+    """The explicit file TTL setting for this object."""
+
+    file_ttl_effective: Optional[str] = None
+    """
+    The effective file TTL setting for this object, either explicitly set or
+    inherited (see `file_ttl_from_id`.)
+    """
+
+    file_ttl_from_id: Optional[str] = None
+    """
+    The ID of the object the expiry / TTL is set from. Either a service
+    configuration, the object itself, or a parent folder.
+    """
+
 
 class DeleteResult(PangeaResponseResult):
     count: int
@@ -169,17 +185,35 @@ class FolderCreateRequest(APIRequestModel):
     name: Optional[str] = None
     """The name of an object."""
 
+    file_ttl: Optional[str] = None
+    """Duration until files within this folder are automatically deleted."""
+
     metadata: Optional[Metadata] = None
     """A set of string-based key/value pairs used to provide additional data about an object."""
 
+    root_folder: Optional[str] = None
+    """
+    The path of a root folder to restrict the operation to. Must resolve to
+    `root_id` if also set.
+    """
+
+    root_id: Optional[str] = None
+    """
+    The ID of a root folder to restrict the operation to. Must match
+    `root_folder` if also set.
+    """
+
     parent_id: Optional[str] = None
-    """The ID of a stored object."""
+    """The ID of the parent folder. Must match `folder` if also set."""
 
     folder: Optional[str] = None
     """The folder to place the folder in. Must match `parent_id` if also set."""
 
     tags: Optional[Tags] = None
     """A list of user-defined tags"""
+
+    tenant_id: Optional[str] = None
+    """A tenant to associate with this request"""
 
     bucket_id: Optional[str] = None
     """The bucket to use, if not the default."""
@@ -202,6 +236,9 @@ class GetRequest(APIRequestModel):
 
     bucket_id: Optional[str] = None
     """The bucket to use, if not the default."""
+
+    tenant_id: Optional[str] = None
+    """A tenant to associate with this request."""
 
 
 class GetResult(PangeaResponseResult):
@@ -249,11 +286,26 @@ class PutRequest(APIRequestModel):
     folder: Optional[str] = None
     """The path to the parent folder. Leave blank for the root folder. Path must resolve to `parent_id` if also set."""
 
+    file_ttl: Optional[str] = None
+    """The TTL before expiry for the file."""
+
     password: Optional[str] = None
     """An optional password to protect the file with. Downloading the file will require this password."""
 
     password_algorithm: Optional[str] = None
     """An optional password algorithm to protect the file with. See symmetric vault password_algorithm."""
+
+    root_folder: Optional[str] = None
+    """
+    The path of a root folder to restrict the operation to. Must resolve to
+    `root_id` if also set.
+    """
+
+    root_id: Optional[str] = None
+    """
+    The ID of a root folder to restrict the operation to. Must match
+    `root_folder` if also set.
+    """
 
     sha1: Optional[str] = None
     """The hexadecimal-encoded SHA1 hash of the file data, which will be verified by the server if provided."""
@@ -263,6 +315,9 @@ class PutRequest(APIRequestModel):
 
     tags: Optional[Tags] = None
     """A list of user-defined tags"""
+
+    tenant_id: Optional[str] = None
+    """A tenant to associate with this request"""
 
 
 class PutResult(PangeaResponseResult):
@@ -291,6 +346,9 @@ class UpdateRequest(APIRequestModel):
     add_tags: Optional[Tags] = None
     """A list of Tags to add. It is not an error to provide a tag which already exists."""
 
+    file_ttl: Optional[str] = None
+    """Set the file TTL."""
+
     name: Optional[str] = None
     """Sets the object's Name."""
 
@@ -306,11 +364,26 @@ class UpdateRequest(APIRequestModel):
     remove_tags: Optional[Tags] = None
     """A list of tags to remove. It is not an error to provide a tag which is not present."""
 
+    root_folder: Optional[str] = None
+    """
+    The path of a root folder to restrict the operation to. Must resolve to
+    `root_id` if also set.
+    """
+
+    root_id: Optional[str] = None
+    """
+    The ID of a root folder to restrict the operation to. Must match
+    `root_folder` if also set.
+    """
+
     parent_id: Optional[str] = None
     """Set the parent (folder) of the object. Can be an empty string for the root folder."""
 
     tags: Optional[Tags] = None
     """Set the object's tags."""
+
+    tenant_id: Optional[str] = None
+    """A tenant to associate with this request."""
 
     updated_at: Optional[str] = None
     """The date and time the object was last updated. If included, the update will fail if this doesn't match the date and time of the last update for the object."""
@@ -669,9 +742,30 @@ class BucketsResult(PangeaResponseResult):
 
 
 class Share(ServiceBase):
-    """Share service client."""
+    """Secure Share service client."""
 
     service_name = "share"
+
+    def __init__(
+        self, token: str, config: PangeaConfig | None = None, logger_name: str = "pangea", config_id: str | None = None
+    ) -> None:
+        """
+        Secure Share client
+
+        Initializes a new Secure Share client.
+
+        Args:
+            token: Pangea API token.
+            config: Configuration.
+            logger_name: Logger name.
+            config_id: Configuration ID.
+
+        Examples:
+             config = PangeaConfig(domain="aws.us.pangea.cloud")
+             authz = Share(token="pangea_token", config=config)
+        """
+
+        super().__init__(token, config, logger_name, config_id=config_id)
 
     def buckets(self) -> PangeaResponse[BucketsResult]:
         """
@@ -725,6 +819,11 @@ class Share(ServiceBase):
         folder: Optional[str] = None,
         tags: Optional[Tags] = None,
         bucket_id: Optional[str] = None,
+        *,
+        file_ttl: Optional[str] = None,
+        root_folder: Optional[str] = None,
+        root_id: Optional[str] = None,
+        tenant_id: Optional[str] = None,
     ) -> PangeaResponse[FolderCreateResult]:
         """
         Create a folder
@@ -741,6 +840,13 @@ class Share(ServiceBase):
               match `parent_id` if also set.
             tags (Tags, optional): A list of user-defined tags.
             bucket_id (str, optional): The bucket to use, if not the default.
+            file_ttl: Duration until files within this folder are automatically
+              deleted.
+            root_folder: The path of a root folder to restrict the operation to.
+              Must resolve to `root_id` if also set.
+            root_id: The ID of a root folder to restrict the operation to. Must
+              match `root_folder` if also set.
+            tenant_id: A tenant to associate with this request
 
         Returns:
             A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/share).
@@ -757,7 +863,16 @@ class Share(ServiceBase):
             )
         """
         input = FolderCreateRequest(
-            name=name, metadata=metadata, parent_id=parent_id, folder=folder, tags=tags, bucket_id=bucket_id
+            name=name,
+            metadata=metadata,
+            parent_id=parent_id,
+            folder=folder,
+            tags=tags,
+            bucket_id=bucket_id,
+            file_ttl=file_ttl,
+            root_folder=root_folder,
+            root_id=root_id,
+            tenant_id=tenant_id,
         )
         return self.request.post("v1/folder/create", FolderCreateResult, data=input.model_dump(exclude_none=True))
 
@@ -767,6 +882,8 @@ class Share(ServiceBase):
         transfer_method: Optional[TransferMethod] = None,
         bucket_id: Optional[str] = None,
         password: Optional[str] = None,
+        *,
+        tenant_id: Optional[str] = None,
     ) -> PangeaResponse[GetResult]:
         """
         Get an object
@@ -781,6 +898,7 @@ class Share(ServiceBase):
             transfer_method (TransferMethod, optional): The requested transfer method for the file data.
             bucket_id (str, optional): The bucket to use, if not the default.
             password (str, optional): If the file was protected with a password, the password to decrypt with.
+            tenant_id: A tenant to associate with this request.
 
         Returns:
             A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/share).
@@ -791,7 +909,9 @@ class Share(ServiceBase):
                 folder="/",
             )
         """
-        input = GetRequest(id=id, transfer_method=transfer_method, bucket_id=bucket_id, password=password)
+        input = GetRequest(
+            id=id, transfer_method=transfer_method, bucket_id=bucket_id, password=password, tenant_id=tenant_id
+        )
         return self.request.post("v1/get", GetResult, data=input.model_dump(exclude_none=True))
 
     def get_archive(
@@ -885,6 +1005,11 @@ class Share(ServiceBase):
         bucket_id: Optional[str] = None,
         password: Optional[str] = None,
         password_algorithm: Optional[str] = None,
+        *,
+        file_ttl: Optional[str] = None,
+        root_folder: Optional[str] = None,
+        root_id: Optional[str] = None,
+        tenant_id: Optional[str] = None,
     ) -> PangeaResponse[PutResult]:
         """
         Upload a file
@@ -913,6 +1038,13 @@ class Share(ServiceBase):
             bucket_id (str, optional): The bucket to use, if not the default.
             password (str, optional): An optional password to protect the file with. Downloading the file will require this password.
             password_algorithm (str, optional): An optional password algorithm to protect the file with. See symmetric vault password_algorithm.
+            file_ttl: The TTL before expiry for the file.
+            root_folder: The path of a root folder to restrict the operation to.
+              Must resolve to `root_id` if also set.
+            root_id: The ID of a root folder to restrict the operation to. Must
+              match `root_folder` if also set.
+            tenant_id: A tenant to associate with this request.
+
         Returns:
             A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/share).
 
@@ -955,6 +1087,10 @@ class Share(ServiceBase):
             bucket_id=bucket_id,
             password=password,
             password_algorithm=password_algorithm,
+            file_ttl=file_ttl,
+            root_folder=root_folder,
+            root_id=root_id,
+            tenant_id=tenant_id,
         )
         data = input.model_dump(exclude_none=True)
         return self.request.post("v1/put", PutResult, data=data, files=files)
@@ -976,6 +1112,13 @@ class Share(ServiceBase):
         sha256: Optional[str] = None,
         size: Optional[int] = None,
         bucket_id: Optional[str] = None,
+        *,
+        file_ttl: Optional[str] = None,
+        password: Optional[str] = None,
+        password_algorithm: Optional[str] = None,
+        root_folder: Optional[str] = None,
+        root_id: Optional[str] = None,
+        tenant_id: Optional[str] = None,
     ) -> PangeaResponse[PutResult]:
         """
         Request upload URL
@@ -1001,6 +1144,16 @@ class Share(ServiceBase):
             sha256 (str, optional): The SHA256 hash of the file data, which will be verified by the server if provided.
             size (str, optional): The size (in bytes) of the file. If the upload doesn't match, the call will fail.
             bucket_id (str, optional): The bucket to use, if not the default.
+            file_ttl: The TTL before expiry for the file.
+            password: An optional password to protect the file with. Downloading
+              the file will require this password.
+            password_algorithm: An optional password algorithm to protect the
+              file with. See symmetric vault password_algorithm.
+            root_folder: The path of a root folder to restrict the operation to.
+              Must resolve to `root_id` if also set.
+            root_id: The ID of a root folder to restrict the operation to. Must
+              match `root_folder` if also set.
+            tenant_id: A tenant to associate with this request.
 
         Returns:
             A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/share).
@@ -1036,6 +1189,12 @@ class Share(ServiceBase):
             sha512=sha512,
             size=size,
             bucket_id=bucket_id,
+            file_ttl=file_ttl,
+            password=password,
+            password_algorithm=password_algorithm,
+            root_folder=root_folder,
+            root_id=root_id,
+            tenant_id=tenant_id,
         )
 
         data = input.model_dump(exclude_none=True)
@@ -1054,6 +1213,14 @@ class Share(ServiceBase):
         parent_id: Optional[str] = None,
         updated_at: Optional[str] = None,
         bucket_id: Optional[str] = None,
+        *,
+        add_password: Optional[str] = None,
+        add_password_algorithm: Optional[str] = None,
+        remove_password: Optional[str] = None,
+        file_ttl: Optional[str] = None,
+        root_folder: Optional[str] = None,
+        root_id: Optional[str] = None,
+        tenant_id: Optional[str] = None,
     ) -> PangeaResponse[UpdateResult]:
         """
         Update a file
@@ -1064,7 +1231,7 @@ class Share(ServiceBase):
 
         Args:
             id (str, optional): An identifier for the file to update.
-            path (str, optional): Set the parent (folder). Leave blank for the
+            folder (str, optional): Set the parent (folder). Leave blank for the
               root folder. Path must resolve to `parent_id` if also set.
             add_metadata (Metadata, optional): A list of Metadata key/values to set in the object. If a provided key exists, the value will be replaced.
             remove_metadata (Metadata, optional): A list of Metadata key/values to remove in the object. It is not an error for a provided key to not exist. If a provided key exists but doesn't match the provided value, it will not be removed.
@@ -1075,6 +1242,16 @@ class Share(ServiceBase):
             parent_id (str, optional): Set the parent (folder) of the object.
             updated_at (str, optional): The date and time the object was last updated. If included, the update will fail if this doesn't match what's stored.
             bucket_id (str, optional): The bucket to use, if not the default.
+            add_password: Protect the file with the supplied password.
+            add_password_algorithm: The algorithm to use to password protect the
+              file.
+            remove_password: Remove the supplied password from the file.
+            file_ttl: Set the file TTL.
+            root_folder: The path of a root folder to restrict the operation to.
+              Must resolve to `root_id` if also set.
+            root_id: The ID of a root folder to restrict the operation to. Must
+              match `root_folder` if also set.
+            tenant_id: A tenant to associate with this request.
 
         Returns:
             A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/share).
@@ -1101,6 +1278,13 @@ class Share(ServiceBase):
             parent_id=parent_id,
             updated_at=updated_at,
             bucket_id=bucket_id,
+            add_password=add_password,
+            add_password_algorithm=add_password_algorithm,
+            remove_password=remove_password,
+            file_ttl=file_ttl,
+            root_folder=root_folder,
+            root_id=root_id,
+            tenant_id=tenant_id,
         )
         return self.request.post("v1/update", UpdateResult, data=input.model_dump(exclude_none=True))
 

@@ -263,8 +263,14 @@ def main():
         audit = init_audit(args.token, args.domain)
         errors = deep_verify(audit, args.file)
 
-        print("\n\nTotal errors:")
+        print("\n\nWarnings:")
+        val = errors["not_persisted"]
+        print(f"\tnot_persisted: {val}")
+
+        print("\nTotal errors:")
         for key, val in errors.items():
+            if key == "not_persisted":
+                continue
             print(f"\t{key.title()}: {val}")
         print()
 

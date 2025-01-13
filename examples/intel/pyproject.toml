@@ -1,9 +1,17 @@
-[tool.poetry]
+[project]
 name = "intel-examples"
 version = "2.1.0"
 description = "This is a set of examples about how to use python SDK to communicate with Intel service"
-authors = ["H. Andres Tournour <andres.tournour@pangea.cloud>"]
+authors = [
+  {name = "H. Andres Tournour", email = "andres.tournour@pangea.cloud"}
+]
 readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+  "pangea-sdk"
+]
+
+[tool.poetry]
 packages = [{include = "intel_examples"}]
 
 [tool.poetry.dependencies]
@@ -13,7 +21,7 @@ pangea-sdk = { path = "../../packages/pangea-sdk", develop = true }
 [tool.poetry.group.dev.dependencies]
 black = "^24.10.0"
 isort = "^5.13.2"
-mypy = "^1.13.0"
+mypy = "^1.14.1"
 
 [tool.black]
 line-length = 120
@@ -27,5 +35,5 @@ python_version = "3.9"
 warn_unused_ignores = true
 
 [build-system]
-requires = ["poetry-core"]
+requires = ["poetry-core>=2.0.0"]
 build-backend = "poetry.core.masonry.api"

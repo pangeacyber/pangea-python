@@ -186,7 +186,20 @@ class PangeaRequestAsync(PangeaRequestBase):
         if resp.status < 200 or resp.status >= 300:
             raise pe.PresignedUploadError(f"presigned PUT failure: {resp.status}", await resp.text())
 
-    async def download_file(self, url: str, filename: Optional[str] = None) -> AttachedFile:
+    async def download_file(self, url: str, filename: str | None = None) -> AttachedFile:
+        """
+        Download file
+
+        Download a file from the specified URL and save it with the given
+        filename.
+
+        Args:
+            url: URL of the file to download
+            filename: Name to save the downloaded file as. If not provided, the
+              filename will be determined from the Content-Disposition header or
+              the URL.
+        """
+
         self.logger.debug(
             json.dumps(
                 {

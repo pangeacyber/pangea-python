@@ -66,6 +66,17 @@ class RedactRequest(APIRequestModel):
     rulesets: Optional[List[str]] = None
     return_result: Optional[bool] = None
     redaction_method_overrides: Optional[RedactionMethodOverrides] = None
+    vault_parameters: Optional[VaultParameters] = None
+    llm_request: Optional[bool] = None
+    """Is this redact call going to be used in an LLM request?"""
+
+
+class VaultParameters(APIRequestModel):
+    fpe_key_id: Optional[str] = None
+    """A vault key ID of an exportable key used to redact with FPE instead of using the service config default."""
+
+    salt_secret_id: Optional[str] = None
+    """A vault secret ID of a secret used to salt a hash instead of using the service config default."""
 
 
 class RecognizerResult(APIResponseModel):
@@ -108,11 +119,13 @@ class RedactResult(PangeaResponseResult):
     redact_text: Redacted text result
     count: Number of redactions present in the text
     report: Describes the decision process for redactions
+    fpe_context: FPE context used to encrypt and redact data
     """
 
     redacted_text: Optional[str] = None
     count: int
     report: Optional[DebugReport] = None
+    fpe_context: Optional[str] = None
 
 
 class StructuredRequest(APIRequestModel):
@@ -134,6 +147,9 @@ class StructuredRequest(APIRequestModel):
     rulesets: Optional[List[str]] = None
     return_result: Optional[bool] = None
     redaction_method_overrides: Optional[RedactionMethodOverrides] = None
+    vault_parameters: Optional[VaultParameters] = None
+    llm_request: Optional[bool] = None
+    """Is this redact call going to be used in an LLM request?"""
 
 
 class StructuredResult(PangeaResponseResult):
@@ -228,6 +244,8 @@ class Redact(ServiceBase):
         rulesets: Optional[List[str]] = None,
         return_result: Optional[bool] = None,
         redaction_method_overrides: Optional[RedactionMethodOverrides] = None,
+        llm_request: Optional[bool] = None,
+        vault_parameters: Optional[VaultParameters] = None,
     ) -> PangeaResponse[RedactResult]:
         """
         Redact
@@ -244,6 +262,8 @@ class Redact(ServiceBase):
             rulesets (list[str], optional): An array of redact rulesets short names
             return_result(bool, optional): Setting this value to false will omit the redacted result only returning count
             redaction_method_overrides: A set of redaction method overrides for any enabled rule. These methods override the config declared methods
+            llm_request: Boolean flag to enable FPE redaction for LLM requests
+            vault_parameters: A set of vault parameters to use for redaction
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -264,6 +284,8 @@ class Redact(ServiceBase):
             rulesets=rulesets,
             return_result=return_result,
             redaction_method_overrides=redaction_method_overrides,
+            llm_request=llm_request,
+            vault_parameters=vault_parameters,
         )
         return self.request.post("v1/redact", RedactResult, data=input.model_dump(exclude_none=True))
 
@@ -277,6 +299,8 @@ class Redact(ServiceBase):
         rulesets: Optional[List[str]] = None,
         return_result: Optional[bool] = None,
         redaction_method_overrides: Optional[RedactionMethodOverrides] = None,
+        llm_request: Optional[bool] = None,
+        vault_parameters: Optional[VaultParameters] = None,
     ) -> PangeaResponse[StructuredResult]:
         """
         Redact structured
@@ -297,6 +321,8 @@ class Redact(ServiceBase):
             rulesets (list[str], optional): An array of redact rulesets short names
             return_result(bool, optional): Setting this value to false will omit the redacted result only returning count
             redaction_method_overrides: A set of redaction method overrides for any enabled rule. These methods override the config declared methods
+            llm_request: Boolean flag to enable FPE redaction for LLM requests
+            vault_parameters: A set of vault parameters to use for redaction
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -324,6 +350,8 @@ class Redact(ServiceBase):
             rulesets=rulesets,
             return_result=return_result,
             redaction_method_overrides=redaction_method_overrides,
+            llm_request=llm_request,
+            vault_parameters=vault_parameters,
         )
         return self.request.post("v1/redact_structured", StructuredResult, data=input.model_dump(exclude_none=True))
 

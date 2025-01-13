@@ -7,15 +7,37 @@ from typing import Dict, List, Optional, Tuple, Union
 
 import pangea.services.share.share as m
 from pangea.asyncio.services.base import ServiceBaseAsync
+from pangea.config import PangeaConfig
 from pangea.response import PangeaResponse, TransferMethod
 from pangea.services.share.file_format import FileFormat
 from pangea.utils import get_file_size, get_file_upload_params
 
 
 class ShareAsync(ServiceBaseAsync):
-    """Share service client."""
+    """Secure Share service client."""
 
     service_name = "share"
+
+    def __init__(
+        self, token: str, config: PangeaConfig | None = None, logger_name: str = "pangea", config_id: str | None = None
+    ) -> None:
+        """
+        Secure Share client
+
+        Initializes a new Secure Share client.
+
+        Args:
+            token: Pangea API token.
+            config: Configuration.
+            logger_name: Logger name.
+            config_id: Configuration ID.
+
+        Examples:
+             config = PangeaConfig(domain="aws.us.pangea.cloud")
+             authz = ShareAsync(token="pangea_token", config=config)
+        """
+
+        super().__init__(token, config, logger_name, config_id=config_id)
 
     async def buckets(self) -> PangeaResponse[m.BucketsResult]:
         """
@@ -71,6 +93,11 @@ class ShareAsync(ServiceBaseAsync):
         folder: Optional[str] = None,
         tags: Optional[m.Tags] = None,
         bucket_id: Optional[str] = None,
+        *,
+        file_ttl: Optional[str] = None,
+        root_folder: Optional[str] = None,
+        root_id: Optional[str] = None,
+        tenant_id: Optional[str] = None,
     ) -> PangeaResponse[m.FolderCreateResult]:
         """
         Create a folder
@@ -87,6 +114,13 @@ class ShareAsync(ServiceBaseAsync):
               match `parent_id` if also set.
             tags (Tags, optional): A list of user-defined tags.
             bucket_id (str, optional): The bucket to use, if not the default.
+            file_ttl: Duration until files within this folder are automatically
+              deleted.
+            root_folder: The path of a root folder to restrict the operation to. Must resolve to
+              `root_id` if also set.
+            root_id: The ID of a root folder to restrict the operation to. Must match
+              `root_folder` if also set.
+            tenant_id: A tenant to associate with this request.
 
         Returns:
             A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/share).
@@ -104,7 +138,16 @@ class ShareAsync(ServiceBaseAsync):
         """
 
         input = m.FolderCreateRequest(
-            name=name, metadata=metadata, parent_id=parent_id, folder=folder, tags=tags, bucket_id=bucket_id
+            name=name,
+            metadata=metadata,
+            parent_id=parent_id,
+            folder=folder,
+            tags=tags,
+            bucket_id=bucket_id,
+            file_ttl=file_ttl,
+            root_folder=root_folder,
+            root_id=root_id,
+            tenant_id=tenant_id,
         )
         return await self.request.post(
             "v1/folder/create", m.FolderCreateResult, data=input.model_dump(exclude_none=True)
@@ -116,6 +159,8 @@ class ShareAsync(ServiceBaseAsync):
         transfer_method: Optional[TransferMethod] = None,
         bucket_id: Optional[str] = None,
         password: Optional[str] = None,
+        *,
+        tenant_id: Optional[str] = None,
     ) -> PangeaResponse[m.GetResult]:
         """
         Get an object
@@ -130,6 +175,7 @@ class ShareAsync(ServiceBaseAsync):
             transfer_method (TransferMethod, optional): The requested transfer method for the file data.
             bucket_id (str, optional): The bucket to use, if not the default.
             password (str, optional): If the file was protected with a password, the password to decrypt with.
+            tenant_id: A tenant to associate with this request.
 
         Returns:
             A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/share).
@@ -141,7 +187,9 @@ class ShareAsync(ServiceBaseAsync):
             )
         """
 
-        input = m.GetRequest(id=id, transfer_method=transfer_method, bucket_id=bucket_id, password=password)
+        input = m.GetRequest(
+            id=id, transfer_method=transfer_method, bucket_id=bucket_id, password=password, tenant_id=tenant_id
+        )
         return await self.request.post("v1/get", m.GetResult, data=input.model_dump(exclude_none=True))
 
     async def get_archive(
@@ -237,6 +285,11 @@ class ShareAsync(ServiceBaseAsync):
         bucket_id: Optional[str] = None,
         password: Optional[str] = None,
         password_algorithm: Optional[str] = None,
+        *,
+        file_ttl: Optional[str] = None,
+        root_folder: Optional[str] = None,
+        root_id: Optional[str] = None,
+        tenant_id: Optional[str] = None,
     ) -> PangeaResponse[m.PutResult]:
         """
         Upload a file
@@ -265,6 +318,13 @@ class ShareAsync(ServiceBaseAsync):
             bucket_id (str, optional): The bucket to use, if not the default.
             password (str, optional): An optional password to protect the file with. Downloading the file will require this password.
             password_algorithm (str, optional): An optional password algorithm to protect the file with. See symmetric vault password_algorithm.
+            file_ttl: The TTL before expiry for the file.
+            root_folder: The path of a root folder to restrict the operation to.
+              Must resolve to `root_id` if also set.
+            root_id: The ID of a root folder to restrict the operation to. Must
+              match `root_folder` if also set.
+            tenant_id: A tenant to associate with this request.
+
         Returns:
             A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/share).
 
@@ -308,6 +368,10 @@ class ShareAsync(ServiceBaseAsync):
             bucket_id=bucket_id,
             password=password,
             password_algorithm=password_algorithm,
+            file_ttl=file_ttl,
+            root_folder=root_folder,
+            root_id=root_id,
+            tenant_id=tenant_id,
         )
         data = input.model_dump(exclude_none=True)
         return await self.request.post("v1/put", m.PutResult, data=data, files=files)
@@ -329,6 +393,13 @@ class ShareAsync(ServiceBaseAsync):
         sha256: Optional[str] = None,
         size: Optional[int] = None,
         bucket_id: Optional[str] = None,
+        *,
+        password: Optional[str] = None,
+        password_algorithm: Optional[str] = None,
+        file_ttl: Optional[str] = None,
+        root_folder: Optional[str] = None,
+        root_id: Optional[str] = None,
+        tenant_id: Optional[str] = None,
     ) -> PangeaResponse[m.PutResult]:
         """
         Request upload URL
@@ -354,6 +425,16 @@ class ShareAsync(ServiceBaseAsync):
             sha256 (str, optional): The SHA256 hash of the file data, which will be verified by the server if provided.
             size (str, optional): The size (in bytes) of the file. If the upload doesn't match, the call will fail.
             bucket_id (str, optional): The bucket to use, if not the default.
+            password: An optional password to protect the file with. Downloading
+              the file will require this password.
+            password_algorithm: An optional password algorithm to protect the
+              file with. See symmetric vault password_algorithm.
+            file_ttl: The TTL before expiry for the file.
+            root_folder: The path of a root folder to restrict the operation to.
+              Must resolve to `root_id` if also set.
+            root_id: The ID of a root folder to restrict the operation to. Must
+              match `root_folder` if also set.
+            tenant_id: A tenant to associate with this request.
 
         Returns:
             A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/share).
@@ -390,6 +471,12 @@ class ShareAsync(ServiceBaseAsync):
             sha512=sha512,
             size=size,
             bucket_id=bucket_id,
+            password=password,
+            password_algorithm=password_algorithm,
+            file_ttl=file_ttl,
+            root_folder=root_folder,
+            root_id=root_id,
+            tenant_id=tenant_id,
         )
 
         data = input.model_dump(exclude_none=True)
@@ -408,6 +495,14 @@ class ShareAsync(ServiceBaseAsync):
         parent_id: Optional[str] = None,
         updated_at: Optional[str] = None,
         bucket_id: Optional[str] = None,
+        *,
+        add_password: Optional[str] = None,
+        add_password_algorithm: Optional[str] = None,
+        remove_password: Optional[str] = None,
+        file_ttl: Optional[str] = None,
+        root_folder: Optional[str] = None,
+        root_id: Optional[str] = None,
+        tenant_id: Optional[str] = None,
     ) -> PangeaResponse[m.UpdateResult]:
         """
         Update a file
@@ -429,6 +524,16 @@ class ShareAsync(ServiceBaseAsync):
             parent_id (str, optional): Set the parent (folder) of the object.
             updated_at (str, optional): The date and time the object was last updated. If included, the update will fail if this doesn't match what's stored.
             bucket_id (str, optional): The bucket to use, if not the default.
+            add_password: Protect the file with the supplied password.
+            add_password_algorithm: The algorithm to use to password protect the
+              file.
+            remove_password: Remove the supplied password from the file.
+            file_ttl: Set the file TTL.
+            root_folder: The path of a root folder to restrict the operation to.
+              Must resolve to `root_id` if also set.
+            root_id: The ID of a root folder to restrict the operation to. Must
+              match `root_folder` if also set.
+            tenant_id: A tenant to associate with this request.
 
         Returns:
             A PangeaResponse. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/share).
@@ -456,6 +561,13 @@ class ShareAsync(ServiceBaseAsync):
             parent_id=parent_id,
             updated_at=updated_at,
             bucket_id=bucket_id,
+            add_password=add_password,
+            add_password_algorithm=add_password_algorithm,
+            remove_password=remove_password,
+            file_ttl=file_ttl,
+            root_folder=root_folder,
+            root_id=root_id,
+            tenant_id=tenant_id,
         )
         return await self.request.post("v1/update", m.UpdateResult, data=input.model_dump(exclude_none=True))
 

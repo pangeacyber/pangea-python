@@ -1,8 +1,10 @@
-[tool.poetry]
+[project]
 name = "pangea-django"
 version = "1.0.1"
 description = "Pangea Authentication Addon for Django"
-authors = ["Govind Salinas <govind.salinas@pangea.cloud>"]
+authors = [
+    {name = "Govind Salinas", email = "govind.salinas@pangea.cloud"}
+]
 license = "MIT"
 readme = "README.md"
 homepage = "https://github.com/pangeacyber/pangea-python"
@@ -12,29 +14,37 @@ classifiers = [
     "Topic :: Software Development",
     "Topic :: Software Development :: Libraries",
 ]
+include = ["CHANGELOG.md"]
+requires-python = ">=3.9"
+dependencies = [
+  "django",
+  "pangea-sdk",
+  "typing-extensions"
+]
+
+[tool.poetry]
 packages = [
     { include = "pangea_django" }
 ]
-include = ["CHANGELOG.md"]
 
 [tool.poetry.dependencies]
 python = "^3.9.0"
-"Django" = "^4.2.16"
-"pangea-sdk" = "^5.1.0"
+"Django" = "^4.2.17"
+"pangea-sdk" = "^5.2.1"
 typing-extensions = "^4.12.2"
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.10.0"
 django-stubs = "^5.1.1"
 isort = "^5.13.2"
-mypy = "^1.13.0"
-pytest = "^8.3.3"
-pytest-cov = "^5.0.0"
+mypy = "^1.14.1"
+pytest = "^8.3.4"
+pytest-cov = "^6.0.0"
 pytest-django = "^4.9.0"
 pytest-mock = "^3.14.0"
 
 [build-system]
-requires = ["poetry-core>=1.9.1"]
+requires = ["poetry-core>=2.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.black]

@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## 5.3.0 - 2025-01-13
+
+### Added
+
+- Support for `severity` field on `v1/user/breached` and `v2/user/breached` of `user-intel` service.
+- `/v1/breach` endpoint support on `user-intel` service.
+- `file_ttl` support in Secure Share.
+
+## 5.2.1 - 2024-12-19
+
+### Fixed
+
+- Exposed `vault_parameters` and `llm_request` parameters in Redact.
+- Added `fpe_context` to `RedactResult`.
+
+## 5.2.0 - 2024-12-18
+
+### Added
+
+- Support for `cursor` field on `v1/user/breached` of `user-intel` service.
+- `vault_parameters` and `llm_request` fields support on Redact service.
+
+### Changed
+
+- `Audit.fix_consistency_proofs` is now a private method.
+- `pangea.deep_verify` error message to `warning` when `not_persisted` event.
+
+### Fixed 
+
+- `pangea.audit_dump` only dump before events if the leaf_index is not None.
+
 ## 5.2.0beta2 - 2024-10-30
 
 ### Changed

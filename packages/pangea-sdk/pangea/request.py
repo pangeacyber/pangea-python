@@ -12,7 +12,7 @@ import requests
 from pydantic import BaseModel
 from pydantic_core import to_jsonable_python
 from requests.adapters import HTTPAdapter, Retry
-from requests_toolbelt import MultipartDecoder  # type: ignore
+from requests_toolbelt import MultipartDecoder  # type: ignore[import-untyped]
 from typing_extensions import TypeVar
 
 import pangea
@@ -406,7 +406,20 @@ class PangeaRequest(PangeaRequestBase):
 
         return self._check_response(pangea_response)
 
-    def download_file(self, url: str, filename: Optional[str] = None) -> AttachedFile:
+    def download_file(self, url: str, filename: str | None = None) -> AttachedFile:
+        """
+        Download file
+
+        Download a file from the specified URL and save it with the given
+        filename.
+
+        Args:
+            url: URL of the file to download
+            filename: Name to save the downloaded file as. If not provided, the
+              filename will be determined from the Content-Disposition header or
+              the URL.
+        """
+
         self.logger.debug(
             json.dumps(
                 {

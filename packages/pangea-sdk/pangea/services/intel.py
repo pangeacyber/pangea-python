@@ -1,5 +1,7 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+from __future__ import annotations
+
 import enum
 import hashlib
 from typing import Dict, List, Optional
@@ -819,7 +821,7 @@ class IpIntel(ServiceBase):
             ip (str): The IP to be looked up
             verbose (bool, optional): Echo the API parameters in the response
             raw (bool, optional): Include raw data from this provider
-            provider (str, optional): Use reputation data from this provider: "crowdstrike"
+            provider (str, optional): Use reputation data from this provider
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -851,7 +853,7 @@ class IpIntel(ServiceBase):
             ips (List[str]): The IP list to be looked up
             verbose (bool, optional): Echo the API parameters in the response
             raw (bool, optional): Include raw data from this provider
-            provider (str, optional): Use reputation data from this provider: "crowdstrike"
+            provider (str, optional): Use reputation data from this provider
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -1170,7 +1172,7 @@ class UrlIntel(ServiceBase):
             url (str): The URL to be looked up
             verbose (bool, optional): Echo the API parameters in the response
             raw (bool, optional): Include raw data from this provider
-            provider (str, optional): Use reputation data from this provider: "crowdstrike"
+            provider (str, optional): Use reputation data from this provider
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -1207,7 +1209,7 @@ class UrlIntel(ServiceBase):
             urls (List[str]): The URL list to be looked up
             verbose (bool, optional): Echo the API parameters in the response
             raw (bool, optional): Include raw data from this provider
-            provider (str, optional): Use reputation data from this provider: "crowdstrike"
+            provider (str, optional): Use reputation data from this provider
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -1237,6 +1239,7 @@ class UserBreachedRequest(IntelCommonRequest):
     phone_number (str): A phone number to search for. minLength: 7, maxLength: 15.
     start (str): Earliest date for search
     end (str): Latest date for search
+    cursor (str, optional): A token given in the raw response from SpyCloud. Post this back to paginate results
     """
 
     email: Optional[str] = None
@@ -1245,6 +1248,10 @@ class UserBreachedRequest(IntelCommonRequest):
     phone_number: Optional[str] = None
     start: Optional[str] = None
     end: Optional[str] = None
+    cursor: Optional[str] = None
+
+    severity: Optional[List[int]] = None
+    """Filter for records that match one of the given severities"""
 
 
 class UserBreachedBulkRequest(IntelCommonRequest):
@@ -1267,6 +1274,9 @@ class UserBreachedBulkRequest(IntelCommonRequest):
     domains: Optional[List[str]] = None
     start: Optional[str] = None
     end: Optional[str] = None
+
+    severity: Optional[List[int]] = None
+    """Filter for records that match one of the given severities"""
 
 
 class UserBreachedCommonData(PangeaResponseResult):
@@ -1316,7 +1326,7 @@ class UserPasswordBreachedRequest(IntelCommonRequest):
 
 class UserPasswordBreachedBulkRequest(IntelCommonRequest):
     """
-    User password breached common request data
+    User password breached bulk request data
 
     hash_type (str): Hash type to be looked up
     hash_prefixes (List[str]): The list of prefixes of the hashes to be looked up.
@@ -1348,6 +1358,44 @@ class UserPasswordBreachedBulkResult(IntelCommonResult):
     """
 
     data: Dict[str, UserPasswordBreachedData]
+
+
+class BreachRequest(APIRequestModel):
+    """Breach request data"""
+
+    breach_id: Optional[str] = None
+    """The ID of a breach returned by a provider."""
+
+    verbose: Optional[bool] = None
+    """Echo back the parameters of the API in the response."""
+
+    provider: Optional[str] = None
+    """Provider of the information. Default provider defined by the configuration."""
+
+    severity: Optional[List[int]] = None
+    """Filter for records that match one of the given severities"""
+
+    start: Optional[str] = None
+    """This parameter allows you to define the starting point for a date range query on the spycloud_publish_date field."""
+
+    end: Optional[str] = None
+    """This parameter allows you to define the ending point for a date range query on the spycloud_publish_date field."""
+
+    cursor: Optional[str] = None
+    """A token given in the raw response from SpyCloud. Post this back to paginate results"""
+
+
+class BreachResult(PangeaResponseResult):
+    """Breach result"""
+
+    found: bool
+    """A flag indicating if the lookup was successful."""
+
+    data: Optional[Dict] = None
+    """Breach details given by the provider."""
+
+    parameters: Optional[Dict] = None
+    """The parameters, which were passed in the request, echoed back."""
 
 
 class UserIntel(ServiceBase):
@@ -1387,6 +1435,8 @@ class UserIntel(ServiceBase):
         verbose: Optional[bool] = None,
         raw: Optional[bool] = None,
         provider: Optional[str] = None,
+        cursor: Optional[str] = None,
+        severity: Optional[List[int]] = None,
     ) -> PangeaResponse[UserBreachedResult]:
         """
         Look up breached users
@@ -1404,7 +1454,9 @@ class UserIntel(ServiceBase):
             end (str): Latest date for search
             verbose (bool, optional): Echo the API parameters in the response
             raw (bool, optional): Include raw data from this provider
-            provider (str, optional): Use reputation data from this provider: "spycloud"
+            provider (str, optional): Use reputation data from this provider
+            cursor (str, optional): A token given in the raw response from SpyCloud. Post this back to paginate results
+            severity (List[int], optional): Filter for records that match one of the given severities
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -1432,6 +1484,8 @@ class UserIntel(ServiceBase):
             end=end,
             verbose=verbose,
             raw=raw,
+            cursor=cursor,
+            severity=severity,
         )
         return self.request.post("v1/user/breached", UserBreachedResult, data=input.model_dump(exclude_none=True))
 
@@ -1447,6 +1501,7 @@ class UserIntel(ServiceBase):
         verbose: Optional[bool] = None,
         raw: Optional[bool] = None,
         provider: Optional[str] = None,
+        severity: Optional[List[int]] = None,
     ) -> PangeaResponse[UserBreachedBulkResult]:
         """
         Look up breached users V2
@@ -1465,7 +1520,8 @@ class UserIntel(ServiceBase):
             end (str): Latest date for search
             verbose (bool, optional): Echo the API parameters in the response
             raw (bool, optional): Include raw data from this provider
-            provider (str, optional): Use reputation data from this provider: "spycloud"
+            provider (str, optional): Use reputation data from this provider
+            severity (List[int], optional): Filter for records that match one of the given severities
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -1494,6 +1550,7 @@ class UserIntel(ServiceBase):
             end=end,
             verbose=verbose,
             raw=raw,
+            severity=severity,
         )
         return self.request.post("v2/user/breached", UserBreachedBulkResult, data=input.model_dump(exclude_none=True))
 
@@ -1517,7 +1574,7 @@ class UserIntel(ServiceBase):
             hash_prefix (str): The prefix of the hash to be looked up.
             verbose (bool, optional): Echo the API parameters in the response
             raw (bool, optional): Include raw data from this provider
-            provider (str, optional): Use reputation data from this provider: "crowdstrike"
+            provider (str, optional): Use reputation data from this provider
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -1561,7 +1618,7 @@ class UserIntel(ServiceBase):
             hash_prefixes (List[str]): The list of prefixes of the hashes to be looked up.
             verbose (bool, optional): Echo the API parameters in the response
             raw (bool, optional): Include raw data from this provider
-            provider (str, optional): Use reputation data from this provider: "crowdstrike"
+            provider (str, optional): Use reputation data from this provider
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -1585,6 +1642,56 @@ class UserIntel(ServiceBase):
             "v2/password/breached", UserPasswordBreachedBulkResult, data=input.model_dump(exclude_none=True)
         )
 
+    def breach(
+        self,
+        breach_id: Optional[str] = None,
+        verbose: Optional[bool] = None,
+        provider: Optional[str] = None,
+        cursor: Optional[str] = None,
+        start: Optional[str] = None,
+        end: Optional[str] = None,
+        severity: Optional[List[int]] = None,
+    ) -> PangeaResponse[BreachResult]:
+        """
+        Look up information about a specific breach
+
+        Given a provider specific breach ID, find details about the breach.
+
+        OperationId: user_intel_post_v1_breach
+
+        Args:
+            breach_id (str, optional): The ID of a breach returned by a provider
+            verbose (bool, optional): Echo the API parameters in the response
+            provider (str, optional): Use reputation data from this provider
+            cursor (str, optional): A token given in the raw response from SpyCloud. Post this back to paginate results
+            start (str, optional): This parameter allows you to define the starting point for a date range query on the spycloud_publish_date field
+            end (str, optional): This parameter allows you to define the ending point for a date range query on the spycloud_publish_date field
+            severity (List[int], optional): Filter for records that match one of the given severities
+
+        Raises:
+            PangeaAPIException: If an API Error happens
+
+        Returns:
+            A PangeaResponse where the breach details are in the
+                response.result field.  Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/user-intel)
+
+        Examples:
+            response = user_intel.breach(
+                breach_id="66111",
+            )
+        """
+
+        input = BreachRequest(
+            breach_id=breach_id,
+            provider=provider,
+            verbose=verbose,
+            cursor=cursor,
+            start=start,
+            end=end,
+            severity=severity,
+        )
+        return self.request.post("v1/breach", BreachResult, data=input.model_dump(exclude_none=True))
+
     class PasswordStatus(enum.Enum):
         BREACHED = 0
         UNBREACHED = 1
@@ -1592,6 +1699,17 @@ class UserIntel(ServiceBase):
 
     @staticmethod
     def is_password_breached(response: PangeaResponse[UserBreachedResult], hash: str) -> PasswordStatus:
+        """
+        Check if a password was breached
+
+        Helper function that simplifies searching the response's raw data for
+        the full hash.
+
+        Args:
+            response: API response from an earlier request
+            hash: Password hash
+        """
+
         if response.result.raw_data is None:  # type: ignore[union-attr]
             raise PangeaException("Need raw data to check if hash is breached. Send request with raw=true")
 
