@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- AI Guard API response models.
+
 ## 5.3.0 - 2025-01-13
 
 ### Added

@@ -15,4 +15,4 @@ input_text = "This email address, security@pangea.cloud, will be redacted."
 print("Guarding text:", input_text)
 text_response = ai_guard.guard_text(input_text)
 assert text_response.result
-print("Response:", text_response.result.redacted_prompt)
+print("Response:", text_response.result.prompt)
