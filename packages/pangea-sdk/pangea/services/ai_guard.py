@@ -21,7 +21,7 @@ class PiiEntity(APIResponseModel):
     type: str
     value: str
     redacted: bool
-    start_pos: Optional[float] = None
+    start_pos: Optional[int] = None
 
 
 class PiiEntityResult(APIResponseModel):
@@ -32,7 +32,7 @@ class MaliciousEntity(APIResponseModel):
     type: str
     value: str
     redacted: Optional[bool] = None
-    start_pos: Optional[float] = None
+    start_pos: Optional[int] = None
     raw: Optional[Dict[str, Any]] = None
 
 
