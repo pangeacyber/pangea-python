@@ -1,6 +1,9 @@
 [project]
 name = "prompt-guard-examples"
 requires-python = ">=3.9"
+dependencies = [
+  "pangea-sdk"
+]
 
 [tool.poetry]
 package-mode = false
