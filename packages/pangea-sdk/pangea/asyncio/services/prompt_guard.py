@@ -51,7 +51,9 @@ class PromptGuardAsync(ServiceBaseAsync):
 
         super().__init__(token, config, logger_name, config_id)
 
-    async def guard(self, messages: Iterable[Message]) -> PangeaResponse[GuardResult]:
+    async def guard(
+        self, messages: Iterable[Message], *, analyzers: Iterable[str] | None = None
+    ) -> PangeaResponse[GuardResult]:
         """
         Guard (Beta)
 
@@ -63,6 +65,7 @@ class PromptGuardAsync(ServiceBaseAsync):
 
         Args:
             messages: Messages.
+            analyzers: Specific analyzers to be used in the call.
 
         Examples:
             from pangea.asyncio.services.prompt_guard import Message
@@ -70,4 +73,4 @@ class PromptGuardAsync(ServiceBaseAsync):
             response = await prompt_guard.guard([Message(role="user", content="hello world")])
         """
 
-        return await self.request.post("v1beta/guard", GuardResult, data={"messages": messages})
+        return await self.request.post("v1beta/guard", GuardResult, data={"messages": messages, "analyzers": analyzers})
