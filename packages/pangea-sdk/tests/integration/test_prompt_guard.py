@@ -20,7 +20,7 @@ class TestPromptGuard(unittest.TestCase):
         logger_set_pangea_config(logger_name=self.client.logger.name)
 
     def test_guard(self) -> None:
-        response = self.client.guard([Message(role="user", content="how are you?")])
+        response = self.client.guard([Message(role="user", content="what was pangea?")])
         assert response.status == "Success"
         assert response.result
         assert not response.result.detected
@@ -29,5 +29,5 @@ class TestPromptGuard(unittest.TestCase):
         assert response.status == "Success"
         assert response.result
         assert response.result.detected
-        assert response.result.detector
+        assert response.result.analyzer
         assert response.result.type

@@ -230,6 +230,10 @@ class PangeaRequest(PangeaRequestBase):
         if isinstance(data, BaseModel):
             data = data.model_dump(exclude_none=True)
 
+        if isinstance(data, dict):
+            # Remove `None` values.
+            data = {k: v for k, v in data.items() if v is not None}
+
         if data is None:
             data = {}
 
