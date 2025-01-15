@@ -1,91 +1,62 @@
 from __future__ import annotations
 
-from typing import List, Optional
-
-from typing_extensions import Literal
+from typing import Any, Dict, Generic, List, Optional, TypeVar
 
 from pangea.config import PangeaConfig
-from pangea.response import PangeaResponse, PangeaResponseResult
+from pangea.response import APIResponseModel, PangeaResponse, PangeaResponseResult
 from pangea.services.base import ServiceBase
-from pangea.services.intel import UserBreachedData
 
 
-class TextGuardSecurityIssues(PangeaResponseResult):
-    compromised_email_addresses: int
-    malicious_domain_count: int
-    malicious_ip_count: int
-    malicious_url_count: int
-    redact_rule_match_count: int
+class AnalyzerResponse(APIResponseModel):
+    analyzer: str
+    confidence: float
 
 
-class TextGuardFindings(PangeaResponseResult):
-    artifact_count: Optional[int] = None
-    malicious_count: Optional[int] = None
-    security_issues: TextGuardSecurityIssues
+class PromptInjectionResult(APIResponseModel):
+    analyzer_responses: List[AnalyzerResponse]
+    """Triggered prompt injection analyzers."""
 
 
-class RedactRecognizerResult(PangeaResponseResult):
-    field_type: str
-    """The entity name."""
-
-    score: float
-    """The certainty score that the entity matches this specific snippet."""
-
-    text: str
-    """The text snippet that matched."""
-
-    start: int
-    """The starting index of a snippet."""
-
-    end: int
-    """The ending index of a snippet."""
-
-    redacted: bool
-    """Indicates if this rule was used to anonymize a text snippet."""
-
-
-class RedactReport(PangeaResponseResult):
-    count: int
-    recognizer_results: List[RedactRecognizerResult]
-
-
-class IntelResults(PangeaResponseResult):
-    category: List[str]
-    """
-    The categories that apply to this indicator as determined by the provider.
-    """
-
-    score: int
-    """The score, given by the Pangea service, for the indicator."""
-
-    verdict: Literal["malicious", "suspicious", "unknown", "benign"]
-
-
-class TextGuardReport(PangeaResponseResult):
-    domain_intel: Optional[IntelResults] = None
-    ip_intel: Optional[IntelResults] = None
-    redact: RedactReport
-    url_intel: Optional[IntelResults] = None
-    user_intel: Optional[UserBreachedData] = None
-
-
-class TextGuardArtifact(PangeaResponseResult):
-    defanged: bool
-    end: int
-    start: int
+class PiiEntity(APIResponseModel):
     type: str
     value: str
-    verdict: Optional[str] = None
-    """The verdict, given by the Pangea service, for the indicator."""
+    redacted: bool
+    start_pos: Optional[int] = None
+
+
+class PiiEntityResult(APIResponseModel):
+    entities: List[PiiEntity]
+
+
+class MaliciousEntity(APIResponseModel):
+    type: str
+    value: str
+    redacted: Optional[bool] = None
+    start_pos: Optional[int] = None
+    raw: Optional[Dict[str, Any]] = None
+
+
+class MaliciousEntityResult(APIResponseModel):
+    entities: List[MaliciousEntity]
+
+
+T = TypeVar("T")
+
+
+class TextGuardDetector(APIResponseModel, Generic[T]):
+    detected: bool
+    data: Optional[T] = None
+
+
+class TextGuardDetectors(APIResponseModel):
+    prompt_injection: Optional[TextGuardDetector[PromptInjectionResult]] = None
+    pii_entity: Optional[TextGuardDetector[PiiEntityResult]] = None
+    malicious_entity: Optional[TextGuardDetector[MaliciousEntityResult]] = None
 
 
 class TextGuardResult(PangeaResponseResult):
-    artifacts: Optional[List[TextGuardArtifact]] = None
-    findings: TextGuardFindings
-    redacted_prompt: str
-
-    # `debug=True` only.
-    report: Optional[TextGuardReport] = None
+    detectors: TextGuardDetectors
+    prompt: str
 
 
 class AIGuard(ServiceBase):

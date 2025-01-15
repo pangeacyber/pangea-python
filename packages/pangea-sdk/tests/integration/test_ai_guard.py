@@ -22,13 +22,26 @@ class TestAIGuard(unittest.TestCase):
         response = self.client.guard_text("hello world")
         assert response.status == "Success"
         assert response.result
-        assert response.result.redacted_prompt
-        assert response.result.findings.artifact_count is None
-        assert response.result.findings.malicious_count is None
+        assert response.result.prompt
+
+        assert response.result.detectors.prompt_injection
+        assert response.result.detectors.prompt_injection.detected is False
+        assert response.result.detectors.prompt_injection.data is None
+
+        assert response.result.detectors.pii_entity
+        assert response.result.detectors.pii_entity.detected is False
+        assert response.result.detectors.pii_entity.data is None
+
+        assert response.result.detectors.malicious_entity
+        assert response.result.detectors.malicious_entity.detected is False
+        assert response.result.detectors.malicious_entity.data is None
 
         response = self.client.guard_text("security@pangea.cloud")
         assert response.status == "Success"
         assert response.result
-        assert response.result.redacted_prompt
-        assert response.result.findings.artifact_count == 1
-        assert response.result.findings.malicious_count is None
+        assert response.result.prompt
+        assert response.result.detectors.pii_entity
+        assert response.result.detectors.pii_entity.detected
+        assert response.result.detectors.pii_entity.data
+        assert response.result.detectors.pii_entity.data.entities
+        assert len(response.result.detectors.pii_entity.data.entities) == 1

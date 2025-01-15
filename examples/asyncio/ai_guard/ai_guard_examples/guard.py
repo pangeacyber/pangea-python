@@ -18,7 +18,7 @@ async def main() -> None:
     print("Guarding text:", input_text)
     text_response = await ai_guard.guard_text(input_text)
     assert text_response.result
-    print("Response:", text_response.result.redacted_prompt)
+    print("Response:", text_response.result.prompt)
 
 
 if __name__ == "__main__":
