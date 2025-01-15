@@ -1,7 +1,6 @@
 import asyncio
 import os
 import sys
-import time
 
 import pangea.exceptions as pe
 from pangea.asyncio.file_uploader import FileUploaderAsync
@@ -16,7 +15,7 @@ from pangea.services.sanitize import (
 )
 
 # Set this filepath to your own file
-FILEPATH = "./sanitize_examples/ds11.pdf"
+FILEPATH = "./sanitize_examples/test-sanitize.txt"
 
 
 async def main() -> None:
@@ -42,8 +41,6 @@ async def main() -> None:
             domain_intel_provider="crowdstrike",
             defang=True,
             defang_threshold=20,
-            remove_interactive=True,
-            remove_attachments=True,
             redact=True,
         )
         # Enable share output and its folder
@@ -76,7 +73,7 @@ async def main() -> None:
         for retry in range(max_retry):
             try:
                 # wait some time to get result ready and poll it
-                time.sleep(10)
+                await asyncio.sleep(10)
                 response: PangeaResponse[SanitizeResult] = await client.poll_result(response=response_url)
 
                 if response.result is None:
@@ -87,7 +84,6 @@ async def main() -> None:
                 print(f"\tFile share id: {response.result.dest_share_id}")
                 print(f"\tRedact data: {response.result.data.redact}")
                 print(f"\tDefang data: {response.result.data.defang}")
-                print(f"\tCDR data: {response.result.data.cdr}")
 
                 if response.result.data.malicious_file:
                     print("File IS malicious")

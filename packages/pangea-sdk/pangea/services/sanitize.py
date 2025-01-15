@@ -46,12 +46,6 @@ class SanitizeContent(APIRequestModel):
     analysis engine results. Only works if redact is enabled.
     """
 
-    remove_attachments: Optional[bool] = None
-    """Remove file attachments (PDF only)."""
-
-    remove_interactive: Optional[bool] = None
-    """Remove interactive content (PDF only)."""
-
 
 class SanitizeShareOutput(APIRequestModel):
     enabled: Optional[bool] = None
@@ -144,14 +138,6 @@ class RedactData(PangeaResponseResult):
     """The scoring result of a set of rules."""
 
 
-class CDR(PangeaResponseResult):
-    file_attachments_removed: Optional[int] = None
-    """Number of file attachments removed."""
-
-    interactive_contents_removed: Optional[int] = None
-    """Number of interactive content items removed."""
-
-
 class SanitizeData(PangeaResponseResult):
     defang: Optional[DefangData] = None
     """Defang."""
@@ -161,9 +147,6 @@ class SanitizeData(PangeaResponseResult):
 
     malicious_file: Optional[bool] = None
     """If the file scanned was malicious."""
-
-    cdr: Optional[CDR] = None
-    """Content Disarm and Reconstruction."""
 
 
 class SanitizeResult(PangeaResponseResult):
@@ -265,7 +248,7 @@ class Sanitize(ServiceBase):
             performed.
 
         Examples:
-            with open("/path/to/file.pdf", "rb") as f:
+            with open("/path/to/file.txt", "rb") as f:
                 response = sanitize.sanitize(
                     file=f,
                     transfer_method=TransferMethod.POST_URL,
