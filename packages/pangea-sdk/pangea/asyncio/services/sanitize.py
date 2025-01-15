@@ -97,7 +97,7 @@ class SanitizeAsync(ServiceBaseAsync):
             performed.
 
         Examples:
-            with open("/path/to/file.pdf", "rb") as f:
+            with open("/path/to/file.txt", "rb") as f:
                 response = await sanitize.sanitize(
                     file=f,
                     transfer_method=TransferMethod.POST_URL,

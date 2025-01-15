@@ -8,7 +8,7 @@ from pangea.services import Sanitize
 from pangea.services.sanitize import SanitizeContent, SanitizeFile, SanitizeShareOutput
 
 # Set this filepath to your own file
-FILEPATH = "./sanitize_examples/ds11.pdf"
+FILEPATH = "./sanitize_examples/test-sanitize.txt"
 
 
 def main() -> None:
@@ -34,8 +34,6 @@ def main() -> None:
             domain_intel_provider="crowdstrike",
             defang=True,
             defang_threshold=20,
-            remove_interactive=True,
-            remove_attachments=True,
             redact=True,
         )
         # Enable share output and its folder
@@ -61,7 +59,6 @@ def main() -> None:
             print(f"\tFile share id: {response.result.dest_share_id}")
             print(f"\tRedact data: {response.result.data.redact}")
             print(f"\tDefang data: {response.result.data.defang}")
-            print(f"\tCDR data: {response.result.data.cdr}")
 
             if response.result.data.malicious_file:
                 print("File IS malicious")
