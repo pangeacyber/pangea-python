@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- Renamed "detector" to "analyzer" in Prompt Guard.
+
 ## 5.4.0beta1 - 2025-01-15
 
 ### Changed

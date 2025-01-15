@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Literal, Optional
 
 from pangea.config import PangeaConfig
 from pangea.response import APIRequestModel, PangeaResponse, PangeaResponseResult
@@ -17,9 +17,16 @@ class Message(APIRequestModel):
 
 class GuardResult(PangeaResponseResult):
     detected: bool
-    type: Optional[str] = None
-    detector: Optional[str] = None
+    """Boolean response for if the prompt was considered malicious or not"""
+
+    type: Optional[Literal["direct", "indirect"]] = None
+    """Type of analysis, either direct or indirect"""
+
+    analyzer: Optional[str] = None
+    """Prompt Analyzers for identifying and rejecting properties of prompts"""
+
     confidence: int
+    """Percent of confidence in the detection result, ranging from 0 to 100"""
 
 
 class PromptGuard(ServiceBase):
@@ -61,7 +68,9 @@ class PromptGuard(ServiceBase):
 
         super().__init__(token, config, logger_name, config_id)
 
-    def guard(self, messages: Iterable[Message]) -> PangeaResponse[GuardResult]:
+    def guard(
+        self, messages: Iterable[Message], *, analyzers: Iterable[str] | None = None
+    ) -> PangeaResponse[GuardResult]:
         """
         Guard (Beta)
 
@@ -72,7 +81,8 @@ class PromptGuard(ServiceBase):
         OperationId: prompt_guard_post_v1beta_guard
 
         Args:
-            messages: Messages.
+            messages: Prompt content and role array.
+            analyzers: Specific analyzers to be used in the call.
 
         Examples:
             from pangea.services.prompt_guard import Message
@@ -80,4 +90,4 @@ class PromptGuard(ServiceBase):
             response = prompt_guard.guard([Message(role="user", content="hello world")])
         """
 
-        return self.request.post("v1beta/guard", GuardResult, data={"messages": messages})
+        return self.request.post("v1beta/guard", GuardResult, data={"messages": messages, "analyzers": analyzers})
