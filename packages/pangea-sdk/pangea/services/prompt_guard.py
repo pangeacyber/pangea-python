@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Literal, Optional
 
 from pangea.config import PangeaConfig
-from pangea.response import APIRequestModel, PangeaResponse, PangeaResponseResult
+from pangea.response import APIRequestModel, APIResponseModel, PangeaResponse, PangeaResponseResult
 from pangea.services.base import ServiceBase
 
 if TYPE_CHECKING:
@@ -13,6 +13,17 @@ if TYPE_CHECKING:
 class Message(APIRequestModel):
     role: str
     content: str
+
+
+class Classification(APIResponseModel):
+    category: str
+    """Classification category"""
+
+    label: str
+    """Classification label"""
+
+    confidence: float
+    """Confidence score for the classification"""
 
 
 class GuardResult(PangeaResponseResult):
@@ -27,6 +38,12 @@ class GuardResult(PangeaResponseResult):
 
     confidence: int
     """Percent of confidence in the detection result, ranging from 0 to 100"""
+
+    info: Optional[str] = None
+    """Extra information about the detection result"""
+
+    classifications: list[Classification]
+    """List of classification results with labels and confidence scores"""
 
 
 class PromptGuard(ServiceBase):
