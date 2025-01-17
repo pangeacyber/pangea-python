@@ -71,5 +71,5 @@ show_column_numbers = true
 warn_unused_ignores = true
 
 [build-system]
-requires = ["poetry-core>=2.0.0"]
+requires = ["poetry-core>=2.0.1"]
 build-backend = "poetry.core.masonry.api"
