@@ -242,10 +242,10 @@ class TestSanitize(unittest.IsolatedAsyncioTestCase):
             exception = e
 
         for _ in range(12):
-            try:
-                # wait some time to get result ready and poll it
-                await sleep(10)
+            # wait some time to get result ready and poll it
+            await sleep(10)
 
+            with suppress(pe.AcceptedRequestException):
                 response: PangeaResponse[SanitizeResult] = await self.client.poll_result(exception)  # type: ignore[no-redef]
                 self.assertEqual(response.status, "Success")
                 assert response.result
@@ -255,8 +255,6 @@ class TestSanitize(unittest.IsolatedAsyncioTestCase):
                 self.assertIsNotNone(response.result.data.defang)
                 self.assertFalse(response.result.data.malicious_file)
                 return
-            except pe.AcceptedRequestException:
-                pass
 
         self.log.warning("The result of request '%s' took too long to be ready.", exception.request_id)  # type: ignore[union-attr]
 

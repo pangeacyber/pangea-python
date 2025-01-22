@@ -4,6 +4,7 @@ import asyncio
 import datetime
 import logging
 import unittest
+from contextlib import suppress
 from http.client import HTTPConnection
 
 import pangea.exceptions as pe
@@ -175,16 +176,14 @@ class TestShare(unittest.IsolatedAsyncioTestCase):
             await uploader.close()
 
         max_retry = 24
-        for retry in range(max_retry):
-            try:
-                # wait some time to get result ready and poll it
-                await asyncio.sleep(10)
+        for _ in range(max_retry):
+            # wait some time to get result ready and poll it
+            await asyncio.sleep(10)
 
+            with suppress(pe.AcceptedRequestException):
                 response: PangeaResponse[PutResult] = await self.client.poll_result(response=response)
                 self.assertEqual(response.status, "Success")
                 break
-            except pe.PangeaAPIException:
-                self.assertLess(retry, max_retry - 1)
 
     async def test_split_upload_file_put(self):
         with get_test_file() as f:

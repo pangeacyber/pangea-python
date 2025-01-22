@@ -4,6 +4,7 @@ import datetime
 import logging
 import time
 import unittest
+from contextlib import suppress
 from http.client import HTTPConnection
 
 import pangea.exceptions as pe
@@ -171,16 +172,14 @@ class TestShare(unittest.TestCase):
             uploader.upload_file(url=url, file=f, transfer_method=TransferMethod.POST_URL, file_details=file_details)
 
         max_retry = 24
-        for retry in range(max_retry):
-            try:
-                # wait some time to get result ready and poll it
-                time.sleep(10)
+        for _ in range(max_retry):
+            # wait some time to get result ready and poll it
+            time.sleep(10)
 
+            with suppress(pe.AcceptedRequestException):
                 response: PangeaResponse[PutResult] = self.client.poll_result(response=response)
                 self.assertEqual(response.status, "Success")
                 break
-            except pe.PangeaAPIException:
-                self.assertLess(retry, max_retry - 1)
 
     def test_split_upload_file_put(self):
         with get_test_file() as f:

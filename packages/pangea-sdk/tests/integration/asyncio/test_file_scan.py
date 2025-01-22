@@ -1,5 +1,7 @@
 import time
 import unittest
+from asyncio import sleep
+from contextlib import suppress
 
 import pangea.exceptions as pe
 from pangea import PangeaConfig
@@ -102,18 +104,16 @@ class TestFileScan(unittest.IsolatedAsyncioTestCase):
             await uploader.close()
 
         max_retry = 24
-        for retry in range(max_retry):
-            try:
-                # wait some time to get result ready and poll it
-                time.sleep(10)
+        for _ in range(max_retry):
+            # wait some time to get result ready and poll it
+            await sleep(10)
 
+            with suppress(pe.AcceptedRequestException):
                 response: PangeaResponse[FileScanResult] = await self.scan.poll_result(response=response)
                 self.assertEqual(response.status, "Success")
                 self.assertEqual(response.result.data.verdict, "benign")
                 self.assertEqual(response.result.data.score, 0)
                 break
-            except pe.PangeaAPIException:
-                self.assertLess(retry, max_retry - 1)
 
     async def test_split_upload_file_put(self):
         with get_test_file() as f:
@@ -127,15 +127,13 @@ class TestFileScan(unittest.IsolatedAsyncioTestCase):
             await uploader.close()
 
         max_retry = 24
-        for retry in range(max_retry):
-            try:
-                # wait some time to get result ready and poll it
-                time.sleep(10)
+        for _ in range(max_retry):
+            # wait some time to get result ready and poll it
+            await sleep(10)
 
+            with suppress(pe.AcceptedRequestException):
                 response: PangeaResponse[FileScanResult] = await self.scan.poll_result(response=response)
                 self.assertEqual(response.status, "Success")
                 self.assertEqual(response.result.data.verdict, "benign")
                 self.assertEqual(response.result.data.score, 0)
                 break
-            except pe.PangeaAPIException:
-                self.assertLess(retry, max_retry - 1)
