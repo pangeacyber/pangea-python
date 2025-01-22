@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## 5.4.0beta3 - 2025-01-22
+
+### Fixed
+
+- Dependency ranges that were accidentally too wide.
+
 ## 5.4.0beta2 - 2025-01-21
 
 ### Added
