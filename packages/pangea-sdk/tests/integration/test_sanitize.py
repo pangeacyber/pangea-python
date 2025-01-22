@@ -240,12 +240,11 @@ class TestSanitize(unittest.TestCase):
         except pe.AcceptedRequestException as e:
             exception = e
 
-        max_retry = 12
-        for retry in range(max_retry):
-            try:
-                # wait some time to get result ready and poll it
-                time.sleep(10)
+        for _ in range(12):
+            # wait some time to get result ready and poll it
+            time.sleep(10)
 
+            with suppress(pe.AcceptedRequestException):
                 response: PangeaResponse[SanitizeResult] = self.client.poll_result(exception)  # type: ignore[no-redef]
                 self.assertEqual(response.status, "Success")
                 assert response.result
@@ -254,9 +253,7 @@ class TestSanitize(unittest.TestCase):
                 self.assertIsNone(response.result.data.redact)
                 self.assertIsNotNone(response.result.data.defang)
                 self.assertFalse(response.result.data.malicious_file)
-                break
-            except pe.AcceptedRequestException:
-                self.assertLess(retry, max_retry - 1)
+                return
 
     def test_split_upload_file_post(self) -> None:
         file_scan = SanitizeFile(scan_provider="crowdstrike")
@@ -289,11 +286,11 @@ class TestSanitize(unittest.TestCase):
             uploader.upload_file(url=url, file=f, transfer_method=TransferMethod.POST_URL, file_details=file_details)
 
         max_retry = 12
-        for retry in range(max_retry):
-            try:
-                # wait some time to get result ready and poll it
-                time.sleep(10)
+        for _ in range(max_retry):
+            # wait some time to get result ready and poll it
+            time.sleep(10)
 
+            with suppress(pe.AcceptedRequestException):
                 response: PangeaResponse[SanitizeResult] = self.client.poll_result(response=response)  # type: ignore[no-redef]
                 self.assertEqual(response.status, "Success")
                 assert response.result
@@ -311,8 +308,6 @@ class TestSanitize(unittest.TestCase):
                 self.assertIsNotNone(response.result.data.defang.domain_intel_summary)
                 self.assertFalse(response.result.data.malicious_file)
                 break
-            except pe.AcceptedRequestException:
-                self.assertLess(retry, max_retry - 1)
 
     def test_split_upload_file_put(self) -> None:
         file_scan = SanitizeFile(scan_provider="crowdstrike")
