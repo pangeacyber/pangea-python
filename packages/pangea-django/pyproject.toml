@@ -29,7 +29,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.9.0"
-"Django" = "^4.2.17"
+"Django" = "^4.2.18"
 "pangea-sdk" = "^5.2.1"
 typing-extensions = "^4.12.2"
 
