@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## 5.4.0 - 2025-01-22
+
+### Removed
+
+- CDR and PDF support in Sanitize.
+
 ## 5.4.0beta3 - 2025-01-22
 
 ### Fixed
@@ -28,10 +34,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - AI Guard API response models.
-
-### Removed
-
-- CDR and PDF support in Sanitize.
 
 ## 5.3.0 - 2025-01-13
 
