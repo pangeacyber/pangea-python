@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Generic, List, Optional, TypeVar
+from typing import Any, Dict, Generic, List, Optional, TypeVar, overload
 
 from pangea.config import PangeaConfig
 from pangea.response import APIResponseModel, PangeaResponse, PangeaResponseResult
@@ -40,12 +40,12 @@ class MaliciousEntityResult(APIResponseModel):
     entities: List[MaliciousEntity]
 
 
-T = TypeVar("T")
+_T = TypeVar("_T")
 
 
-class TextGuardDetector(APIResponseModel, Generic[T]):
+class TextGuardDetector(APIResponseModel, Generic[_T]):
     detected: bool
-    data: Optional[T] = None
+    data: Optional[_T] = None
 
 
 class TextGuardDetectors(APIResponseModel):
@@ -54,9 +54,15 @@ class TextGuardDetectors(APIResponseModel):
     malicious_entity: Optional[TextGuardDetector[MaliciousEntityResult]] = None
 
 
-class TextGuardResult(PangeaResponseResult):
+class TextGuardResult(PangeaResponseResult, Generic[_T]):
     detectors: TextGuardDetectors
-    prompt: str
+    """Result of the recipe analyzing and input prompt."""
+
+    prompt_text: Optional[str] = None
+    """Updated prompt text, if applicable."""
+
+    prompt_messages: Optional[_T] = None
+    """Updated structured prompt, if applicable."""
 
 
 class AIGuard(ServiceBase):
@@ -98,31 +104,106 @@ class AIGuard(ServiceBase):
 
         super().__init__(token, config, logger_name, config_id)
 
+    @overload
     def guard_text(
         self,
-        text: str,
+        text_or_messages: str,
         *,
         recipe: str = "pangea_prompt_guard",
         debug: bool = False,
-    ) -> PangeaResponse[TextGuardResult]:
+    ) -> PangeaResponse[TextGuardResult[None]]:
         """
-        Text guard (Beta)
+        Text Guard for scanning LLM inputs and outputs (Beta)
 
-        Guard text.
+        Analyze and redact text to avoid manipulation of the model, addition of
+        malicious content, and other undesirable data transfers.
 
         How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
 
         OperationId: ai_guard_post_v1beta_text_guard
 
         Args:
-            text: Text.
-            recipe: Recipe.
-            debug: Debug.
+            text: Text to be scanned by AI Guard for PII, sensitive data,
+                malicious content, and other data types defined by the
+                configuration. Supports processing up to 10KB of text.
+            recipe: Recipe key of a configuration of data types and settings
+                defined in the Pangea User Console. It specifies the rules that
+                are to be applied to the text, such as defang malicious URLs.
+            debug: Setting this value to true will provide a detailed analysis
+                of the text data
 
         Examples:
             response = ai_guard.guard_text("text")
         """
 
+    @overload
+    def guard_text(
+        self,
+        text_or_messages: _T,
+        *,
+        recipe: str = "pangea_prompt_guard",
+        debug: bool = False,
+    ) -> PangeaResponse[TextGuardResult[_T]]:
+        """
+        Text Guard for scanning LLM inputs and outputs (Beta)
+
+        Analyze and redact text to avoid manipulation of the model, addition of
+        malicious content, and other undesirable data transfers.
+
+        How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
+
+        OperationId: ai_guard_post_v1beta_text_guard
+
+        Args:
+            text_or_messages: Structured data to be scanned by AI Guard for PII,
+                sensitive data, malicious content, and other data types defined
+                by the configuration. Supports processing up to 10KB of text.
+            recipe: Recipe key of a configuration of data types and settings
+                defined in the Pangea User Console. It specifies the rules that
+                are to be applied to the text, such as defang malicious URLs.
+            debug: Setting this value to true will provide a detailed analysis
+                of the text data
+
+        Examples:
+            response = ai_guard.guard_text([
+                {"role": "user", "content": "hello world"}
+            ])
+        """
+
+    def guard_text(
+        self,
+        text_or_messages: str | _T,
+        *,
+        recipe: str = "pangea_prompt_guard",
+        debug: bool = False,
+    ) -> PangeaResponse[TextGuardResult[_T]]:
+        """
+        Text Guard for scanning LLM inputs and outputs (Beta)
+
+        Analyze and redact text to avoid manipulation of the model, addition of
+        malicious content, and other undesirable data transfers.
+
+        How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
+
+        OperationId: ai_guard_post_v1beta_text_guard
+
+        Args:
+            text_or_messages: Text or structured data to be scanned by AI Guard
+                for PII, sensitive data, malicious content, and other data types
+                defined by the configuration. Supports processing up to 10KB of text.
+            recipe: Recipe key of a configuration of data types and settings
+                defined in the Pangea User Console. It specifies the rules that
+                are to be applied to the text, such as defang malicious URLs.
+            debug: Setting this value to true will provide a detailed analysis
+                of the text data
+        """
+
         return self.request.post(
-            "v1beta/text/guard", TextGuardResult, data={"text": text, "recipe": recipe, "debug": debug}
+            "v1beta/text/guard",
+            TextGuardResult,
+            data={
+                "text" if isinstance(text_or_messages, str) else "messages": text_or_messages,
+                "recipe": recipe,
+                "debug": debug,
+            },
         )
