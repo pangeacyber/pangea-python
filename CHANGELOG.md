@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## 5.5.0beta1 - 2025-01-27
+
 ### Added
 
 - Support for structured input to AI Guard.
