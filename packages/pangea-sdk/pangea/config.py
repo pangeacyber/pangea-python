@@ -2,7 +2,7 @@
 # Author: Pangea Cyber Corporation
 
 from dataclasses import dataclass
-from typing import Optional
+from typing import Literal, Optional
 
 
 @dataclass
@@ -16,10 +16,12 @@ class PangeaConfig:
     scheme (http:// or https://), subdomain, domain and port.
     """
 
-    environment: str = "production"
+    environment: Literal["production", "local"] = "production"
     """
-    Used to generate service url.
-    It should be only 'production' or 'local' in cases of particular services that can run locally as Redact.
+    Pangea environment, used to construct service URLs.
+
+    If set to "local", then `domain` must be the full host (i.e., hostname and
+    port) for the Pangea service that this `PangeaConfig` will be used for.
     """
 
     config_id: Optional[str] = None

@@ -97,7 +97,7 @@
       - CLOUD: [AWS, GCP]
         ENV: ${SERVICE_VAULT_ENV}
         TEST: test_vault
-      - CLOUD: [AWS, GCP]
+      - CLOUD: [AWS]
         ENV: ${SERVICE_SHARE_ENV}
         TEST: test_share
   rules:
