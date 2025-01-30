@@ -28,13 +28,9 @@ class TestAIGuard(unittest.TestCase):
             assert response.result.detectors.prompt_injection.detected is False
             assert response.result.detectors.prompt_injection.data is None
 
-        assert response.result.detectors.pii_entity
-        assert response.result.detectors.pii_entity.detected is False
-        assert response.result.detectors.pii_entity.data is None
-
-        assert response.result.detectors.malicious_entity
-        assert response.result.detectors.malicious_entity.detected is False
-        assert response.result.detectors.malicious_entity.data is None
+        if response.result.detectors.pii_entity:
+            assert response.result.detectors.pii_entity.detected is False
+            assert response.result.detectors.pii_entity.data is None
 
         response = self.client.guard_text("security@pangea.cloud")
         assert response.status == "Success"

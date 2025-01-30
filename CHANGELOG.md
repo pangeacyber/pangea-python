@@ -11,9 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Prompt Guard: `classify` and `threshold` parameters.
 
+## 5.5.0beta2 - 2025-01-30
+
 ### Changed
 
 - Clarified what `PangeaConfig.environment` affects.
+- AI Guard: added more detectors and replaced `redacted` with `action`.
 
 ## 5.5.0beta1 - 2025-01-27
 

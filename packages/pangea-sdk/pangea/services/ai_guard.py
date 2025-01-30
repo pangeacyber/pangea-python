@@ -1,10 +1,12 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Generic, List, Optional, TypeVar, overload
+from typing import Any, Dict, Generic, List, Literal, Optional, TypeVar, overload
 
 from pangea.config import PangeaConfig
 from pangea.response import APIResponseModel, PangeaResponse, PangeaResponseResult
 from pangea.services.base import ServiceBase
+
+_DetectorAction = Literal["detected", "redacted", "defanged", "reported", "blocked"]
 
 
 class AnalyzerResponse(APIResponseModel):
@@ -13,6 +15,7 @@ class AnalyzerResponse(APIResponseModel):
 
 
 class PromptInjectionResult(APIResponseModel):
+    action: _DetectorAction
     analyzer_responses: List[AnalyzerResponse]
     """Triggered prompt injection analyzers."""
 
@@ -20,7 +23,7 @@ class PromptInjectionResult(APIResponseModel):
 class PiiEntity(APIResponseModel):
     type: str
     value: str
-    redacted: bool
+    action: _DetectorAction
     start_pos: Optional[int] = None
 
 
@@ -31,13 +34,35 @@ class PiiEntityResult(APIResponseModel):
 class MaliciousEntity(APIResponseModel):
     type: str
     value: str
-    redacted: Optional[bool] = None
+    action: _DetectorAction
     start_pos: Optional[int] = None
     raw: Optional[Dict[str, Any]] = None
 
 
 class MaliciousEntityResult(APIResponseModel):
     entities: List[MaliciousEntity]
+
+
+class SecretsEntity(APIResponseModel):
+    type: str
+    value: str
+    action: _DetectorAction
+    start_pos: Optional[int] = None
+    redacted_value: Optional[str] = None
+
+
+class SecretsEntityResult(APIResponseModel):
+    entities: List[SecretsEntity]
+
+
+class LanguageDetectionResult(APIResponseModel):
+    language: str
+    action: _DetectorAction
+
+
+class CodeDetectionResult(APIResponseModel):
+    language: str
+    action: _DetectorAction
 
 
 _T = TypeVar("_T")
@@ -52,6 +77,11 @@ class TextGuardDetectors(APIResponseModel):
     prompt_injection: Optional[TextGuardDetector[PromptInjectionResult]] = None
     pii_entity: Optional[TextGuardDetector[PiiEntityResult]] = None
     malicious_entity: Optional[TextGuardDetector[MaliciousEntityResult]] = None
+    secrets_detection: Optional[TextGuardDetector[SecretsEntityResult]] = None
+    profanity_and_toxicity: Optional[TextGuardDetector[Any]] = None
+    custom_entity: Optional[TextGuardDetector[Any]] = None
+    language_detection: Optional[TextGuardDetector[LanguageDetectionResult]] = None
+    code_detection: Optional[TextGuardDetector[CodeDetectionResult]] = None
 
 
 class TextGuardResult(PangeaResponseResult, Generic[_T]):
@@ -63,6 +93,8 @@ class TextGuardResult(PangeaResponseResult, Generic[_T]):
 
     prompt_messages: Optional[_T] = None
     """Updated structured prompt, if applicable."""
+
+    blocked: bool
 
 
 class AIGuard(ServiceBase):
