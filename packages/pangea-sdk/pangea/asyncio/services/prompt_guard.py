@@ -52,7 +52,12 @@ class PromptGuardAsync(ServiceBaseAsync):
         super().__init__(token, config, logger_name, config_id)
 
     async def guard(
-        self, messages: Iterable[Message], *, analyzers: Iterable[str] | None = None
+        self,
+        messages: Iterable[Message],
+        *,
+        analyzers: Iterable[str] | None = None,
+        classify: bool | None = None,
+        threshold: float | None = None,
     ) -> PangeaResponse[GuardResult]:
         """
         Guard (Beta)
@@ -64,8 +69,12 @@ class PromptGuardAsync(ServiceBaseAsync):
         OperationId: prompt_guard_post_v1beta_guard
 
         Args:
-            messages: Messages.
-            analyzers: Specific analyzers to be used in the call.
+            messages: Prompt content and role array in JSON format. The
+              `content` is the text that will be analyzed for redaction.
+            analyzers: Specific analyzers to be used in the call
+            classify: Boolean to enable classification of the content
+            threshold: Threshold for the confidence score to consider the prompt
+              as malicious
 
         Examples:
             from pangea.asyncio.services.prompt_guard import Message
@@ -73,4 +82,8 @@ class PromptGuardAsync(ServiceBaseAsync):
             response = await prompt_guard.guard([Message(role="user", content="hello world")])
         """
 
-        return await self.request.post("v1beta/guard", GuardResult, data={"messages": messages, "analyzers": analyzers})
+        return await self.request.post(
+            "v1beta/guard",
+            GuardResult,
+            data={"messages": messages, "analyzers": analyzers, "classify": classify, "threshold": threshold},
+        )
