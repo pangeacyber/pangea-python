@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- Clarified what `PangeaConfig.environment` affects.
+
 ## 5.5.0beta1 - 2025-01-27
 
 ### Added
