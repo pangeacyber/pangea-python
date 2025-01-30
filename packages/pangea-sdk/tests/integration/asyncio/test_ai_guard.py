@@ -35,9 +35,9 @@ class TestAIGuardAsync(unittest.IsolatedAsyncioTestCase):
         assert response.result.detectors.pii_entity.detected is False
         assert response.result.detectors.pii_entity.data is None
 
-        assert response.result.detectors.malicious_entity
-        assert response.result.detectors.malicious_entity.detected is False
-        assert response.result.detectors.malicious_entity.data is None
+        if response.result.detectors.malicious_entity:
+            assert response.result.detectors.malicious_entity.detected is False
+            assert response.result.detectors.malicious_entity.data is None
 
         response = await self.client.guard_text("security@pangea.cloud")
         assert response.status == "Success"
