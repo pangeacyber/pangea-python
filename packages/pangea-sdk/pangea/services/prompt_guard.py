@@ -19,8 +19,8 @@ class Classification(APIResponseModel):
     category: str
     """Classification category"""
 
-    label: str
-    """Classification label"""
+    detected: bool
+    """Classification detection result"""
 
     confidence: float
     """Confidence score for the classification"""
@@ -86,7 +86,12 @@ class PromptGuard(ServiceBase):
         super().__init__(token, config, logger_name, config_id)
 
     def guard(
-        self, messages: Iterable[Message], *, analyzers: Iterable[str] | None = None
+        self,
+        messages: Iterable[Message],
+        *,
+        analyzers: Iterable[str] | None = None,
+        classify: bool | None = None,
+        threshold: float | None = None,
     ) -> PangeaResponse[GuardResult]:
         """
         Guard (Beta)
@@ -98,8 +103,12 @@ class PromptGuard(ServiceBase):
         OperationId: prompt_guard_post_v1beta_guard
 
         Args:
-            messages: Prompt content and role array.
-            analyzers: Specific analyzers to be used in the call.
+            messages: Prompt content and role array in JSON format. The
+              `content` is the text that will be analyzed for redaction.
+            analyzers: Specific analyzers to be used in the call
+            classify: Boolean to enable classification of the content
+            threshold: Threshold for the confidence score to consider the prompt
+              as malicious
 
         Examples:
             from pangea.services.prompt_guard import Message
@@ -107,4 +116,8 @@ class PromptGuard(ServiceBase):
             response = prompt_guard.guard([Message(role="user", content="hello world")])
         """
 
-        return self.request.post("v1beta/guard", GuardResult, data={"messages": messages, "analyzers": analyzers})
+        return self.request.post(
+            "v1beta/guard",
+            GuardResult,
+            data={"messages": messages, "analyzers": analyzers, "classify": classify, "threshold": threshold},
+        )
