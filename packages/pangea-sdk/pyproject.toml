@@ -33,7 +33,7 @@ packages = [
 ]
 
 [tool.poetry.group.dev.dependencies]
-black = "^24.10.0"
+black = "^25.1.0"
 docstring-parser = "^0.15"
 isort = "^6.0.0"
 mypy = "1.14.1"
