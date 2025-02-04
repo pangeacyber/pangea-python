@@ -18,11 +18,11 @@ requires-python = ">=3.9,<4.0.0"
 dependencies = [
   "aiohttp (>=3.11.11,<4.0.0)",
   "cryptography (>=43.0.3,<44.0.0)",
-  "deprecated (>=1.2.15,<2.0.0)",
-  "google-crc32c (>=1.5.0,<2.0.0)",
-  "pydantic (>=2.10.5,<3.0.0)",
+  "deprecated (>=1.2.18,<2.0.0)",
+  "google-crc32c (>=1.6.0,<2.0.0)",
+  "pydantic (>=2.10.6,<3.0.0)",
   "python-dateutil (>=2.9.0.post0,<3.0.0)",
-  "requests (>=2.31.0,<3.0.0)",
+  "requests (>=2.32.3,<3.0.0)",
   "requests-toolbelt (>=1.0.0,<2.0.0)",
   "typing-extensions (>=4.12.2,<5.0.0)"
 ]
@@ -33,9 +33,9 @@ packages = [
 ]
 
 [tool.poetry.group.dev.dependencies]
-black = "^24.10.0"
+black = "^25.1.0"
 docstring-parser = "^0.15"
-isort = "^5.13.2"
+isort = "^6.0.0"
 mypy = "1.14.1"
 types-Deprecated = "^1.2.9.3"
 types-python-dateutil = "^2.8.19.14"

@@ -762,7 +762,7 @@ class Share(ServiceBase):
 
         Examples:
              config = PangeaConfig(domain="aws.us.pangea.cloud")
-             authz = Share(token="pangea_token", config=config)
+             share = Share(token="pangea_token", config=config)
         """
 
         super().__init__(token, config, logger_name, config_id=config_id)
