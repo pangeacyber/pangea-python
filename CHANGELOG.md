@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Prompt Guard: `classify` and `threshold` parameters.
 
+### Changed
+
+- AI Guard: `action` is now any string.
+
 ## 5.5.0beta2 - 2025-01-30
 
 ### Changed

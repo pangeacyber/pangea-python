@@ -143,6 +143,9 @@ class AIGuardAsync(ServiceBaseAsync):
                 are to be applied to the text, such as defang malicious URLs.
             debug: Setting this value to true will provide a detailed analysis
                 of the text data
+
+        Examples:
+            response = await ai_guard.guard_text("text")
         """
 
         return await self.request.post(
