@@ -1,12 +1,10 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Generic, List, Literal, Optional, TypeVar, overload
+from typing import Any, Dict, Generic, List, Optional, TypeVar, overload
 
 from pangea.config import PangeaConfig
 from pangea.response import APIResponseModel, PangeaResponse, PangeaResponseResult
 from pangea.services.base import ServiceBase
-
-_DetectorAction = Literal["detected", "redacted", "defanged", "reported", "blocked"]
 
 
 class AnalyzerResponse(APIResponseModel):
@@ -15,7 +13,7 @@ class AnalyzerResponse(APIResponseModel):
 
 
 class PromptInjectionResult(APIResponseModel):
-    action: _DetectorAction
+    action: str
     analyzer_responses: List[AnalyzerResponse]
     """Triggered prompt injection analyzers."""
 
@@ -23,7 +21,7 @@ class PromptInjectionResult(APIResponseModel):
 class PiiEntity(APIResponseModel):
     type: str
     value: str
-    action: _DetectorAction
+    action: str
     start_pos: Optional[int] = None
 
 
@@ -34,7 +32,7 @@ class PiiEntityResult(APIResponseModel):
 class MaliciousEntity(APIResponseModel):
     type: str
     value: str
-    action: _DetectorAction
+    action: str
     start_pos: Optional[int] = None
     raw: Optional[Dict[str, Any]] = None
 
@@ -46,7 +44,7 @@ class MaliciousEntityResult(APIResponseModel):
 class SecretsEntity(APIResponseModel):
     type: str
     value: str
-    action: _DetectorAction
+    action: str
     start_pos: Optional[int] = None
     redacted_value: Optional[str] = None
 
@@ -57,12 +55,12 @@ class SecretsEntityResult(APIResponseModel):
 
 class LanguageDetectionResult(APIResponseModel):
     language: str
-    action: _DetectorAction
+    action: str
 
 
 class CodeDetectionResult(APIResponseModel):
     language: str
-    action: _DetectorAction
+    action: str
 
 
 _T = TypeVar("_T")
@@ -228,6 +226,9 @@ class AIGuard(ServiceBase):
                 are to be applied to the text, such as defang malicious URLs.
             debug: Setting this value to true will provide a detailed analysis
                 of the text data
+
+        Examples:
+            response = ai_guard.guard_text("text")
         """
 
         return self.request.post(
