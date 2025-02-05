@@ -1,6 +1,6 @@
 [project]
 name = "pangea-sdk"
-version = "5.5.0beta2"
+version = "5.5.0beta3"
 description = "Pangea API SDK"
 authors = [
     {name = "Glenn Gallien", email = "glenn.gallien@pangea.cloud"}

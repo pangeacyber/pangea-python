@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## 5.5.0beta3 - 2025-02-05
+
 ### Added
 
 - Prompt Guard: `classify` and `threshold` parameters.
