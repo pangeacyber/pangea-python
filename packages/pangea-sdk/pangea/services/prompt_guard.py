@@ -91,7 +91,6 @@ class PromptGuard(ServiceBase):
         *,
         analyzers: Iterable[str] | None = None,
         classify: bool | None = None,
-        threshold: float | None = None,
     ) -> PangeaResponse[GuardResult]:
         """
         Guard (Beta)
@@ -107,8 +106,6 @@ class PromptGuard(ServiceBase):
               `content` is the text that will be analyzed for redaction.
             analyzers: Specific analyzers to be used in the call
             classify: Boolean to enable classification of the content
-            threshold: Threshold for the confidence score to consider the prompt
-              as malicious
 
         Examples:
             from pangea.services.prompt_guard import Message
@@ -119,5 +116,5 @@ class PromptGuard(ServiceBase):
         return self.request.post(
             "v1beta/guard",
             GuardResult,
-            data={"messages": messages, "analyzers": analyzers, "classify": classify, "threshold": threshold},
+            data={"messages": messages, "analyzers": analyzers, "classify": classify},
         )
