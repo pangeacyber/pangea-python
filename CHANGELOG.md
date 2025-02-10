@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Removed
+
+- Prompt Guard: `threshold` parameter.
+
 ## 5.5.0beta3 - 2025-02-05
 
 ### Added
