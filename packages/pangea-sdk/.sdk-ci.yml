@@ -13,7 +13,7 @@
   retry: 2
   variables:
     # Set each service test environment
-    SERVICE_AI_GUARD_ENV: DEV
+    SERVICE_AI_GUARD_ENV: LVE
     SERVICE_AUDIT_ENV: LVE
     SERVICE_AUTHN_ENV: LVE
     SERVICE_AUTHZ_ENV: LVE
