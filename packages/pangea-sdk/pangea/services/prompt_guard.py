@@ -30,7 +30,7 @@ class GuardResult(PangeaResponseResult):
     detected: bool
     """Boolean response for if the prompt was considered malicious or not"""
 
-    type: Optional[Literal["direct", "indirect"]] = None
+    type: Optional[Literal["direct", "indirect", ""]] = None
     """Type of analysis, either direct or indirect"""
 
     analyzer: Optional[str] = None
