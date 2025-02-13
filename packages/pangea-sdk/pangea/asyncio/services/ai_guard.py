@@ -60,14 +60,12 @@ class AIGuardAsync(ServiceBaseAsync):
         debug: bool = False,
     ) -> PangeaResponse[TextGuardResult[None]]:
         """
-        Text Guard for scanning LLM inputs and outputs (Beta)
+        Text Guard for scanning LLM inputs and outputs
 
         Analyze and redact text to avoid manipulation of the model, addition of
         malicious content, and other undesirable data transfers.
 
-        How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
-
-        OperationId: ai_guard_post_v1beta_text_guard
+        OperationId: ai_guard_post_v1_text_guard
 
         Args:
             text: Text to be scanned by AI Guard for PII, sensitive data,
@@ -92,14 +90,12 @@ class AIGuardAsync(ServiceBaseAsync):
         debug: bool = False,
     ) -> PangeaResponse[TextGuardResult[_T]]:
         """
-        Text Guard for scanning LLM inputs and outputs (Beta)
+        Text Guard for scanning LLM inputs and outputs
 
         Analyze and redact text to avoid manipulation of the model, addition of
         malicious content, and other undesirable data transfers.
 
-        How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
-
-        OperationId: ai_guard_post_v1beta_text_guard
+        OperationId: ai_guard_post_v1_text_guard
 
         Args:
             text_or_messages: Structured data to be scanned by AI Guard for PII,
@@ -125,14 +121,12 @@ class AIGuardAsync(ServiceBaseAsync):
         debug: bool = False,
     ) -> PangeaResponse[TextGuardResult[_T]]:
         """
-        Text Guard for scanning LLM inputs and outputs (Beta)
+        Text Guard for scanning LLM inputs and outputs
 
         Analyze and redact text to avoid manipulation of the model, addition of
         malicious content, and other undesirable data transfers.
 
-        How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
-
-        OperationId: ai_guard_post_v1beta_text_guard
+        OperationId: ai_guard_post_v1_text_guard
 
         Args:
             text_or_messages: Text or structured data to be scanned by AI Guard
@@ -149,7 +143,7 @@ class AIGuardAsync(ServiceBaseAsync):
         """
 
         return await self.request.post(
-            "v1beta/text/guard",
+            "v1/text/guard",
             TextGuardResult,
             data={
                 "text" if isinstance(text_or_messages, str) else "messages": text_or_messages,
