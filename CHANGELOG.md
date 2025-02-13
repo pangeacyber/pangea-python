@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - AI Guard: updated to v1.
+- Prompt Guard: `type` may be an empty string.
 
 ### Removed
 
