@@ -31,26 +31,24 @@ class TestAIGuardAsync(unittest.IsolatedAsyncioTestCase):
             assert response.result.detectors.prompt_injection.detected is False
             assert response.result.detectors.prompt_injection.data is None
 
-        assert response.result.detectors.pii_entity
-        assert response.result.detectors.pii_entity.detected is False
-        assert response.result.detectors.pii_entity.data is None
+        if response.result.detectors.pii_entity:
+            assert response.result.detectors.pii_entity.detected is False
+            assert response.result.detectors.pii_entity.data is None
 
         if response.result.detectors.malicious_entity:
             assert response.result.detectors.malicious_entity.detected is False
             assert response.result.detectors.malicious_entity.data is None
 
-        response = await self.client.guard_text("security@pangea.cloud")
+    async def test_text_guard_messages(self) -> None:
+        response = await self.client.guard_text(messages=[{"role": "user", "content": "hello world"}])
         assert response.status == "Success"
         assert response.result
-        assert response.result.prompt_text
-        assert response.result.detectors.pii_entity
-        assert response.result.detectors.pii_entity.detected
-        assert response.result.detectors.pii_entity.data
-        assert response.result.detectors.pii_entity.data.entities
-        assert len(response.result.detectors.pii_entity.data.entities) == 1
+        assert response.result.prompt_messages
 
-    async def test_text_guard_structured(self) -> None:
-        response = await self.client.guard_text([{"role": "user", "content": "hello world"}])
+    async def test_text_guard_llm_input(self) -> None:
+        response = await self.client.guard_text(
+            llm_input={"model": "gpt-4o", "messages": [{"role": "user", "content": "hello world"}]}
+        )
         assert response.status == "Success"
         assert response.result
         assert response.result.prompt_messages

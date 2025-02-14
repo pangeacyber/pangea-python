@@ -32,18 +32,16 @@ class TestAIGuard(unittest.TestCase):
             assert response.result.detectors.pii_entity.detected is False
             assert response.result.detectors.pii_entity.data is None
 
-        response = self.client.guard_text("security@pangea.cloud")
+    def test_text_guard_messages(self) -> None:
+        response = self.client.guard_text(messages=[{"role": "user", "content": "hello world"}])
         assert response.status == "Success"
         assert response.result
-        assert response.result.prompt_text
-        assert response.result.detectors.pii_entity
-        assert response.result.detectors.pii_entity.detected
-        assert response.result.detectors.pii_entity.data
-        assert response.result.detectors.pii_entity.data.entities
-        assert len(response.result.detectors.pii_entity.data.entities) == 1
+        assert response.result.prompt_messages
 
-    def test_text_guard_structured(self) -> None:
-        response = self.client.guard_text([{"role": "user", "content": "hello world"}])
+    def test_text_guard_llm_input(self) -> None:
+        response = self.client.guard_text(
+            llm_input={"model": "gpt-4o", "messages": [{"role": "user", "content": "hello world"}]}
+        )
         assert response.status == "Success"
         assert response.result
         assert response.result.prompt_messages

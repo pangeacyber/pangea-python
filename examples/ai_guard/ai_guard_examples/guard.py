@@ -20,6 +20,6 @@ print("Response:", text_response.result.prompt_text)
 # Structured input.
 structured_input = [{"role": "user", "content": "hello world"}]
 print("Guarding structured input:", structured_input)
-structured_response = ai_guard.guard_text(structured_input)
+structured_response = ai_guard.guard_text(messages=structured_input)
 assert structured_response.result
 print("Response:", structured_response.result.prompt_messages)
