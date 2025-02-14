@@ -59,13 +59,11 @@ class PromptGuardAsync(ServiceBaseAsync):
         classify: bool | None = None,
     ) -> PangeaResponse[GuardResult]:
         """
-        Guard (Beta)
+        Guard
 
         Guard messages.
 
-        How to install a [Beta release](https://pangea.cloud/docs/sdk/python/#beta-releases).
-
-        OperationId: prompt_guard_post_v1beta_guard
+        OperationId: prompt_guard_post_v1_guard
 
         Args:
             messages: Prompt content and role array in JSON format. The
@@ -80,7 +78,7 @@ class PromptGuardAsync(ServiceBaseAsync):
         """
 
         return await self.request.post(
-            "v1beta/guard",
+            "v1/guard",
             GuardResult,
             data={"messages": messages, "analyzers": analyzers, "classify": classify},
         )
