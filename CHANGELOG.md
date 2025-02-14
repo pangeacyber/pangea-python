@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- AI Guard: support for `llm_input`, `llm_info`, and `log_fields`.
+
 ### Changed
 
 - AI Guard: updated to v1.
