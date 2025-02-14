@@ -3,8 +3,27 @@ from __future__ import annotations
 from typing import Any, Dict, Generic, List, Optional, TypeVar, overload
 
 from pangea.config import PangeaConfig
-from pangea.response import APIResponseModel, PangeaResponse, PangeaResponseResult
+from pangea.response import APIRequestModel, APIResponseModel, PangeaResponse, PangeaResponseResult
 from pangea.services.base import ServiceBase
+
+
+class LogFields(APIRequestModel):
+    """Additional fields to include in activity log"""
+
+    citations: Optional[str] = None
+    """Origin or source application of the event"""
+
+    extra_info: Optional[str] = None
+    """Stores supplementary details related to the event"""
+
+    model: Optional[str] = None
+    """Model used to perform the event"""
+
+    source: Optional[str] = None
+    """IP address of user or app or agent"""
+
+    tools: Optional[str] = None
+    """Tools used to perform the event"""
 
 
 class AnalyzerResponse(APIResponseModel):
@@ -137,10 +156,12 @@ class AIGuard(ServiceBase):
     @overload
     def guard_text(
         self,
-        text_or_messages: str,
+        text: str,
         *,
-        recipe: str = "pangea_prompt_guard",
-        debug: bool = False,
+        recipe: str | None = None,
+        debug: bool | None = None,
+        llm_info: str | None = None,
+        log_fields: LogFields | None = None,
     ) -> PangeaResponse[TextGuardResult[None]]:
         """
         Text Guard for scanning LLM inputs and outputs
@@ -159,6 +180,8 @@ class AIGuard(ServiceBase):
                 are to be applied to the text, such as defang malicious URLs.
             debug: Setting this value to true will provide a detailed analysis
                 of the text data
+            llm_info: Short string hint for the LLM Provider information
+            log_field: Additional fields to include in activity log
 
         Examples:
             response = ai_guard.guard_text("text")
@@ -167,10 +190,12 @@ class AIGuard(ServiceBase):
     @overload
     def guard_text(
         self,
-        text_or_messages: _T,
         *,
-        recipe: str = "pangea_prompt_guard",
-        debug: bool = False,
+        messages: _T,
+        recipe: str | None = None,
+        debug: bool | None = None,
+        llm_info: str | None = None,
+        log_fields: LogFields | None = None,
     ) -> PangeaResponse[TextGuardResult[_T]]:
         """
         Text Guard for scanning LLM inputs and outputs
@@ -181,27 +206,31 @@ class AIGuard(ServiceBase):
         OperationId: ai_guard_post_v1_text_guard
 
         Args:
-            text_or_messages: Structured data to be scanned by AI Guard for PII,
-                sensitive data, malicious content, and other data types defined
-                by the configuration. Supports processing up to 10KB of text.
+            messages: Structured messages data to be scanned by AI Guard for
+                PII, sensitive data, malicious content, and other data types
+                defined by the configuration. Supports processing up to 10KB of
+                JSON text
             recipe: Recipe key of a configuration of data types and settings
                 defined in the Pangea User Console. It specifies the rules that
                 are to be applied to the text, such as defang malicious URLs.
             debug: Setting this value to true will provide a detailed analysis
                 of the text data
+            llm_info: Short string hint for the LLM Provider information
+            log_field: Additional fields to include in activity log
 
         Examples:
-            response = ai_guard.guard_text([
-                {"role": "user", "content": "hello world"}
-            ])
+            response = ai_guard.guard_text(messages=[{"role": "user", "content": "hello world"}])
         """
 
+    @overload
     def guard_text(
         self,
-        text_or_messages: str | _T,
         *,
-        recipe: str = "pangea_prompt_guard",
-        debug: bool = False,
+        llm_input: _T,
+        recipe: str | None = None,
+        debug: bool | None = None,
+        llm_info: str | None = None,
+        log_fields: LogFields | None = None,
     ) -> PangeaResponse[TextGuardResult[_T]]:
         """
         Text Guard for scanning LLM inputs and outputs
@@ -212,25 +241,83 @@ class AIGuard(ServiceBase):
         OperationId: ai_guard_post_v1_text_guard
 
         Args:
-            text_or_messages: Text or structured data to be scanned by AI Guard
-                for PII, sensitive data, malicious content, and other data types
-                defined by the configuration. Supports processing up to 10KB of text.
+            llm_input: Structured full llm payload data to be scanned by AI
+                Guard for PII, sensitive data, malicious content, and other data
+                types defined by the configuration. Supports processing up to
+                10KB of JSON text
             recipe: Recipe key of a configuration of data types and settings
                 defined in the Pangea User Console. It specifies the rules that
                 are to be applied to the text, such as defang malicious URLs.
             debug: Setting this value to true will provide a detailed analysis
                 of the text data
+            llm_info: Short string hint for the LLM Provider information
+            log_field: Additional fields to include in activity log
+
+        Examples:
+            response = ai_guard.guard_text(
+                llm_input={"model": "gpt-4o", "messages": [{"role": "user", "content": "hello world"}]}
+            )
+        """
+
+    def guard_text(  # type: ignore[misc]
+        self,
+        text: str | None = None,
+        *,
+        messages: _T | None = None,
+        llm_input: _T | None = None,
+        recipe: str | None = None,
+        debug: bool | None = None,
+        llm_info: str | None = None,
+        log_fields: LogFields | None = None,
+    ) -> PangeaResponse[TextGuardResult[None]]:
+        """
+        Text Guard for scanning LLM inputs and outputs
+
+        Analyze and redact text to avoid manipulation of the model, addition of
+        malicious content, and other undesirable data transfers.
+
+        OperationId: ai_guard_post_v1_text_guard
+
+        Args:
+            text: Text to be scanned by AI Guard for PII, sensitive data,
+                malicious content, and other data types defined by the
+                configuration. Supports processing up to 10KB of text.
+            messages: Structured messages data to be scanned by AI Guard for
+                PII, sensitive data, malicious content, and other data types
+                defined by the configuration. Supports processing up to 10KB of
+                JSON text
+            llm_input: Structured full llm payload data to be scanned by AI
+                Guard for PII, sensitive data, malicious content, and other data
+                types defined by the configuration. Supports processing up to
+                10KB of JSON text
+            recipe: Recipe key of a configuration of data types and settings
+                defined in the Pangea User Console. It specifies the rules that
+                are to be applied to the text, such as defang malicious URLs.
+            debug: Setting this value to true will provide a detailed analysis
+                of the text data
+            llm_info: Short string hint for the LLM Provider information
+            log_field: Additional fields to include in activity log
 
         Examples:
             response = ai_guard.guard_text("text")
         """
 
+        if not any((text, messages, llm_input)):
+            raise ValueError("At least one of `text`, `messages`, or `llm_input` must be given")
+
+        if sum((text is not None, messages is not None, llm_input is not None)) > 1:
+            raise ValueError("Only one of `text`, `messages`, or `llm_input` can be given at once")
+
         return self.request.post(
             "v1/text/guard",
             TextGuardResult,
             data={
-                "text" if isinstance(text_or_messages, str) else "messages": text_or_messages,
+                "text": text,
+                "messages": messages,
+                "llm_input": llm_input,
                 "recipe": recipe,
                 "debug": debug,
+                "llm_info": llm_info,
+                "log_fields": log_fields,
             },
         )
