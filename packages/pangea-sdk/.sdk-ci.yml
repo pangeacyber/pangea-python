@@ -13,6 +13,7 @@
   retry: 2
   variables:
     # Set each service test environment
+    SERVICE_AI_GUARD_ENV: LVE
     SERVICE_AUDIT_ENV: LVE
     SERVICE_AUTHN_ENV: LVE
     SERVICE_AUTHZ_ENV: LVE
@@ -23,6 +24,7 @@
     SERVICE_URL_INTEL_ENV: LVE
     SERVICE_FILE_INTEL_ENV: LVE
     SERVICE_USER_INTEL_ENV: LVE
+    SERVICE_PROMPT_GUARD_ENV: LVE
     SERVICE_REDACT_ENV: LVE
     SERVICE_SANITIZE_ENV: LVE
     SERVICE_VAULT_ENV: LVE
@@ -55,6 +57,9 @@
     - poetry install
   parallel:
     matrix:
+      - CLOUD: [AWS]
+        ENV: ${SERVICE_AI_GUARD_ENV}
+        TEST: test_ai_guard
       - CLOUD: [AWS, GCP]
         ENV: ${SERVICE_AUDIT_ENV}
         TEST: test_audit
@@ -88,6 +93,9 @@
       - CLOUD: [AWS, GCP]
         ENV: ${SERVICE_FILE_SCAN_ENV}
         TEST: test_file_scan
+      - CLOUD: [AWS]
+        ENV: ${SERVICE_PROMPT_GUARD_ENV}
+        TEST: test_prompt_guard
       - CLOUD: [AWS, GCP]
         ENV: ${SERVICE_REDACT_ENV}
         TEST: test_redact

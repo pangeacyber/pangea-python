@@ -32,6 +32,7 @@ from pangea.tools import (
     get_vault_signature_test_token,
     logger_set_pangea_config,
 )
+from pangea.utils import format_datetime
 from tests.test_tools import load_test_environment
 
 ACTOR = "python-sdk"
@@ -55,7 +56,7 @@ custom_schema_event = {
     "field_bool": True,
     "field_str_short": STATUS_NO_SIGNED,
     "field_str_long": LONG_FIELD,
-    "field_time": datetime.datetime.now(),
+    "field_time": format_datetime(datetime.datetime.now(tz=datetime.timezone.utc)),
 }
 
 
@@ -433,7 +434,7 @@ class TestAuditAsync(unittest.IsolatedAsyncioTestCase):
             "field_bool": True,
             "field_str_short": STATUS_NO_SIGNED,
             "field_str_long": jsonfield,
-            "field_time": datetime.datetime.now(),
+            "field_time": format_datetime(datetime.datetime.now(tz=datetime.timezone.utc)),
         }
 
         response: PangeaResponse[LogResult] = await self.auditCustomSchemaLocalSign.log_event(
