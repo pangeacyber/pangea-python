@@ -20,7 +20,7 @@ the AI Guard service) and with your Pangea domain.
 To run examples:
 
 ```
-poetry run python ai_guard_examples/guard.py
+poetry run python async_ai_guard_examples/guard_text.py
 ```
 
 [configure-a-pangea-service]: https://pangea.cloud/docs/getting-started/configure-services/#configure-a-pangea-service
