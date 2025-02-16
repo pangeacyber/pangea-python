@@ -19,7 +19,7 @@ with your project token configured on the Pangea User Console (token should
 To run examples:
 
 ```
-poetry run python prompt_guard_examples/guard.py
+poetry run python async_prompt_guard_examples/guard.py
 ```
 
 [tokens]: https://pangea.cloud/docs/admin-guide/tokens
