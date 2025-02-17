@@ -36,8 +36,8 @@ class GuardResult(PangeaResponseResult):
     analyzer: Optional[str] = None
     """Prompt Analyzers for identifying and rejecting properties of prompts"""
 
-    confidence: int
-    """Percent of confidence in the detection result, ranging from 0 to 100"""
+    confidence: float
+    """Percent of confidence in the detection result, ranging from 0 to 1"""
 
     info: Optional[str] = None
     """Extra information about the detection result"""
