@@ -872,7 +872,7 @@ files = [
 
 [[package]]
 name = "pangea-sdk"
-version = "5.4.0"
+version = "5.5.0"
 description = "Pangea API SDK"
 optional = false
 python-versions = ">=3.9,<4.0.0"
@@ -881,7 +881,7 @@ files = []
 develop = true
 
 [package.dependencies]
-aiohttp = ">=3.11.11,<4.0.0"
+aiohttp = ">=3.11.12,<4.0.0"
 cryptography = ">=43.0.3,<44.0.0"
 deprecated = ">=1.2.18,<2.0.0"
 google-crc32c = ">=1.6.0,<2.0.0"
