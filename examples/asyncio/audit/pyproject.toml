@@ -30,5 +30,5 @@ line-length = 120
 profile = "black"
 
 [build-system]
-requires = ["poetry-core>=2.0.1"]
+requires = ["poetry-core>=2.1.1"]
 build-backend = "poetry.core.masonry.api"
