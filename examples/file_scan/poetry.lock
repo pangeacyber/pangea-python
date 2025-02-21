@@ -872,24 +872,24 @@ files = [
 
 [[package]]
 name = "pangea-sdk"
-version = "5.4.0"
+version = "5.5.1"
 description = "Pangea API SDK"
 optional = false
 python-versions = "<4.0.0,>=3.9"
 groups = ["main"]
 files = [
-    {file = "pangea_sdk-5.4.0-py3-none-any.whl", hash = "sha256:59aa45e7da639d9c2be00afba2b651a0b6414cc05821404577ea65d85a0d2ff2"},
-    {file = "pangea_sdk-5.4.0.tar.gz", hash = "sha256:647531e07d174741f2e38348a15b0d57621ce0f646ffee6450842b9dc3ef815e"},
+    {file = "pangea_sdk-5.5.1-py3-none-any.whl", hash = "sha256:bc00b2165754f005022b93d66ada341ef46434d551af96d8e9a6d95f55da3cbb"},
+    {file = "pangea_sdk-5.5.1.tar.gz", hash = "sha256:4b83587b526c835d3da2238f28f8a9173cafda6506e213315a027f4768f8b264"},
 ]
 
 [package.dependencies]
-aiohttp = ">=3.11.11,<4.0.0"
+aiohttp = ">=3.11.12,<4.0.0"
 cryptography = ">=43.0.3,<44.0.0"
-deprecated = ">=1.2.15,<2.0.0"
-google-crc32c = ">=1.5.0,<2.0.0"
-pydantic = ">=2.10.5,<3.0.0"
-python-dateutil = ">=2.9.0,<3.0.0"
-requests = ">=2.31.0,<3.0.0"
+deprecated = ">=1.2.18,<2.0.0"
+google-crc32c = ">=1.6.0,<2.0.0"
+pydantic = ">=2.10.6,<3.0.0"
+python-dateutil = ">=2.9.0.post0,<3.0.0"
+requests = ">=2.32.3,<3.0.0"
 requests-toolbelt = ">=1.0.0,<2.0.0"
 typing-extensions = ">=4.12.2,<5.0.0"
 
@@ -1487,4 +1487,4 @@ propcache = ">=0.2.0"
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.9.0"
-content-hash = "9b765b677a3cc539080a1f7e32c0c1d434dc0b5cce556b22c000d1224be246be"
+content-hash = "0215a69cf092bcdda93f7a7affa99daf7f1c99baf6456c5ef0a034b64abc2648"
