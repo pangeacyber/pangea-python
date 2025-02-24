@@ -48,6 +48,8 @@
     - export PANGEA_AUDIT_CONFIG_ID_3_${ENV}="$(eval echo \$PANGEA_AUDIT_CONFIG_ID_3_${ENV}_${CLOUD})"
     - export PANGEA_REDACT_CONFIG_ID_1_${ENV}="$(eval echo \$PANGEA_REDACT_CONFIG_ID_1_${ENV}_${CLOUD})"
     - export PANGEA_REDACT_CONFIG_ID_2_${ENV}="$(eval echo \$PANGEA_REDACT_CONFIG_ID_2_${ENV}_${CLOUD})"
+    # Vault key ids
+    - export PANGEA_INTEGRATION_FPE_KEY_ID_${ENV}="$(eval echo \$PANGEA_INTEGRATION_FPE_KEY_ID_${ENV}_${CLOUD})"
 
     - !reference [.setup, update-pip]
     - !reference [.setup, update-poetry]
