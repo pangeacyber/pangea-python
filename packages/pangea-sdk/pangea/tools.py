@@ -151,20 +151,17 @@ def get_config_id(environment: TestEnvironment, service: str, config_number: int
 
 def get_custom_schema_test_token(environment: TestEnvironment):
     env_var_name = f"PANGEA_INTEGRATION_CUSTOM_SCHEMA_TOKEN_{environment}"
-    value = os.getenv(env_var_name)
-    if not value:
-        raise PangeaException(f"{env_var_name} env var need to be set")
-
-    return value
+    return _load_env_var(env_var_name)
 
 
 def get_custom_schema_vault_test_token(environment: TestEnvironment):
     env_var_name = f"PANGEA_INTEGRATION_CUSTOM_SCHEMA_TOKEN_{environment}"
-    value = os.getenv(env_var_name)
-    if not value:
-        raise PangeaException(f"{env_var_name} env var need to be set")
+    return _load_env_var(env_var_name)
 
-    return value
+
+def get_vault_fpe_key_id(environment: TestEnvironment):
+    env_var_name = f"PANGEA_INTEGRATION_FPE_KEY_ID_{environment}"
+    return _load_env_var(env_var_name)
 
 
 class SequenceFollower:

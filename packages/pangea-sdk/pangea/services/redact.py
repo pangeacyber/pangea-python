@@ -155,12 +155,19 @@ class StructuredRequest(APIRequestModel):
 class StructuredResult(PangeaResponseResult):
     """
     Result class after a structured redact request
-
     """
 
     redacted_data: Optional[Union[Dict, str]] = None
+    """Redacted data result"""
+
     count: int
+    """Number of redactions present in the text"""
+
     report: Optional[DebugReport] = None
+    """Describes the decision process for redactions"""
+
+    fpe_context: Optional[str] = None
+    """FPE context used to encrypt and redact data"""
 
 
 class UnredactRequest(APIRequestModel):
@@ -170,7 +177,6 @@ class UnredactRequest(APIRequestModel):
     Arguments:
     redacted_data: Data to unredact
     fpe_context (base64): FPE context used to decrypt and unredact data
-
     """
 
     redacted_data: RedactedData
@@ -183,7 +189,6 @@ RedactedData = Union[str, Dict]
 class UnredactResult(PangeaResponseResult):
     """
     Result class after an unredact request
-
     """
 
     data: RedactedData
