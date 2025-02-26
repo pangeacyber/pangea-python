@@ -132,7 +132,7 @@ class TestVault(unittest.TestCase):
 
         end = time.time()
         print(f"Deleted {count} items in {end - start} seconds")
-        print(f"Deleted {count / (end - start)} items per second")
+        print(f"Average delete time: {(end - start) * 1000 / count} ms per item")
 
     def encrypting_cycle(
         self, id: str, *, key_type: Literal[ItemType.ASYMMETRIC_KEY, ItemType.SYMMETRIC_KEY] = ItemType.ASYMMETRIC_KEY
