@@ -755,6 +755,7 @@ class TestVault(unittest.TestCase):
 
     def test_list(self) -> None:
         last = None
+        count = 0
         while True:
             list_resp = self.vault.list(
                 filter={
@@ -772,6 +773,7 @@ class TestVault(unittest.TestCase):
                         i.id is not None and i.type != "folder" and i.folder != "/service-tokens/"
                     ):  # Skip service token deletion
                         del_resp = self.vault.delete(i.id)
+                        count += 1
                         assert del_resp.result
                         self.assertEqual(i.id, del_resp.result.id)
                 except pe.PangeaAPIException as e:
@@ -779,6 +781,7 @@ class TestVault(unittest.TestCase):
                     print(e)
 
             if last is None:
+                print(f"Deleted {count} items")
                 break
 
     def test_folders(self) -> None:
