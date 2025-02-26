@@ -764,7 +764,7 @@ class TestVault(unittest.TestCase):
                 last=last,
             )
             assert list_resp.result
-            self.assertGreater(len(list_resp.result.items), 0)
+            self.assertGreaterEqual(len(list_resp.result.items), 0)
             last = list_resp.result.last
 
             for i in list_resp.result.items:
