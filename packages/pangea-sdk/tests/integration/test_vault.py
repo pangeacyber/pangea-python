@@ -754,21 +754,32 @@ class TestVault(unittest.TestCase):
                 self.vault.delete(item_id=key_id)
 
     def test_list(self) -> None:
-        list_resp = self.vault.list()
-        assert list_resp.result
-        self.assertGreater(len(list_resp.result.items), 0)
+        last = None
+        while True:
+            list_resp = self.vault.list(
+                filter={
+                    "name__contains": ACTOR,
+                },
+                last=last,
+            )
+            assert list_resp.result
+            self.assertGreater(len(list_resp.result.items), 0)
+            last = list_resp.result.last
 
-        for i in list_resp.result.items:
-            try:
-                if (
-                    i.id is not None and i.type != "folder" and i.folder != "/service-tokens/"
-                ):  # Skip service token deletion
-                    del_resp = self.vault.delete(i.id)
-                    assert del_resp.result
-                    self.assertEqual(i.id, del_resp.result.id)
-            except pe.PangeaAPIException as e:
-                print(i)
-                print(e)
+            for i in list_resp.result.items:
+                try:
+                    if (
+                        i.id is not None and i.type != "folder" and i.folder != "/service-tokens/"
+                    ):  # Skip service token deletion
+                        del_resp = self.vault.delete(i.id)
+                        assert del_resp.result
+                        self.assertEqual(i.id, del_resp.result.id)
+                except pe.PangeaAPIException as e:
+                    print(i)
+                    print(e)
+
+            if last is None:
+                break
 
     def test_folders(self) -> None:
         FOLDER_PARENT = f"test_parent_folder_{TIME}/"
