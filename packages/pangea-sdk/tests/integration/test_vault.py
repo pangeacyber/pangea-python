@@ -754,18 +754,23 @@ class TestVault(unittest.TestCase):
                 self.vault.delete(item_id=key_id)
 
     def test_list(self) -> None:
+        import time
+
         last = None
         count = 0
-        while True:
+        start = time.time()
+        list_call_count = 0
+        while count < 1000:
             list_resp = self.vault.list(
                 filter={
                     "name__contains": ACTOR,
                 },
                 last=last,
             )
+            list_call_count += 1
+            print(f"List call count: {list_call_count}")
             assert list_resp.result
             self.assertGreaterEqual(len(list_resp.result.items), 0)
-            last = list_resp.result.last
 
             for i in list_resp.result.items:
                 try:
@@ -780,9 +785,15 @@ class TestVault(unittest.TestCase):
                     print(i)
                     print(e)
 
-            if last is None:
+            if len(list_resp.result.items) == 0:
                 print(f"Deleted {count} items")
                 break
+
+            last = list_resp.result.last
+
+        end = time.time()
+        print(f"Deleted {count} items in {end - start} seconds")
+        print(f"Deleted {count / (end - start)} items per second")
 
     def test_folders(self) -> None:
         FOLDER_PARENT = f"test_parent_folder_{TIME}/"
