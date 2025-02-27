@@ -87,6 +87,53 @@ class TestVault(unittest.TestCase):
         self.vault = Vault(self.token, config=self.config, logger_name="vault")
         logger_set_pangea_config("vault")
 
+    @classmethod
+    def tearDownClass(cls) -> None:
+        import time
+
+        token = get_test_token(TEST_ENVIRONMENT)
+        domain = get_test_domain(TEST_ENVIRONMENT)
+        config = PangeaConfig(domain=domain, custom_user_agent="sdk-test")
+        vault = Vault(token, config=config, logger_name="vault")
+
+        last = None
+        count = 0
+        start = time.time()
+        list_call_count = 0
+        while count < 1000:
+            list_resp = vault.list(
+                filter={
+                    "name__contains": ACTOR,
+                },
+                last=last,
+            )
+            list_call_count += 1
+            print(f"List call count: {list_call_count}")
+            assert list_resp.result
+
+            for i in list_resp.result.items:
+                try:
+                    if (
+                        i.id is not None and i.type != "folder" and i.folder != "/service-tokens/"
+                    ):  # Skip service token deletion
+                        del_resp = vault.delete(i.id)
+                        count += 1
+                        assert del_resp.result
+                        assert i.id == del_resp.result.id
+                except pe.PangeaAPIException as e:
+                    print(i)
+                    print(e)
+
+            if len(list_resp.result.items) == 0:
+                print(f"Deleted {count} items")
+                break
+
+            last = list_resp.result.last
+
+        end = time.time()
+        print(f"Deleted {count} items in {end - start} seconds")
+        print(f"Average delete time: {(end - start) * 1000 / count} ms per item")
+
     def encrypting_cycle(
         self, id: str, *, key_type: Literal[ItemType.ASYMMETRIC_KEY, ItemType.SYMMETRIC_KEY] = ItemType.ASYMMETRIC_KEY
     ) -> None:
@@ -752,23 +799,6 @@ class TestVault(unittest.TestCase):
                 raise
             finally:
                 self.vault.delete(item_id=key_id)
-
-    def test_list(self) -> None:
-        list_resp = self.vault.list()
-        assert list_resp.result
-        self.assertGreater(len(list_resp.result.items), 0)
-
-        for i in list_resp.result.items:
-            try:
-                if (
-                    i.id is not None and i.type != "folder" and i.folder != "/service-tokens/"
-                ):  # Skip service token deletion
-                    del_resp = self.vault.delete(i.id)
-                    assert del_resp.result
-                    self.assertEqual(i.id, del_resp.result.id)
-            except pe.PangeaAPIException as e:
-                print(i)
-                print(e)
 
     def test_folders(self) -> None:
         FOLDER_PARENT = f"test_parent_folder_{TIME}/"
