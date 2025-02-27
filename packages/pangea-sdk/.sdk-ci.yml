@@ -62,61 +62,54 @@
       - CLOUD: [AWS]
         ENV: ${SERVICE_AI_GUARD_ENV}
         TEST: test_ai_guard
-      - CLOUD: [AWS, GCP]
+      - CLOUD: [AWS]
         ENV: ${SERVICE_AUDIT_ENV}
         TEST: test_audit
       - CLOUD: [AWS]
         ENV: ${SERVICE_AUDIT_ENV}
         TEST: test_audit_tools
-      - CLOUD: [AWS, GCP]
+      - CLOUD: [AWS]
         ENV: ${SERVICE_AUTHN_ENV}
         TEST: test_authn
-      - CLOUD: [AWS, GCP]
+      - CLOUD: [AWS]
         ENV: ${SERVICE_AUTHZ_ENV}
         TEST: test_authz
-      - CLOUD: [AWS, GCP]
+      - CLOUD: [AWS]
         ENV: ${SERVICE_EMBARGO_ENV}
         TEST: test_embargo
-      - CLOUD: [AWS, GCP]
+      - CLOUD: [AWS]
         ENV: ${SERVICE_DOMAIN_INTEL_ENV}
         TEST: test_intel.TestDomainIntel
-      - CLOUD: [AWS, GCP]
+      - CLOUD: [AWS]
         ENV: ${SERVICE_IP_INTEL_ENV}
         TEST: test_intel.TestIPIntel
-      - CLOUD: [AWS, GCP]
+      - CLOUD: [AWS]
         ENV: ${SERVICE_URL_INTEL_ENV}
         TEST: test_intel.TestURLIntel
-      - CLOUD: [AWS, GCP]
+      - CLOUD: [AWS]
         ENV: ${SERVICE_USER_INTEL_ENV}
         TEST: test_intel.TestUserIntel
-      - CLOUD: [AWS, GCP]
+      - CLOUD: [AWS]
         ENV: ${SERVICE_FILE_INTEL_ENV}
         TEST: test_intel.TestFileIntel
-      - CLOUD: [AWS, GCP]
+      - CLOUD: [AWS]
         ENV: ${SERVICE_FILE_SCAN_ENV}
         TEST: test_file_scan
       - CLOUD: [AWS]
         ENV: ${SERVICE_PROMPT_GUARD_ENV}
         TEST: test_prompt_guard
-      - CLOUD: [AWS, GCP]
+      - CLOUD: [AWS]
         ENV: ${SERVICE_REDACT_ENV}
         TEST: test_redact
       - CLOUD: [AWS]
         ENV: ${SERVICE_SANITIZE_ENV}
         TEST: test_sanitize
-      - CLOUD: [AWS, GCP]
+      - CLOUD: [AWS]
         ENV: ${SERVICE_VAULT_ENV}
         TEST: test_vault
       - CLOUD: [AWS]
         ENV: ${SERVICE_SHARE_ENV}
         TEST: test_share
-  rules:
-    - if: '$CI_COMMIT_BRANCH && $CLOUD == "GCP" && $TEST == "test_file_scan"'
-      allow_failure: true
-    - if: '$CI_COMMIT_BRANCH && $CLOUD == "GCP" && $TEST != "test_file_scan"'
-      allow_failure: false
-    - if: '$CI_COMMIT_BRANCH && $CLOUD != "GCP"'
-      allow_failure: false
 
 sdk-build:
   extends: .sdk-base
