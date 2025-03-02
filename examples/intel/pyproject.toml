@@ -20,7 +20,7 @@ pangea-sdk = { path = "../../packages/pangea-sdk", develop = true }
 
 [tool.poetry.group.dev.dependencies]
 black = "^25.1.0"
-isort = "^6.0.0"
+isort = "^6.0.1"
 mypy = "^1.15.0"
 
 [tool.black]
