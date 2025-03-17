@@ -1,5 +1,5 @@
 .django-base:
-  image: python:3.9
+  image: python:3.9@sha256:5ea663a1c6ba266fdcac5949d1d2ea364ce30a2da92a3df95bb3c01437633ad9
   before_script:
     - !reference [.setup, update-pip]
     - !reference [.setup, update-poetry]
