@@ -11,9 +11,9 @@ from pangea.tools import logger_set_pangea_config
 
 token = os.getenv("PANGEA_AUDIT_TOKEN")
 assert token
-domain = os.getenv("PANGEA_DOMAIN")
-assert domain
-config = PangeaConfig(domain=domain)
+url_template = os.getenv("PANGEA_URL_TEMPLATE")
+assert url_template
+config = PangeaConfig(base_url_template=url_template)
 audit = Audit(token, config=config, private_key_file="./key/privkey", logger_name="audit")
 logger_set_pangea_config(logger_name=audit.logger.name)
 
@@ -49,9 +49,7 @@ def main():
     query = "message:" + msg
 
     try:
-        search_res: PangeaResponse[SearchOutput] = audit.search(
-            query=query, limit=page_size, verify_consistency=True, verify_events=True
-        )
+        search_res = audit.search(query=query, limit=page_size, verify_consistency=True, verify_events=True)
 
         result_id = search_res.result.id
         count = search_res.result.count

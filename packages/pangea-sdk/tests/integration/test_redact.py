@@ -11,8 +11,8 @@ from pangea.tools import (
     TestEnvironment,
     get_config_id,
     get_multi_config_test_token,
-    get_test_domain,
     get_test_token,
+    get_test_url_template,
     get_vault_fpe_key_id,
     logger_set_pangea_config,
 )
@@ -24,8 +24,8 @@ TEST_ENVIRONMENT = load_test_environment(Redact.service_name, TestEnvironment.LI
 class TestRedact(unittest.TestCase):
     def setUp(self):
         self.token = get_test_token(TEST_ENVIRONMENT)
-        self.domain = get_test_domain(TEST_ENVIRONMENT)
-        config = PangeaConfig(domain=self.domain, custom_user_agent="sdk-test")
+        self.url_template = get_test_url_template(TEST_ENVIRONMENT)
+        config = PangeaConfig(base_url_template=self.url_template, custom_user_agent="sdk-test")
         self.redact = Redact(self.token, config=config, logger_name="pangea")
         self.multi_config_token = get_multi_config_test_token(TEST_ENVIRONMENT)
         logger_set_pangea_config(logger_name=self.redact.logger.name)
@@ -74,8 +74,8 @@ class TestRedact(unittest.TestCase):
 
     def test_redact_with_bad_auth_token(self) -> None:
         token = "notarealtoken"
-        domain = get_test_domain(TEST_ENVIRONMENT)
-        config = PangeaConfig(domain=domain, custom_user_agent="sdk-test")
+        url_template = get_test_url_template(TEST_ENVIRONMENT)
+        config = PangeaConfig(base_url_template=url_template, custom_user_agent="sdk-test")
         badredact = Redact(token, config=config)
         text = "Jenny Jenny... 415-867-5309"
 
@@ -83,7 +83,7 @@ class TestRedact(unittest.TestCase):
             badredact.redact(text=text)
 
     def test_multi_config_redact(self):
-        config = PangeaConfig(domain=self.domain)
+        config = PangeaConfig(base_url_template=self.url_template)
         redact_multi_config = Redact(self.multi_config_token, config=config)
 
         def redact_without_config_id():
@@ -96,7 +96,7 @@ class TestRedact(unittest.TestCase):
 
     def test_multi_config_redact_config_1(self):
         config_id = get_config_id(TEST_ENVIRONMENT, "redact", 1)
-        config = PangeaConfig(domain=self.domain)
+        config = PangeaConfig(base_url_template=self.url_template)
         redact_multi_config = Redact(self.multi_config_token, config=config, config_id=config_id)
 
         text = "Jenny Jenny... 415-867-5309"
@@ -109,7 +109,7 @@ class TestRedact(unittest.TestCase):
 
     def test_multi_config_redact_config_2(self):
         config_id = get_config_id(TEST_ENVIRONMENT, "redact", 2)
-        config = PangeaConfig(domain=self.domain)
+        config = PangeaConfig(base_url_template=self.url_template)
         redact_multi_config = Redact(self.multi_config_token, config=config, config_id=config_id)
 
         text = "Jenny Jenny... 415-867-5309"

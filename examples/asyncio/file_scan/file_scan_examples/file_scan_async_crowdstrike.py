@@ -8,12 +8,12 @@ from pangea.tools import logger_set_pangea_config
 
 token = os.getenv("PANGEA_FILE_SCAN_TOKEN")
 assert token
-domain = os.getenv("PANGEA_DOMAIN")
-assert domain
+url_template = os.getenv("PANGEA_URL_TEMPLATE")
+assert url_template
 
 # To work asynchronously, it is necessary to set queue_retry_enable to False.
 # When we call .scan() it will return an AcceptedRequestException immediately if the server returns a 202 response.
-config = PangeaConfig(domain=domain, queued_retry_enabled=False)
+config = PangeaConfig(base_url_template=url_template, queued_retry_enabled=False)
 client = FileScanAsync(token, config=config, logger_name="pangea")
 logger_set_pangea_config(logger_name=client.logger.name)
 

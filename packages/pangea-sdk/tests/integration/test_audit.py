@@ -27,8 +27,8 @@ from pangea.tools import (
     get_config_id,
     get_custom_schema_test_token,
     get_multi_config_test_token,
-    get_test_domain,
     get_test_token,
+    get_test_url_template,
     get_vault_signature_test_token,
     logger_set_pangea_config,
 )
@@ -71,8 +71,8 @@ class TestAudit(unittest.TestCase):
         self.multi_config_token = get_multi_config_test_token(TEST_ENVIRONMENT)
         self.custom_schema_token = get_custom_schema_test_token(TEST_ENVIRONMENT)
 
-        self.domain = get_test_domain(TEST_ENVIRONMENT)
-        self.config = PangeaConfig(domain=self.domain)
+        self.base_url_template = get_test_url_template(TEST_ENVIRONMENT)
+        self.config = PangeaConfig(base_url_template=self.base_url_template)
         self.audit_general = Audit(self.general_token, config=self.config, logger_name="pangea")
         self.audit_local_sign = Audit(
             self.general_token, config=self.config, private_key_file="./tests/testdata/privkey", logger_name="pangea"
@@ -82,13 +82,13 @@ class TestAudit(unittest.TestCase):
 
         self.auditCustomSchema = Audit(
             self.custom_schema_token,
-            config=PangeaConfig(self.domain),
+            config=PangeaConfig(self.base_url_template),
             logger_name="pangea",
         )
 
         self.auditCustomSchemaLocalSign = Audit(
             self.custom_schema_token,
-            config=PangeaConfig(domain=self.domain),
+            config=PangeaConfig(base_url_template=self.base_url_template),
             private_key_file="./tests/testdata/privkey",
             logger_name="pangea",
         )
@@ -667,7 +667,7 @@ class TestAudit(unittest.TestCase):
             self.assertEqual(response_search.result.count, max_result)
 
     def test_multi_config_log(self):
-        config = PangeaConfig(domain=self.domain)
+        config = PangeaConfig(base_url_template=self.base_url_template)
         audit_multi_config = Audit(self.multi_config_token, config=config)
 
         def log_without_config_id():
@@ -680,7 +680,7 @@ class TestAudit(unittest.TestCase):
 
     def test_multi_config_log_config_1(self):
         config_id = get_config_id(TEST_ENVIRONMENT, "audit", 1)
-        config = PangeaConfig(domain=self.domain)
+        config = PangeaConfig(base_url_template=self.base_url_template)
         audit_multi_config = Audit(self.multi_config_token, config=config, config_id=config_id)
 
         response: PangeaResponse[LogResult] = audit_multi_config.log(
@@ -692,7 +692,7 @@ class TestAudit(unittest.TestCase):
 
     def test_multi_config_log_config_2(self):
         config_id = get_config_id(TEST_ENVIRONMENT, "audit", 2)
-        config = PangeaConfig(domain=self.domain)
+        config = PangeaConfig(base_url_template=self.base_url_template)
         audit_multi_config = Audit(self.multi_config_token, config=config, config_id=config_id)
 
         response: PangeaResponse[LogResult] = audit_multi_config.log(
@@ -819,7 +819,7 @@ class TestAudit(unittest.TestCase):
         }
 
         config_id = get_config_id(TEST_ENVIRONMENT, "audit", 3)
-        config = PangeaConfig(domain=self.domain)
+        config = PangeaConfig(base_url_template=self.base_url_template)
         client = Audit(self.multi_config_token, config=config, config_id=config_id)
         response = client.log_stream(data)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)

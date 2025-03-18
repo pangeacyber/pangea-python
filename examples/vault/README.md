@@ -10,7 +10,7 @@ In the example root directory (`./examples/vault`), run the following command:
 $ poetry install
 ```
 
-Set up the environment variables ([Instructions](https://pangea.cloud/docs/vault/#set-your-environment-variables)) `PANGEA_VAULT_TOKEN` and `PANGEA_DOMAIN` with your project token configured on the Pangea User Console (token should have access to Vault service [Instructions](https://pangea.cloud/docs/admin-guide/tokens)) and with your Pangea domain. Some examples require
+Set up the environment variables ([Instructions](https://pangea.cloud/docs/vault/#set-your-environment-variables)) `PANGEA_VAULT_TOKEN` and `PANGEA_URL_TEMPLATE` with your project token configured on the Pangea User Console (token should have access to Vault service [Instructions](https://pangea.cloud/docs/admin-guide/tokens)) and with your Pangea base url template. Some examples require
 an additional variable `PANGEA_AUDIT_TOKEN_VAULT_ID` that is the Vault ID of a
 Secure Audit Log token.
 

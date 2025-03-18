@@ -14,10 +14,10 @@ def main() -> None:
     token = os.getenv("PANGEA_VAULT_TOKEN")
     assert token
 
-    domain = os.getenv("PANGEA_DOMAIN")
-    assert domain
+    url_template = os.getenv("PANGEA_URL_TEMPLATE")
+    assert url_template
 
-    config = PangeaConfig(domain)
+    config = PangeaConfig(url_template)
     vault = Vault(token, config)
 
     # First create an encryption key, either from the Pangea Console or

@@ -8,9 +8,9 @@ from pangea.tools import logger_set_pangea_config
 
 token = os.getenv("PANGEA_AUDIT_TOKEN")
 assert token
-domain = os.getenv("PANGEA_DOMAIN")
-assert domain
-config = PangeaConfig(domain=domain)
+url_template = os.getenv("PANGEA_URL_TEMPLATE")
+assert url_template
+config = PangeaConfig(base_url_template=url_template)
 audit = Audit(token, config=config, logger_name="audit")
 logger_set_pangea_config(logger_name=audit.logger.name)
 

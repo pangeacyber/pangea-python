@@ -225,7 +225,10 @@ def create_parser():
         "--token", "-t", default=os.getenv("PANGEA_TOKEN"), help="Pangea token (default: env PANGEA_TOKEN)"
     )
     parser.add_argument(
-        "--domain", "-d", default=os.getenv("PANGEA_DOMAIN"), help="Pangea domain (default: env PANGEA_DOMAIN)"
+        "--url-template",
+        "-u",
+        default=os.getenv("PANGEA_URL_TEMPLATE"),
+        help="Pangea URL template (default: env PANGEA_URL_TEMPLATE)",
     )
     parser.add_argument(
         "--file",

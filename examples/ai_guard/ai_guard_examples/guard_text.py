@@ -6,9 +6,9 @@ from pangea import PangeaConfig
 from pangea.services.ai_guard import AIGuard
 
 token = os.getenv("PANGEA_AI_GUARD_TOKEN", "")
-domain = os.getenv("PANGEA_DOMAIN", "aws.us.pangea.cloud")
+url_template = os.getenv("PANGEA_URL_TEMPLATE", "https://{SERVICE_NAME}.aws.us.pangea.cloud")
 
-ai_guard = AIGuard(token, config=PangeaConfig(domain=domain))
+ai_guard = AIGuard(token, config=PangeaConfig(base_url_template=url_template))
 
 # Text guard.
 input_text = "This email address, security@pangea.cloud, will be redacted."

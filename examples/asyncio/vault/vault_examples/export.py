@@ -16,10 +16,10 @@ from pangea.utils import str_b64_2bytes
 
 async def main() -> None:
     token = os.getenv("PANGEA_VAULT_TOKEN")
-    domain = os.getenv("PANGEA_DOMAIN")
+    url_template = os.getenv("PANGEA_URL_TEMPLATE")
     assert token
-    assert domain
-    config = PangeaConfig(domain=domain)
+    assert url_template
+    config = PangeaConfig(base_url_template=url_template)
     vault = VaultAsync(token, config=config)
 
     try:

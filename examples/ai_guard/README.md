@@ -11,9 +11,9 @@ poetry install
 ```
 
 [Set up the environment variables][set-environment-variables]
-`PANGEA_AI_GUARD_TOKEN` and `PANGEA_DOMAIN` with your project token configured
+`PANGEA_AI_GUARD_TOKEN` and `PANGEA_URL_TEMPLATE` with your project token configured
 on the Pangea User Console (token should [have access to][configure-a-pangea-service]
-the AI Guard service) and with your Pangea domain.
+the AI Guard service) and with your Pangea base url template.
 
 ## Run
 

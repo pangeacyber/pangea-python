@@ -15,8 +15,8 @@ from pangea.utils import str2str_b64
 
 async def main() -> None:
     token = os.getenv("PANGEA_VAULT_TOKEN", "")
-    domain = os.getenv("PANGEA_DOMAIN", "")
-    config = PangeaConfig(domain=domain)
+    url_template = os.getenv("PANGEA_URL_TEMPLATE", "")
+    config = PangeaConfig(base_url_template=url_template)
     vault = VaultAsync(token, config=config)
 
     try:

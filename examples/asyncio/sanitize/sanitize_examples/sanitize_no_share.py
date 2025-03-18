@@ -16,10 +16,10 @@ async def main() -> None:
     token = os.getenv("PANGEA_SANITIZE_TOKEN")
     assert token
 
-    domain = os.getenv("PANGEA_DOMAIN")
-    assert domain
+    url_template = os.getenv("PANGEA_URL_TEMPLATE")
+    assert url_template
 
-    config = PangeaConfig(domain)
+    config = PangeaConfig(url_template)
     # Create Sanitize client with its token and its config
 
     client = SanitizeAsync(token, config)

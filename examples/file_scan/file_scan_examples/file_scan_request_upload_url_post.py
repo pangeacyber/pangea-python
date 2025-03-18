@@ -11,11 +11,11 @@ from pangea.utils import get_file_upload_params
 
 token = os.getenv("PANGEA_FILE_SCAN_TOKEN")
 assert token
-domain = os.getenv("PANGEA_DOMAIN")
-assert domain
+url_template = os.getenv("PANGEA_URL_TEMPLATE")
+assert url_template
 
 # To enable sync mode, set queued_retry_enabled to true and set a timeout
-config = PangeaConfig(domain=domain, queued_retry_enabled=True, poll_result_timeout=120)
+config = PangeaConfig(base_url_template=url_template, queued_retry_enabled=True, poll_result_timeout=120)
 client = FileScan(token, config=config, logger_name="pangea")
 logger_set_pangea_config(logger_name=client.logger.name)
 
@@ -54,7 +54,7 @@ def main():
                 time.sleep(10)
 
                 # Try to poll result. If it's not ready, it will raise an AcceptedRequestException
-                response: PangeaResponse[FileScanResult] = client.poll_result(response=response)
+                response = client.poll_result(response=response, result_class=FileScanResult)
                 print("Got result successfully...")
                 print(f"Response: {response.result}")
                 break

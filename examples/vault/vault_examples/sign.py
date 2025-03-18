@@ -15,9 +15,9 @@ from pangea.utils import str2str_b64
 def main() -> None:
     token = os.getenv("PANGEA_VAULT_TOKEN")
     assert token
-    domain = os.getenv("PANGEA_DOMAIN")
-    assert domain
-    config = PangeaConfig(domain=domain)
+    url_template = os.getenv("PANGEA_URL_TEMPLATE")
+    assert url_template
+    config = PangeaConfig(base_url_template=url_template)
     vault = Vault(token, config=config)
 
     try:

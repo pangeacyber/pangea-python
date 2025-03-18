@@ -7,9 +7,9 @@ from pangea import PangeaConfig
 from pangea.services.prompt_guard import Message, PromptGuard
 
 token = os.getenv("PANGEA_PROMPT_GUARD_TOKEN", "")
-domain = os.getenv("PANGEA_DOMAIN", "aws.us.pangea.cloud")
+url_template = os.getenv("PANGEA_URL_TEMPLATE", "https://{SERVICE_NAME}.aws.us.pangea.cloud")
 
-prompt_guard = PromptGuard(token, config=PangeaConfig(domain=domain))
+prompt_guard = PromptGuard(token, config=PangeaConfig(base_url_template=url_template))
 
 
 async def main() -> None:

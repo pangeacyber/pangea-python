@@ -14,15 +14,15 @@ def main() -> None:
     assert token
 
     # Pangea domain.
-    domain = os.getenv("PANGEA_DOMAIN")
-    assert domain
+    url_template = os.getenv("PANGEA_URL_TEMPLATE")
+    assert url_template
 
     # Vault ID of the Secure Audit Log token.
     token_id = os.getenv("PANGEA_AUDIT_TOKEN_VAULT_ID")
     assert token_id
 
     # Set up API client.
-    config = PangeaConfig(domain=domain)
+    config = PangeaConfig(base_url_template=url_template)
     vault = Vault(token, config=config)
 
     try:

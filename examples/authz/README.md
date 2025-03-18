@@ -12,9 +12,9 @@ $ poetry install
 ```
 
 Set up the environment variables ([Instructions][set-your-environment-variables])
-`PANGEA_AUTHZ_TOKEN` and `PANGEA_DOMAIN` with your project token configured on
+`PANGEA_AUTHZ_TOKEN` and `PANGEA_URL_TEMPLATE` with your project token configured on
 the Pangea User Console (token should have access to the AuthZ service, see
-[the Tokens page][tokens]) and with your Pangea domain.
+[the Tokens page][tokens]) and with your Pangea base url template.
 
 ## Run
 

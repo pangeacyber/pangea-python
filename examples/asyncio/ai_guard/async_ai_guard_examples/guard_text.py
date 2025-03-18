@@ -7,9 +7,9 @@ from pangea import PangeaConfig
 from pangea.asyncio.services import AIGuardAsync
 
 token = os.getenv("PANGEA_AI_GUARD_TOKEN", "")
-domain = os.getenv("PANGEA_DOMAIN", "aws.us.pangea.cloud")
+url_template = os.getenv("PANGEA_URL_TEMPLATE", "https://{SERVICE_NAME}.aws.us.pangea.cloud")
 
-ai_guard = AIGuardAsync(token, config=PangeaConfig(domain=domain))
+ai_guard = AIGuardAsync(token, config=PangeaConfig(base_url_template=url_template))
 
 
 async def main() -> None:

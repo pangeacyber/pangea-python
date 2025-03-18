@@ -11,9 +11,9 @@ from pangea.utils import get_prefix, hash_sha256
 
 token = os.getenv("PANGEA_INTEL_TOKEN")
 assert token
-domain = os.getenv("PANGEA_DOMAIN")
-assert domain
-config = PangeaConfig(domain=domain)
+url_template = os.getenv("PANGEA_URL_TEMPLATE")
+assert url_template
+config = PangeaConfig(base_url_template=url_template)
 intel = UserIntelAsync(token, config=config, logger_name="intel")
 logger_set_pangea_config(logger_name=intel.logger.name)
 

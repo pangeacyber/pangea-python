@@ -9,7 +9,7 @@ import pangea.exceptions as pe
 import pangea.services.authn.models as m
 from pangea import PangeaConfig, PangeaResponse
 from pangea.services.authn.authn import AuthN
-from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
+from pangea.tools import TestEnvironment, get_test_token, get_test_url_template, logger_set_pangea_config
 from tests.test_tools import load_test_environment
 
 TEST_ENVIRONMENT = load_test_environment(AuthN.service_name, TestEnvironment.LIVE)
@@ -33,8 +33,8 @@ CB_URI = "https://someurl.com/callbacklink"
 class TestAuthN(unittest.TestCase):
     def setUp(self) -> None:
         self.token = get_test_token(TEST_ENVIRONMENT)
-        domain = get_test_domain(TEST_ENVIRONMENT)
-        self.config = PangeaConfig(domain=domain)
+        url_template = get_test_url_template(TEST_ENVIRONMENT)
+        self.config = PangeaConfig(base_url_template=url_template)
         self.authn = AuthN(self.token, config=self.config, logger_name="pangea")
         logger_set_pangea_config(logger_name=self.authn.logger.name)
 

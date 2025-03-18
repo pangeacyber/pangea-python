@@ -16,9 +16,9 @@ from pangea.services.share.share import (  # type: ignore
 
 token = os.getenv("PANGEA_SHARE_TOKEN")
 assert token
-domain = os.getenv("PANGEA_DOMAIN")
-assert domain
-config = PangeaConfig(domain=domain)
+url_template = os.getenv("PANGEA_URL_TEMPLATE")
+assert url_template
+config = PangeaConfig(base_url_template=url_template)
 
 # Create a path name
 date = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -157,7 +157,7 @@ def main():
 
         # List files in folder
         print("\nListing objects...")
-        list_filter: FilterList = {
+        list_filter = {
             "folder": path,
         }
         resp_list = share.list(filter=list_filter)

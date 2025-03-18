@@ -83,7 +83,7 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
             config_id: Configuration ID.
 
         Examples:
-             config = PangeaConfig(domain="pangea_domain")
+             config = PangeaConfig(base_url_template="https://{SERVICE_NAME}.pangea_domain")
              audit = AuditAsync(token="pangea_token", config=config)
         """
 

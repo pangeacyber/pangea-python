@@ -27,8 +27,8 @@ from pangea.tools import (
     get_config_id,
     get_custom_schema_test_token,
     get_multi_config_test_token,
-    get_test_domain,
     get_test_token,
+    get_test_url_template,
     get_vault_signature_test_token,
     logger_set_pangea_config,
 )
@@ -70,8 +70,8 @@ class TestAuditAsync(unittest.IsolatedAsyncioTestCase):
         self.multi_config_token = get_multi_config_test_token(TEST_ENVIRONMENT)
         self.custom_schema_token = get_custom_schema_test_token(TEST_ENVIRONMENT)
 
-        self.domain = get_test_domain(TEST_ENVIRONMENT)
-        self.config = PangeaConfig(domain=self.domain)
+        self.url_template = get_test_url_template(TEST_ENVIRONMENT)
+        self.config = PangeaConfig(base_url_template=self.url_template)
         self.audit_general = AuditAsync(self.general_token, config=self.config, logger_name="pangea")
         self.audit_local_sign = AuditAsync(
             self.general_token, config=self.config, private_key_file="./tests/testdata/privkey", logger_name="pangea"
@@ -87,7 +87,7 @@ class TestAuditAsync(unittest.IsolatedAsyncioTestCase):
 
         self.auditCustomSchemaLocalSign = AuditAsync(
             self.custom_schema_token,
-            config=PangeaConfig(domain=self.domain),
+            config=PangeaConfig(base_url_template=self.url_template),
             private_key_file="./tests/testdata/privkey",
             logger_name="pangea",
         )
@@ -669,7 +669,7 @@ class TestAuditAsync(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(response_search.result.count, max_result)
 
     async def test_multi_config_log(self):
-        config = PangeaConfig(domain=self.domain)
+        config = PangeaConfig(base_url_template=self.url_template)
         audit_multi_config = AuditAsync(self.multi_config_token, config=config)
 
         with self.assertRaises(pe.PangeaAPIException):
@@ -680,7 +680,7 @@ class TestAuditAsync(unittest.IsolatedAsyncioTestCase):
 
     async def test_multi_config_log_config_1(self):
         config_id = get_config_id(TEST_ENVIRONMENT, "audit", 1)
-        config = PangeaConfig(domain=self.domain)
+        config = PangeaConfig(base_url_template=self.url_template)
         audit_multi_config = AuditAsync(self.multi_config_token, config=config, config_id=config_id)
 
         response: PangeaResponse[LogResult] = await audit_multi_config.log(
@@ -694,7 +694,7 @@ class TestAuditAsync(unittest.IsolatedAsyncioTestCase):
 
     async def test_multi_config_log_config_2(self):
         config_id = get_config_id(TEST_ENVIRONMENT, "audit", 2)
-        config = PangeaConfig(domain=self.domain)
+        config = PangeaConfig(base_url_template=self.url_template)
         audit_multi_config = AuditAsync(self.multi_config_token, config=config, config_id=config_id)
 
         response: PangeaResponse[LogResult] = await audit_multi_config.log(

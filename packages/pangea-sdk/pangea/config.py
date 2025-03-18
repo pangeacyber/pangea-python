@@ -2,26 +2,16 @@
 # Author: Pangea Cyber Corporation
 
 from dataclasses import dataclass
-from typing import Literal, Optional
+from typing import Optional
 
 
 @dataclass
 class PangeaConfig:
     """Holds run time configuration information used by SDK components."""
 
-    domain: str = "aws.us.pangea.cloud"
+    base_url_template: str = "https://{SERVICE_NAME}.aws.us.pangea.cloud/"
     """
-    Used to set Pangea domain (and port if needed), it should not include service subdomain
-    just for particular use cases when environment = "local", domain could be set to an url including:
-    scheme (http:// or https://), subdomain, domain and port.
-    """
-
-    environment: Literal["production", "local"] = "production"
-    """
-    Pangea environment, used to construct service URLs.
-
-    If set to "local", then `domain` must be the full host (i.e., hostname and
-    port) for the Pangea service that this `PangeaConfig` will be used for.
+    Used to set Pangea domain and protocol and port if needed. It should include the SERVICE_NAME placeholder.
     """
 
     config_id: Optional[str] = None
@@ -29,11 +19,6 @@ class PangeaConfig:
     Only used for services that support multiconfig (e.g.: Audit service)
 
     @deprecated("config_id will be deprecated from PangeaConfig. Set it on service initialization instead")
-    """
-
-    insecure: bool = False
-    """
-    Set to true to use plain http
     """
 
     request_retries: int = 3

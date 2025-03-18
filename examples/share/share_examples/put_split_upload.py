@@ -12,9 +12,9 @@ from pangea.utils import get_file_upload_params
 
 token = os.getenv("PANGEA_SHARE_TOKEN")
 assert token
-domain = os.getenv("PANGEA_DOMAIN")
-assert domain
-config = PangeaConfig(domain=domain)
+url_template = os.getenv("PANGEA_URL_TEMPLATE")
+assert url_template
+config = PangeaConfig(base_url_template=url_template)
 
 # Create a path name
 date = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -58,7 +58,7 @@ def main():
                 # wait some time to get result ready and poll it
                 print(f"Polling result. Retry: {retry}.")
                 time.sleep(10)
-                response: PangeaResponse[PutResult] = share.poll_result(response=response)
+                response = share.poll_result(response=response, result_class=PutResult)
 
                 print(f"Poll result success. Item ID: {response.result.object.id}")
                 break

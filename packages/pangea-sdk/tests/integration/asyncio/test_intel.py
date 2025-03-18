@@ -5,7 +5,7 @@ from pangea import PangeaConfig
 from pangea.asyncio.services import DomainIntelAsync, FileIntelAsync, IpIntelAsync, UrlIntelAsync, UserIntelAsync
 from pangea.response import ResponseStatus
 from pangea.services.intel import HashType
-from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
+from pangea.tools import TestEnvironment, get_test_token, get_test_url_template, logger_set_pangea_config
 from tests.test_tools import load_test_environment
 
 
@@ -14,8 +14,8 @@ class TestDomainIntel(unittest.IsolatedAsyncioTestCase):
 
     def setUp(self):
         token = get_test_token(self.TEST_ENVIRONMENT)
-        domain = get_test_domain(self.TEST_ENVIRONMENT)
-        config = PangeaConfig(domain=domain, custom_user_agent="sdk-test")
+        url_template = get_test_url_template(self.TEST_ENVIRONMENT)
+        config = PangeaConfig(base_url_template=url_template, custom_user_agent="sdk-test")
         self.intel_domain = DomainIntelAsync(token, config=config, logger_name="pangea")
         logger_set_pangea_config(logger_name=self.intel_domain.logger.name)
 
@@ -65,8 +65,8 @@ class TestDomainIntel(unittest.IsolatedAsyncioTestCase):
 
     async def test_domain_reputation_with_bad_auth_token(self):
         token = "noarealtoken"
-        domain = get_test_domain(self.TEST_ENVIRONMENT)
-        config = PangeaConfig(domain=domain, custom_user_agent="sdk-test")
+        url_template = get_test_url_template(self.TEST_ENVIRONMENT)
+        config = PangeaConfig(base_url_template=url_template, custom_user_agent="sdk-test")
         badintel_domain = DomainIntelAsync(token, config=config)
 
         with self.assertRaises(pe.UnauthorizedException):
@@ -80,8 +80,8 @@ class TestFileIntel(unittest.IsolatedAsyncioTestCase):
 
     def setUp(self):
         token = get_test_token(self.TEST_ENVIRONMENT)
-        domain = get_test_domain(self.TEST_ENVIRONMENT)
-        config = PangeaConfig(domain=domain, custom_user_agent="sdk-test")
+        url_template = get_test_url_template(self.TEST_ENVIRONMENT)
+        config = PangeaConfig(base_url_template=url_template, custom_user_agent="sdk-test")
         self.intel_file = FileIntelAsync(token, config=config, logger_name="pangea")
         logger_set_pangea_config(logger_name=self.intel_file.logger.name)
 
@@ -144,8 +144,8 @@ class TestFileIntel(unittest.IsolatedAsyncioTestCase):
 
     async def test_file_reputation_with_bad_auth_token(self):
         token = "noarealtoken"
-        domain = get_test_domain(self.TEST_ENVIRONMENT)
-        config = PangeaConfig(domain=domain, custom_user_agent="sdk-test")
+        url_template = get_test_url_template(self.TEST_ENVIRONMENT)
+        config = PangeaConfig(base_url_template=url_template, custom_user_agent="sdk-test")
         badintel_domain = FileIntelAsync(token, config=config)
 
         with self.assertRaises(pe.UnauthorizedException):
@@ -173,8 +173,8 @@ class TestIPIntel(unittest.IsolatedAsyncioTestCase):
 
     def setUp(self):
         token = get_test_token(self.TEST_ENVIRONMENT)
-        domain = get_test_domain(self.TEST_ENVIRONMENT)
-        config = PangeaConfig(domain=domain, custom_user_agent="sdk-test")
+        url_template = get_test_url_template(self.TEST_ENVIRONMENT)
+        config = PangeaConfig(base_url_template=url_template, custom_user_agent="sdk-test")
         self.intel_ip = IpIntelAsync(token, config=config, logger_name="pangea")
         logger_set_pangea_config(logger_name=self.intel_ip.logger.name)
 
@@ -303,8 +303,8 @@ class TestIPIntel(unittest.IsolatedAsyncioTestCase):
 
     async def test_ip_reputation_with_bad_auth_token(self):
         token = "noarealtoken"
-        domain = get_test_domain(self.TEST_ENVIRONMENT)
-        config = PangeaConfig(domain=domain, custom_user_agent="sdk-test")
+        url_template = get_test_url_template(self.TEST_ENVIRONMENT)
+        config = PangeaConfig(base_url_template=url_template, custom_user_agent="sdk-test")
         badintel_ip = IpIntelAsync(token, config=config)
 
         with self.assertRaises(pe.UnauthorizedException):
@@ -316,8 +316,8 @@ class TestURLIntel(unittest.IsolatedAsyncioTestCase):
 
     def setUp(self):
         token = get_test_token(self.TEST_ENVIRONMENT)
-        domain = get_test_domain(self.TEST_ENVIRONMENT)
-        config = PangeaConfig(domain=domain, custom_user_agent="sdk-test")
+        url_template = get_test_url_template(self.TEST_ENVIRONMENT)
+        config = PangeaConfig(base_url_template=url_template, custom_user_agent="sdk-test")
         self.intel_url = UrlIntelAsync(token, config=config, logger_name="pangea")
         logger_set_pangea_config(logger_name=self.intel_url.logger.name)
 
@@ -357,8 +357,8 @@ class TestURLIntel(unittest.IsolatedAsyncioTestCase):
 
     async def test_url_reputation_with_bad_auth_token(self):
         token = "noarealtoken"
-        domain = get_test_domain(self.TEST_ENVIRONMENT)
-        config = PangeaConfig(domain=domain, custom_user_agent="sdk-test")
+        url_template = get_test_url_template(self.TEST_ENVIRONMENT)
+        config = PangeaConfig(base_url_template=url_template, custom_user_agent="sdk-test")
         badintel_url = UrlIntelAsync(token, config=config)
 
         with self.assertRaises(pe.UnauthorizedException):
@@ -370,8 +370,8 @@ class TestUserIntel(unittest.IsolatedAsyncioTestCase):
 
     def setUp(self):
         token = get_test_token(self.TEST_ENVIRONMENT)
-        domain = get_test_domain(self.TEST_ENVIRONMENT)
-        config = PangeaConfig(domain=domain, custom_user_agent="sdk-test")
+        url_template = get_test_url_template(self.TEST_ENVIRONMENT)
+        config = PangeaConfig(base_url_template=url_template, custom_user_agent="sdk-test")
         self.intel_user = UserIntelAsync(token, config=config, logger_name="pangea")
         logger_set_pangea_config(logger_name=self.intel_user.logger.name)
 

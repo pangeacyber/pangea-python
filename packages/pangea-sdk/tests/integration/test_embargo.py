@@ -3,7 +3,7 @@ import unittest
 import pangea.exceptions as pe
 from pangea import PangeaConfig
 from pangea.services import Embargo
-from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
+from pangea.tools import TestEnvironment, get_test_token, get_test_url_template, logger_set_pangea_config
 from tests.test_tools import load_test_environment
 
 TEST_ENVIRONMENT = load_test_environment(Embargo.service_name, TestEnvironment.LIVE)
@@ -12,8 +12,8 @@ TEST_ENVIRONMENT = load_test_environment(Embargo.service_name, TestEnvironment.L
 class TestEmbargo(unittest.TestCase):
     def setUp(self):
         token = get_test_token(TEST_ENVIRONMENT)
-        domain = get_test_domain(TEST_ENVIRONMENT)
-        config = PangeaConfig(domain=domain, custom_user_agent="sdk-test")
+        url_template = get_test_url_template(TEST_ENVIRONMENT)
+        config = PangeaConfig(base_url_template=url_template, custom_user_agent="sdk-test")
         self.embargo = Embargo(token, config=config)
         logger_set_pangea_config(logger_name=self.embargo.logger.name)
 
@@ -42,8 +42,8 @@ class TestEmbargo(unittest.TestCase):
 
     def test_embargo_with_bad_auth_token(self):
         token = "noarealauthtoken"
-        domain = get_test_domain(TEST_ENVIRONMENT)
-        config = PangeaConfig(domain=domain)
+        url_template = get_test_url_template(TEST_ENVIRONMENT)
+        config = PangeaConfig(base_url_template=url_template)
         badembargo = Embargo(token, config=config)
 
         with self.assertRaises(pe.UnauthorizedException):

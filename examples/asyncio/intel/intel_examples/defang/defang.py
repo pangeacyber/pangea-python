@@ -10,9 +10,9 @@ from pangea.config import PangeaConfig
 
 token = os.getenv("PANGEA_INTEL_TOKEN")
 assert token
-domain = os.getenv("PANGEA_DOMAIN")
-assert domain
-config = PangeaConfig(domain=domain)
+url_template = os.getenv("PANGEA_URL_TEMPLATE")
+assert url_template
+config = PangeaConfig(base_url_template=url_template)
 url_intel = UrlIntelAsync(token, config=config)
 domain_intel = DomainIntelAsync(token, config=config)
 defanged_schemes = {"http": "hxxp", "https": "hxxps"}

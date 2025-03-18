@@ -4,7 +4,7 @@ import unittest
 
 from pangea import PangeaConfig
 from pangea.services import AIGuard
-from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
+from pangea.tools import TestEnvironment, get_test_token, get_test_url_template, logger_set_pangea_config
 from tests.test_tools import load_test_environment
 
 TEST_ENVIRONMENT = load_test_environment(AIGuard.service_name, TestEnvironment.LIVE)
@@ -13,8 +13,8 @@ TEST_ENVIRONMENT = load_test_environment(AIGuard.service_name, TestEnvironment.L
 class TestAIGuard(unittest.TestCase):
     def setUp(self) -> None:
         token = get_test_token(TEST_ENVIRONMENT)
-        domain = get_test_domain(TEST_ENVIRONMENT)
-        config = PangeaConfig(domain=domain, custom_user_agent="sdk-test")
+        url_template = get_test_url_template(TEST_ENVIRONMENT)
+        config = PangeaConfig(base_url_template=url_template, custom_user_agent="sdk-test")
         self.client = AIGuard(token, config=config)
         logger_set_pangea_config(logger_name=self.client.logger.name)
 
