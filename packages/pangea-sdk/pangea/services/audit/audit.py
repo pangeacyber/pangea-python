@@ -408,10 +408,6 @@ class Audit(ServiceBase, AuditBase):
              config = PangeaConfig(domain="pangea_domain")
              audit = Audit(token="pangea_token", config=config)
         """
-        # FIXME: Temporary check to deprecate config_id from PangeaConfig.
-        # Delete it when deprecate PangeaConfig.config_id
-        if config_id and config is not None and config.config_id is not None:
-            config_id = config.config_id
         ServiceBase.__init__(self, token, config=config, logger_name=logger_name, config_id=config_id)
         AuditBase.__init__(
             self, private_key_file=private_key_file, public_key_info=public_key_info, tenant_id=tenant_id
