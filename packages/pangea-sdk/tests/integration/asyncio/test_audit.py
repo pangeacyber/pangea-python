@@ -81,7 +81,7 @@ class TestAuditAsync(unittest.IsolatedAsyncioTestCase):
 
         self.auditCustomSchema = AuditAsync(
             self.custom_schema_token,
-            config=PangeaConfig(self.domain),
+            config=PangeaConfig(base_url_template=self.url_template),
             logger_name="pangea",
         )
 
@@ -100,7 +100,7 @@ class TestAuditAsync(unittest.IsolatedAsyncioTestCase):
         await self.auditCustomSchemaLocalSign.close()
 
     async def test_log_no_verbose(self):
-        response: PangeaResponse[LogResult] = await self.audit_general.log(
+        response = await self.audit_general.log(
             message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verbose=False
         )
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
@@ -109,9 +109,7 @@ class TestAuditAsync(unittest.IsolatedAsyncioTestCase):
 
     async def test_log_tenant_id(self):
         audit = AuditAsync(self.general_token, config=self.config, tenant_id="mytenantid")
-        response: PangeaResponse[LogResult] = await audit.log(
-            message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verbose=True
-        )
+        response = await audit.log(message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verbose=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertIsNotNone(response.result.hash)
         self.assertIsNotNone(response.result.envelope)
@@ -121,7 +119,7 @@ class TestAuditAsync(unittest.IsolatedAsyncioTestCase):
         await audit.close()
 
     async def test_log_with_timestamp(self):
-        response: PangeaResponse[LogResult] = await self.audit_general.log(
+        response = await self.audit_general.log(
             message=MSG_NO_SIGNED,
             actor=ACTOR,
             status=STATUS_NO_SIGNED,
@@ -133,7 +131,7 @@ class TestAuditAsync(unittest.IsolatedAsyncioTestCase):
         self.assertIsNone(response.result.envelope)
 
     async def test_log_verbose_no_verify(self):
-        response: PangeaResponse[LogResult] = await self.audit_general.log(
+        response = await self.audit_general.log(
             message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verify=False, verbose=True
         )
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
@@ -145,7 +143,7 @@ class TestAuditAsync(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(response.result.signature_verification, EventVerification.NONE)
 
     async def test_log_verify(self):
-        response: PangeaResponse[LogResult] = await self.audit_general.log(
+        response = await self.audit_general.log(
             message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verify=True
         )  # Verify true set verbose to true
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
@@ -158,7 +156,7 @@ class TestAuditAsync(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(response.result.membership_verification, EventVerification.PASS)
         self.assertEqual(response.result.signature_verification, EventVerification.NONE)
 
-        response: PangeaResponse[LogResult] = await self.audit_general.log(
+        response = await self.audit_general.log(
             message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verify=True
         )
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
@@ -339,17 +337,13 @@ class TestAuditAsync(unittest.IsolatedAsyncioTestCase):
 
     # Test custom schema
     async def test_custom_schema_log_no_verbose(self):
-        response: PangeaResponse[LogResult] = await self.auditCustomSchema.log_event(
-            event=custom_schema_event, verbose=False
-        )
+        response = await self.auditCustomSchema.log_event(event=custom_schema_event, verbose=False)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertIsNotNone(response.result.hash)
         self.assertIsNone(response.result.envelope)
 
     async def test_custom_schema_log_verbose_no_verify(self):
-        response: PangeaResponse[LogResult] = await self.auditCustomSchema.log_event(
-            event=custom_schema_event, verify=False, verbose=True
-        )
+        response = await self.auditCustomSchema.log_event(event=custom_schema_event, verify=False, verbose=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertIsNotNone(response.result.envelope)
         self.assertIsNone(response.result.consistency_proof)
@@ -359,7 +353,7 @@ class TestAuditAsync(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(response.result.signature_verification, EventVerification.NONE)
 
     async def test_custom_schema_log_verify(self):
-        response: PangeaResponse[LogResult] = await self.auditCustomSchema.log_event(
+        response = await self.auditCustomSchema.log_event(
             event=custom_schema_event,
             verify=True,
         )  # Verify true set verbose to true
@@ -373,7 +367,7 @@ class TestAuditAsync(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(response.result.membership_verification, EventVerification.PASS)
         self.assertEqual(response.result.signature_verification, EventVerification.NONE)
 
-        response: PangeaResponse[LogResult] = await self.auditCustomSchema.log_event(
+        response = await self.auditCustomSchema.log_event(
             event=custom_schema_event,
             verify=True,
         )  # Verify true set verbose to true
@@ -394,7 +388,7 @@ class TestAuditAsync(unittest.IsolatedAsyncioTestCase):
             "field_time": datetime.datetime.now(),
         }
 
-        response: PangeaResponse[LogResult] = await self.auditCustomSchema.log_event(
+        response = await self.auditCustomSchema.log_event(
             event=event,
             verify=True,
         )
@@ -407,7 +401,7 @@ class TestAuditAsync(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(response.result.signature_verification, EventVerification.NONE)
 
     async def test_custom_schema_log_sign_local_and_verify(self):
-        response: PangeaResponse[LogResult] = await self.auditCustomSchemaLocalSign.log_event(
+        response = await self.auditCustomSchemaLocalSign.log_event(
             event=custom_schema_event,
             sign_local=True,
             verify=True,
@@ -437,7 +431,7 @@ class TestAuditAsync(unittest.IsolatedAsyncioTestCase):
             "field_time": format_datetime(datetime.datetime.now(tz=datetime.timezone.utc)),
         }
 
-        response: PangeaResponse[LogResult] = await self.auditCustomSchemaLocalSign.log_event(
+        response = await self.auditCustomSchemaLocalSign.log_event(
             event=event,
             sign_local=True,
             verify=True,
@@ -683,7 +677,7 @@ class TestAuditAsync(unittest.IsolatedAsyncioTestCase):
         config = PangeaConfig(base_url_template=self.url_template)
         audit_multi_config = AuditAsync(self.multi_config_token, config=config, config_id=config_id)
 
-        response: PangeaResponse[LogResult] = await audit_multi_config.log(
+        response = await audit_multi_config.log(
             message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verbose=True
         )
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
@@ -697,7 +691,7 @@ class TestAuditAsync(unittest.IsolatedAsyncioTestCase):
         config = PangeaConfig(base_url_template=self.url_template)
         audit_multi_config = AuditAsync(self.multi_config_token, config=config, config_id=config_id)
 
-        response: PangeaResponse[LogResult] = await audit_multi_config.log(
+        response = await audit_multi_config.log(
             message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verbose=True
         )
         self.assertEqual(response.status, ResponseStatus.SUCCESS)

@@ -94,18 +94,14 @@ class TestAudit(unittest.TestCase):
         )
 
     def test_log_no_verbose(self):
-        response: PangeaResponse[LogResult] = self.audit_general.log(
-            message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verbose=False
-        )
+        response = self.audit_general.log(message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verbose=False)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertIsNotNone(response.result.hash)
         self.assertIsNone(response.result.envelope)
 
     def test_log_tenant_id(self):
         audit = Audit(self.general_token, config=self.config, tenant_id="mytenantid")
-        response: PangeaResponse[LogResult] = audit.log(
-            message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verbose=True
-        )
+        response = audit.log(message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verbose=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertIsNotNone(response.result.hash)
         self.assertIsNotNone(response.result.envelope)
@@ -113,7 +109,7 @@ class TestAudit(unittest.TestCase):
         self.assertEqual("mytenantid", event.tenant_id)
 
     def test_log_with_timestamp(self):
-        response: PangeaResponse[LogResult] = self.audit_general.log(
+        response = self.audit_general.log(
             message=MSG_NO_SIGNED,
             actor=ACTOR,
             status=STATUS_NO_SIGNED,
@@ -125,7 +121,7 @@ class TestAudit(unittest.TestCase):
         self.assertIsNone(response.result.envelope)
 
     def test_log_verbose_no_verify(self):
-        response: PangeaResponse[LogResult] = self.audit_general.log(
+        response = self.audit_general.log(
             message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verify=False, verbose=True
         )
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
@@ -137,7 +133,7 @@ class TestAudit(unittest.TestCase):
         self.assertEqual(response.result.signature_verification, EventVerification.NONE)
 
     def test_log_verify(self):
-        response: PangeaResponse[LogResult] = self.audit_general.log(
+        response = self.audit_general.log(
             message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verify=True
         )  # Verify true set verbose to true
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
@@ -150,9 +146,7 @@ class TestAudit(unittest.TestCase):
         self.assertEqual(response.result.membership_verification, EventVerification.PASS)
         self.assertEqual(response.result.signature_verification, EventVerification.NONE)
 
-        response: PangeaResponse[LogResult] = self.audit_general.log(
-            message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verify=True
-        )
+        response = self.audit_general.log(message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verify=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertIsNotNone(response.result.envelope)
         self.assertEqual(response.result.consistency_verification, EventVerification.PASS)  # but second should pass
@@ -210,7 +204,7 @@ class TestAudit(unittest.TestCase):
 
     def test_sign_without_signer(self):
         def log():
-            response: PangeaResponse[LogResult] = self.audit_general.log(
+            response = self.audit_general.log(
                 message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verbose=False, sign_local=True
             )
 
@@ -331,15 +325,13 @@ class TestAudit(unittest.TestCase):
 
     # Test custom schema
     def test_custom_schema_log_no_verbose(self):
-        response: PangeaResponse[LogResult] = self.auditCustomSchema.log_event(event=custom_schema_event, verbose=False)
+        response = self.auditCustomSchema.log_event(event=custom_schema_event, verbose=False)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertIsNotNone(response.result.hash)
         self.assertIsNone(response.result.envelope)
 
     def test_custom_schema_log_verbose_no_verify(self):
-        response: PangeaResponse[LogResult] = self.auditCustomSchema.log_event(
-            event=custom_schema_event, verify=False, verbose=True
-        )
+        response = self.auditCustomSchema.log_event(event=custom_schema_event, verify=False, verbose=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertIsNotNone(response.result.envelope)
         self.assertIsNone(response.result.consistency_proof)
@@ -349,7 +341,7 @@ class TestAudit(unittest.TestCase):
         self.assertEqual(response.result.signature_verification, EventVerification.NONE)
 
     def test_custom_schema_log_verify(self):
-        response: PangeaResponse[LogResult] = self.auditCustomSchema.log_event(
+        response = self.auditCustomSchema.log_event(
             event=custom_schema_event,
             verify=True,
         )  # Verify true set verbose to true
@@ -363,7 +355,7 @@ class TestAudit(unittest.TestCase):
         self.assertEqual(response.result.membership_verification, EventVerification.PASS)
         self.assertEqual(response.result.signature_verification, EventVerification.NONE)
 
-        response: PangeaResponse[LogResult] = self.auditCustomSchema.log_event(
+        response = self.auditCustomSchema.log_event(
             event=custom_schema_event,
             verify=True,
         )  # Verify true set verbose to true
@@ -384,7 +376,7 @@ class TestAudit(unittest.TestCase):
             "field_time": datetime.datetime.now(),
         }
 
-        response: PangeaResponse[LogResult] = self.auditCustomSchema.log_event(
+        response = self.auditCustomSchema.log_event(
             event=event,
             verify=True,
         )
@@ -397,7 +389,7 @@ class TestAudit(unittest.TestCase):
         self.assertEqual(response.result.signature_verification, EventVerification.NONE)
 
     def test_custom_schema_log_sign_local_and_verify(self):
-        response: PangeaResponse[LogResult] = self.auditCustomSchemaLocalSign.log_event(
+        response = self.auditCustomSchemaLocalSign.log_event(
             event=custom_schema_event,
             sign_local=True,
             verify=True,
@@ -427,7 +419,7 @@ class TestAudit(unittest.TestCase):
             "field_time": format_datetime(datetime.datetime.now(tz=datetime.timezone.utc)),
         }
 
-        response: PangeaResponse[LogResult] = self.auditCustomSchemaLocalSign.log_event(
+        response = self.auditCustomSchemaLocalSign.log_event(
             event=event,
             sign_local=True,
             verify=True,
@@ -671,9 +663,7 @@ class TestAudit(unittest.TestCase):
         audit_multi_config = Audit(self.multi_config_token, config=config)
 
         def log_without_config_id():
-            response: PangeaResponse[LogResult] = audit_multi_config.log(
-                message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verbose=True
-            )
+            response = audit_multi_config.log(message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verbose=True)
 
         # This should fail because this token has multi config but we didn't set up a config id
         self.assertRaises(pe.PangeaAPIException, log_without_config_id)
@@ -683,9 +673,7 @@ class TestAudit(unittest.TestCase):
         config = PangeaConfig(base_url_template=self.base_url_template)
         audit_multi_config = Audit(self.multi_config_token, config=config, config_id=config_id)
 
-        response: PangeaResponse[LogResult] = audit_multi_config.log(
-            message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verbose=True
-        )
+        response = audit_multi_config.log(message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verbose=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertIsNotNone(response.result.hash)
         self.assertIsNotNone(response.result.envelope)
@@ -695,9 +683,7 @@ class TestAudit(unittest.TestCase):
         config = PangeaConfig(base_url_template=self.base_url_template)
         audit_multi_config = Audit(self.multi_config_token, config=config, config_id=config_id)
 
-        response: PangeaResponse[LogResult] = audit_multi_config.log(
-            message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verbose=True
-        )
+        response = audit_multi_config.log(message=MSG_NO_SIGNED, actor=ACTOR, status=STATUS_NO_SIGNED, verbose=True)
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertIsNotNone(response.result.hash)
         self.assertIsNotNone(response.result.envelope)
