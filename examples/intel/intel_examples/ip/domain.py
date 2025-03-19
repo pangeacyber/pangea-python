@@ -9,9 +9,9 @@ from intel_examples.ip.utils import print_ip_domain_data
 
 token = os.getenv("PANGEA_INTEL_TOKEN")
 assert token
-domain = os.getenv("PANGEA_DOMAIN")
-assert domain
-config = PangeaConfig(domain=domain)
+url_template = os.getenv("PANGEA_URL_TEMPLATE")
+assert url_template
+config = PangeaConfig(base_url_template=url_template)
 intel = IpIntel(token, config=config)
 
 

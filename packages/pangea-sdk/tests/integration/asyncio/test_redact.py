@@ -10,8 +10,8 @@ from pangea.tools import (
     TestEnvironment,
     get_config_id,
     get_multi_config_test_token,
-    get_test_domain,
     get_test_token,
+    get_test_url_template,
     logger_set_pangea_config,
 )
 from tests.test_tools import load_test_environment
@@ -22,8 +22,8 @@ TEST_ENVIRONMENT = load_test_environment(RedactAsync.service_name, TestEnvironme
 class TestRedact(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         token = get_test_token(TEST_ENVIRONMENT)
-        self.domain = get_test_domain(TEST_ENVIRONMENT)
-        config = PangeaConfig(domain=self.domain, custom_user_agent="sdk-test")
+        self.url_template = get_test_url_template(TEST_ENVIRONMENT)
+        config = PangeaConfig(base_url_template=self.url_template, custom_user_agent="sdk-test")
         self.redact = RedactAsync(token, config=config, logger_name="pangea")
         self.multi_config_token = get_multi_config_test_token(TEST_ENVIRONMENT)
         logger_set_pangea_config(logger_name=self.redact.logger.name)
@@ -74,8 +74,8 @@ class TestRedact(unittest.IsolatedAsyncioTestCase):
 
     async def test_redact_with_bad_auth_token(self):
         token = "notarealtoken"
-        domain = get_test_domain(TEST_ENVIRONMENT)
-        config = PangeaConfig(domain=domain, custom_user_agent="sdk-test")
+        url_template = get_test_url_template(TEST_ENVIRONMENT)
+        config = PangeaConfig(base_url_template=url_template, custom_user_agent="sdk-test")
         badredact = RedactAsync(token, config=config)
         text = "Jenny Jenny... 415-867-5309"
 
@@ -83,7 +83,7 @@ class TestRedact(unittest.IsolatedAsyncioTestCase):
             await badredact.redact(text=text)
 
     async def test_multi_config_redact(self):
-        config = PangeaConfig(domain=self.domain)
+        config = PangeaConfig(base_url_template=self.url_template)
         redact_multi_config = RedactAsync(self.multi_config_token, config=config)
 
         with self.assertRaises(pe.PangeaAPIException):
@@ -94,7 +94,7 @@ class TestRedact(unittest.IsolatedAsyncioTestCase):
 
     async def test_multi_config_redact_config_1(self):
         config_id = get_config_id(TEST_ENVIRONMENT, "redact", 1)
-        config = PangeaConfig(domain=self.domain)
+        config = PangeaConfig(base_url_template=self.url_template)
         redact_multi_config = RedactAsync(self.multi_config_token, config=config, config_id=config_id)
 
         text = "Jenny Jenny... 415-867-5309"
@@ -109,7 +109,7 @@ class TestRedact(unittest.IsolatedAsyncioTestCase):
 
     async def test_multi_config_redact_config_2(self):
         config_id = get_config_id(TEST_ENVIRONMENT, "redact", 2)
-        config = PangeaConfig(domain=self.domain)
+        config = PangeaConfig(base_url_template=self.url_template)
         redact_multi_config = RedactAsync(self.multi_config_token, config=config, config_id=config_id)
 
         text = "Jenny Jenny... 415-867-5309"

@@ -45,10 +45,10 @@ from pangea.services.share.share import (
     help="Pangea Secure Share API token. May also be set via the `PANGEA_SHARE_TOKEN` environment variable.",
 )
 @click.option(
-    "--pangea-domain",
-    envvar="PANGEA_DOMAIN",
+    "--pangea-url-template",
+    envvar="PANGEA_URL_TEMPLATE",
     required=True,
-    help="Pangea API domain. May also be set via the `PANGEA_DOMAIN` environment variable.",
+    help="Pangea API url template. May also be set via the `PANGEA_URL_TEMPLATE` environment variable.",
 )
 def share(
     *,
@@ -59,7 +59,7 @@ def share(
     password: str | None = None,
     link_type: LinkType = LinkType.DOWNLOAD,
     share_token: str,
-    pangea_domain: str,
+    pangea_url_template: str,
 ) -> None:
     """
     An example command line utility that creates an email+code, SMS+code, or
@@ -78,7 +78,7 @@ def share(
     if phone:
         authenticators.append(Authenticator(auth_type=AuthenticatorType.SMS_OTP, auth_context=phone))
 
-    share = Share(share_token, config=PangeaConfig(domain=pangea_domain))
+    share = Share(share_token, config=PangeaConfig(base_url_template=pangea_url_template))
     share.logger.setLevel(logging.FATAL)
 
     # Upload files.

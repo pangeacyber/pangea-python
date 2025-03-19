@@ -10,12 +10,12 @@ from pangea.tools import logger_set_pangea_config
 
 token = os.getenv("PANGEA_REDACT_TOKEN")
 assert token
-domain = os.getenv("PANGEA_DOMAIN")
-assert domain
+url_template = os.getenv("PANGEA_URL_TEMPLATE")
+assert url_template
 key_id = os.getenv("PANGEA_VAULT_FPE_KEY_ID")
 assert key_id
 
-config = PangeaConfig(domain=domain)
+config = PangeaConfig(base_url_template=url_template)
 redact = Redact(token, config=config)
 logger_set_pangea_config(logger_name=redact.logger.name)
 

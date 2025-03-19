@@ -16,10 +16,10 @@ audit_token_vault_id = os.getenv("PANGEA_AUDIT_TOKEN_VAULT_ID")
 assert audit_token_vault_id
 
 # Pangea domain.
-domain = os.getenv("PANGEA_DOMAIN")
-assert domain
+url_template = os.getenv("PANGEA_URL_TEMPLATE")
+assert url_template
 
-config = PangeaConfig(domain=domain)
+config = PangeaConfig(base_url_template=url_template)
 logger_set_pangea_config(logger_name="audit")
 
 

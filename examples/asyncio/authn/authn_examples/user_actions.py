@@ -53,8 +53,8 @@ def choice_is_available(response, choice):
 
 async def main():
     token = os.getenv("PANGEA_AUTHN_TOKEN")
-    domain = os.getenv("PANGEA_DOMAIN")
-    config = PangeaConfig(domain=domain)
+    url_template = os.getenv("PANGEA_URL_TEMPLATE")
+    config = PangeaConfig(base_url_template=url_template)
     authn = AuthNAsync(token, config=config, logger_name="pangea")
 
     try:

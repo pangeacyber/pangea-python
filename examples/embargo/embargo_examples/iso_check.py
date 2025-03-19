@@ -8,9 +8,9 @@ from pangea.services import Embargo
 
 token = os.getenv("PANGEA_EMBARGO_TOKEN")
 assert token
-domain = os.getenv("PANGEA_DOMAIN")
-assert domain
-config = PangeaConfig(domain=domain)
+url_template = os.getenv("PANGEA_URL_TEMPLATE")
+assert url_template
+config = PangeaConfig(base_url_template=url_template)
 embargo = Embargo(token, config=config)
 
 

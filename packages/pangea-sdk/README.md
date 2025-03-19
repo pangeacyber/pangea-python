@@ -67,10 +67,10 @@ from pangea.config import PangeaConfig
 from pangea.services import Audit
 
 # Load client configuration from environment variables `PANGEA_AUDIT_TOKEN` and
-# `PANGEA_DOMAIN`.
+# `PANGEA_URL_TEMPLATE`.
 token = os.getenv("PANGEA_AUDIT_TOKEN")
-domain = os.getenv("PANGEA_DOMAIN")
-config = PangeaConfig(domain=domain)
+url_template = os.getenv("PANGEA_URL_TEMPLATE")
+config = PangeaConfig(base_url_template=url_template)
 
 # Create a Secure Audit Log client.
 audit = Audit(token, config)
@@ -92,10 +92,10 @@ from pangea.asyncio.services import AuditAsync
 from pangea.config import PangeaConfig
 
 # Load client configuration from environment variables `PANGEA_AUDIT_TOKEN` and
-# `PANGEA_DOMAIN`.
+# `PANGEA_URL_TEMPLATE`.
 token = os.getenv("PANGEA_AUDIT_TOKEN")
-domain = os.getenv("PANGEA_DOMAIN")
-config = PangeaConfig(domain=domain)
+url_template = os.getenv("PANGEA_URL_TEMPLATE")
+config = PangeaConfig(base_url_template=url_template)
 
 # Create a Secure Audit Log client.
 audit = AuditAsync(token, config=config)
@@ -162,8 +162,8 @@ options:
   -h, --help            show this help message and exit
   --token TOKEN, -t TOKEN
                         Pangea token (default: env PANGEA_TOKEN)
-  --domain DOMAIN, -d DOMAIN
-                        Pangea base domain (default: env PANGEA_DOMAIN)
+  --url-template TEMPLATE, -u TEMPLATE
+                        Pangea URL template (default: env PANGEA_URL_TEMPLATE)
   --output OUTPUT, -o OUTPUT
                         Output file name. Default: dump-<timestamp>
 ```
@@ -184,8 +184,8 @@ options:
   -h, --help            show this help message and exit
   --token TOKEN, -t TOKEN
                         Pangea token (default: env PANGEA_TOKEN)
-  --domain DOMAIN, -d DOMAIN
-                        Pangea base domain (default: env PANGEA_DOMAIN)
+  --url-template TEMPLATE, -u TEMPLATE
+                        Pangea URL template (default: env PANGEA_URL_TEMPLATE)
   --file FILE, -f FILE  Event input file. Must be a collection of JSON Objects separated by newlines
 ```
 

@@ -10,10 +10,10 @@ In the example root directory (`./examples/asyncio/embargo`), run the following 
 poetry install
 ```
 
-Set up the environment variables `PANGEA_EMBARGO_TOKEN` and `PANGEA_DOMAIN` with
+Set up the environment variables `PANGEA_EMBARGO_TOKEN` and `PANGEA_URL_TEMPLATE` with
 your project token configured on the Pangea User Console (token should have
 access to Embargo service [Instructions](https://pangea.cloud/docs/admin-guide/tokens))
-and with your Pangea domain.
+and with your Pangea base url template.
 
 ## Run
 

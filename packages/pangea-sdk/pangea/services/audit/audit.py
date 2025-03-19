@@ -405,7 +405,7 @@ class Audit(ServiceBase, AuditBase):
             config_id: Configuration ID.
 
         Examples:
-             config = PangeaConfig(domain="pangea_domain")
+             config = PangeaConfig(base_url_template="https://{SERVICE_NAME}.pangea_domain")
              audit = Audit(token="pangea_token", config=config)
         """
         # FIXME: Temporary check to deprecate config_id from PangeaConfig.

@@ -10,9 +10,9 @@ In the example root directory (`./examples/asyncio/prompt_guard`), run the follo
 poetry install
 ```
 
-Set up the environment variables `PANGEA_PROMPT_GUARD_TOKEN` and `PANGEA_DOMAIN`
+Set up the environment variables `PANGEA_PROMPT_GUARD_TOKEN` and `PANGEA_URL_TEMPLATE`
 with your project token configured on the Pangea User Console (token should
-[have access to][tokens] the Prompt Guard service) and with your Pangea domain.
+[have access to][tokens] the Prompt Guard service) and with your Pangea base url template.
 
 ## Run
 

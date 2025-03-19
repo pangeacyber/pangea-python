@@ -9,9 +9,9 @@ from pangea.services import Redact
 token = os.getenv("PANGEA_REDACT_MULTICONFIG_TOKEN")
 assert token
 config_id = os.getenv("PANGEA_REDACT_CONFIG_ID")
-domain = os.getenv("PANGEA_DOMAIN")
-assert domain
-config = PangeaConfig(domain=domain)
+url_template = os.getenv("PANGEA_URL_TEMPLATE")
+assert url_template
+config = PangeaConfig(base_url_template=url_template)
 
 # Set config_id in service constructor
 redact = Redact(token, config=config, config_id=config_id)

@@ -6,13 +6,13 @@ from pangea.services import Audit
 # Pull token and domain from environment variables.
 token = getenv("PANGEA_AUDIT_MULTICONFIG_TOKEN")
 assert token
-domain = getenv("PANGEA_DOMAIN")
-assert domain
+url_template = getenv("PANGEA_URL_TEMPLATE")
+assert url_template
 config_id = getenv("PANGEA_AUDIT_AUTH0_CONFIG_ID")
 assert config_id
 
 # Set up configuration and the Secure Audit Log client.
-config = PangeaConfig(domain=domain)
+config = PangeaConfig(base_url_template=url_template)
 audit = Audit(token, config=config, config_id=config_id)
 
 

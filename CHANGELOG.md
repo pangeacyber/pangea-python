@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added 
 
 - Redact: `fpe_context` on `StructuredResult`.
+- PangeaConfig: `base_url_template` support.
 
 ### Changed
 
@@ -18,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - AI Guard: `llm_info` and `llm_input`.
+- PangeaConfig: `domain`, `environment` and `insecure`. Use `base_url_template` instead.
 
 ## 5.5.1 - 2025-02-17
 

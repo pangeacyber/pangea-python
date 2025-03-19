@@ -7,11 +7,12 @@ from pangea.config import PangeaConfig
 from pangea.services.authz import Resource, Subject, Tuple, TupleListFilter
 
 # Load configuration from environment variables.
-pangea_domain = getenv("PANGEA_TOKEN", "aws.us.pangea.cloud")
+url_template = getenv("PANGEA_URL_TEMPLATE")
+assert url_template
 pangea_authz_token = getenv("PANGEA_AUTHZ_TOKEN", "")
 
 # Create an AuthZ API client.
-authz = AuthZAsync(token=pangea_authz_token, config=PangeaConfig(domain=pangea_domain))
+authz = AuthZAsync(token=pangea_authz_token, config=PangeaConfig(base_url_template=url_template))
 
 # Mock data.
 folder_id = f"folder_{token_hex(8)}"

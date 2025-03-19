@@ -7,6 +7,7 @@ import json
 import logging
 import time
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Sequence, Tuple, Type, Union, cast
+from urllib.parse import urljoin
 
 import requests
 from pydantic import BaseModel
@@ -49,6 +50,7 @@ class PangeaRequestBase:
         # Custom headers
         self._extra_headers: Dict = {}
         self._user_agent = ""
+        self._base_url = self.config.base_url_template.replace("{SERVICE_NAME}", self.service)
 
         self.set_custom_user_agent(config.custom_user_agent)
         self._session: Optional[Union[requests.Session, aiohttp.ClientSession]] = None
@@ -107,16 +109,7 @@ class PangeaRequestBase:
         return f"request/{request_id}"
 
     def _url(self, path: str) -> str:
-        if self.config.domain.startswith("http://") or self.config.domain.startswith("https://"):
-            # it's URL
-            url = f"{self.config.domain}/{path}"
-        else:
-            schema = "http://" if self.config.insecure else "https://"
-            domain = (
-                self.config.domain if self.config.environment == "local" else f"{self.service}.{self.config.domain}"
-            )
-            url = f"{schema}{domain}/{path}"
-        return url
+        return urljoin(self._base_url, path)
 
     def _headers(self) -> dict:
         headers = {
@@ -627,10 +620,6 @@ class PangeaRequest(PangeaRequestBase):
 
         adapter = HTTPAdapter(max_retries=retry_config)
         session = requests.Session()
-
-        if self.config.insecure:
-            session.mount("http://", adapter)
-        else:
-            session.mount("https://", adapter)
+        session.mount("https://", adapter)
 
         return session

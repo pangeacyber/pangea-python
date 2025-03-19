@@ -236,7 +236,7 @@ class Redact(ServiceBase):
             config_id: Configuration ID.
 
         Examples:
-             config = PangeaConfig(domain="pangea_domain")
+             config = PangeaConfig(base_url_template="https://{SERVICE_NAME}.pangea_domain")
              redact = Redact(token="pangea_token", config=config)
         """
         super().__init__(token, config, logger_name, config_id=config_id)

@@ -10,7 +10,7 @@ In the example root directory (`./examples/asyncio/redact`), run the following c
 poetry install
 ```
 
-Set up the environment variables ([Instructions](https://pangea.cloud/docs/redact#set-your-environment-variables)) `PANGEA_REDACT_TOKEN` and `PANGEA_DOMAIN` with your project token configured on the Pangea User Console (token should have access to Redact service [Instructions](https://pangea.cloud/docs/admin-guide/tokens)) and with your Pangea domain.
+Set up the environment variables ([Instructions](https://pangea.cloud/docs/redact#set-your-environment-variables)) `PANGEA_REDACT_TOKEN` and `PANGEA_URL_TEMPLATE` with your project token configured on the Pangea User Console (token should have access to Redact service [Instructions](https://pangea.cloud/docs/admin-guide/tokens)) and with your Pangea base url template.
 
 You'll need to set up and enable some rulesets in the Redact service config.
 

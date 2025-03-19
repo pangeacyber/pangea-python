@@ -8,9 +8,9 @@ from pangea.services import Share
 
 token = os.getenv("PANGEA_SHARE_TOKEN")
 assert token
-domain = os.getenv("PANGEA_DOMAIN")
-assert domain
-config = PangeaConfig(domain=domain)
+url_template = os.getenv("PANGEA_URL_TEMPLATE")
+assert url_template
+config = PangeaConfig(base_url_template=url_template)
 
 # Create a path name
 date = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")

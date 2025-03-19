@@ -10,7 +10,7 @@ from pangea import PangeaConfig
 from pangea.response import PangeaResponse, TransferMethod
 from pangea.services import FileScan
 from pangea.services.file_scan import FileScanResult, FileUploader
-from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
+from pangea.tools import TestEnvironment, get_test_token, get_test_url_template, logger_set_pangea_config
 from pangea.utils import get_file_upload_params
 from tests.test_tools import load_test_environment
 
@@ -37,8 +37,8 @@ class TestFileScan(unittest.TestCase):
     def setUp(self) -> None:
         # debug_requests_on()
         token = get_test_token(TEST_ENVIRONMENT)
-        domain = get_test_domain(TEST_ENVIRONMENT)
-        config = PangeaConfig(domain=domain, custom_user_agent="sdk-test", poll_result_timeout=120)
+        url_template = get_test_url_template(TEST_ENVIRONMENT)
+        config = PangeaConfig(base_url_template=url_template, custom_user_agent="sdk-test", poll_result_timeout=120)
         self.scan = FileScan(token, config=config)
         logger_set_pangea_config(logger_name=self.scan.logger.name)
 

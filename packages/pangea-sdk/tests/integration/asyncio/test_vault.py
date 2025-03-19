@@ -35,7 +35,7 @@ from pangea.services.vault.models.symmetric import (
     SymmetricKeyPurpose,
 )
 from pangea.services.vault.vault import ExportEncryptionAlgorithm, ItemType, ItemVersionState, TransformAlphabet
-from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
+from pangea.tools import TestEnvironment, get_test_token, get_test_url_template, logger_set_pangea_config
 from pangea.utils import format_datetime, str2str_b64, str_b64_2bytes
 from tests.test_tools import load_test_environment
 
@@ -81,8 +81,8 @@ KEY_AES: dict[str, str | SymmetricKeyEncryptionAlgorithm] = {
 class TestVault(unittest.IsolatedAsyncioTestCase):
     def setUp(self) -> None:
         self.token = get_test_token(TEST_ENVIRONMENT)
-        domain = get_test_domain(TEST_ENVIRONMENT)
-        self.config = PangeaConfig(domain=domain, custom_user_agent="sdk-test")
+        url_template = get_test_url_template(TEST_ENVIRONMENT)
+        self.config = PangeaConfig(base_url_template=url_template, custom_user_agent="sdk-test")
         self.vault = VaultAsync(self.token, config=self.config, logger_name="vault")
         logger_set_pangea_config("vault")
 

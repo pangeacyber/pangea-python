@@ -1,48 +1,19 @@
 import unittest
+from urllib.parse import urljoin
 
 from pangea.config import PangeaConfig
 from pangea.services.audit.audit import Audit
 
 token = "faketoken"
-domain = "domain.test"
+url_template = "https://{SERVICE_NAME}.aws.us.pangea.cloud/"
 path = "path"
-subdomain = "audit."
 
 
 class TestConfig(unittest.TestCase):
-    def test_insecure_true_environment_local(self) -> None:
-        config = PangeaConfig(domain=domain, insecure=True, environment="local")
+    def test_base_url_template(self) -> None:
+        config = PangeaConfig(base_url_template=url_template)
         audit = Audit(token, config=config)
         url = audit.request._url(path)
-        self.assertEqual(f"http://{domain}/{path}", url)
-
-    def test_insecure_false_environment_local(self) -> None:
-        config = PangeaConfig(domain=domain, insecure=False, environment="local")
-        audit = Audit(token, config=config)
-        url = audit.request._url(path)
-        self.assertEqual(f"https://{domain}/{path}", url)
-
-    def test_insecure_true_environment_production(self) -> None:
-        config = PangeaConfig(domain=domain, insecure=True, environment="production")
-        audit = Audit(token, config=config)
-        url = audit.request._url(path)
-        self.assertEqual(f"http://{subdomain}{domain}/{path}", url)
-
-    def test_insecure_false_environment_production(self) -> None:
-        config = PangeaConfig(domain=domain, insecure=False, environment="production")
-        audit = Audit(token, config=config)
-        url = audit.request._url(path)
-        self.assertEqual(f"https://{subdomain}{domain}/{path}", url)
-
-    def test_insecure_default_environment_default(self) -> None:
-        config = PangeaConfig(domain=domain)
-        audit = Audit(token, config=config)
-        url = audit.request._url(path)
-        self.assertEqual(f"https://{subdomain}{domain}/{path}", url)
-
-    def test_url(self) -> None:
-        url = "http://myurldomain.net"
-        config = PangeaConfig(domain=url)
-        audit = Audit(token, config=config)
-        service_url = audit.request._url(path)
-        self.assertEqual(f"{url}/{path}", service_url)
+        url_reference = url_template.replace("{SERVICE_NAME}", audit.service_name)
+        url_reference = urljoin(url_reference, path)
+        self.assertEqual(url_reference, url)

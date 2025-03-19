@@ -98,8 +98,8 @@ def file_events(root_hashes: Dict[int, str], f: io.TextIOWrapper) -> Iterator[Ev
             exit_with_error(f"failed to parse line {idx}: {e!s}")
 
 
-def init_audit(token: str, domain: str) -> Audit:
-    config = PangeaConfig(domain=domain)
+def init_audit(token: str, base_url_template: str) -> Audit:
+    config = PangeaConfig(base_url_template=base_url_template)
     audit = Audit(token, config=config, logger_name="audit")
     logger_set_pangea_config(logger_name=audit.logger.name)
     return audit
@@ -123,8 +123,8 @@ def _load_env_var(env_var_name: str) -> str:
     return value
 
 
-def get_test_domain(environment: TestEnvironment) -> str:
-    env_var_name = f"PANGEA_INTEGRATION_DOMAIN_{environment}"
+def get_test_url_template(environment: TestEnvironment) -> str:
+    env_var_name = f"PANGEA_INTEGRATION_URL_TEMPLATE_{environment}"
     return _load_env_var(env_var_name)
 
 

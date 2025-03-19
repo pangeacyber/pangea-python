@@ -51,7 +51,7 @@ class RedactAsync(ServiceBaseAsync):
             logger_name: Logger name.
 
         Examples:
-             config = PangeaConfig(domain="pangea_domain")
+             config = PangeaConfig(base_url_template="https://{SERVICE_NAME}.pangea_domain")
              redact = RedactAsync(token="pangea_token", config=config)
         """
 

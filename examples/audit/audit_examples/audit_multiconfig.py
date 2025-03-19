@@ -11,9 +11,9 @@ token = os.getenv("PANGEA_AUDIT_MULTICONFIG_TOKEN")
 assert token
 config_id = os.getenv("PANGEA_AUDIT_CONFIG_ID")
 assert config_id
-domain = os.getenv("PANGEA_DOMAIN")
-assert domain
-config = PangeaConfig(domain=domain)
+url_template = os.getenv("PANGEA_URL_TEMPLATE")
+assert url_template
+config = PangeaConfig(base_url_template=url_template)
 
 # Set config_id in service constructor
 audit = Audit(token, config=config, logger_name="audit", config_id=config_id)

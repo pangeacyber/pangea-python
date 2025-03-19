@@ -8,12 +8,12 @@ from pangea.tools import logger_set_pangea_config
 
 token = os.getenv("PANGEA_FILE_SCAN_TOKEN")
 assert token
-domain = os.getenv("PANGEA_DOMAIN")
-assert domain
+url_template = os.getenv("PANGEA_URL_TEMPLATE")
+assert url_template
 
 # To work synchronously, it is necessary to set queue_retry_enable to True and set up a proper timeout.
 # If the timeout is too short, the service will not return the results and will return an AcceptedRequestException.
-config = PangeaConfig(domain=domain, queued_retry_enabled=True, poll_result_timeout=120)
+config = PangeaConfig(base_url_template=url_template, queued_retry_enabled=True, poll_result_timeout=120)
 client = FileScanAsync(token, config=config, logger_name="pangea")
 logger_set_pangea_config(logger_name=client.logger.name)
 
