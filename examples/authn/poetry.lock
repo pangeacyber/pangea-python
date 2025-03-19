@@ -875,15 +875,13 @@ name = "pangea-sdk"
 version = "5.5.1"
 description = "Pangea API SDK"
 optional = false
-python-versions = "<4.0.0,>=3.9"
+python-versions = ">=3.9,<4.0.0"
 groups = ["main"]
-files = [
-    {file = "pangea_sdk-5.5.1-py3-none-any.whl", hash = "sha256:bc00b2165754f005022b93d66ada341ef46434d551af96d8e9a6d95f55da3cbb"},
-    {file = "pangea_sdk-5.5.1.tar.gz", hash = "sha256:4b83587b526c835d3da2238f28f8a9173cafda6506e213315a027f4768f8b264"},
-]
+files = []
+develop = true
 
 [package.dependencies]
-aiohttp = ">=3.11.12,<4.0.0"
+aiohttp = ">=3.11.13,<4.0.0"
 cryptography = ">=43.0.3,<44.0.0"
 deprecated = ">=1.2.18,<2.0.0"
 google-crc32c = ">=1.6.0,<2.0.0"
@@ -892,6 +890,10 @@ python-dateutil = ">=2.9.0.post0,<3.0.0"
 requests = ">=2.32.3,<3.0.0"
 requests-toolbelt = ">=1.0.0,<2.0.0"
 typing-extensions = ">=4.12.2,<5.0.0"
+
+[package.source]
+type = "directory"
+url = "../../packages/pangea-sdk"
 
 [[package]]
 name = "pathspec"
@@ -1503,4 +1505,4 @@ propcache = ">=0.2.0"
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.9.20"
-content-hash = "f85884aeed95a76375b1fbdae7ee356b0172c799c5d9771bb9440f40c31d7258"
+content-hash = "231a22a15900a9295fffbcc5058d9d31fadc183779bc0740a6b7cff726d28c7e"
