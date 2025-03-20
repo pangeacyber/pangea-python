@@ -24,13 +24,6 @@ class PangeaConfig:
     port) for the Pangea service that this `PangeaConfig` will be used for.
     """
 
-    config_id: Optional[str] = None
-    """
-    Only used for services that support multiconfig (e.g.: Audit service)
-
-    @deprecated("config_id will be deprecated from PangeaConfig. Set it on service initialization instead")
-    """
-
     insecure: bool = False
     """
     Set to true to use plain http
