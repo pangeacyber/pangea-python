@@ -7,7 +7,7 @@ from typing_extensions import TypeVar
 from pangea.asyncio.services.base import ServiceBaseAsync
 from pangea.config import PangeaConfig
 from pangea.response import PangeaResponse
-from pangea.services.ai_guard import LogFields, TextGuardResult
+from pangea.services.ai_guard import LogFields, Overrides, TextGuardResult
 
 _T = TypeVar("_T")
 
@@ -58,6 +58,7 @@ class AIGuardAsync(ServiceBaseAsync):
         *,
         recipe: str | None = None,
         debug: bool | None = None,
+        overrides: Overrides | None = None,
         log_fields: LogFields | None = None,
     ) -> PangeaResponse[TextGuardResult[None]]:
         """
@@ -90,6 +91,7 @@ class AIGuardAsync(ServiceBaseAsync):
         messages: _T,
         recipe: str | None = None,
         debug: bool | None = None,
+        overrides: Overrides | None = None,
         log_fields: LogFields | None = None,
     ) -> PangeaResponse[TextGuardResult[_T]]:
         """
@@ -123,6 +125,7 @@ class AIGuardAsync(ServiceBaseAsync):
         messages: _T | None = None,
         recipe: str | None = None,
         debug: bool | None = None,
+        overrides: Overrides | None = None,
         log_fields: LogFields | None = None,
     ) -> PangeaResponse[TextGuardResult[None]]:
         """
@@ -163,6 +166,7 @@ class AIGuardAsync(ServiceBaseAsync):
                 "messages": messages,
                 "recipe": recipe,
                 "debug": debug,
+                "overrides": overrides,
                 "log_fields": log_fields,
             },
         )
