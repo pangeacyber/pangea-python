@@ -31,7 +31,7 @@ class LanguageDetectionOverride(APIRequestModel):
 
 class TopicDetectionOverride(APIRequestModel):
     disabled: Optional[bool] = None
-    block_list: Optional[List[str]] = None
+    block: Optional[List[str]] = None
 
 
 class PromptInjectionOverride(APIRequestModel):
@@ -42,6 +42,7 @@ class PromptInjectionOverride(APIRequestModel):
 class SelfHarmOverride(APIRequestModel):
     disabled: Optional[bool] = None
     action: Optional[PromptInjectionAction] = None
+    threshold: Optional[float] = None
 
 
 class GibberishOverride(APIRequestModel):
@@ -57,6 +58,7 @@ class RoleplayOverride(APIRequestModel):
 class SentimentOverride(APIRequestModel):
     disabled: Optional[bool] = None
     action: Optional[PromptInjectionAction] = None
+    threshold: Optional[float] = None
 
 
 class MaliciousEntityOverride(APIRequestModel):
@@ -132,18 +134,21 @@ class SecretsDetectionOverride(APIRequestModel):
 
 
 class Overrides(APIRequestModel):
+    ignore_recipe: Optional[bool] = None
+    """Bypass existing Recipe content and create an on-the-fly Recipe."""
+
     code_detection: Optional[CodeDetectionOverride] = None
-    language_detection: Optional[LanguageDetectionOverride] = None
-    topic_detection: Optional[TopicDetectionOverride] = None
-    prompt_injection: Optional[PromptInjectionOverride] = None
-    selfharm: Optional[SelfHarmOverride] = None
-    gibberish: Optional[GibberishOverride] = None
-    roleplay: Optional[RoleplayOverride] = None
-    sentiment: Optional[SentimentOverride] = None
-    malicious_entity: Optional[MaliciousEntityOverride] = None
     competitors: Optional[CompetitorsOverride] = None
+    gibberish: Optional[GibberishOverride] = None
+    language_detection: Optional[LanguageDetectionOverride] = None
+    malicious_entity: Optional[MaliciousEntityOverride] = None
     pii_entity: Optional[PiiEntityOverride] = None
+    prompt_injection: Optional[PromptInjectionOverride] = None
+    roleplay: Optional[RoleplayOverride] = None
     secrets_detection: Optional[SecretsDetectionOverride] = None
+    selfharm: Optional[SelfHarmOverride] = None
+    sentiment: Optional[SentimentOverride] = None
+    topic_detection: Optional[TopicDetectionOverride] = None
 
 
 class LogFields(APIRequestModel):
