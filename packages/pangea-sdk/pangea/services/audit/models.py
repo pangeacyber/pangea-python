@@ -6,6 +6,9 @@ import datetime
 import enum
 from typing import Any, Dict, List, Optional, Sequence, Union
 
+from pydantic import Field
+from typing_extensions import Annotated, Literal
+
 from pangea.response import APIRequestModel, APIResponseModel, PangeaDateTime, PangeaResponseResult
 
 
@@ -495,3 +498,275 @@ class ExportRequest(APIRequestModel):
     Whether or not to include the root hash of the tree and the membership proof
     for each record.
     """
+
+
+class AuditSchemaField(APIResponseModel):
+    """A description of a field in an audit log."""
+
+    id: str
+    """Prefix name / identity for the field."""
+
+    type: Literal["boolean", "datetime", "integer", "string", "string-unindexed", "text"]
+    """The data type for the field."""
+
+    description: Optional[str] = None
+    """Human display description of the field."""
+
+    name: Optional[str] = None
+    """Human display name/title of the field."""
+
+    redact: Optional[bool] = None
+    """If true, redaction is performed against this field (if configured.) Only valid for string type."""
+
+    required: Optional[bool] = None
+    """If true, this field is required to exist in all logged events."""
+
+    size: Optional[int] = None
+    """The maximum size of the field. Only valid for strings, which limits number of UTF-8 characters."""
+
+    ui_default_visible: Optional[bool] = None
+    """If true, this field is visible by default in audit UIs."""
+
+
+class AuditSchema(APIResponseModel):
+    """A description of acceptable fields for an audit log."""
+
+    client_signable: Optional[bool] = None
+    """If true, records contain fields to support client/vault signing."""
+
+    save_malformed: Optional[str] = None
+    """Save (or reject) malformed AuditEvents."""
+
+    tamper_proofing: Optional[bool] = None
+    """If true, records contain fields to support tamper-proofing."""
+
+    fields: Optional[List[AuditSchemaField]] = None
+    """List of field definitions."""
+
+
+class ForwardingConfiguration(APIResponseModel):
+    """Configuration for forwarding audit logs to external systems."""
+
+    type: str
+    """Type of forwarding configuration."""
+
+    forwarding_enabled: Optional[bool] = False
+    """Whether forwarding is enabled."""
+
+    event_url: Optional[str] = None
+    """URL where events will be written to. Must use HTTPS."""
+
+    ack_url: Optional[str] = None
+    """If indexer acknowledgement is required, this must be provided along with a 'channel_id'."""
+
+    channel_id: Optional[str] = None
+    """An optional splunk channel included in each request if indexer acknowledgement is required."""
+
+    public_cert: Optional[str] = None
+    """Public certificate if a self signed TLS cert is being used."""
+
+    index: Optional[str] = None
+    """Optional splunk index passed in the record bodies."""
+
+    vault_config_id: Optional[str] = None
+    """The vault config used to store the HEC token."""
+
+    vault_secret_id: Optional[str] = None
+    """The secret ID where the HEC token is stored in vault."""
+
+
+class ServiceConfigV1(PangeaResponseResult):
+    """Configuration options available for audit service"""
+
+    id: Optional[str] = None
+    """The config ID"""
+
+    version: Literal[1] = 1
+
+    created_at: Optional[str] = None
+    """The DB timestamp when this config was created. Ignored when submitted."""
+
+    updated_at: Optional[str] = None
+    """The DB timestamp when this config was last updated at"""
+
+    name: Optional[str] = None
+    """Configuration name"""
+
+    retention: Optional[str] = None
+    """Retention window to store audit logs."""
+
+    cold_query_result_retention: Optional[str] = None
+    """Retention window for cold query result / state information."""
+
+    hot_storage: Optional[str] = None
+    """Retention window to keep audit logs in hot storage."""
+
+    query_result_retention: Optional[str] = None
+    """Length of time to preserve server-side query result caching."""
+
+    redact_service_config_id: Optional[str] = None
+    """A redact service config that will be used to redact PII from logs."""
+
+    redaction_fields: Optional[List[str]] = None
+    """Fields to perform redaction against."""
+
+    vault_service_config_id: Optional[str] = None
+    """A vault service config that will be used to sign logs."""
+
+    vault_key_id: Optional[str] = None
+    """ID of the Vault key used for signing. If missing, use a default Audit key"""
+
+    vault_sign: Optional[bool] = None
+    """Enable/disable event signing"""
+
+
+class ServiceConfigV2(PangeaResponseResult):
+    """Configuration options available for audit service"""
+
+    audit_schema: AuditSchema = Field(alias="schema")
+    """Audit log field configuration. Only settable at create time."""
+
+    version: Literal[2] = 2
+
+    cold_query_result_retention: Optional[str] = None
+    """Retention window for cold query result / state information."""
+
+    created_at: Optional[str] = None
+    """The DB timestamp when this config was created. Ignored when submitted."""
+
+    hot_storage: Optional[str] = None
+    """Retention window to keep audit logs in hot storage."""
+
+    id: Optional[str] = None
+    """The config ID"""
+
+    name: Optional[str] = None
+    """Configuration name"""
+
+    query_result_retention: Optional[str] = None
+    """Length of time to preserve server-side query result caching."""
+
+    redact_service_config_id: Optional[str] = None
+    """A redact service config that will be used to redact PII from logs."""
+
+    retention: Optional[str] = None
+    """Retention window to store audit logs."""
+
+    updated_at: Optional[str] = None
+    """The DB timestamp when this config was last updated at"""
+
+    vault_key_id: Optional[str] = None
+    """ID of the Vault key used for signing. If missing, use a default Audit key"""
+
+    vault_service_config_id: Optional[str] = None
+    """A vault service config that will be used to sign logs."""
+
+    vault_sign: Optional[bool] = None
+    """Enable/disable event signing"""
+
+    forwarding_configuration: Optional[ForwardingConfiguration] = None
+    """Configuration for forwarding audit logs to external systems."""
+
+
+class ServiceConfigV3(PangeaResponseResult):
+    """Configuration options available for audit service"""
+
+    audit_schema: AuditSchema = Field(alias="schema")
+    """Audit log field configuration. Only settable at create time."""
+
+    version: Literal[3] = 3
+    """Version of the service config."""
+
+    cold_storage: Optional[str] = None
+    """Retention window for logs in cold storage. Deleted afterwards."""
+
+    created_at: Optional[str] = None
+    """The DB timestamp when this config was created. Ignored when submitted."""
+
+    forwarding_configuration: Optional[ForwardingConfiguration] = None
+    """Configuration for forwarding audit logs to external systems."""
+
+    hot_storage: Optional[str] = None
+    """Retention window for logs in hot storage. Migrated to warm, cold, or deleted afterwards."""
+
+    id: Optional[str] = None
+    """The config ID"""
+
+    name: Optional[str] = None
+    """Configuration name"""
+
+    redact_service_config_id: Optional[str] = None
+    """A redact service config that will be used to redact PII from logs."""
+
+    updated_at: Optional[str] = None
+    """The DB timestamp when this config was last updated at"""
+
+    vault_key_id: Optional[str] = None
+    """ID of the Vault key used for signing. If missing, use a default Audit key"""
+
+    vault_service_config_id: Optional[str] = None
+    """A vault service config that will be used to sign logs."""
+
+    vault_sign: Optional[bool] = None
+    """Enable/disable event signing"""
+
+    warm_storage: Optional[str] = None
+    """Retention window for logs in warm storage. Migrated to cold or deleted afterwards."""
+
+
+ServiceConfig = Annotated[
+    Union[ServiceConfigV1, ServiceConfigV2, ServiceConfigV3],
+    Field(discriminator="version"),
+]
+"""Configuration options available for audit service"""
+
+
+class ServiceConfigFilter(APIRequestModel):
+    id: Optional[str] = None
+    """Only records where id equals this value."""
+
+    id__contains: Optional[Sequence[str]] = None
+    """Only records where id includes each substring."""
+
+    id__in: Optional[Sequence[str]] = None
+    """Only records where id equals one of the provided substrings."""
+
+    created_at: Optional[str] = None
+    """Only records where created_at equals this value."""
+
+    created_at__gt: Optional[str] = None
+    """Only records where created_at is greater than this value."""
+
+    created_at__gte: Optional[str] = None
+    """Only records where created_at is greater than or equal to this value."""
+
+    created_at__lt: Optional[str] = None
+    """Only records where created_at is less than this value."""
+
+    created_at__lte: Optional[str] = None
+    """Only records where created_at is less than or equal to this value."""
+
+    updated_at: Optional[str] = None
+    """Only records where updated_at equals this value."""
+
+    updated_at__gt: Optional[str] = None
+    """Only records where updated_at is greater than this value."""
+
+    updated_at__gte: Optional[str] = None
+    """Only records where updated_at is greater than or equal to this value."""
+
+    updated_at__lt: Optional[str] = None
+    """Only records where updated_at is less than this value."""
+
+    updated_at__lte: Optional[str] = None
+    """Only records where updated_at is less than or equal to this value."""
+
+
+class ServiceConfigListResult(PangeaResponseResult):
+    count: int
+    """The total number of service configs matched by the list request."""
+
+    last: str
+    """Used to fetch the next page of the current listing when provided in a repeated request's last parameter."""
+
+    items: Sequence[ServiceConfig]

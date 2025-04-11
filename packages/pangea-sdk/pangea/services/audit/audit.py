@@ -4,13 +4,17 @@ from __future__ import annotations
 
 import datetime
 import json
-from typing import Any, Dict, Iterable, List, Optional, Sequence, Set, Tuple, Union
+from typing import Any, Dict, Iterable, List, Optional, Sequence, Set, Tuple, Union, cast, overload
+
+from pydantic import TypeAdapter
+from typing_extensions import Literal
 
 import pangea.exceptions as pexc
 from pangea.config import PangeaConfig
 from pangea.response import PangeaResponse, PangeaResponseResult
 from pangea.services.audit.exceptions import AuditException, EventCorruption
 from pangea.services.audit.models import (
+    AuditSchema,
     DownloadFormat,
     DownloadRequest,
     DownloadResult,
@@ -18,6 +22,7 @@ from pangea.services.audit.models import (
     EventEnvelope,
     EventVerification,
     ExportRequest,
+    ForwardingConfiguration,
     LogBulkRequest,
     LogBulkResult,
     LogEvent,
@@ -35,6 +40,9 @@ from pangea.services.audit.models import (
     SearchRequest,
     SearchResultOutput,
     SearchResultRequest,
+    ServiceConfig,
+    ServiceConfigFilter,
+    ServiceConfigListResult,
 )
 from pangea.services.audit.signing import Signer, Verifier
 from pangea.services.audit.util import (
@@ -918,6 +926,298 @@ class Audit(ServiceBase, AuditBase):
             request_id=request_id, result_id=result_id, format=format, return_context=return_context
         )
         return self.request.post("v1/download_results", DownloadResult, data=input.model_dump(exclude_none=True))
+
+    def get_service_config(self, config_id: str) -> PangeaResponse[ServiceConfig]:
+        """
+        Get a service config.
+
+        OperationId: audit_post_v1beta_config
+
+        Args:
+            id: The config ID
+        """
+
+        response = self.request.post("v1beta/config", PangeaResponseResult, data={"id": config_id})
+        response.result = TypeAdapter(ServiceConfig).validate_python(response.json["result"])
+        return cast(PangeaResponse[ServiceConfig], response)
+
+    @overload
+    def create_service_config(
+        self,
+        version: Literal[1],
+        name: str,
+        *,
+        cold_query_result_retention: str | None = None,
+        hot_storage: str | None = None,
+        query_result_retention: str | None = None,
+        redact_service_config_id: str | None = None,
+        redaction_fields: Sequence[str] | None = None,
+        retention: str | None = None,
+        vault_key_id: str | None = None,
+        vault_service_config_id: str | None = None,
+        vault_sign: bool | None = None,
+    ) -> PangeaResponse[ServiceConfig]:
+        """
+        Create a v1 service config.
+
+        OperationId: audit_post_v1beta_config_create
+
+        Args:
+            name: Configuration name
+            cold_query_result_retention: Retention window for cold query result / state information.
+            hot_storage: Retention window to keep audit logs in hot storage.
+            query_result_retention: Length of time to preserve server-side query result caching.
+            redact_service_config_id: A redact service config that will be used to redact PII from logs.
+            redaction_fields: Fields to perform redaction against.
+            retention: Retention window to store audit logs.
+            vault_key_id: ID of the Vault key used for signing. If missing, use a default Audit key.
+            vault_service_config_id: A vault service config that will be used to sign logs.
+            vault_sign: Enable/disable event signing.
+        """
+
+    @overload
+    def create_service_config(
+        self,
+        version: Literal[2],
+        name: str,
+        *,
+        schema: AuditSchema,
+        cold_query_result_retention: str | None = None,
+        forwarding_configuration: ForwardingConfiguration | None = None,
+        hot_storage: str | None = None,
+        query_result_retention: str | None = None,
+        redact_service_config_id: str | None = None,
+        retention: str | None = None,
+        vault_key_id: str | None = None,
+        vault_service_config_id: str | None = None,
+        vault_sign: bool | None = None,
+    ) -> PangeaResponse[ServiceConfig]:
+        """
+        Create a v2 service config.
+
+        OperationId: audit_post_v1beta_config_create
+
+        Args:
+            name: Configuration name
+            schema: Audit log field configuration. Only settable at create time.
+            cold_query_result_retention: Retention window for cold query result / state information.
+            forwarding_configuration: Configuration for forwarding audit logs to external systems.
+            hot_storage: Retention window to keep audit logs in hot storage.
+            query_result_retention: Length of time to preserve server-side query result caching.
+            redact_service_config_id: A redact service config that will be used to redact PII from logs.
+            retention: Retention window to store audit logs.
+            vault_key_id: ID of the Vault key used for signing. If missing, use a default Audit key.
+            vault_service_config_id: A vault service config that will be used to sign logs.
+            vault_sign: Enable/disable event signing.
+        """
+
+    @overload
+    def create_service_config(
+        self,
+        version: Literal[3],
+        name: str,
+        *,
+        schema: AuditSchema,
+        cold_storage: str | None = None,
+        hot_storage: str | None = None,
+        warm_storage: str | None = None,
+        redact_service_config_id: str | None = None,
+        vault_service_config_id: str | None = None,
+        vault_key_id: str | None = None,
+        vault_sign: bool | None = None,
+        forwarding_configuration: ForwardingConfiguration | None = None,
+    ) -> PangeaResponse[ServiceConfig]:
+        """
+        Create a v3 service config.
+
+        OperationId: audit_post_v1beta_config_create
+
+        Args:
+            name: Configuration name
+            schema: Audit log field configuration. Only settable at create time.
+            cold_storage: Retention window for logs in cold storage. Deleted afterwards.
+            hot_storage: Retention window for logs in hot storage. Migrated to warm, cold, or deleted afterwards.
+            warm_storage: Retention window for logs in warm storage. Migrated to cold or deleted afterwards.
+            redact_service_config_id: A redact service config that will be used to redact PII from logs.
+            vault_service_config_id: A vault service config that will be used to sign logs.
+            vault_key_id: ID of the Vault key used for signing. If missing, use a default Audit key.
+            vault_sign: Enable/disable event signing.
+            forwarding_configuration: Configuration for forwarding audit logs to external systems.
+        """
+
+    def create_service_config(
+        self,
+        version: Literal[1, 2, 3],
+        name: str,
+        *,
+        cold_query_result_retention: str | None = None,
+        cold_storage: str | None = None,
+        forwarding_configuration: ForwardingConfiguration | None = None,
+        hot_storage: str | None = None,
+        query_result_retention: str | None = None,
+        redact_service_config_id: str | None = None,
+        redaction_fields: Sequence[str] | None = None,
+        retention: str | None = None,
+        schema: AuditSchema | None = None,
+        vault_key_id: str | None = None,
+        vault_service_config_id: str | None = None,
+        vault_sign: bool | None = None,
+        warm_storage: str | None = None,
+    ) -> PangeaResponse[ServiceConfig]:
+        """
+        Create a service config.
+
+        OperationId: audit_post_v1beta_config_create
+
+        Args:
+            name: Configuration name
+            cold_query_result_retention: Retention window for cold query result / state information.
+            cold_storage: Retention window for logs in cold storage. Deleted afterwards.
+            forwarding_configuration: Configuration for forwarding audit logs to external systems.
+            hot_storage: Retention window to keep audit logs in hot storage.
+            query_result_retention: Length of time to preserve server-side query result caching.
+            redact_service_config_id: A redact service config that will be used to redact PII from logs.
+            redaction_fields: Fields to perform redaction against.
+            retention: Retention window to store audit logs.
+            schema: Audit log field configuration. Only settable at create time.
+            vault_key_id: ID of the Vault key used for signing. If missing, use a default Audit key.
+            vault_service_config_id: A vault service config that will be used to sign logs.
+            vault_sign: Enable/disable event signing.
+            warm_storage: Retention window for logs in warm storage. Migrated to cold or deleted afterwards.
+        """
+
+        response = self.request.post(
+            "v1beta/config/create",
+            PangeaResponseResult,
+            data={
+                "cold_query_result_retention": cold_query_result_retention,
+                "cold_storage": cold_storage,
+                "forwarding_configuration": forwarding_configuration,
+                "hot_storage": hot_storage,
+                "name": name,
+                "query_result_retention": query_result_retention,
+                "redact_service_config_id": redact_service_config_id,
+                "redaction_fields": redaction_fields,
+                "retention": retention,
+                "schema": schema,
+                "vault_key_id": vault_key_id,
+                "vault_service_config_id": vault_service_config_id,
+                "vault_sign": vault_sign,
+                "warm_storage": warm_storage,
+                "version": version,
+            },
+        )
+        response.result = TypeAdapter(ServiceConfig).validate_python(response.json["result"])
+        return cast(PangeaResponse[ServiceConfig], response)
+
+    def update_service_config(
+        self,
+        config_id: str,
+        *,
+        name: str,
+        updated_at: datetime.datetime,
+        # Optionals.
+        cold_query_result_retention: str | None = None,
+        cold_storage: str | None = None,
+        forwarding_configuration: ForwardingConfiguration | None = None,
+        hot_storage: str | None = None,
+        query_result_retention: str | None = None,
+        redact_service_config_id: str | None = None,
+        retention: str | None = None,
+        schema: AuditSchema | None = None,
+        vault_key_id: str | None = None,
+        vault_service_config_id: str | None = None,
+        vault_sign: bool | None = None,
+        warm_storage: str | None = None,
+    ) -> PangeaResponse[ServiceConfig]:
+        """
+        Update a service config.
+
+        OperationId: audit_post_v1beta_config_update
+
+        Args:
+            id: The config ID
+            name: Configuration name
+            updated_at: The DB timestamp when this config was last updated at
+            cold_query_result_retention: Retention window for cold query result / state information.
+            cold_storage: Retention window for logs in cold storage. Deleted afterwards.
+            forwarding_configuration: Configuration for forwarding audit logs to external systems
+            hot_storage: Retention window to keep audit logs in hot storage
+            query_result_retention: Length of time to preserve server-side query result caching
+            redact_service_config_id: A redact service config that will be used to redact PII from logs
+            retention: Retention window to store audit logs
+            schema: Audit log field configuration
+            vault_key_id: ID of the Vault key used for signing. If missing, use a default Audit key.
+            vault_service_config_id: A vault service config that will be used to sign logs
+            vault_sign: Enable/disable event signing
+            warm_storage: Retention window for logs in warm storage. Migrated to cold or deleted afterwards.
+        """
+
+        response = self.request.post(
+            "v1beta/config/update",
+            PangeaResponseResult,
+            data={
+                "id": config_id,
+                "name": name,
+                "updated_at": updated_at,
+                # Optionals.
+                "cold_query_result_retention": cold_query_result_retention,
+                "cold_storage": cold_storage,
+                "forwarding_configuration": forwarding_configuration,
+                "hot_storage": hot_storage,
+                "query_result_retention": query_result_retention,
+                "redact_service_config_id": redact_service_config_id,
+                "retention": retention,
+                "schema": schema,
+                "vault_key_id": vault_key_id,
+                "vault_service_config_id": vault_service_config_id,
+                "vault_sign": vault_sign,
+                "warm_storage": warm_storage,
+            },
+        )
+        response.result = TypeAdapter(ServiceConfig).validate_python(response.json["result"])
+        return cast(PangeaResponse[ServiceConfig], response)
+
+    def delete_service_config(self, config_id: str) -> PangeaResponse[ServiceConfig]:
+        """
+        Delete a service config.
+
+        OperationId: audit_post_v1beta_config_delete
+
+        Args:
+            id: The config ID
+        """
+
+        response = self.request.post("v1beta/config/delete", PangeaResponseResult, data={"id": config_id})
+        response.result = TypeAdapter(ServiceConfig).validate_python(response.json["result"])
+        return cast(PangeaResponse[ServiceConfig], response)
+
+    def list_service_configs(
+        self,
+        *,
+        filter: ServiceConfigFilter | None = None,
+        last: str | None = None,
+        order: Literal["asc", "desc"] | None = None,
+        order_by: Literal["id", "created_at", "updated_at"] | None = None,
+        size: int | None = None,
+    ) -> PangeaResponse[ServiceConfigListResult]:
+        """
+        List service configs.
+
+        OperationId: audit_post_v1beta_config_list
+
+        Args:
+            last: Reflected value from a previous response to obtain the next page of results.
+            order: Order results asc(ending) or desc(ending).
+            order_by: Which field to order results by.
+            size: Maximum results to include in the response.
+        """
+
+        return self.request.post(
+            "v1beta/config/list",
+            ServiceConfigListResult,
+            data={"filter": filter, "last": last, "order": order, "order_by": order_by, "size": size},
+        )
 
     def update_published_roots(self, result: SearchResultOutput):
         """Fetches series of published root hashes from Arweave
