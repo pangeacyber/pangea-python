@@ -37,11 +37,3 @@ class TestAIGuard(unittest.TestCase):
         assert response.status == "Success"
         assert response.result
         assert response.result.prompt_messages
-
-    def test_text_guard_llm_input(self) -> None:
-        response = self.client.guard_text(
-            llm_input={"model": "gpt-4o", "messages": [{"role": "user", "content": "hello world"}]}
-        )
-        assert response.status == "Success"
-        assert response.result
-        assert response.result.prompt_messages

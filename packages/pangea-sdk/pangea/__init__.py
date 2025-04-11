@@ -1,4 +1,4 @@
-__version__ = "5.5.0beta4"
+__version__ = "5.5.1"
 
 from pangea.asyncio.request import PangeaRequestAsync
 from pangea.config import PangeaConfig

@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added 
+
+- Redact: `fpe_context` on `StructuredResult`.
+- AI Guard: detector overrides.
+- AI Guard: topic detector.
+- AI Guard: `ignore_recipe` in detector overrides.
+
+### Changed
+
+- Redact: `score` in `RecognizerResult` is now a float.
+
+### Removed
+
+- AI Guard: `llm_info` and `llm_input`.
+- PangeaConfig: `config_id` field.
+
+## 5.5.1 - 2025-02-17
+
+### Changed
+
+- Prompt Guard: `confidence` is now a float.
+
+## 5.5.0 - 2025-02-16
+
+### Added
+
+- AI Guard and Prompt Guard services.
+
 ## 5.5.0beta4 - 2025-02-14
 
 ### Added

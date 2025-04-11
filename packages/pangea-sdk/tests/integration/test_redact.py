@@ -6,12 +6,14 @@ import pangea.exceptions as pe
 from pangea import PangeaConfig
 from pangea.response import ResponseStatus
 from pangea.services import Redact
+from pangea.services.redact import VaultParameters
 from pangea.tools import (
     TestEnvironment,
     get_config_id,
     get_multi_config_test_token,
     get_test_domain,
     get_test_token,
+    get_vault_fpe_key_id,
     logger_set_pangea_config,
 )
 from tests.test_tools import load_test_environment
@@ -27,6 +29,7 @@ class TestRedact(unittest.TestCase):
         self.redact = Redact(self.token, config=config, logger_name="pangea")
         self.multi_config_token = get_multi_config_test_token(TEST_ENVIRONMENT)
         logger_set_pangea_config(logger_name=self.redact.logger.name)
+        self.vault_fpe_key_id = get_vault_fpe_key_id(TEST_ENVIRONMENT)
 
     def test_redact(self):
         text = "Jenny Jenny... 415-867-5309"
@@ -116,3 +119,20 @@ class TestRedact(unittest.TestCase):
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertEqual(response.result.redacted_text, expected)
         self.assertEqual(response.result.count, 2)
+
+    def test_unredact(self):
+        text = "Visit our web is https://pangea.cloud"
+        redact_response = self.redact.redact(
+            text=text, vault_parameters=VaultParameters(fpe_key_id=self.vault_fpe_key_id)
+        )
+        self.assertIsNotNone(redact_response.result)
+        self.assertIsNotNone(redact_response.result.redacted_text)
+        self.assertIsNotNone(redact_response.result.fpe_context)
+        self.assertIsNot(redact_response.result.redacted_text, text)
+
+        unredact_response = self.redact.unredact(
+            redacted_data=redact_response.result.redacted_text, fpe_context=redact_response.result.fpe_context
+        )
+        self.assertIsNotNone(unredact_response.result)
+        self.assertIsNotNone(unredact_response.result.data)
+        self.assertEqual(unredact_response.result.data, text)

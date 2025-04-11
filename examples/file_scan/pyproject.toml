@@ -8,7 +8,7 @@ authors = [
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
-  "pangea-sdk==5.4.0"
+  "pangea-sdk==5.5.1"
 ]
 
 [tool.poetry]
@@ -19,7 +19,7 @@ python = "^3.9.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^25.1.0"
-isort = "^6.0.0"
+isort = "^6.0.1"
 mypy = "^1.15.0"
 
 [tool.black]
@@ -29,5 +29,5 @@ line-length = 120
 profile = "black"
 
 [build-system]
-requires = ["poetry-core>=2.0.1"]
+requires = ["poetry-core>=2.1.2"]
 build-backend = "poetry.core.masonry.api"

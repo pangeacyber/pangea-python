@@ -21,7 +21,7 @@ pangea-sdk =  { path = "../../packages/pangea-sdk/", develop = true }
 
 [tool.poetry.group.dev.dependencies]
 black = "^25.1.0"
-isort = "^6.0.0"
+isort = "^6.0.1"
 mypy = "^1.15.0"
 
 [tool.black]
@@ -31,5 +31,5 @@ line-length = 120
 profile = "black"
 
 [build-system]
-requires = ["poetry-core>=2.0.1"]
+requires = ["poetry-core>=2.1.2"]
 build-backend = "poetry.core.masonry.api"
