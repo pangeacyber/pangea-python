@@ -5,6 +5,7 @@ from .authz import AuthZAsync
 from .embargo import EmbargoAsync
 from .file_scan import FileScanAsync
 from .intel import DomainIntelAsync, FileIntelAsync, IpIntelAsync, UrlIntelAsync, UserIntelAsync
+from .management import ManagementAsync
 from .prompt_guard import PromptGuardAsync
 from .redact import RedactAsync
 from .sanitize import SanitizeAsync

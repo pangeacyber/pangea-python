@@ -5,11 +5,12 @@ from __future__ import annotations
 import asyncio
 import json
 import time
-from typing import Dict, List, Optional, Sequence, Tuple, Type, Union, cast
+from collections.abc import Iterable, Mapping
+from typing import Dict, List, Literal, Optional, Sequence, Tuple, Type, Union, cast, overload
 
 import aiohttp
 from aiohttp import FormData
-from pydantic import BaseModel
+from pydantic import BaseModel, TypeAdapter
 from pydantic_core import to_jsonable_python
 from typing_extensions import Any, TypeVar
 
@@ -30,6 +31,24 @@ class PangeaRequestAsync(PangeaRequestBase):
     be set in PangeaConfig.
     """
 
+    async def delete(self, endpoint: str) -> None:
+        """
+        Makes a DELETE call to a Pangea endpoint.
+
+        Args:
+            endpoint: The Pangea API endpoint.
+        """
+
+        url = self._url(endpoint)
+
+        self.logger.debug(
+            json.dumps({"service": self.service, "action": "delete", "url": url}, default=default_encoder)
+        )
+
+        requests_response = await self._http_delete(url, headers=self._headers())
+        await self._check_http_errors(requests_response)
+
+    @overload
     async def post(
         self,
         endpoint: str,
@@ -38,16 +57,58 @@ class PangeaRequestAsync(PangeaRequestBase):
         files: Optional[List[Tuple]] = None,
         poll_result: bool = True,
         url: Optional[str] = None,
+        *,
+        pangea_response: Literal[True] = True,
     ) -> PangeaResponse[TResult]:
-        """Makes the POST call to a Pangea Service endpoint.
+        """
+        Makes a POST call to a Pangea Service endpoint.
 
         Args:
-            endpoint(str): The Pangea Service API endpoint.
-            data(dict): The POST body payload object
+            endpoint: The Pangea Service API endpoint.
+            data: The POST body payload object
 
         Returns:
             PangeaResponse which contains the response in its entirety and
                various properties to retrieve individual fields
+        """
+
+    @overload
+    async def post(
+        self,
+        endpoint: str,
+        result_class: Type[TResult],
+        data: str | BaseModel | dict[str, Any] | None = None,
+        files: Optional[List[Tuple]] = None,
+        poll_result: bool = True,
+        url: Optional[str] = None,
+        *,
+        pangea_response: Literal[False],
+    ) -> TResult:
+        """
+        Makes a POST call to a Pangea Service endpoint.
+
+        Args:
+            endpoint: The Pangea Service API endpoint.
+            data: The POST body payload object
+        """
+
+    async def post(
+        self,
+        endpoint: str,
+        result_class: Type[TResult],
+        data: str | BaseModel | dict[str, Any] | None = None,
+        files: Optional[List[Tuple]] = None,
+        poll_result: bool = True,
+        url: Optional[str] = None,
+        *,
+        pangea_response: bool = True,
+    ) -> PangeaResponse[TResult] | TResult:
+        """
+        Makes a POST call to a Pangea Service endpoint.
+
+        Args:
+            endpoint: The Pangea Service API endpoint.
+            data: The POST body payload object
         """
 
         if isinstance(data, BaseModel):
@@ -86,9 +147,13 @@ class PangeaRequestAsync(PangeaRequestBase):
 
         await self._check_http_errors(requests_response)
 
+        if not pangea_response:
+            type_adapter = TypeAdapter(result_class)
+            return type_adapter.validate_python(await requests_response.json())
+
         if "multipart/form-data" in requests_response.headers.get("content-type", ""):
             multipart_response = await self._process_multipart_response(requests_response)
-            pangea_response: PangeaResponse = PangeaResponse(
+            pangea_response_obj: PangeaResponse = PangeaResponse(
                 requests_response,
                 result_class=result_class,
                 json=multipart_response.pangea_json,
@@ -101,47 +166,108 @@ class PangeaRequestAsync(PangeaRequestBase):
                     json.dumps({"service": self.service, "action": "post", "url": url, "response": json_resp})
                 )
 
-                pangea_response = PangeaResponse(requests_response, result_class=result_class, json=json_resp)
+                pangea_response_obj = PangeaResponse(requests_response, result_class=result_class, json=json_resp)
             except aiohttp.ContentTypeError as e:
                 raise pe.PangeaException(f"Failed to decode json response. {e}. Body: {await requests_response.text()}")
 
         if poll_result:
-            pangea_response = await self._handle_queued_result(pangea_response)
+            pangea_response_obj = await self._handle_queued_result(pangea_response_obj)
 
-        return self._check_response(pangea_response)
+        return self._check_response(pangea_response_obj)
 
-    async def get(self, path: str, result_class: Type[TResult], check_response: bool = True) -> PangeaResponse[TResult]:
-        """Makes the GET call to a Pangea Service endpoint.
+    @overload
+    async def get(
+        self,
+        path: str,
+        result_class: Type[TResult],
+        check_response: bool = True,
+        *,
+        params: (
+            Mapping[str | bytes | int | float, str | bytes | int | float | Iterable[str | bytes | int | float] | None]
+            | None
+        ) = None,
+        pangea_response: Literal[True] = True,
+    ) -> PangeaResponse[TResult]:
+        """
+        Makes the GET call to a Pangea Service endpoint.
 
         Args:
-            endpoint(str): The Pangea Service API endpoint.
-            path(str): Additional URL path
+            path: Additional URL path
+            params: Dictionary of querystring data to attach to the request
 
         Returns:
             PangeaResponse which contains the response in its entirety and
                various properties to retrieve individual fields
         """
 
+    @overload
+    async def get(
+        self,
+        path: str,
+        result_class: Type[TResult],
+        check_response: bool = True,
+        *,
+        params: (
+            Mapping[str | bytes | int | float, str | bytes | int | float | Iterable[str | bytes | int | float] | None]
+            | None
+        ) = None,
+        pangea_response: Literal[False] = False,
+    ) -> TResult:
+        """
+        Makes the GET call to a Pangea Service endpoint.
+
+        Args:
+            path: Additional URL path
+            params: Dictionary of querystring data to attach to the request
+        """
+
+    async def get(
+        self,
+        path: str,
+        result_class: Type[TResult],
+        check_response: bool = True,
+        *,
+        params: (
+            Mapping[str | bytes | int | float, str | bytes | int | float | Iterable[str | bytes | int | float] | None]
+            | None
+        ) = None,
+        pangea_response: bool = True,
+    ) -> PangeaResponse[TResult] | TResult:
+        """
+        Makes the GET call to a Pangea Service endpoint.
+
+        Args:
+            path: Additional URL path
+            params: Dictionary of querystring data to attach to the request
+            pangea_response: Whether or not the response body follows Pangea's
+              standard response schema
+        """
+
         url = self._url(path)
         self.logger.debug(json.dumps({"service": self.service, "action": "get", "url": url}))
 
-        async with self.session.get(url, headers=self._headers()) as requests_response:
+        async with self.session.get(url, params=params, headers=self._headers()) as requests_response:
             await self._check_http_errors(requests_response)
-            pangea_response = PangeaResponse(
+
+            if not pangea_response:
+                type_adapter = TypeAdapter(result_class)
+                return type_adapter.validate_python(await requests_response.json())
+
+            pangea_response_obj = PangeaResponse(
                 requests_response, result_class=result_class, json=await requests_response.json()
             )
 
         self.logger.debug(
             json.dumps(
-                {"service": self.service, "action": "get", "url": url, "response": pangea_response.json},
+                {"service": self.service, "action": "get", "url": url, "response": pangea_response_obj.json},
                 default=default_encoder,
             )
         )
 
         if check_response is False:
-            return pangea_response
+            return pangea_response_obj
 
-        return self._check_response(pangea_response)
+        return self._check_response(pangea_response_obj)
 
     async def _check_http_errors(self, resp: aiohttp.ClientResponse):
         if resp.status == 503:
@@ -275,10 +401,18 @@ class PangeaRequestAsync(PangeaRequestBase):
         attached_files = await self._get_attached_files(multipart_reader)
         return MultipartResponse(pangea_json, attached_files)  # type: ignore[arg-type]
 
+    async def _http_delete(
+        self,
+        url: str,
+        *,
+        headers: Mapping[str, str | bytes | None] = {},
+    ) -> aiohttp.ClientResponse:
+        return await self.session.delete(url, headers=headers)
+
     async def _http_post(
         self,
         url: str,
-        headers: Dict = {},
+        headers: Mapping[str, str | bytes | None] = {},
         data: Union[str, Dict] = {},
         files: Optional[List[Tuple]] = [],
         presigned_url_post: bool = False,

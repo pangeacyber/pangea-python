@@ -2,12 +2,15 @@
 # Author: Pangea Cyber Corporation
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Union
+from collections.abc import Mapping, Sequence
+from typing import Dict, List, Literal, Optional, Union, cast, overload
+
+from pydantic import TypeAdapter
 
 import pangea.services.redact as m
 from pangea.asyncio.services.base import ServiceBaseAsync
 from pangea.config import PangeaConfig
-from pangea.response import PangeaResponse
+from pangea.response import PangeaResponse, PangeaResponseResult
 
 
 class RedactAsync(ServiceBaseAsync):
@@ -64,7 +67,7 @@ class RedactAsync(ServiceBaseAsync):
         rules: Optional[List[str]] = None,
         rulesets: Optional[List[str]] = None,
         return_result: Optional[bool] = None,
-        redaction_method_overrides: Optional[m.RedactionMethodOverrides] = None,
+        redaction_method_overrides: Mapping[str, m.RedactionMethodOverrides] | None = None,
         llm_request: Optional[bool] = None,
         vault_parameters: Optional[m.VaultParameters] = None,
     ) -> PangeaResponse[m.RedactResult]:
@@ -119,7 +122,7 @@ class RedactAsync(ServiceBaseAsync):
         rules: Optional[List[str]] = None,
         rulesets: Optional[List[str]] = None,
         return_result: Optional[bool] = None,
-        redaction_method_overrides: Optional[m.RedactionMethodOverrides] = None,
+        redaction_method_overrides: Mapping[str, m.RedactionMethodOverrides] | None = None,
         llm_request: bool | None = None,
         vault_parameters: m.VaultParameters | None = None,
     ) -> PangeaResponse[m.StructuredResult]:
@@ -200,3 +203,261 @@ class RedactAsync(ServiceBaseAsync):
         """
         input = m.UnredactRequest(redacted_data=redacted_data, fpe_context=fpe_context)
         return await self.request.post("v1/unredact", m.UnredactResult, data=input.model_dump(exclude_none=True))
+
+    async def get_service_config(self, config_id: str) -> PangeaResponse[m.ServiceConfigResult]:
+        """
+        Get a service config.
+
+
+        OperationId: redact_post_v1beta_config
+        """
+        response = await self.request.post("v1beta/config", PangeaResponseResult, data={"id": config_id})
+        response.result = TypeAdapter(m.ServiceConfigResult).validate_python(response.json["result"])
+        return cast(PangeaResponse[m.ServiceConfigResult], response)
+
+    @overload
+    async def create_service_config(
+        self,
+        name: str,
+        *,
+        version: Literal["1.0.0"],
+        enabled_rules: Sequence[str] | None = None,
+        redactions: Mapping[str, m.Redaction] | None = None,
+        vault_service_config_id: str | None = None,
+        salt_vault_secret_id: str | None = None,
+        rules: Mapping[str, m.RuleV1] | None = None,
+        rulesets: Mapping[str, m.RulesetV1] | None = None,
+        supported_languages: Sequence[Literal["en"]] | None = None,
+    ) -> PangeaResponse[m.ServiceConfigResult]:
+        """
+        Create a v1.0.0 service config.
+
+        OperationId: redact_post_v1beta_config_create
+
+        Args:
+            vault_service_config_id: Service config used to create the secret
+            salt_vault_secret_id: Pangea only allows hashing to be done using a salt value to prevent brute-force attacks.
+        """
+
+    @overload
+    async def create_service_config(
+        self,
+        name: str,
+        *,
+        version: Literal["2.0.0"] | None = None,
+        enabled_rules: Sequence[str] | None = None,
+        enforce_enabled_rules: bool | None = None,
+        redactions: Mapping[str, m.Redaction] | None = None,
+        vault_service_config_id: str | None = None,
+        salt_vault_secret_id: str | None = None,
+        fpe_vault_secret_id: str | None = None,
+        rules: Mapping[str, m.RuleV2] | None = None,
+        rulesets: Mapping[str, m.RulesetV2] | None = None,
+        supported_languages: Sequence[Literal["en"]] | None = None,
+    ) -> PangeaResponse[m.ServiceConfigResult]:
+        """
+        Create a v2.0.0 service config.
+
+        OperationId: redact_post_v1beta_config_create
+
+        Args:
+            enforce_enabled_rules: Always run service config enabled rules across all redact calls regardless of flags?
+            vault_service_config_id: Service config used to create the secret
+            salt_vault_secret_id: Pangea only allows hashing to be done using a salt value to prevent brute-force attacks.
+            fpe_vault_secret_id: The ID of the key used by FF3 Encryption algorithms for FPE.
+        """
+
+    async def create_service_config(
+        self,
+        name: str,
+        *,
+        version: Literal["1.0.0", "2.0.0"] | None = None,
+        enabled_rules: Sequence[str] | None = None,
+        enforce_enabled_rules: bool | None = None,
+        fpe_vault_secret_id: str | None = None,
+        redactions: Mapping[str, m.Redaction] | None = None,
+        rules: Mapping[str, m.RuleV1 | m.RuleV2] | None = None,
+        rulesets: Mapping[str, m.RulesetV1 | m.RulesetV2] | None = None,
+        salt_vault_secret_id: str | None = None,
+        supported_languages: Sequence[Literal["en"]] | None = None,
+        vault_service_config_id: str | None = None,
+    ) -> PangeaResponse[m.ServiceConfigResult]:
+        """
+        Create a service config.
+
+        OperationId: redact_post_v1beta_config_create
+
+        Args:
+            enforce_enabled_rules: Always run service config enabled rules across all redact calls regardless of flags?
+            fpe_vault_secret_id: The ID of the key used by FF3 Encryption algorithms for FPE.
+            salt_vault_secret_id: Pangea only allows hashing to be done using a salt value to prevent brute-force attacks.
+            vault_service_config_id: Service config used to create the secret
+        """
+
+        response = await self.request.post(
+            "v1beta/config/create",
+            PangeaResponseResult,
+            data={
+                "name": name,
+                "version": version,
+                "enabled_rules": enabled_rules,
+                "enforce_enabled_rules": enforce_enabled_rules,
+                "fpe_vault_secret_id": fpe_vault_secret_id,
+                "redactions": redactions,
+                "rules": rules,
+                "rulesets": rulesets,
+                "salt_vault_secret_id": salt_vault_secret_id,
+                "supported_languages": supported_languages,
+                "vault_service_config_id": vault_service_config_id,
+            },
+        )
+        response.result = TypeAdapter(m.ServiceConfigResult).validate_python(response.json["result"])
+        return cast(PangeaResponse[m.ServiceConfigResult], response)
+
+    @overload
+    async def update_service_config(
+        self,
+        config_id: str,
+        *,
+        version: Literal["1.0.0"],
+        name: str,
+        updated_at: str,
+        enabled_rules: Sequence[str] | None = None,
+        redactions: Mapping[str, m.Redaction] | None = None,
+        vault_service_config_id: str | None = None,
+        salt_vault_secret_id: str | None = None,
+        rules: Mapping[str, m.RuleV1] | None = None,
+        rulesets: Mapping[str, m.RulesetV1] | None = None,
+        supported_languages: Sequence[Literal["en"]] | None = None,
+    ) -> PangeaResponse[m.ServiceConfigResult]:
+        """
+        Update a v1.0.0 service config.
+
+        OperationId: redact_post_v1beta_config_update
+
+        Args:
+            vault_service_config_id: Service config used to create the secret
+            salt_vault_secret_id: Pangea only allows hashing to be done using a salt value to prevent brute-force attacks.
+        """
+
+    @overload
+    async def update_service_config(
+        self,
+        config_id: str,
+        *,
+        version: Literal["2.0.0"] | None = None,
+        name: str,
+        updated_at: str,
+        enabled_rules: Sequence[str] | None = None,
+        enforce_enabled_rules: bool | None = None,
+        redactions: Mapping[str, m.Redaction] | None = None,
+        vault_service_config_id: str | None = None,
+        salt_vault_secret_id: str | None = None,
+        fpe_vault_secret_id: str | None = None,
+        rules: Mapping[str, m.RuleV2] | None = None,
+        rulesets: Mapping[str, m.RulesetV2] | None = None,
+        supported_languages: Sequence[Literal["en"]] | None = None,
+    ) -> PangeaResponse[m.ServiceConfigResult]:
+        """
+        Update a v2.0.0 service config.
+
+        OperationId: redact_post_v1beta_config_update
+
+        Args:
+            enforce_enabled_rules: Always run service config enabled rules across all redact calls regardless of flags?
+            vault_service_config_id: Service config used to create the secret
+            salt_vault_secret_id: Pangea only allows hashing to be done using a salt value to prevent brute-force attacks.
+            fpe_vault_secret_id: The ID of the key used by FF3 Encryption algorithms for FPE.
+        """
+
+    async def update_service_config(
+        self,
+        config_id: str,
+        *,
+        version: Literal["1.0.0", "2.0.0"] | None = None,
+        name: str,
+        updated_at: str,
+        enabled_rules: Sequence[str] | None = None,
+        enforce_enabled_rules: bool | None = None,
+        fpe_vault_secret_id: str | None = None,
+        redactions: Mapping[str, m.Redaction] | None = None,
+        rules: Mapping[str, m.RuleV1 | m.RuleV2] | None = None,
+        rulesets: Mapping[str, m.RulesetV1 | m.RulesetV2] | None = None,
+        salt_vault_secret_id: str | None = None,
+        supported_languages: Sequence[Literal["en"]] | None = None,
+        vault_service_config_id: str | None = None,
+    ) -> PangeaResponse[m.ServiceConfigResult]:
+        """
+        Update a service config.
+
+        OperationId: redact_post_v1beta_config_update
+
+        Args:
+            enforce_enabled_rules: Always run service config enabled rules across all redact calls regardless of flags?
+            fpe_vault_secret_id: The ID of the key used by FF3 Encryption algorithms for FPE.
+            salt_vault_secret_id: Pangea only allows hashing to be done using a salt value to prevent brute-force attacks.
+            vault_service_config_id: Service config used to create the secret
+        """
+
+        response = await self.request.post(
+            "v1beta/config/update",
+            PangeaResponseResult,
+            data={
+                "id": config_id,
+                "updated_at": updated_at,
+                "name": name,
+                "version": version,
+                "enabled_rules": enabled_rules,
+                "enforce_enabled_rules": enforce_enabled_rules,
+                "fpe_vault_secret_id": fpe_vault_secret_id,
+                "redactions": redactions,
+                "rules": rules,
+                "rulesets": rulesets,
+                "salt_vault_secret_id": salt_vault_secret_id,
+                "supported_languages": supported_languages,
+                "vault_service_config_id": vault_service_config_id,
+            },
+        )
+        response.result = TypeAdapter(m.ServiceConfigResult).validate_python(response.json["result"])
+        return cast(PangeaResponse[m.ServiceConfigResult], response)
+
+    async def delete_service_config(self, config_id: str) -> PangeaResponse[m.ServiceConfigResult]:
+        """
+        Delete a service config.
+
+        OperationId: redact_post_v1beta_config_delete
+
+        Args:
+            config_id: An ID for a service config
+        """
+
+        response = await self.request.post("v1beta/config/delete", PangeaResponseResult, data={"id": config_id})
+        response.result = TypeAdapter(m.ServiceConfigResult).validate_python(response.json["result"])
+        return cast(PangeaResponse[m.ServiceConfigResult], response)
+
+    async def list_service_configs(
+        self,
+        *,
+        filter: m.ServiceConfigFilter | None = None,
+        last: str | None = None,
+        order: Literal["asc", "desc"] | None = None,
+        order_by: Literal["id", "created_at", "updated_at"] | None = None,
+        size: int | None = None,
+    ) -> PangeaResponse[m.ServiceConfigListResult]:
+        """
+        List service configs.
+
+        OperationId: redact_post_v1beta_config_list
+
+        Args:
+            last: Reflected value from a previous response to obtain the next page of results.
+            order: Order results asc(ending) or desc(ending).
+            order_by: Which field to order results by.
+            size: Maximum results to include in the response.
+        """
+
+        return await self.request.post(
+            "v1beta/config/list",
+            m.ServiceConfigListResult,
+            data={"filter": filter, "last": last, "order": order, "order_by": order_by, "size": size},
+        )
