@@ -17,7 +17,7 @@ def main() -> None:
     domain = os.getenv("PANGEA_DOMAIN")
     assert domain
 
-    config = PangeaConfig(domain)
+    config = PangeaConfig(domain=domain)
     vault = Vault(token, config)
 
     # First create an encryption key, either from the Pangea Console or

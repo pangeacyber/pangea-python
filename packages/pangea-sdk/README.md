@@ -8,7 +8,7 @@
 
 # Pangea Python SDK
 
-A Python SDK for integrating with Pangea services. Supports Python v3.9 and
+A Python SDK for integrating with Pangea services. Supports Python v3.9.2 and
 above.
 
 ## Installation
