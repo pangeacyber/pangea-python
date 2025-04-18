@@ -31,7 +31,7 @@ packages = [
 python = "^3.9.0"
 "Django" = "^4.2.20"
 "pangea-sdk" = "^5.5.1"
-typing-extensions = "^4.13.1"
+typing-extensions = "^4.13.2"
 
 [tool.poetry.group.dev.dependencies]
 black = "^25.1.0"
