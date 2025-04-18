@@ -24,7 +24,8 @@ dependencies = [
   "python-dateutil (>=2.9.0.post0,<3.0.0)",
   "requests (>=2.32.3,<3.0.0)",
   "requests-toolbelt (>=1.0.0,<2.0.0)",
-  "typing-extensions (>=4.13.2,<5.0.0)"
+  "typing-extensions (>=4.13.2,<5.0.0)",
+  "yarl (>=1.20.0,<2.0.0)"
 ]
 
 [tool.poetry]
@@ -57,6 +58,12 @@ error_summary = true
 pretty = true
 show_column_numbers = true
 warn_unused_ignores = true
+plugins = ['pydantic.mypy']
+
+[tool.pydantic-mypy]
+init_forbid_extra = true
+init_typed = true
+warn_required_dynamic_aliases = true
 
 [build-system]
 requires = ["poetry-core>=2.1.2"]

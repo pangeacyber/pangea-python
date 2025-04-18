@@ -25,9 +25,9 @@ async def main() -> None:
     domain = os.getenv("PANGEA_DOMAIN")
     assert domain
 
-    config = PangeaConfig(domain)
-    # Create Sanitize client with its token and its config
+    config = PangeaConfig(domain=domain)
 
+    # Create Sanitize client with its token and its config
     client = SanitizeAsync(token, config)
     try:
         # Create Sanitize file information
