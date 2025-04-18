@@ -81,7 +81,7 @@ class TestAuditAsync(unittest.IsolatedAsyncioTestCase):
 
         self.auditCustomSchema = AuditAsync(
             self.custom_schema_token,
-            config=PangeaConfig(self.domain),
+            config=PangeaConfig(domain=self.domain),
             logger_name="pangea",
         )
 
