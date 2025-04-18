@@ -20,6 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- The minimum supported version of Python is now v3.9.2.
+- Updated cryptography to v44.0.2.
 - Redact: `score` in `RecognizerResult` is now a float.
 
 ### Removed
