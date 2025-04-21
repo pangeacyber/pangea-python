@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import datetime
 import unittest
 
@@ -148,3 +150,17 @@ class TestAuthZIntegration(unittest.TestCase):
         self.assertIsNotNone(r_list_subjects.result)
         assert r_list_subjects.result
         self.assertEqual(len(r_list_subjects.result.subjects), 1)
+
+    def test_expires_at(self) -> None:
+        response = self.authz.tuple_create(
+            [
+                m.Tuple(
+                    resource=m.Resource(type=type_folder, id=folder1),
+                    relation=relation_reader,
+                    subject=m.Subject(type=type_user, id=user1),
+                    expires_at="2999-09-21T17:24:33.105Z",
+                )
+            ]
+        )
+
+        assert response
