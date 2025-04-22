@@ -10,10 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - AuthZ: `expires_at` to tuples.
+- AuthN: groups.
 
 ## 6.0.0 - 2025-04-21
 
-### Added 
+### Added
 
 - Redact: `fpe_context` on `StructuredResult`.
 - AI Guard: detector overrides.
@@ -84,7 +85,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Audit.fix_consistency_proofs` is now a private method.
 - `pangea.deep_verify` error message to `warning` when `not_persisted` event.
 
-### Fixed 
+### Fixed
 
 - `pangea.audit_dump` only dump before events if the leaf_index is not None.
 
@@ -131,7 +132,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- `attributes` field in `/check` endpoint. Now it's a `Dict[str, Any]` 
+- `attributes` field in `/check` endpoint. Now it's a `Dict[str, Any]`
 
 ### Fixed
 
@@ -238,7 +239,7 @@ Note that Sanitize and Secure Share did not make it into this release.
 
 ## [3.7.0] - 2024-02-26
 
-### Added 
+### Added
 
 - Vault service. Post quantum signing algorithms support
 

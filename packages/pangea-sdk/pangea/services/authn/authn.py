@@ -2,14 +2,17 @@
 # Author: Pangea Cyber Corporation
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Literal, Optional, Union
 
 import pangea.services.authn.models as m
 from pangea.config import PangeaConfig
 from pangea.response import PangeaResponse, PangeaResponseResult
 from pangea.services.base import ServiceBase
 
-SERVICE_NAME = "authn"
+__all__ = ["AuthN"]
+
+
+_SERVICE_NAME = "authn"
 
 
 class AuthN(ServiceBase):
@@ -35,7 +38,7 @@ class AuthN(ServiceBase):
         authn = AuthN(token=PANGEA_TOKEN, config=authn_config)
     """
 
-    service_name = SERVICE_NAME
+    service_name = _SERVICE_NAME
 
     def __init__(
         self,
@@ -63,9 +66,10 @@ class AuthN(ServiceBase):
         self.client = AuthN.Client(token, config, logger_name=logger_name)
         self.session = AuthN.Session(token, config, logger_name=logger_name)
         self.agreements = AuthN.Agreements(token, config, logger_name=logger_name)
+        self.group = AuthN.Group(token, config, logger_name=logger_name)
 
     class Session(ServiceBase):
-        service_name = SERVICE_NAME
+        service_name = _SERVICE_NAME
 
         def __init__(
             self,
@@ -161,7 +165,7 @@ class AuthN(ServiceBase):
             )
 
     class Client(ServiceBase):
-        service_name = SERVICE_NAME
+        service_name = _SERVICE_NAME
 
         def __init__(
             self,
@@ -221,7 +225,7 @@ class AuthN(ServiceBase):
             return self.request.post("v2/client/jwks", m.ClientJWKSResult, {})
 
         class Session(ServiceBase):
-            service_name = SERVICE_NAME
+            service_name = _SERVICE_NAME
 
             def __init__(
                 self,
@@ -359,7 +363,7 @@ class AuthN(ServiceBase):
                 )
 
         class Password(ServiceBase):
-            service_name = SERVICE_NAME
+            service_name = _SERVICE_NAME
 
             def __init__(
                 self,
@@ -419,7 +423,7 @@ class AuthN(ServiceBase):
                 return self.request.post("v2/user/password/expire", PangeaResponseResult, {"id": user_id})
 
         class Token(ServiceBase):
-            service_name = SERVICE_NAME
+            service_name = _SERVICE_NAME
 
             def __init__(
                 self,
@@ -456,18 +460,19 @@ class AuthN(ServiceBase):
                 )
 
     class User(ServiceBase):
-        service_name = SERVICE_NAME
+        service_name = _SERVICE_NAME
 
         def __init__(
             self,
-            token,
-            config=None,
-            logger_name="pangea",
-        ):
+            token: str,
+            config: PangeaConfig | None = None,
+            logger_name: str = "pangea",
+        ) -> None:
             super().__init__(token, config, logger_name=logger_name)
             self.profile = AuthN.User.Profile(token, config, logger_name=logger_name)
             self.authenticators = AuthN.User.Authenticators(token, config, logger_name=logger_name)
             self.invites = AuthN.User.Invites(token, config, logger_name=logger_name)
+            self.group = AuthN.User.Group(token, config, logger_name=logger_name)
 
         def create(
             self,
@@ -663,7 +668,7 @@ class AuthN(ServiceBase):
             return self.request.post("v2/user/list", m.UserListResult, data=input.model_dump(exclude_none=True))
 
         class Invites(ServiceBase):
-            service_name = SERVICE_NAME
+            service_name = _SERVICE_NAME
 
             def __init__(
                 self,
@@ -735,7 +740,7 @@ class AuthN(ServiceBase):
                 )
 
         class Authenticators(ServiceBase):
-            service_name = SERVICE_NAME
+            service_name = _SERVICE_NAME
 
             def __init__(
                 self,
@@ -817,7 +822,7 @@ class AuthN(ServiceBase):
                 )
 
         class Profile(ServiceBase):
-            service_name = SERVICE_NAME
+            service_name = _SERVICE_NAME
 
             def __init__(
                 self,
@@ -901,8 +906,57 @@ class AuthN(ServiceBase):
                     "v2/user/profile/update", m.UserProfileUpdateResult, data=input.model_dump(exclude_none=True)
                 )
 
+        class Group(ServiceBase):
+            service_name = _SERVICE_NAME
+
+            def __init__(
+                self,
+                token: str,
+                config: PangeaConfig | None = None,
+                logger_name: str = "pangea",
+            ) -> None:
+                super().__init__(token, config, logger_name=logger_name)
+
+            def assign(self, user_id: str, group_ids: list[str]) -> PangeaResponse[PangeaResponseResult]:
+                """
+                Assign groups to a user
+
+                Add a list of groups to a specified user
+
+                OperationId: authn_post_v2_user_group_assign
+                """
+                return self.request.post(
+                    "v2/user/group/assign",
+                    data={"id": user_id, "group_ids": group_ids},
+                    result_class=m.PangeaResponseResult,
+                )
+
+            def remove(self, user_id: str, group_id: str) -> PangeaResponse[PangeaResponseResult]:
+                """
+                Remove a group assigned to a user
+
+                Remove a group assigned to a user
+
+                OperationId: authn_post_v2_user_group_remove
+                """
+                return self.request.post(
+                    "v2/user/group/remove",
+                    data={"id": user_id, "group_id": group_id},
+                    result_class=m.PangeaResponseResult,
+                )
+
+            def list(self, user_id: str) -> PangeaResponse[m.GroupList]:
+                """
+                List of groups assigned to a user
+
+                Return a list of ids for groups assigned to a user
+
+                OperationId: authn_post_v2_user_group_list
+                """
+                return self.request.post("v2/user/group/list", data={"id": user_id}, result_class=m.GroupList)
+
     class Flow(ServiceBase):
-        service_name = SERVICE_NAME
+        service_name = _SERVICE_NAME
 
         def __init__(
             self,
@@ -1042,7 +1096,7 @@ class AuthN(ServiceBase):
             return self.request.post("v2/flow/update", m.FlowUpdateResult, data=input.model_dump(exclude_none=True))
 
     class Agreements(ServiceBase):
-        service_name = SERVICE_NAME
+        service_name = _SERVICE_NAME
 
         def __init__(
             self,
@@ -1191,4 +1245,109 @@ class AuthN(ServiceBase):
             input = m.AgreementUpdateRequest(type=type, id=id, name=name, text=text, active=active)
             return self.request.post(
                 "v2/agreements/update", m.AgreementUpdateResult, data=input.model_dump(exclude_none=True)
+            )
+
+    class Group(ServiceBase):
+        service_name = _SERVICE_NAME
+
+        def __init__(
+            self,
+            token: str,
+            config: PangeaConfig | None = None,
+            logger_name: str = "pangea",
+        ) -> None:
+            super().__init__(token, config, logger_name=logger_name)
+
+        def create(
+            self, name: str, type: str, *, description: str | None = None, attributes: dict[str, str] | None = None
+        ) -> PangeaResponse[m.GroupInfo]:
+            """
+            Create a new group
+
+            Create a new group
+
+            OperationId: authn_post_v2_group_create
+            """
+            return self.request.post(
+                "v2/group/create",
+                data={"name": name, "type": type, "description": description, "attributes": attributes},
+                result_class=m.GroupInfo,
+            )
+
+        def delete(self, id: str) -> PangeaResponse[PangeaResponseResult]:
+            """
+            Delete a group
+
+            Delete a group
+
+            OperationId: authn_post_v2_group_delete
+            """
+            return self.request.post("v2/group/delete", data={"id": id}, result_class=PangeaResponseResult)
+
+        def get(self, id: str) -> PangeaResponse[m.GroupInfo]:
+            """
+            Get group information
+
+            Look up a group by ID and return its information.
+
+            OperationId: authn_post_v2_group_get
+            """
+            return self.request.post("v2/group/get", data={"id": id}, result_class=m.GroupInfo)
+
+        def list(
+            self,
+            *,
+            filter: m.GroupsFilter | None = None,
+            last: str | None = None,
+            order: Literal["asc", "desc"] | None = None,
+            order_by: Literal["id", "created_at", "updated_at", "name", "type"] | None = None,
+            size: int | None = None,
+        ) -> PangeaResponse[m.GroupList]:
+            """
+            List groups
+
+            Look up groups by name, type, or attributes.
+            """
+            return self.request.post(
+                "v2/group/list",
+                data={"filter": filter, "last": last, "order": order, "order_by": order_by, "size": size},
+                result_class=m.GroupList,
+            )
+
+        def list_users(
+            self, id: str, *, last: str | None = None, size: int | None = None
+        ) -> PangeaResponse[m.GroupUserList]:
+            """
+            List of users assigned to a group
+
+            Return a list of ids for users assigned to a group
+
+            OperationId: authn_post_v2_group_user_list
+            """
+            return self.request.post(
+                "v2/group/user/list",
+                data={"id": id, "last": last, "size": size},
+                result_class=m.GroupUserList,
+            )
+
+        def update(
+            self,
+            id: str,
+            *,
+            name: str | None = None,
+            description: str | None = None,
+            type: str | None = None,
+            attributes: dict[str, str] | None = None,
+        ) -> PangeaResponse[m.GroupInfo]:
+            """
+            Update group information
+
+            Update group information
+
+            OperationId: authn_post_v2_group_update
+            """
+            return self.request.post(
+                "v2/group/update",
+                data={"id": id, "name": name, "description": description, "type": type, "attributes": attributes},
+                result_class=m.GroupInfo,
             )
