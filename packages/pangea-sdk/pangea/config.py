@@ -1,32 +1,30 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Literal, Optional
+from typing import Any, Optional
+
+from pydantic import BaseModel, model_validator
 
 
-@dataclass
-class PangeaConfig:
+class PangeaConfig(BaseModel):
     """Holds run time configuration information used by SDK components."""
+
+    base_url_template: str = "https://{SERVICE_NAME}.aws.us.pangea.cloud"
+    """
+    Template for constructing the base URL for API requests. The placeholder
+    `{SERVICE_NAME}` will be replaced with the service name slug. This is a
+    more powerful version of `domain` that allows for setting more than just
+    the host of the API server. Defaults to
+    `https://{SERVICE_NAME}.aws.us.pangea.cloud`.
+    """
 
     domain: str = "aws.us.pangea.cloud"
     """
-    Used to set Pangea domain (and port if needed), it should not include service subdomain
-    just for particular use cases when environment = "local", domain could be set to an url including:
-    scheme (http:// or https://), subdomain, domain and port.
-    """
-
-    environment: Literal["production", "local"] = "production"
-    """
-    Pangea environment, used to construct service URLs.
-
-    If set to "local", then `domain` must be the full host (i.e., hostname and
-    port) for the Pangea service that this `PangeaConfig` will be used for.
-    """
-
-    insecure: bool = False
-    """
-    Set to true to use plain http
+    Base domain for API requests. This is a weaker version of `base_url_template`
+    that only allows for setting the host of the API server. Use
+    `base_url_template` for more control over the URL, such as setting
+    service-specific paths. Defaults to `aws.us.pangea.cloud`.
     """
 
     request_retries: int = 3
@@ -58,3 +56,10 @@ class PangeaConfig:
     """
     Extra user agent to be added to request user agent
     """
+
+    @model_validator(mode="before")
+    @classmethod
+    def _domain_backwards_compat(cls, data: Any) -> Any:
+        if isinstance(data, dict) and "base_url_template" not in data and "domain" in data:
+            return {**data, "base_url_template": f"https://{{SERVICE_NAME}}.{data['domain']}"}
+        return data

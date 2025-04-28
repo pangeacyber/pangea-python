@@ -939,3 +939,97 @@ class AgreementUpdateRequest(APIRequestModel):
 
 class AgreementUpdateResult(AgreementInfo):
     pass
+
+
+class GroupInfo(PangeaResponseResult):
+    """A group and its information"""
+
+    id: str
+    name: str
+    type: str
+
+    description: Optional[str] = None
+    attributes: Optional[Dict[str, str]] = None
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+
+
+class GroupsFilter(APIRequestModel):
+    """Search filter for groups"""
+
+    created_at: Optional[str] = None
+    """Only records where created_at equals this value."""
+
+    created_at__gt: Optional[str] = None
+    """Only records where created_at is greater than this value."""
+
+    created_at__gte: Optional[str] = None
+    """Only records where created_at is greater than or equal to this value."""
+
+    created_at__lt: Optional[str] = None
+    """Only records where created_at is less than this value."""
+
+    created_at__lte: Optional[str] = None
+    """Only records where created_at is less than or equal to this value."""
+
+    created_at__contains: Optional[str] = None
+    """Only records where created_at includes this value."""
+
+    id: Optional[str] = None
+    """Only records where id equals this value."""
+
+    id__contains: Optional[List[str]] = None
+    """Only records where id includes each substring."""
+
+    id__in: Optional[List[str]] = None
+    """Only records where id equals one of the provided substrings."""
+
+    name: Optional[str] = None
+    """Only records where name equals this value."""
+
+    name__contains: Optional[List[str]] = None
+    """Only records where name includes each substring."""
+
+    name__in: Optional[List[str]] = None
+    """Only records where name equals one of the provided substrings."""
+
+    type: Optional[str] = None
+    """Only records where type equals this value."""
+
+    type__contains: Optional[List[str]] = None
+    """Only records where type includes each substring."""
+
+    type__in: Optional[List[str]] = None
+    """Only records where type equals one of the provided substrings."""
+
+    updated_at: Optional[str] = None
+    """Only records where updated_at equals this value."""
+
+    updated_at__gt: Optional[str] = None
+    """Only records where updated_at is greater than this value."""
+
+    updated_at__gte: Optional[str] = None
+    """Only records where updated_at is greater than or equal to this value."""
+
+    updated_at__lt: Optional[str] = None
+    """Only records where updated_at is less than this value."""
+
+    updated_at__lte: Optional[str] = None
+    """Only records where updated_at is less than or equal to this value."""
+
+    updated_at__contains: Optional[str] = None
+    """Only records where updated_at includes this value."""
+
+
+class GroupList(PangeaResponseResult):
+    groups: List[GroupInfo]
+    """List of matching groups"""
+
+    count: int
+    last: Optional[str] = None
+
+
+class GroupUserList(PangeaResponseResult):
+    users: List[User]
+    count: int
+    last: Optional[str] = None

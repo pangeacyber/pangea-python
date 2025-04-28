@@ -7,18 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
-### Added 
+### Added
+
+- Management: new API client.
+- Redact: config APIs.
+- Secure Audit Log: config APIs.
+
+## 6.1.0 - 2025-04-25
+
+### Added
+
+- AuthZ: `expires_at` to tuples.
+- AuthN: groups.
+
+## 6.0.0 - 2025-04-21
+
+### Added
 
 - Redact: `fpe_context` on `StructuredResult`.
 - AI Guard: detector overrides.
 - AI Guard: topic detector.
 - AI Guard: `ignore_recipe` in detector overrides.
-- Management: new API client.
-- Redact: config APIs.
-- Secure Audit Log: config APIs.
+- `base_url_template` has been added to `PangeaConfig` to allow for greater
+  control over the complete API URL. This option may be a full URL with the
+  optional `{SERVICE_NAME}` placeholder, which will be replaced by the slug of
+  the respective service name. This supersedes `environment` and `insecure`.
 
 ### Changed
 
+- The minimum supported version of Python is now v3.9.2.
+- Updated cryptography to v44.0.2.
 - Redact: `score` in `RecognizerResult` is now a float.
 
 ### Removed
@@ -132,7 +150,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Audit.fix_consistency_proofs` is now a private method.
 - `pangea.deep_verify` error message to `warning` when `not_persisted` event.
 
-### Fixed 
+### Fixed
 
 - `pangea.audit_dump` only dump before events if the leaf_index is not None.
 
@@ -192,7 +210,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- `attributes` field in `/check` endpoint. Now it's a `Dict[str, Any]` 
+- `attributes` field in `/check` endpoint. Now it's a `Dict[str, Any]`
 
 ### Fixed
 
@@ -341,7 +359,7 @@ Note that Sanitize and Secure Share did not make it into this release.
 
 ## [3.7.0] - 2024-02-26
 
-### Added 
+### Added
 
 - Vault service. Post quantum signing algorithms support
 

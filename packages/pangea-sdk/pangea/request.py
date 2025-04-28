@@ -15,6 +15,7 @@ from pydantic_core import to_jsonable_python
 from requests.adapters import HTTPAdapter, Retry
 from requests_toolbelt import MultipartDecoder  # type: ignore[import-untyped]
 from typing_extensions import TypeVar
+from yarl import URL
 
 import pangea
 import pangea.exceptions as pe
@@ -108,16 +109,8 @@ class PangeaRequestBase:
         return f"request/{request_id}"
 
     def _url(self, path: str) -> str:
-        if self.config.domain.startswith("http://") or self.config.domain.startswith("https://"):
-            # it's URL
-            url = f"{self.config.domain}/{path}"
-        else:
-            schema = "http://" if self.config.insecure else "https://"
-            domain = (
-                self.config.domain if self.config.environment == "local" else f"{self.service}.{self.config.domain}"
-            )
-            url = f"{schema}{domain}/{path}"
-        return url
+        url = URL(self.config.base_url_template.format(SERVICE_NAME=self.service))
+        return str(url / path)
 
     def _headers(self) -> dict:
         headers = {
@@ -125,7 +118,7 @@ class PangeaRequestBase:
             "Authorization": f"Bearer {self.token}",
         }
 
-        # We want to ignore previous headers if user tryed to set them, so we will overwrite them.
+        # We want to ignore previous headers if user tried to set them, so we will overwrite them.
         self._extra_headers.update(headers)
         return self._extra_headers
 
@@ -764,9 +757,7 @@ class PangeaRequest(PangeaRequestBase):
         adapter = HTTPAdapter(max_retries=retry_config)
         session = requests.Session()
 
-        if self.config.insecure:
-            session.mount("http://", adapter)
-        else:
-            session.mount("https://", adapter)
+        session.mount("http://", adapter)
+        session.mount("https://", adapter)
 
         return session

@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pangea.asyncio.services.base import ServiceBaseAsync
 from pangea.config import PangeaConfig
@@ -73,14 +73,14 @@ class AuthZAsync(ServiceBaseAsync):
 
         super().__init__(token, config, logger_name, config_id=config_id)
 
-    async def tuple_create(self, tuples: List[Tuple]) -> PangeaResponse[TupleCreateResult]:
+    async def tuple_create(self, tuples: list[Tuple]) -> PangeaResponse[TupleCreateResult]:
         """Create tuples.
 
         Create tuples in the AuthZ Service. The request will fail if there is no schema
         or the tuples do not validate against the schema.
 
         Args:
-            tuples (List[Tuple]): List of tuples to be created.
+            tuples: Tuples to be created.
 
         Raises:
             PangeaAPIException: If an API Error happens.
@@ -110,10 +110,10 @@ class AuthZAsync(ServiceBaseAsync):
     async def tuple_list(
         self,
         filter: TupleListFilter,
-        size: Optional[int] = None,
-        last: Optional[str] = None,
-        order: Optional[ItemOrder] = None,
-        order_by: Optional[TupleOrderBy] = None,
+        size: int | None = None,
+        last: str | None = None,
+        order: ItemOrder | None = None,
+        order_by: TupleOrderBy | None = None,
     ) -> PangeaResponse[TupleListResult]:
         """List tuples.
 
@@ -122,11 +122,11 @@ class AuthZAsync(ServiceBaseAsync):
         is empty it will return all the tuples.
 
         Args:
-            filter (TupleListFilter): The filter for listing tuples.
-            size (Optional[int]): The size of the result set. Default is None.
-            last (Optional[str]): The last token from a previous response. Default is None.
-            order (Optional[ItemOrder]): Order results asc(ending) or desc(ending).
-            order_by (Optional[TupleOrderBy]): Which field to order results by.
+            filter: The filter for listing tuples.
+            size: The size of the result set. Default is None.
+            last: The last token from a previous response. Default is None.
+            order: Order results asc(ending) or desc(ending).
+            order_by: Which field to order results by.
 
         Raises:
             PangeaAPIException: If an API Error happens.
@@ -144,13 +144,13 @@ class AuthZAsync(ServiceBaseAsync):
         )
         return await self.request.post("v1/tuple/list", TupleListResult, data=input_data.model_dump(exclude_none=True))
 
-    async def tuple_delete(self, tuples: List[Tuple]) -> PangeaResponse[TupleDeleteResult]:
+    async def tuple_delete(self, tuples: list[Tuple]) -> PangeaResponse[TupleDeleteResult]:
         """Delete tuples.
 
         Delete tuples in the AuthZ Service.
 
         Args:
-            tuples (List[Tuple]): List of tuples to be deleted.
+            tuples: Tuples to be deleted.
 
         Raises:
             PangeaAPIException: If an API Error happens.
@@ -182,8 +182,8 @@ class AuthZAsync(ServiceBaseAsync):
         resource: Resource,
         action: str,
         subject: Subject,
-        debug: Optional[bool] = None,
-        attributes: Optional[Dict[str, Any]] = None,
+        debug: bool | None = None,
+        attributes: dict[str, Any] | None = None,
     ) -> PangeaResponse[CheckResult]:
         """Perform a check request.
 
@@ -192,9 +192,9 @@ class AuthZAsync(ServiceBaseAsync):
         Args:
             resource (Resource): The resource to check.
             action (str): The action to check.
-            subject (Subject): The subject to check.
-            debug (Optional[bool]): Setting this value to True will provide a detailed analysis of the check.
-            attributes (Optional[Dict[str, Any]]): Additional attributes for the check.
+            subject: The subject to check.
+            debug: Setting this value to True will provide a detailed analysis of the check.
+            attributes: Additional attributes for the check.
 
         Raises:
             PangeaAPIException: If an API Error happens.
@@ -217,7 +217,7 @@ class AuthZAsync(ServiceBaseAsync):
         return await self.request.post("v1/check", CheckResult, data=input_data.model_dump(exclude_none=True))
 
     async def list_resources(
-        self, type: str, action: str, subject: Subject, attributes: Optional[Dict[str, Any]] = None
+        self, type: str, action: str, subject: Subject, attributes: dict[str, Any] | None = None
     ) -> PangeaResponse[ListResourcesResult]:
         """List resources.
 
@@ -225,10 +225,10 @@ class AuthZAsync(ServiceBaseAsync):
         type that the subject has access to the action with.
 
         Args:
-            type (str): The type to filter resources.
-            action (str): The action to filter resources.
-            subject (Subject): The subject to filter resources.
-            attributes (Optional[Dict[str, Any]]): A JSON object of attribute data.
+            type: The type to filter resources.
+            action: The action to filter resources.
+            subject: The subject to filter resources.
+            attributes: A JSON object of attribute data.
 
         Raises:
             PangeaAPIException: If an API Error happens.
@@ -252,7 +252,7 @@ class AuthZAsync(ServiceBaseAsync):
         )
 
     async def list_subjects(
-        self, resource: Resource, action: str, attributes: Optional[Dict[str, Any]] = None
+        self, resource: Resource, action: str, attributes: dict[str, Any] | None = None
     ) -> PangeaResponse[ListSubjectsResult]:
         """List subjects.
 
@@ -260,9 +260,9 @@ class AuthZAsync(ServiceBaseAsync):
         access to the action for the given resource.
 
         Args:
-            resource (Resource): The resource to filter subjects.
-            action (str): The action to filter subjects.
-            attributes (Optional[Dict[str, Any]]): A JSON object of attribute data.
+            resource: The resource to filter subjects.
+            action: The action to filter subjects.
+            attributes: A JSON object of attribute data.
 
         Raises:
             PangeaAPIException: If an API Error happens.

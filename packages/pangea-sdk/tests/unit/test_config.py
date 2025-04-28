@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import unittest
 
 from pangea.config import PangeaConfig
@@ -10,39 +12,23 @@ subdomain = "audit."
 
 
 class TestConfig(unittest.TestCase):
-    def test_insecure_true_environment_local(self) -> None:
-        config = PangeaConfig(domain=domain, insecure=True, environment="local")
+    def test_base_url_template(self) -> None:
+        config = PangeaConfig(base_url_template="https://example.org/{SERVICE_NAME}")
         audit = Audit(token, config=config)
-        url = audit.request._url(path)
-        self.assertEqual(f"http://{domain}/{path}", url)
+        assert audit.request._url("api") == "https://example.org/audit/api"
 
-    def test_insecure_false_environment_local(self) -> None:
-        config = PangeaConfig(domain=domain, insecure=False, environment="local")
+        config = PangeaConfig(base_url_template="https://example.org")
         audit = Audit(token, config=config)
-        url = audit.request._url(path)
-        self.assertEqual(f"https://{domain}/{path}", url)
+        assert audit.request._url("api") == "https://example.org/api"
 
-    def test_insecure_true_environment_production(self) -> None:
-        config = PangeaConfig(domain=domain, insecure=True, environment="production")
+    def test_domain(self) -> None:
+        config = PangeaConfig(domain="example.org")
         audit = Audit(token, config=config)
-        url = audit.request._url(path)
-        self.assertEqual(f"http://{subdomain}{domain}/{path}", url)
+        assert audit.request._url("api") == "https://audit.example.org/api"
 
-    def test_insecure_false_environment_production(self) -> None:
-        config = PangeaConfig(domain=domain, insecure=False, environment="production")
-        audit = Audit(token, config=config)
-        url = audit.request._url(path)
-        self.assertEqual(f"https://{subdomain}{domain}/{path}", url)
+    def test_template_and_domain(self) -> None:
+        """Should prefer template over domain."""
 
-    def test_insecure_default_environment_default(self) -> None:
-        config = PangeaConfig(domain=domain)
+        config = PangeaConfig(base_url_template="https://example.org/{SERVICE_NAME}", domain="example.net")
         audit = Audit(token, config=config)
-        url = audit.request._url(path)
-        self.assertEqual(f"https://{subdomain}{domain}/{path}", url)
-
-    def test_url(self) -> None:
-        url = "http://myurldomain.net"
-        config = PangeaConfig(domain=url)
-        audit = Audit(token, config=config)
-        service_url = audit.request._url(path)
-        self.assertEqual(f"{url}/{path}", service_url)
+        assert audit.request._url("api") == "https://example.org/audit/api"
