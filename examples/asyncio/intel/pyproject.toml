@@ -6,7 +6,7 @@ authors = [
   {name = "H. Andres Tournour", email = "andres.tournour@pangea.cloud"}
 ]
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.9.2,<4.0.0"
 dependencies = [
   "pangea-sdk"
 ]
