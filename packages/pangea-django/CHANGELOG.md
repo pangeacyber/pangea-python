@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
-- Support for Python v3.8. The minimum supported version of Python is now v3.9.
+- Support for Python v3.8. The minimum supported version of Python is now v3.9.2.
 
 ## 1.0.1 - 2024-04-23
 

@@ -15,7 +15,7 @@ classifiers = [
     "Topic :: Software Development :: Libraries",
 ]
 include = ["CHANGELOG.md"]
-requires-python = ">=3.9"
+requires-python = ">=3.9.2,<4.0.0"
 dependencies = [
   "django",
   "pangea-sdk",
@@ -28,9 +28,9 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.9.0"
+python = "^3.9.2"
 "Django" = "^4.2.20"
-"pangea-sdk" = "^5.5.1"
+"pangea-sdk" = "^6.1.0"
 typing-extensions = "^4.13.2"
 
 [tool.poetry.group.dev.dependencies]
