@@ -88,7 +88,7 @@ class AuthZAsync(ServiceBaseAsync):
         Returns:
             Pangea Response with empty result.
             Available response fields can be found in our
-            [API Documentation](https://pangea.cloud/docs/api/authz#/v1/tuple/create).
+            [API Documentation](https://pangea.cloud/docs/api/authz#/v1/tuple/create-post).
 
         Examples:
             await authz.tuple_create(
@@ -134,7 +134,7 @@ class AuthZAsync(ServiceBaseAsync):
         Returns:
             Pangea Response with a list of tuples and the last token.
             Available response fields can be found in our
-            [API Documentation](https://pangea.cloud/docs/api/authz#/v1/tuple/list).
+            [API Documentation](https://pangea.cloud/docs/api/authz#/v1/tuple/list-post).
 
         Examples:
             await authz.tuple_list(TupleListFilter(subject_type="user", subject_id="user_1"))
@@ -158,7 +158,7 @@ class AuthZAsync(ServiceBaseAsync):
         Returns:
             Pangea Response with empty result.
             Available response fields can be found in our
-            [API Documentation](https://pangea.cloud/docs/api/authz#/v1/tuple/delete).
+            [API Documentation](https://pangea.cloud/docs/api/authz#/v1/tuple/delete-post).
 
         Examples:
             await authz.tuple_delete(
@@ -202,7 +202,7 @@ class AuthZAsync(ServiceBaseAsync):
         Returns:
             Pangea Response with the result of the check.
             Available response fields can be found in our
-            [API Documentation](https://pangea.cloud/docs/api/authz#/v1/check).
+            [API Documentation](https://pangea.cloud/docs/api/authz#/v1/check-post).
 
         Examples:
             await authz.check(
@@ -236,7 +236,7 @@ class AuthZAsync(ServiceBaseAsync):
         Returns:
             Pangea Response with a list of resource IDs.
             Available response fields can be found in our
-            [API Documentation](https://pangea.cloud/docs/api/authz#/v1/list-resources).
+            [API Documentation](https://pangea.cloud/docs/api/authz#/v1/list-resources-post).
 
         Examples:
             await authz.list_resources(
@@ -270,7 +270,7 @@ class AuthZAsync(ServiceBaseAsync):
         Returns:
             Pangea Response with a list of subjects.
             Available response fields can be found in our
-            [API Documentation](https://pangea.cloud/docs/api/authz#/v1/list-subjects).
+            [API Documentation](https://pangea.cloud/docs/api/authz#/v1/list-subjects-post).
 
         Examples:
             await authz.list_subjects(

@@ -164,7 +164,7 @@ class Vault(ServiceBase):
         Returns:
             A PangeaResponse where the id of the deleted secret or key
                 is returned in the response.result field.
-                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#delete).
+                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault/v1-general#/v1/delete-post).
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -197,7 +197,7 @@ class Vault(ServiceBase):
         Returns:
             A PangeaResponse where the secret or key
                 is returned in the response.result field.
-                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#retrieve).
+                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault/v1-general#/v1/get-post).
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -285,7 +285,7 @@ class Vault(ServiceBase):
         Returns:
             A PangeaResponse where a list of secrets or keys
                 is returned in the response.result field.
-                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#list).
+                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault/v1-general#/v1/list-post).
 
         Examples:
             response = vault.list(
@@ -344,7 +344,7 @@ class Vault(ServiceBase):
         Returns:
             A PangeaResponse where the item ID is returned in the
             response.result field. Available response fields can be found in our
-            [API documentation](https://pangea.cloud/docs/api/vault#update).
+            [API documentation](https://pangea.cloud/docs/api/vault/v1-general#/v1/update-post).
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -1679,7 +1679,7 @@ class Vault(ServiceBase):
         Returns:
             A PangeaResponse where the encrypted message in base64 is returned
             in the response.result field. Available response fields can be found
-            in our [API documentation](https://pangea.cloud/docs/api/vault#encrypt).
+            in our [API documentation](https://pangea.cloud/docs/api/vault/v1-keys#/v1/key/encrypt-post).
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -1715,7 +1715,7 @@ class Vault(ServiceBase):
 
         Returns:
             A PangeaResponse where the decrypted message in base64 is returned
-            in the response.result field. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#decrypt).
+            in the response.result field. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault/v1-keys#/v1/key/decrypt-post).
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -1749,7 +1749,7 @@ class Vault(ServiceBase):
         Returns:
             A PangeaResponse where the signature of the message in base64 is
             returned in the response.result field. Available response fields can
-            be found in our [API documentation](https://pangea.cloud/docs/api/vault#sign).
+            be found in our [API documentation](https://pangea.cloud/docs/api/vault/v1-keys#/v1/key/sign-post).
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -1785,7 +1785,7 @@ class Vault(ServiceBase):
         Returns:
             A PangeaResponse where the signature is valid
                 is returned in the response.result field.
-                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#verify).
+                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault/v1-keys#/v1/key/verify-post).
 
         Examples:
             response = vault.verify(
@@ -1823,7 +1823,7 @@ class Vault(ServiceBase):
         Returns:
             A PangeaResponse where the signature is valid
                 is returned in the response.result field.
-                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault#verify-jwt).
+                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault/v1-jwt#/v1/key/verify/jwt-post).
 
         Examples:
             response = vault.jwt_verify(jws="ewogICJhbGciO...")
@@ -1848,7 +1848,7 @@ class Vault(ServiceBase):
         Returns:
             A PangeaResponse where the signed JSON Web Token (JWS) is returned
             in the response.result field. Available response fields can be found
-            in our [API documentation](https://pangea.cloud/docs/api/vault#sign-a-jwt).
+            in our [API documentation](https://pangea.cloud/docs/api/vault/v1-jwt#/v1/key/sign/jwt-post).
 
         Examples:
             response = vault.jwt_sign(
@@ -1878,7 +1878,7 @@ class Vault(ServiceBase):
         Returns:
             A PangeaResponse where the JSON Web Key Set (JWKS) object is
             returned in the response.result field. Available response fields can
-            be found in our [API documentation](https://pangea.cloud/docs/api/vault#retrieve-jwk).
+            be found in our [API documentation](https://pangea.cloud/docs/api/vault/v1-jwt#/v1/get/jwk-post).
 
         Examples:
             response = vault.jwk_get("pvi_p6g5i3gtbvqvc3u6zugab6qs6r63tqf5")
@@ -1910,7 +1910,7 @@ class Vault(ServiceBase):
         Returns:
             A PangeaResponse where the state change object is returned in the
             response.result field. Available response fields can be found in our
-            [API documentation](https://pangea.cloud/docs/api/vault#change-state).
+            [API documentation](https://pangea.cloud/docs/api/vault/v1-general#/v1/state/change-post).
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -2011,7 +2011,7 @@ class Vault(ServiceBase):
         Returns:
             A `PangeaResponse` where the encrypted object is returned in the
             `response.result` field. Available response fields can be found in
-            our [API documentation](https://pangea.cloud/docs/api/vault#encrypt-structured).
+            our [API documentation](https://pangea.cloud/docs/api/vault/v1-keys#/v1/key/encrypt/structured-post).
 
         Raises:
             PangeaAPIException: If an API error happens.
@@ -2067,7 +2067,7 @@ class Vault(ServiceBase):
         Returns:
             A `PangeaResponse` where the decrypted object is returned in the
             `response.result` field. Available response fields can be found in
-            our [API documentation](https://pangea.cloud/docs/api/vault#decrypt-structured).
+            our [API documentation](https://pangea.cloud/docs/api/vault/v1-keys#/v1/key/decrypt/structured-post).
 
         Examples:
             data = {"field1": [1, 2, "kxcbC9E9IlgVaSCChPWUMgUC3ko=", "6FfI/LCzatLRLNAc8SuBK/TDnGxp"], "field2": "data2"}
@@ -2211,7 +2211,7 @@ class Vault(ServiceBase):
         Returns:
             A `PangeaResponse` where the exported key is returned in the
             `response.result` field. Available response fields can be found in
-            our [API documentation](https://pangea.cloud/docs/api/vault#export).
+            our [API documentation](https://pangea.cloud/docs/api/vault/v1-general#/v1/export-post).
 
         Raises:
             PangeaAPIException: If an API error happens.
