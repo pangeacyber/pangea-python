@@ -1788,7 +1788,7 @@ class VaultAsync(ServiceBaseAsync):
         Returns:
             A PangeaResponse where the signature is valid
                 is returned in the response.result field.
-                Available response fields can be found in our [API documentation](https://pangea.clouddocs/api/vault/v1-keys#/v1/key/verify-post).
+                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/vault/v1-keys#/v1/key/verify-post).
 
         Examples:
             response = await vault.verify(
