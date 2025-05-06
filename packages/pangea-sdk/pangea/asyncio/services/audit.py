@@ -135,7 +135,7 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
             A PangeaResponse where the hash of event data and optional verbose
                 results are returned in the response.result field.
                 Available response fields can be found in our
-                [API documentation](https://pangea.cloud/docs/api/audit#log-an-entry).
+                [API documentation](https://pangea.cloud/docs/api/audit#/v1/log-post).
 
         Examples:
             try:
@@ -186,7 +186,7 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
         Returns:
             A PangeaResponse where the hash of event data and optional verbose
                 results are returned in the response.result field.
-                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/audit#log-an-entry).
+                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/audit#/v1/log-post).
 
         Examples:
             response = await audit.log_event({"message": "hello world"}, verbose=True)
@@ -222,7 +222,7 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
         Returns:
             A PangeaResponse where the hash of event data and optional verbose
                 results are returned in the response.result field.
-                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/audit#log-an-entry).
+                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/audit#/v1/log-post).
 
         Examples:
             FIXME:
@@ -259,7 +259,7 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
         Returns:
             A PangeaResponse where the hash of event data and optional verbose
                 results are returned in the response.result field.
-                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/audit#log-an-entry).
+                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/audit#/v1/log-post).
 
         Examples:
             FIXME:
@@ -328,8 +328,8 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
 
         Returns:
             A PangeaResponse[SearchOutput] where the first page of matched events is returned in the
-                response.result field. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/audit#search-for-events).
-                Pagination can be found in the [search results endpoint](https://pangea.cloud/docs/api/audit#search-results).
+                response.result field. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/audit#/v1/results-post).
+                Pagination can be found in the [search results endpoint](https://pangea.cloud/docs/api/audit#/v1/download_results-post).
 
         Examples:
             response: PangeaResponse[SearchOutput] = audit.search(query="message:test", search_restriction={'source': ["monitor"]}, limit=1, verify_consistency=True, verify_events=True)

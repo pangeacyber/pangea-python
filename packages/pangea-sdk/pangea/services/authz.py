@@ -243,7 +243,7 @@ class AuthZ(ServiceBase):
         Returns:
             Pangea Response with empty result.
             Available response fields can be found in our
-            [API Documentation](https://pangea.cloud/docs/api/authz#/v1/tuple/create).
+            [API Documentation](https://pangea.cloud/docs/api/authz#/v1/tuple/create-post).
 
         Examples:
             response = authz.tuple_create(
@@ -287,7 +287,7 @@ class AuthZ(ServiceBase):
         Returns:
             Pangea Response with a list of tuples and the last token.
             Available response fields can be found in our
-            [API Documentation](https://pangea.cloud/docs/api/authz#/v1/tuple/list).
+            [API Documentation](https://pangea.cloud/docs/api/authz#/v1/tuple/list-post).
 
         Examples:
             authz.tuple_list(TupleListFilter(subject_type="user", subject_id="user_1"))
@@ -311,7 +311,7 @@ class AuthZ(ServiceBase):
         Returns:
             Pangea Response with empty result.
             Available response fields can be found in our
-            [API Documentation](https://pangea.cloud/docs/api/authz#/v1/tuple/delete).
+            [API Documentation](https://pangea.cloud/docs/api/authz#/v1/tuple/delete-post).
 
         Examples:
             response = authz.tuple_delete(
@@ -353,7 +353,7 @@ class AuthZ(ServiceBase):
         Returns:
             Pangea Response with the result of the check.
             Available response fields can be found in our
-            [API Documentation](https://pangea.cloud/docs/api/authz#/v1/check).
+            [API Documentation](https://pangea.cloud/docs/api/authz#/v1/check-post).
 
         Examples:
             response = authz.check(
@@ -387,7 +387,7 @@ class AuthZ(ServiceBase):
         Returns:
             Pangea Response with a list of resource IDs.
             Available response fields can be found in our
-            [API Documentation](https://pangea.cloud/docs/api/authz#/v1/list-resources).
+            [API Documentation](https://pangea.cloud/docs/api/authz#/v1/list-resources-post).
 
         Examples:
             authz.list_resources(
@@ -422,7 +422,7 @@ class AuthZ(ServiceBase):
         Returns:
             Pangea Response with a list of subjects.
             Available response fields can be found in our
-            [API Documentation](https://pangea.cloud/docs/api/authz#/v1/list-subjects).
+            [API Documentation](https://pangea.cloud/docs/api/authz#/v1/list-subjects-post).
 
         Examples:
             response = authz.list_subjects(

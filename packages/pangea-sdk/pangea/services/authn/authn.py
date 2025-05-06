@@ -128,7 +128,7 @@ class AuthN(ServiceBase):
             Returns:
                 A PangeaResponse with a list of sessions in the response.result field.
                     Available response fields can be found in our
-                    [API Documentation](https://pangea.cloud/docs/api/authn/session#/v2/session/list).
+                    [API Documentation](https://pangea.cloud/docs/api/authn/session#/v2/session/list-post).
 
             Examples:
                 response = authn.session.list()
@@ -192,7 +192,7 @@ class AuthN(ServiceBase):
             Returns:
                 A PangeaResponse with credentials for a login session in the response.result field.
                     Available response fields can be found in our
-                    [API Documentation](https://pangea.cloud/docs/api/authn/user#/v2/client/userinfo).
+                    [API Documentation](https://pangea.cloud/docs/api/authn/user#/v2/client/userinfo-post).
 
             Examples:
                 response = authn.client.userinfo(
@@ -217,7 +217,7 @@ class AuthN(ServiceBase):
             Returns:
                 A PangeaResponse with jwt verification keys in the response.result field.
                     Available response fields can be found in our
-                    [API Documentation](https://pangea.cloud/docs/api/authn/jwt#/v2/client/jwks).
+                    [API Documentation](https://pangea.cloud/docs/api/authn/jwt#/v2/client/jwks-post).
 
             Examples:
                 response = authn.client.jwks()
@@ -290,7 +290,7 @@ class AuthN(ServiceBase):
                 Returns:
                     A PangeaResponse with a list of sessions in the response.result field.
                         Available response fields can be found in our
-                        [API Documentation](https://pangea.cloud/docs/api/authn/session#/v2/client/session/list).
+                        [API Documentation](https://pangea.cloud/docs/api/authn/session#/v2/client/session/list-post).
 
                 Examples:
                     response = authn.client.session.list(
@@ -349,7 +349,7 @@ class AuthN(ServiceBase):
                 Returns:
                     A PangeaResponse with credentials for a login session in the response.result field.
                         Available response fields can be found in our
-                        [API Documentation](https://pangea.cloud/docs/api/authn/session#/v2/client/session/refresh).
+                        [API Documentation](https://pangea.cloud/docs/api/authn/session#/v2/client/session/refresh-post).
 
                 Examples:
                     response = authn.client.session.refresh(
@@ -447,7 +447,7 @@ class AuthN(ServiceBase):
                 Returns:
                     A PangeaResponse with a token and its information in the response.result field.
                         Available response fields can be found in our
-                        [API Documentation](https://pangea.cloud/docs/api/authn/flow#/v2/client/token/check).
+                        [API Documentation](https://pangea.cloud/docs/api/authn/flow#/v2/client/token/check-post).
 
                 Examples:
                     response = authn.client.token_endpoints.check(
@@ -496,7 +496,7 @@ class AuthN(ServiceBase):
             Returns:
                 A PangeaResponse with a user and its information in the response.result field.
                     Available response fields can be found in our
-                    [API Documentation](https://pangea.cloud/docs/api/authn/user#/v2/user/create).
+                    [API Documentation](https://pangea.cloud/docs/api/authn/user#/v2/user/create-post).
 
             Examples:
                 response = authn.user.create(
@@ -561,7 +561,7 @@ class AuthN(ServiceBase):
             Returns:
                 A PangeaResponse with a pending user invitation in the response.result field.
                     Available response fields can be found in our
-                    [API Documentation](https://pangea.cloud/docs/api/authn/invite#/v2/user/invite).
+                    [API Documentation](https://pangea.cloud/docs/api/authn/invite#/v2/user/invite-post).
 
             Examples:
                 response = authn.user.invite(
@@ -606,7 +606,7 @@ class AuthN(ServiceBase):
             Returns:
                 A PangeaResponse with a user and its information in the response.result field.
                     Available response fields can be found in our
-                    [API Documentation](https://pangea.cloud/docs/api/authn/user#/v2/user/update).
+                    [API Documentation](https://pangea.cloud/docs/api/authn/user#/v2/user/update-post).
 
             Examples:
                 response = authn.user.update(
@@ -649,7 +649,7 @@ class AuthN(ServiceBase):
             Returns:
                 A PangeaResponse with a list of users in the response.result field.
                     Available response fields can be found in our
-                    [API Documentation](https://pangea.cloud/docs/api/authn/user#/v2/user/list).
+                    [API Documentation](https://pangea.cloud/docs/api/authn/user#/v2/user/list-post).
 
             Examples:
                 response = authn.user.list()
@@ -703,7 +703,7 @@ class AuthN(ServiceBase):
                 Returns:
                     A PangeaResponse with a list of pending user invitations in the response.result field.
                         Available response fields can be found in our
-                        [API Documentation](https://pangea.cloud/docs/api/authn/invite#/v2/user/invite/list).
+                        [API Documentation](https://pangea.cloud/docs/api/authn/invite#/v2/user/invite/list-post).
                 Examples:
                     response = authn.user.invites.list()
                 """
@@ -807,7 +807,7 @@ class AuthN(ServiceBase):
                 Returns:
                     A PangeaResponse with a list of authenticators in the response.result field.
                         Available response fields can be found in our
-                        [API Documentation](https://pangea.cloud/docs/api/authn/user#/v2/user/authenticators/list).
+                        [API Documentation](https://pangea.cloud/docs/api/authn/user#/v2/user/authenticators/list-post).
 
                 Examples:
                     response = authn.user.authenticators.list(
@@ -850,7 +850,7 @@ class AuthN(ServiceBase):
                 Returns:
                     A PangeaResponse with a user and its information in the response.result field.
                         Available response fields can be found in our
-                        [API Documentation](https://pangea.cloud/docs/api/authn/user#/v2/user/profile/get).
+                        [API Documentation](https://pangea.cloud/docs/api/authn/user#/v2/user/profile/get-post).
 
                 Examples:
                     response = authn.user.profile.get(
@@ -886,7 +886,7 @@ class AuthN(ServiceBase):
                 Returns:
                     A PangeaResponse with a user and its information in the response.result field.
                         Available response fields can be found in our
-                        [API Documentation](https://pangea.cloud/docs/api/authn/user#/v2/user/profile/update).
+                        [API Documentation](https://pangea.cloud/docs/api/authn/user#/v2/user/profile/update-post).
 
                 Examples:
                     response = authn.user.profile.update(
@@ -980,7 +980,7 @@ class AuthN(ServiceBase):
             Returns:
                 A PangeaResponse with credentials for a login session in the response.result field.
                     Available response fields can be found in our
-                    [API Documentation](https://pangea.cloud/docs/api/authn/flow#/v2/flow/complete).
+                    [API Documentation](https://pangea.cloud/docs/api/authn/flow#/v2/flow/complete-post).
 
             Examples:
                 response = authn.flow.complete(
@@ -1009,7 +1009,7 @@ class AuthN(ServiceBase):
                 A PangeaResponse with information about next steps needed
                     to complete a flow in the response.result field.
                     Available response fields can be found in our
-                    [API Documentation](https://pangea.cloud/docs/api/authn/flow#/v2/flow/restart).
+                    [API Documentation](https://pangea.cloud/docs/api/authn/flow#/v2/flow/restart-post).
 
             Examples:
                 response = authn.flow.restart(
@@ -1046,7 +1046,7 @@ class AuthN(ServiceBase):
                 A PangeaResponse with information about next steps needed
                     to complete a flow in the response.result field.
                     Available response fields can be found in our
-                    [API Documentation](https://pangea.cloud/docs/api/authn/flow#/v2/flow/start).
+                    [API Documentation](https://pangea.cloud/docs/api/authn/flow#/v2/flow/start-post).
 
             Examples:
                 response = authn.flow.start(
@@ -1080,7 +1080,7 @@ class AuthN(ServiceBase):
                 A PangeaResponse with information about next steps needed
                     to complete a flow in the response.result field.
                     Available response fields can be found in our
-                    [API Documentation](https://pangea.cloud/docs/api/authn/flow#/v2/flow/update).
+                    [API Documentation](https://pangea.cloud/docs/api/authn/flow#/v2/flow/update-post).
 
             Examples:
                 response = authn.flow.update(
@@ -1125,7 +1125,7 @@ class AuthN(ServiceBase):
             Returns:
                 A PangeaResponse with a EULA object in the response.result field.
                     Available response fields can be found in our
-                    [API Documentation](https://pangea.cloud/docs/api/authn/agreements#/v2/agreements/create).
+                    [API Documentation](https://pangea.cloud/docs/api/authn/agreements#/v2/agreements/create-post).
 
             Examples:
                 response = authn.agreements.create(
@@ -1192,7 +1192,7 @@ class AuthN(ServiceBase):
             Returns:
                 A PangeaResponse with a list of EULA objects in the response.result field.
                     Available response fields can be found in our
-                    [API Documentation](https://pangea.cloud/docs/api/authn/agreements#/v2/agreements/list).
+                    [API Documentation](https://pangea.cloud/docs/api/authn/agreements#/v2/agreements/list-post).
 
             Examples:
                 response = authn.agreements.list()
@@ -1231,7 +1231,7 @@ class AuthN(ServiceBase):
             Returns:
                 A PangeaResponse with the updated EULA object in the response.result field.
                     Available response fields can be found in our
-                    [API Documentation](https://pangea.cloud/docs/api/authn/agreements#/v2/agreements/update).
+                    [API Documentation](https://pangea.cloud/docs/api/authn/agreements#/v2/agreements/update-post).
 
             Examples:
                 response = authn.agreements.update(
