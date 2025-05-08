@@ -110,7 +110,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5.6.0
         with:
-          python-version: 3.9
+          python-version: "3.10"
           cache: poetry
           cache-dependency-path: ./packages/${{ matrix.package }}/poetry.lock
 
@@ -143,7 +143,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5.6.0
         with:
-          python-version: 3.9
+          python-version: "3.10"
           cache: poetry
           cache-dependency-path: ./packages/${{ matrix.package }}/poetry.lock
 
@@ -176,7 +176,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5.6.0
         with:
-          python-version: 3.9
+          python-version: "3.10"
           cache: poetry
           cache-dependency-path: ./packages/${{ matrix.package }}/poetry.lock
 
@@ -306,7 +306,7 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13']
+        python-version: ['3.10', '3.11', '3.12', '3.13']
     defaults:
       run:
         working-directory: ./packages/pangea-django
