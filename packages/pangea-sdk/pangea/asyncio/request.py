@@ -61,7 +61,7 @@ class PangeaRequestAsync(PangeaRequestBase):
             data = {}
 
         # Normalize.
-        data = cast(dict[str, Any], to_jsonable_python(data))
+        data = cast(dict[str, Any], to_jsonable_python(data, exclude_none=True))
 
         if url is None:
             url = self._url(endpoint)

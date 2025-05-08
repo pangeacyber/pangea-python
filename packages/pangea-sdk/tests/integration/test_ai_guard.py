@@ -4,6 +4,7 @@ import unittest
 
 from pangea import PangeaConfig
 from pangea.services import AIGuard
+from pangea.services.ai_guard import LogFields
 from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
 from tests.test_tools import load_test_environment
 
@@ -33,7 +34,9 @@ class TestAIGuard(unittest.TestCase):
             assert response.result.detectors.pii_entity.data is None
 
     def test_text_guard_messages(self) -> None:
-        response = self.client.guard_text(messages=[{"role": "user", "content": "hello world"}])
+        response = self.client.guard_text(
+            messages=[{"role": "user", "content": "hello world"}], log_fields=LogFields(source="Acme Wizard")
+        )
         assert response.status == "Success"
         assert response.result
         assert response.result.prompt_messages
