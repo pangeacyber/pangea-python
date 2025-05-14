@@ -16,7 +16,7 @@ packages = [{include = "share_examples"}]
 
 [tool.poetry.dependencies]
 python = "^3.9.20"
-click = "^8.1.8"
+click = "^8.2.0"
 pangea-sdk =  { path = "../../packages/pangea-sdk/", develop = true }
 
 [tool.poetry.group.dev.dependencies]
