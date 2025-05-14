@@ -16,7 +16,7 @@ class FileScanAsync(ServiceBaseAsync):
     """FileScan service client.
 
     Provides methods to interact with Pangea FileScan Service:
-        https://pangea.cloud/docs/api/embargo
+        https://pangea.cloud/docs/api/file-scan
 
     The following information is needed:
         PANGEA_TOKEN - service token which can be found on the Pangea User

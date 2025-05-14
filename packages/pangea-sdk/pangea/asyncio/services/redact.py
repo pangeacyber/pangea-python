@@ -95,7 +95,7 @@ class RedactAsync(ServiceBaseAsync):
         Returns:
             Pangea Response with redacted text in the response.result property,
                 available response fields can be found in our
-                [API Documentation](https://pangea.cloud/docs/api/redact#redact).
+                [API Documentation](https://pangea.cloud/docs/api/redact#redact-post).
 
         Examples:
             response = redact.redact(text="Jenny Jenny... 555-867-5309")
@@ -154,7 +154,7 @@ class RedactAsync(ServiceBaseAsync):
         Returns:
             Pangea Response with redacted data in the response.result field,
                 available response fields can be found in our
-                [API Documentation](https://pangea.cloud/docs/api/redact#redact-structured)
+                [API Documentation](https://pangea.cloud/docs/api/redact#redact-structured-post)
 
         Examples:
             data = {
@@ -199,7 +199,7 @@ class RedactAsync(ServiceBaseAsync):
         Returns:
             Pangea Response with redacted data in the response.result field,
                 available response fields can be found in our
-                [API Documentation](https://pangea.cloud/docs/api/redact#unredact)
+                [API Documentation](https://pangea.cloud/docs/api/redact#unredact-post)
         """
         input = m.UnredactRequest(redacted_data=redacted_data, fpe_context=fpe_context)
         return await self.request.post("v1/unredact", m.UnredactResult, data=input.model_dump(exclude_none=True))

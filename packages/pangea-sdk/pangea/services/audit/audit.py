@@ -465,7 +465,7 @@ class Audit(ServiceBase, AuditBase):
             A PangeaResponse where the hash of event data and optional verbose
                 results are returned in the response.result field.
                 Available response fields can be found in our
-                [API documentation](https://pangea.cloud/docs/api/audit#/v1/log).
+                [API documentation](https://pangea.cloud/docs/api/audit#/v1/log-post).
 
         Examples:
             log_response = audit.log(
@@ -513,7 +513,7 @@ class Audit(ServiceBase, AuditBase):
         Returns:
             A PangeaResponse where the hash of event data and optional verbose
                 results are returned in the response.result field.
-                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/audit#/v1/log).
+                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/audit#/v1/log-post).
 
         Examples:
             response = audit.log_event({"message": "hello world"}, verbose=True)
@@ -551,7 +551,7 @@ class Audit(ServiceBase, AuditBase):
         Returns:
             A PangeaResponse where the hash of event data and optional verbose
                 results are returned in the response.result field.
-                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/audit#/v2/log).
+                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/audit#/v2/log-post).
 
         Examples:
             log_response = audit.log_bulk(
@@ -592,7 +592,7 @@ class Audit(ServiceBase, AuditBase):
         Returns:
             A PangeaResponse where the hash of event data and optional verbose
                 results are returned in the response.result field.
-                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/audit#/v2/log_async).
+                Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/audit#/v2/log_async-post).
 
         Examples:
             log_response = audit.log_bulk_async(
@@ -667,8 +667,8 @@ class Audit(ServiceBase, AuditBase):
 
         Returns:
             A PangeaResponse[SearchOutput] where the first page of matched events is returned in the
-                response.result field. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/audit#/v1/search).
-                Pagination can be found in the [search results endpoint](https://pangea.cloud/docs/api/audit#/v1/results).
+                response.result field. Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/audit#/v1/search-post).
+                Pagination can be found in the [search results endpoint](https://pangea.cloud/docs/api/audit#/v1/results-post).
 
         Examples:
             response = audit.search(

@@ -66,7 +66,7 @@ jobs:
           poetry --version
 
       - name: Setup Python
-        uses: actions/setup-python@v5.5.0
+        uses: actions/setup-python@v5.6.0
         with:
           python-version: 3.12
           cache: poetry
@@ -83,7 +83,7 @@ jobs:
         uses: actions/checkout@v4.2.2
 
       - name: Setup Python
-        uses: actions/setup-python@v5.5.0
+        uses: actions/setup-python@v5.6.0
         with:
           python-version: 3.12
 
@@ -108,9 +108,9 @@ jobs:
           poetry --version
 
       - name: Setup Python
-        uses: actions/setup-python@v5.5.0
+        uses: actions/setup-python@v5.6.0
         with:
-          python-version: 3.9
+          python-version: "3.10"
           cache: poetry
           cache-dependency-path: ./packages/${{ matrix.package }}/poetry.lock
 
@@ -141,9 +141,9 @@ jobs:
           poetry --version
 
       - name: Setup Python
-        uses: actions/setup-python@v5.5.0
+        uses: actions/setup-python@v5.6.0
         with:
-          python-version: 3.9
+          python-version: "3.10"
           cache: poetry
           cache-dependency-path: ./packages/${{ matrix.package }}/poetry.lock
 
@@ -174,9 +174,9 @@ jobs:
           poetry --version
 
       - name: Setup Python
-        uses: actions/setup-python@v5.5.0
+        uses: actions/setup-python@v5.6.0
         with:
-          python-version: 3.9
+          python-version: "3.10"
           cache: poetry
           cache-dependency-path: ./packages/${{ matrix.package }}/poetry.lock
 
@@ -207,7 +207,7 @@ jobs:
           poetry --version
 
       - name: Setup Python
-        uses: actions/setup-python@v5.5.0
+        uses: actions/setup-python@v5.6.0
         with:
           python-version: ${{ matrix.python-version }}
           cache: poetry
@@ -237,7 +237,7 @@ jobs:
           poetry --version
 
       - name: Setup Python
-        uses: actions/setup-python@v5.5.0
+        uses: actions/setup-python@v5.6.0
         with:
           python-version: 3.12
           cache: poetry
@@ -281,7 +281,7 @@ jobs:
           poetry --version
 
       - name: Setup Python
-        uses: actions/setup-python@v5.5.0
+        uses: actions/setup-python@v5.6.0
         with:
           python-version: 3.12
           cache: poetry
@@ -306,7 +306,7 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13']
+        python-version: ['3.10', '3.11', '3.12', '3.13']
     defaults:
       run:
         working-directory: ./packages/pangea-django
@@ -320,7 +320,7 @@ jobs:
           poetry --version
 
       - name: Setup Python
-        uses: actions/setup-python@v5.5.0
+        uses: actions/setup-python@v5.6.0
         with:
           python-version: ${{ matrix.python-version }}
           cache: poetry
