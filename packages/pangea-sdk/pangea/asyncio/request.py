@@ -1,10 +1,15 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+
+# TODO: Modernize.
+# ruff: noqa: UP006, UP035
+
 from __future__ import annotations
 
 import asyncio
 import json
 import time
+from collections.abc import Mapping
 from typing import Dict, List, Optional, Sequence, Tuple, Type, Union, cast
 
 import aiohttp
@@ -34,7 +39,7 @@ class PangeaRequestAsync(PangeaRequestBase):
         self,
         endpoint: str,
         result_class: Type[TResult],
-        data: str | BaseModel | dict[str, Any] | None = None,
+        data: str | BaseModel | Mapping[str, Any] | None = None,
         files: Optional[List[Tuple]] = None,
         poll_result: bool = True,
         url: Optional[str] = None,
@@ -103,7 +108,9 @@ class PangeaRequestAsync(PangeaRequestBase):
 
                 pangea_response = PangeaResponse(requests_response, result_class=result_class, json=json_resp)
             except aiohttp.ContentTypeError as e:
-                raise pe.PangeaException(f"Failed to decode json response. {e}. Body: {await requests_response.text()}")
+                raise pe.PangeaException(
+                    f"Failed to decode json response. {e}. Body: {await requests_response.text()}"
+                ) from e
 
         if poll_result:
             pangea_response = await self._handle_queued_result(pangea_response)
@@ -164,7 +171,7 @@ class PangeaRequestAsync(PangeaRequestBase):
 
         return await self.poll_result_by_id(request_id, response.result_class, check_response=check_response)
 
-    async def post_presigned_url(self, url: str, data: Dict, files: List[Tuple]):
+    async def post_presigned_url(self, url: str, data: dict[Any, Any], files: Sequence[Tuple]):
         # Send form request with file and upload_details as body
         resp = await self._http_post(url=url, data=data, files=files, presigned_url_post=True)
         self.logger.debug(
@@ -278,9 +285,9 @@ class PangeaRequestAsync(PangeaRequestBase):
     async def _http_post(
         self,
         url: str,
-        headers: Dict = {},
-        data: Union[str, Dict] = {},
-        files: Optional[List[Tuple]] = [],
+        headers: Mapping[str, str] = {},
+        data: Union[str, Mapping[str, Any]] = {},
+        files: Optional[Sequence[Tuple]] = [],
         presigned_url_post: bool = False,
     ) -> aiohttp.ClientResponse:
         if files:
@@ -288,7 +295,7 @@ class PangeaRequestAsync(PangeaRequestBase):
             if presigned_url_post:
                 for k, v in data.items():  # type: ignore[union-attr]
                     form.add_field(k, v)
-                for name, value in files:
+                for _name, value in files:
                     form.add_field("file", value[1], filename=value[0], content_type=value[2])
             else:
                 data_send = json.dumps(data, default=default_encoder) if isinstance(data, dict) else data
@@ -306,7 +313,7 @@ class PangeaRequestAsync(PangeaRequestBase):
         self,
         url: str,
         files: Sequence[Tuple],
-        headers: Dict = {},
+        headers: Mapping[str, str] = {},
     ) -> aiohttp.ClientResponse:
         self.logger.debug(
             json.dumps({"service": self.service, "action": "http_put", "url": url}, default=default_encoder)
@@ -318,8 +325,8 @@ class PangeaRequestAsync(PangeaRequestBase):
         self,
         endpoint: str,
         result_class: Type[PangeaResponseResult],
-        data: Union[str, Dict] = {},
-        files: List[Tuple] = [],
+        data: Union[str, Mapping[str, Any]] = {},
+        files: Sequence[Tuple] = [],
     ):
         if len(files) == 0:
             raise AttributeError("files attribute should have at least 1 file")
@@ -343,7 +350,7 @@ class PangeaRequestAsync(PangeaRequestBase):
         self,
         endpoint: str,
         result_class: Type[PangeaResponseResult],
-        data: Union[str, Dict] = {},
+        data: Union[str, Mapping[str, Any]] = {},
     ) -> PangeaResponse:
         # Send request
         try:
@@ -394,7 +401,7 @@ class PangeaRequestAsync(PangeaRequestBase):
                         {"service": self.service, "action": "poll_presigned_url", "step": "exit", "cause": {str(e)}}
                     )
                 )
-                raise pe.PresignedURLException("Failed to pull Presigned URL", loop_exc.response, e)
+                raise pe.PresignedURLException("Failed to pull Presigned URL", loop_exc.response, e) from e
 
         self.logger.debug(json.dumps({"service": self.service, "action": "poll_presigned_url", "step": "exit"}))
 

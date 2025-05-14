@@ -81,7 +81,7 @@ class Signer:
                 with open(self.private_key_file, "rb") as file:
                     file_bytes = file.read()
             except FileNotFoundError:
-                raise Exception(f"Error: Failed opening private key file {self.private_key_file}")
+                raise Exception(f"Error: Failed opening private key file {self.private_key_file}") from None
 
             privkey = self._decode_private_key(file_bytes)
             for cls, signer in signers.items():

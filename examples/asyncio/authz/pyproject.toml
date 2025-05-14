@@ -14,15 +14,7 @@ python = "^3.9.20"
 pangea-sdk = { path = "../../../packages/pangea-sdk", develop = true }
 
 [tool.poetry.group.dev.dependencies]
-black = "^25.1.0"
-isort = "^6.0.1"
 mypy = "^1.15.0"
-
-[tool.black]
-line-length = 120
-
-[tool.isort]
-profile = "black"
 
 [build-system]
 requires = ["poetry-core>=2.1.3"]

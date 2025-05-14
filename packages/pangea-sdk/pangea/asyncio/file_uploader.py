@@ -1,8 +1,10 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+
+from __future__ import annotations
+
 import io
 import logging
-from typing import Dict, Optional
 
 from pangea.asyncio.request import PangeaRequestAsync
 from pangea.request import PangeaConfig
@@ -24,7 +26,7 @@ class FileUploaderAsync:
         url: str,
         file: io.BufferedReader,
         transfer_method: TransferMethod = TransferMethod.PUT_URL,
-        file_details: Optional[Dict] = None,
+        file_details: dict | None = None,
     ) -> None:
         if transfer_method == TransferMethod.PUT_URL:
             files = [("file", ("filename", file, "application/octet-stream"))]

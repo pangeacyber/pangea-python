@@ -64,10 +64,7 @@ class TestAuthN(unittest.IsolatedAsyncioTestCase):
         return await self.authn.flow.update(flow_id=flow_id, choice=m.FlowChoice.AGREEMENTS, data=data)
 
     def choice_is_available(self, response, choice):
-        for c in response.result.flow_choices:
-            if c.choice == choice:
-                return True
-        return False
+        return any(c.choice == choice for c in response.result.flow_choices)
 
     async def create_n_login(self, email, password) -> PangeaResponse[m.FlowCompleteResult]:
         response = await self.authn.flow.start(

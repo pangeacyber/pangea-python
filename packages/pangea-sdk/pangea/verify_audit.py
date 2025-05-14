@@ -9,14 +9,16 @@ You can provide a single event (obtained from the PUC) or the result from a sear
 In the latter case, all the events are verified.
 """
 
+from __future__ import annotations
+
 import argparse
 import json
 import logging
 import os
 import sys
-from collections.abc import Set
+from collections.abc import Iterable, Set
 from enum import Enum
-from typing import Dict, Iterable, List, Optional, Union
+from typing import Optional, Union
 
 from pangea.config import PangeaConfig
 from pangea.exceptions import TreeNotFoundException
@@ -36,8 +38,8 @@ from pangea.services.audit.util import (
 )
 
 logger = logging.getLogger("audit")
-arweave_roots: Dict[int, PublishedRoot] = {}  # roots fetched from Arweave
-pangea_roots: Dict[int, Root] = {}  # roots fetched from Pangea
+arweave_roots: dict[int, PublishedRoot] = {}  # roots fetched from Arweave
+pangea_roots: dict[int, Root] = {}  # roots fetched from Pangea
 audit: Optional[Audit] = None
 
 
@@ -72,10 +74,7 @@ class VerifierLogFormatter(logging.Formatter):
             self.in_section = True
             return f"{' ' * self.indent}⎾  {record.msg}"
         else:
-            if self.in_section:
-                pre = f"{' ' * (self.indent+4)}⌲ "
-            else:
-                pre = ""
+            pre = f"{' ' * (self.indent + 4)}⌲ " if self.in_section else ""
             return f"{pre}{record.msg}"
 
 
@@ -100,8 +99,8 @@ formatter = VerifierLogFormatter()
 InvalidTokenError = ValueError("Invalid Pangea Token provided")
 
 
-def get_pangea_roots(tree_name: str, tree_sizes: Iterable[int]) -> Dict[int, Root]:
-    ans: Dict[int, Root] = {}
+def get_pangea_roots(tree_name: str, tree_sizes: Iterable[int]) -> dict[int, Root]:
+    ans: dict[int, Root] = {}
     if audit is None:
         return ans
 
@@ -125,7 +124,7 @@ def get_pangea_roots(tree_name: str, tree_sizes: Iterable[int]) -> Dict[int, Roo
     return ans
 
 
-def _verify_hash(data: Dict, data_hash: str) -> Status:
+def _verify_hash(data: dict, data_hash: str) -> Status:
     log_section("Checking data hash")
     status = Status.SKIPPED
     try:
@@ -213,7 +212,7 @@ def _fetch_roots(tree_name: str, tree_size: int, leaf_index: Optional[int]) -> S
             logger.debug(f"Fetching root(s) {comma_sep(pending_roots)} from Arweave")
             arweave_roots |= {int(k): v for k, v in get_arweave_published_roots(tree_name, pending_roots).items()}
             update_pending_roots()
-        except:
+        except:  # noqa: E722
             pass
 
     if pending_roots:
@@ -227,7 +226,7 @@ def _fetch_roots(tree_name: str, tree_size: int, leaf_index: Optional[int]) -> S
                 pangea_roots |= {int(k): v for k, v in get_pangea_roots(tree_name, pending_roots).items()}
                 update_pending_roots()
                 status = Status.SUCCEEDED_PANGEA
-            except:
+            except:  # noqa: E722
                 pass
 
             if pending_roots:
@@ -244,7 +243,7 @@ def _fetch_roots(tree_name: str, tree_size: int, leaf_index: Optional[int]) -> S
 
 
 def _verify_membership_proof(tree_size: int, node_hash: str, proof: Optional[str]) -> Status:
-    pub_roots: Dict[int, Union[Root, PublishedRoot]] = arweave_roots | pangea_roots
+    pub_roots: dict[int, Union[Root, PublishedRoot]] = arweave_roots | pangea_roots
 
     log_section("Checking membership proof")
 
@@ -277,7 +276,7 @@ def _verify_membership_proof(tree_size: int, node_hash: str, proof: Optional[str
     return status
 
 
-def _consistency_proof_ok(pub_roots: Dict[int, Union[Root, PublishedRoot]], leaf_index: int) -> bool:
+def _consistency_proof_ok(pub_roots: dict[int, Union[Root, PublishedRoot]], leaf_index: int) -> bool:
     """returns true if a consistency proof is correct"""
 
     curr_root = pub_roots[leaf_index + 1]
@@ -296,7 +295,7 @@ def _consistency_proof_ok(pub_roots: Dict[int, Union[Root, PublishedRoot]], leaf
 # Due to an (already fixed) bug, some proofs from Arweave may be wrong.
 # Try the proof from Pangea instead. If the root hash in both Arweave and Pangea is the same,
 # it doesn't matter where the proof came from.
-def _fix_consistency_proof(pub_roots: Dict[int, Union[Root, PublishedRoot]], tree_name: str, leaf_index: int):
+def _fix_consistency_proof(pub_roots: dict[int, Union[Root, PublishedRoot]], tree_name: str, leaf_index: int):
     logger.debug("Consistency proof from Arweave failed to verify")
     size = leaf_index + 1
     logger.debug(f"Fetching root from Pangea for size {size}")
@@ -305,13 +304,13 @@ def _fix_consistency_proof(pub_roots: Dict[int, Union[Root, PublishedRoot]], tre
         raise ValueError("Error fetching root from Pangea")
     pangea_roots[size] = new_roots[size]
     pub_roots[size] = pangea_roots[size]
-    logger.debug(f"Comparing Arweave root hash with Pangea root hash")
+    logger.debug("Comparing Arweave root hash with Pangea root hash")
     if pangea_roots[size].root_hash != arweave_roots[size].root_hash:
         raise ValueError("Hash does not match")
 
 
 def _verify_consistency_proof(tree_name: str, leaf_index: Optional[int]) -> Status:
-    pub_roots: Dict[int, Union[Root, PublishedRoot]] = arweave_roots | pangea_roots
+    pub_roots: dict[int, Union[Root, PublishedRoot]] = arweave_roots | pangea_roots
 
     log_section("Checking consistency proof")
 
@@ -336,10 +335,7 @@ def _verify_consistency_proof(tree_name: str, leaf_index: Optional[int]) -> Stat
                 _fix_consistency_proof(pub_roots, tree_name, leaf_index)
 
                 # check again
-                if _consistency_proof_ok(pub_roots, leaf_index):
-                    status = Status.SUCCEEDED
-                else:
-                    status = Status.FAILED
+                status = Status.SUCCEEDED if _consistency_proof_ok(pub_roots, leaf_index) else Status.FAILED
 
             else:
                 logger.debug(
@@ -356,11 +352,11 @@ def _verify_consistency_proof(tree_name: str, leaf_index: Optional[int]) -> Stat
     return status
 
 
-def create_signed_event(event: Dict) -> Dict:
+def create_signed_event(event: dict) -> dict:
     return {k: v for k, v in event.items() if v is not None}
 
 
-def _verify_signature(data: Dict) -> Status:
+def _verify_signature(data: dict) -> Status:
     log_section("Checking signature")
     if "signature" not in data:
         logger.debug("Signature is not present")
@@ -383,13 +379,13 @@ def _verify_signature(data: Dict) -> Status:
     return status
 
 
-def verify_multiple(root: Dict, unpublished_root: Dict, events: List[Dict]) -> Status:
+def verify_multiple(root: dict, unpublished_root: dict, events: list[dict]) -> Status:
     """
     Verify a list of events.
     Returns a status.
     """
 
-    statuses: List[Status] = []
+    statuses: list[Status] = []
     for counter, event in enumerate(events):
         event.update({"root": root, "unpublished_root": unpublished_root})
         event_status = verify_single(event, counter + 1)
@@ -403,7 +399,7 @@ def verify_multiple(root: Dict, unpublished_root: Dict, events: List[Dict]) -> S
     return Status.SUCCEEDED
 
 
-def verify_single(data: Dict, counter: Optional[int] = None) -> Status:
+def verify_single(data: dict, counter: Optional[int] = None) -> Status:
     """
     Verify a single event.
     Returns a status.

@@ -71,9 +71,8 @@ class TestFileScan(unittest.TestCase):
         self.assertEqual(response.status, "Success")
 
     def test_scan_file_async_crowdstrike(self):
-        with self.assertRaises(pe.AcceptedRequestException):
-            with get_test_file() as f:
-                response = self.scan.file_scan(file=f, verbose=True, provider="crowdstrike", sync_call=False)
+        with self.assertRaises(pe.AcceptedRequestException), get_test_file() as f:
+            self.scan.file_scan(file=f, verbose=True, provider="crowdstrike", sync_call=False)
 
     def test_scan_file_poll_result_crowdstrike(self):
         exception = None
@@ -112,9 +111,8 @@ class TestFileScan(unittest.TestCase):
             self.assertEqual(response.status, "Success")
 
     def test_scan_file_async_reversinglabs(self):
-        with self.assertRaises(pe.AcceptedRequestException):
-            with get_test_file() as f:
-                response = self.scan.file_scan(file=f, verbose=True, provider="reversinglabs", sync_call=False)
+        with self.assertRaises(pe.AcceptedRequestException), get_test_file() as f:
+            self.scan.file_scan(file=f, verbose=True, provider="reversinglabs", sync_call=False)
 
     def test_scan_file_poll_result_reversinglabs(self) -> None:
         exception = None

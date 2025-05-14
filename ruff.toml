@@ -1,0 +1,22 @@
+line-length = 120
+target-version = "py39"
+
+[lint]
+select = [
+    "E",   # pycodestyle
+    "F",   # Pyflakes
+    "FA",  # flake8-future-annotations
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "SIM", # flake8-simplify
+    "I",   # isort
+]
+ignore = [
+    "B017", # Do not assert blind exception: `Exception`.
+    "E501", # Line too long.
+    "F841", # Unused variable.
+]
+
+[lint.pyupgrade]
+# Preserve types, even if a file has `from __future__ import annotations`.
+keep-runtime-typing = true

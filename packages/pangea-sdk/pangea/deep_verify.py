@@ -1,13 +1,16 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 
+from __future__ import annotations
+
 import argparse
 import io
 import math
 import os
 import sys
+from collections.abc import Iterator
 from itertools import groupby
-from typing import Dict, Iterator, List, Optional, Set, TypedDict, Union
+from typing import Optional, TypedDict, Union
 
 import pangea.services.audit.util as audit_util
 from pangea.services import Audit
@@ -24,7 +27,7 @@ class Errors(TypedDict):
     buffer_missing: int
 
 
-root_hashes: Dict[int, str] = {}
+root_hashes: dict[int, str] = {}
 
 
 def num_lines(f: io.TextIOWrapper) -> int:
@@ -124,10 +127,7 @@ def get_root_hash(audit: Audit, tree_size: int) -> str:
 
 
 def print_error(msg: str, level: str = "error"):
-    if level == "warning":
-        dot = "🟡"
-    else:
-        dot = "🔴"
+    dot = "🟡" if level == "warning" else "🔴"
     print(f"{dot} {msg:200s}")
 
 
@@ -148,14 +148,14 @@ def deep_verify(audit: Audit, file: io.TextIOWrapper) -> Errors:
     }
 
     events = file_events(root_hashes, file)
-    events_by_idx: Union[List[Event], Iterator[Event]]
+    events_by_idx: Union[list[Event], Iterator[Event]]
     cold_indexes = SequenceFollower()
     for leaf_index, events_by_idx in groupby(events, lambda event: event.get("leaf_index")):
         events_by_idx = list(events_by_idx)
         buffer_lines = (cnt, cnt + len(events_by_idx) - 1)
         if leaf_index is None:
             print_error(
-                f"Lines {buffer_lines[0]}-{buffer_lines[1]} ({buffer_lines[1]-buffer_lines[0]+1}): Buffer was not persisted"
+                f"Lines {buffer_lines[0]}-{buffer_lines[1]} ({buffer_lines[1] - buffer_lines[0] + 1}): Buffer was not persisted"
             )
             errors["not_persisted"] += len(events_by_idx)
             cnt += len(events_by_idx)
@@ -164,8 +164,8 @@ def deep_verify(audit: Audit, file: io.TextIOWrapper) -> Errors:
         cold_indexes.add(leaf_index)
 
         cold_path_size: Optional[int] = None
-        hot_indexes: Set[int] = set()
-        for i, event in enumerate(events_by_idx):
+        hot_indexes: set[int] = set()
+        for _i, event in enumerate(events_by_idx):
             cnt += 1
             tree_size = get_tree_size(event)
             if tree_size not in root_hashes:
@@ -203,11 +203,11 @@ def deep_verify(audit: Audit, file: io.TextIOWrapper) -> Errors:
             errors["missing"] += len(hot_indexes_diff)
             print(f"missing hot indexes: {hot_indexes_diff}")
             print(f"hot_indexes: {hot_indexes} ")
-            print(f"events:")
+            print("events:")
             for e in events_by_idx:
                 print(e)
             print_error(
-                f"Lines {buffer_lines[0]}-{buffer_lines[1]} ({buffer_lines[1]-buffer_lines[0]}), Buffer #{cold_idx}: {len(hot_indexes_diff)} event(s) missing"
+                f"Lines {buffer_lines[0]}-{buffer_lines[1]} ({buffer_lines[1] - buffer_lines[0]}), Buffer #{cold_idx}: {len(hot_indexes_diff)} event(s) missing"
             )
 
     cold_holes = cold_indexes.holes()
@@ -232,7 +232,7 @@ def create_parser():
         "-f",
         required=True,
         type=argparse.FileType("r"),
-        help="Event input file. Must be a collection of " "JSON Objects separated by newlines",
+        help="Event input file. Must be a collection of JSON Objects separated by newlines",
     )
     return parser
 

@@ -94,7 +94,7 @@ def print_page_results(search_res: PangeaResponse[SearchOutput], offset: int, co
             f"{row.envelope.received_at}\t{row.envelope.event['message']}\t{row.membership_verification}\t\t {row.consistency_verification}\t\t {row.signature_verification}\t\t"
         )
     print(
-        f"\nResults: {offset+1}-{offset+len(search_res.result.events)} of {count}",
+        f"\nResults: {offset + 1}-{offset + len(search_res.result.events)} of {count}",
     )
 
 

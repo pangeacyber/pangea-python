@@ -1,5 +1,9 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+
+# TODO: Modernize.
+# ruff: noqa: UP006, UP035
+
 import hashlib
 from typing import List, Optional
 
@@ -144,8 +148,8 @@ class FileIntelAsync(ServiceBaseAsync):
             )
         """
 
-        data = open(filepath, "rb")
-        hash = hashlib.sha256(data.read()).hexdigest()
+        with open(filepath, "rb") as data:
+            hash = hashlib.sha256(data.read()).hexdigest()
 
         input = m.FileReputationRequest(hash=hash, hash_type="sha256", verbose=verbose, raw=raw, provider=provider)
         return await self.request.post(

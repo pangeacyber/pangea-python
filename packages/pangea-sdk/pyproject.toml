@@ -34,22 +34,11 @@ packages = [
 ]
 
 [tool.poetry.group.dev.dependencies]
-black = "^25.1.0"
 docstring-parser = "^0.15"
-isort = "^6.0.1"
 mypy = "1.15.0"
 types-Deprecated = "^1.2.9.3"
 types-python-dateutil = "^2.8.19.14"
 types-requests = "^2.31.0.10"
-
-[tool.black]
-line-length = 120
-
-[tool.isort]
-profile = "black"
-line_length = 120
-src_paths = ["pangea", "tests"]
-known_local_folder = ["pangea", "tests"]
 
 [tool.mypy]
 python_version = "3.9"

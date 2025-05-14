@@ -25,7 +25,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  POETRY_VERSION: 2.0.0
+  POETRY_VERSION: 2.1.2
 
 jobs:
   setup:
@@ -89,15 +89,9 @@ jobs:
 
       - uses: pre-commit/action@v3.0.1
 
-  lint-black:
+  lint-ruff:
     needs: [prefetch]
     runs-on: ubuntu-24.04
-    strategy:
-      matrix:
-        package: [pangea-django, pangea-sdk]
-    defaults:
-      run:
-        working-directory: ./packages/${{ matrix.package }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4.2.2
@@ -112,50 +106,17 @@ jobs:
         with:
           python-version: "3.10"
           cache: poetry
-          cache-dependency-path: ./packages/${{ matrix.package }}/poetry.lock
+          cache-dependency-path: poetry.lock
 
       - name: Install dependencies
         run: |
           poetry check
           poetry install
 
-      - name: black
-        run: poetry run black --check .
+      - name: ruff
+        run: poetry run ruff check .
 
-  lint-isort:
-    needs: [prefetch]
-    runs-on: ubuntu-24.04
-    strategy:
-      matrix:
-        package: [pangea-django, pangea-sdk]
-    defaults:
-      run:
-        working-directory: ./packages/${{ matrix.package }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4.2.2
-
-      - name: Install poetry
-        run: |
-          pip install --upgrade poetry==${{ env.POETRY_VERSION }}
-          poetry --version
-
-      - name: Setup Python
-        uses: actions/setup-python@v5.6.0
-        with:
-          python-version: "3.10"
-          cache: poetry
-          cache-dependency-path: ./packages/${{ matrix.package }}/poetry.lock
-
-      - name: Install dependencies
-        run: |
-          poetry check
-          poetry install
-
-      - name: isort
-        run: poetry run isort --check .
-
-  sdk-lint-mypy:
+  lint-mypy:
     needs: [prefetch]
     runs-on: ubuntu-24.04
     strategy:
@@ -291,12 +252,6 @@ jobs:
         run: |
           poetry check
           poetry install
-
-      - name: black
-        run: poetry run black --check .
-
-      - name: isort
-        run: poetry run isort --check .
 
       - name: mypy
         run: poetry run mypy .

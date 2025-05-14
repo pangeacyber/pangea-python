@@ -1,5 +1,9 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+
+# TODO: Modernize.
+# ruff: noqa: UP006, UP035
+
 from __future__ import annotations
 
 from typing import Dict, List, Literal, Optional, Union
@@ -991,7 +995,10 @@ class AuthN(ServiceBase):
             return self.request.post("v2/flow/complete", m.FlowCompleteResult, data=input.model_dump(exclude_none=True))
 
         def restart(
-            self, flow_id: str, choice: m.FlowChoice, data: m.FlowRestartData = {}
+            self,
+            flow_id: str,
+            choice: m.FlowChoice,
+            data: m.FlowRestartData = {},  # noqa: B006
         ) -> PangeaResponse[m.FlowRestartResult]:
             """
             Restart a sign-up/sign-in flow
@@ -1062,7 +1069,10 @@ class AuthN(ServiceBase):
             return self.request.post("v2/flow/start", m.FlowStartResult, data=input.model_dump(exclude_none=True))
 
         def update(
-            self, flow_id: str, choice: m.FlowChoice, data: m.FlowUpdateData = {}
+            self,
+            flow_id: str,
+            choice: m.FlowChoice,
+            data: m.FlowUpdateData = {},  # noqa: B006
         ) -> PangeaResponse[m.FlowUpdateResult]:
             """
             Update a sign-up/sign-in flow

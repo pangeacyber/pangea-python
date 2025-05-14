@@ -60,7 +60,7 @@ def canonicalize(data: dict) -> str:
         return json.dumps(
             data, ensure_ascii=False, allow_nan=False, separators=(",", ":"), sort_keys=True, default=default_encoder
         )
-    elif isinstance(data, datetime.datetime) or isinstance(data, datetime.date):
+    elif isinstance(data, (datetime.datetime, datetime.date)):
         return format_datetime(data)
     else:
         return str(data)
@@ -151,10 +151,8 @@ def get_crc32c(data: str) -> str:
 
 
 def hash_256_filepath(filepath: str) -> str:
-    data = open(filepath, "rb")
-    hash = sha256(data.read()).hexdigest()
-    data.close()
-    return hash
+    with open(filepath, "rb") as data:
+        return sha256(data.read()).hexdigest()
 
 
 def get_prefix(hash: str, len: int = 5):
