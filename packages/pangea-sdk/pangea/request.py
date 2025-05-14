@@ -1,12 +1,17 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+
+# TODO: Modernize.
+# ruff: noqa: UP006, UP035
+
 from __future__ import annotations
 
 import copy
 import json
 import logging
 import time
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Sequence, Tuple, Type, Union, cast
+from collections.abc import Mapping, Sequence
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Type, Union, cast
 
 import requests
 from pydantic import BaseModel
@@ -30,7 +35,7 @@ class MultipartResponse:
     pangea_json: Dict[str, str]
     attached_files: List = []
 
-    def __init__(self, pangea_json: Dict[str, str], attached_files: List = []):
+    def __init__(self, pangea_json: dict[str, str], attached_files: list = []):  # noqa: B006
         self.pangea_json = pangea_json
         self.attached_files = attached_files
 
@@ -204,8 +209,8 @@ class PangeaRequest(PangeaRequestBase):
         self,
         endpoint: str,
         result_class: Type[TResult],
-        data: str | BaseModel | dict[str, Any] | None = None,
-        files: Optional[List[Tuple]] = None,
+        data: str | BaseModel | Mapping[str, Any] | None = None,
+        files: Optional[list[Tuple]] = None,
         poll_result: bool = True,
         url: Optional[str] = None,
     ) -> PangeaResponse[TResult]:
@@ -273,7 +278,7 @@ class PangeaRequest(PangeaRequestBase):
 
                 pangea_response = PangeaResponse(requests_response, result_class=result_class, json=json_resp)
             except requests.exceptions.JSONDecodeError as e:
-                raise pe.PangeaException(f"Failed to decode json response. {e}. Body: {requests_response.text}")
+                raise pe.PangeaException(f"Failed to decode json response. {e}. Body: {requests_response.text}") from e
 
         if poll_result:
             pangea_response = self._handle_queued_result(pangea_response)
@@ -324,9 +329,9 @@ class PangeaRequest(PangeaRequestBase):
     def _http_post(
         self,
         url: str,
-        headers: Dict = {},
-        data: Union[str, Dict] = {},
-        files: Optional[List[Tuple]] = None,
+        headers: Mapping[str, str] = {},
+        data: str | dict[Any, Any] = {},  # noqa: B006
+        files: Optional[list[Tuple]] = None,
         multipart_post: bool = True,
     ) -> requests.Response:
         data_send, files = self._http_post_process(data=data, files=files, multipart_post=multipart_post)
@@ -334,7 +339,7 @@ class PangeaRequest(PangeaRequestBase):
 
     def _http_post_process(
         self,
-        data: Union[str, Dict] = {},
+        data: str | dict[Any, Any] = {},  # noqa: B006
         files: Optional[Sequence[Tuple[str, Tuple[Any, str, str]]]] = None,
         multipart_post: bool = True,
     ):
@@ -477,7 +482,7 @@ class PangeaRequest(PangeaRequestBase):
         self,
         endpoint: str,
         result_class: Type[PangeaResponseResult],
-        data: Union[str, Dict] = {},
+        data: Union[str, Mapping[str, Any]] = {},
     ) -> PangeaResponse:
         # Send request
         try:
@@ -520,8 +525,8 @@ class PangeaRequest(PangeaRequestBase):
     def _http_put(
         self,
         url: str,
-        files: List[Tuple],
-        headers: Dict = {},
+        files: list[Tuple],
+        headers: Mapping[str, str] = {},
     ) -> requests.Response:
         self.logger.debug(
             json.dumps({"service": self.service, "action": "http_put", "url": url}, default=default_encoder)
@@ -533,7 +538,7 @@ class PangeaRequest(PangeaRequestBase):
         self,
         endpoint: str,
         result_class: Type[PangeaResponseResult],
-        data: Union[str, Dict] = {},
+        data: Union[str, Mapping[str, Any]] = {},
         files: Optional[List[Tuple]] = None,
     ):
         if files is None or len(files) == 0:
@@ -603,7 +608,7 @@ class PangeaRequest(PangeaRequestBase):
                         {"service": self.service, "action": "poll_presigned_url", "step": "exit", "cause": {str(e)}}
                     )
                 )
-                raise pe.PresignedURLException("Failed to pull Presigned URL", loop_resp, e)
+                raise pe.PresignedURLException("Failed to pull Presigned URL", loop_resp, e) from e
 
         self.logger.debug(json.dumps({"service": self.service, "action": "poll_presigned_url", "step": "exit"}))
 

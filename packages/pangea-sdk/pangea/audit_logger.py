@@ -1,5 +1,7 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+from __future__ import annotations
+
 import logging
 
 import pangea.exceptions as pe
@@ -20,7 +22,7 @@ class AuditLogger(logging.Logger):
     """
 
     def __init__(self, *args, **kwargs):
-        super(AuditLogger, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def set_auditor(self, auditor: Audit):
         """Sets the internal Pangea Audit Service client instance

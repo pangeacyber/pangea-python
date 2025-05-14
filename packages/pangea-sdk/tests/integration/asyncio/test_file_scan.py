@@ -61,9 +61,8 @@ class TestFileScan(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(response.status, "Success")
 
     async def test_scan_file_async(self):
-        with self.assertRaises(pe.AcceptedRequestException):
-            with get_test_file() as f:
-                response = await self.scan.file_scan(file=f, verbose=True, provider="crowdstrike", sync_call=False)
+        with self.assertRaises(pe.AcceptedRequestException), get_test_file() as f:
+            await self.scan.file_scan(file=f, verbose=True, provider="crowdstrike", sync_call=False)
 
     async def test_scan_file_poll_result(self):
         exception = None

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Generic, List, Literal, Optional, TypeVar, overload
+from typing import Any, Generic, Literal, Optional, TypeVar, overload
 
 from pangea.config import PangeaConfig
 from pangea.response import APIRequestModel, APIResponseModel, PangeaResponse, PangeaResponseResult
@@ -24,14 +24,14 @@ class CodeDetectionOverride(APIRequestModel):
 
 class LanguageDetectionOverride(APIRequestModel):
     disabled: Optional[bool] = None
-    allow: Optional[List[str]] = None
-    block: Optional[List[str]] = None
-    report: Optional[List[str]] = None
+    allow: Optional[list[str]] = None
+    block: Optional[list[str]] = None
+    report: Optional[list[str]] = None
 
 
 class TopicDetectionOverride(APIRequestModel):
     disabled: Optional[bool] = None
-    block: Optional[List[str]] = None
+    block: Optional[list[str]] = None
 
 
 class PromptInjectionOverride(APIRequestModel):
@@ -179,7 +179,7 @@ class PromptInjectionResult(APIResponseModel):
     action: str
     """The action taken by this Detector"""
 
-    analyzer_responses: List[AnalyzerResponse]
+    analyzer_responses: list[AnalyzerResponse]
     """Triggered prompt injection analyzers."""
 
 
@@ -192,7 +192,7 @@ class PiiEntity(APIResponseModel):
 
 
 class PiiEntityResult(APIResponseModel):
-    entities: List[PiiEntity]
+    entities: list[PiiEntity]
     """Detected redaction rules."""
 
 
@@ -201,11 +201,11 @@ class MaliciousEntity(APIResponseModel):
     value: str
     action: str
     start_pos: Optional[int] = None
-    raw: Optional[Dict[str, Any]] = None
+    raw: Optional[dict[str, Any]] = None
 
 
 class MaliciousEntityResult(APIResponseModel):
-    entities: List[MaliciousEntity]
+    entities: list[MaliciousEntity]
     """Detected harmful items."""
 
 
@@ -215,11 +215,11 @@ class CustomEntity(APIResponseModel):
     action: str
     """The action taken on this Entity"""
     start_pos: Optional[int] = None
-    raw: Optional[Dict[str, Any]] = None
+    raw: Optional[dict[str, Any]] = None
 
 
 class CustomEntityResult(APIResponseModel):
-    entities: List[CustomEntity]
+    entities: list[CustomEntity]
     """Detected redaction rules."""
 
 
@@ -233,7 +233,7 @@ class SecretsEntity(APIResponseModel):
 
 
 class SecretsEntityResult(APIResponseModel):
-    entities: List[SecretsEntity]
+    entities: list[SecretsEntity]
     """Detected redaction rules."""
 
 

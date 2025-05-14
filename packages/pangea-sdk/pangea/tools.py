@@ -1,5 +1,6 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+from __future__ import annotations
 
 import enum
 import io
@@ -7,9 +8,10 @@ import json
 import logging
 import os
 import sys
+from collections.abc import Iterator
 from datetime import datetime, timezone
 from logging.handlers import TimedRotatingFileHandler
-from typing import Dict, Iterator, List, Optional
+from typing import Optional
 
 from pangea.config import PangeaConfig
 from pangea.exceptions import PangeaException
@@ -28,15 +30,15 @@ class TestEnvironment(str, enum.Enum):
         return str(self.value)
 
 
-class Root(Dict):
+class Root(dict):
     size: int
     tree_name: str
 
 
-class Event(Dict):
+class Event(dict):
     membership_proof: str
     leaf_index: Optional[int]
-    event: Dict
+    event: dict
     hash: str
     tree_size: Optional[int]
 
@@ -68,7 +70,7 @@ def exit_with_error(message: str):
     sys.exit(1)
 
 
-def file_events(root_hashes: Dict[int, str], f: io.TextIOWrapper) -> Iterator[Event]:
+def file_events(root_hashes: dict[int, str], f: io.TextIOWrapper) -> Iterator[Event]:
     """
     Reads a file containing Events in JSON format with the following fields:
     - membership_proof: str
@@ -111,8 +113,8 @@ def make_aware_datetime(d: datetime) -> datetime:
     return d
 
 
-def filter_deep_none(data: Dict) -> Dict:
-    return {k: v if not isinstance(v, Dict) else filter_deep_none(v) for k, v in data.items() if v is not None}
+def filter_deep_none(data: dict) -> dict:
+    return {k: v if not isinstance(v, dict) else filter_deep_none(v) for k, v in data.items() if v is not None}
 
 
 def _load_env_var(env_var_name: str) -> str:
@@ -183,7 +185,7 @@ class SequenceFollower:
             self.numbers.remove(min_val)
             min_val += 1
 
-    def holes(self) -> List[int]:
+    def holes(self) -> list[int]:
         if not self.numbers:
             return []
 
@@ -192,7 +194,7 @@ class SequenceFollower:
         return [val for val in range(min_val, max_val) if val not in self.numbers]
 
 
-loggers: Dict[str, bool] = {}
+loggers: dict[str, bool] = {}
 
 
 def logger_set_pangea_config(logger_name: str, level=logging.DEBUG):

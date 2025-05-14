@@ -37,7 +37,7 @@ async def main():
         log_response = await audit.log_bulk(events=[event1, event2], verbose=True)
         end = time.time()
 
-        print(f"Logged 2 events in {int((end - start)*1000)} milliseconds")
+        print(f"Logged 2 events in {int((end - start) * 1000)} milliseconds")
 
         for result in log_response.result.results:
             print(f"Envelope: {result.envelope}")

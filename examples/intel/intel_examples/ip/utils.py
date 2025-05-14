@@ -1,4 +1,4 @@
-from typing import Dict
+from __future__ import annotations
 
 from pangea.services.intel import IPDomainData, IPGeolocateData, IPProxyData, IPVPNData
 
@@ -9,7 +9,7 @@ def print_ip_domain_data(ip: str, data: IPDomainData):
         print(f"\tDomain is: {data.domain}")
 
 
-def print_ip_domain_bulk_data(data: Dict[str, IPDomainData]):
+def print_ip_domain_bulk_data(data: dict[str, IPDomainData]):
     for k, v in data.items():
         print_ip_domain_data(k, v)
         print("")
@@ -22,7 +22,7 @@ def print_ip_proxy_data(ip: str, data: IPProxyData):
         print(f"\tIP {ip} is not a proxy")
 
 
-def print_ip_proxy_bulk_data(data: Dict[str, IPProxyData]):
+def print_ip_proxy_bulk_data(data: dict[str, IPProxyData]):
     for k, v in data.items():
         print_ip_proxy_data(k, v)
 
@@ -34,7 +34,7 @@ def print_ip_vpn_data(ip: str, data: IPVPNData):
         print(f"\tIP {ip} is not a VPN")
 
 
-def print_ip_vpn_bulk_data(data: Dict[str, IPVPNData]):
+def print_ip_vpn_bulk_data(data: dict[str, IPVPNData]):
     for k, v in data.items():
         print_ip_vpn_data(k, v)
 
@@ -49,6 +49,6 @@ def print_ip_geolocate_data(ip: str, data: IPGeolocateData):
     print(f"\t\tCountry_code: {data.country_code}")
 
 
-def print_ip_geolocate_bulk_data(data: Dict[str, IPGeolocateData]):
+def print_ip_geolocate_bulk_data(data: dict[str, IPGeolocateData]):
     for k, v in data.items():
         print_ip_geolocate_data(k, v)

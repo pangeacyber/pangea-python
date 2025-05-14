@@ -75,7 +75,7 @@ def main():
 
 
 def print_header_results():
-    print("\n\nreceived_at\t\t\t\tMessage \tSource " "\t\tActor \t\tMembership \tConsistency \tSignature\t")
+    print("\n\nreceived_at\t\t\t\tMessage \tSource \t\tActor \t\tMembership \tConsistency \tSignature\t")
 
 
 def print_page_results(search_res: PangeaResponse[SearchResultOutput], offset: int, count: int):
@@ -87,7 +87,7 @@ def print_page_results(search_res: PangeaResponse[SearchResultOutput], offset: i
             f"{row.envelope.event['actor']}\t\t{row.membership_verification}\t\t {row.consistency_verification}\t\t {row.signature_verification}\t\t"
         )
     print(
-        f"\nResults: {offset+1}-{offset+len(search_res.result.events)} of {count}",
+        f"\nResults: {offset + 1}-{offset + len(search_res.result.events)} of {count}",
     )
 
 

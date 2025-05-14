@@ -1,5 +1,9 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+
+# TODO: Use `list` instead of `List`.
+# ruff: noqa: UP006, UP035
+
 from __future__ import annotations
 
 import enum
@@ -916,10 +920,10 @@ class Share(ServiceBase):
 
     def get_archive(
         self,
-        ids: List[str] = [],
-        format: Optional[ArchiveFormat] = None,
-        transfer_method: Optional[TransferMethod] = None,
-        bucket_id: Optional[str] = None,
+        ids: list[str],
+        format: ArchiveFormat | None = None,
+        transfer_method: TransferMethod | None = None,
+        bucket_id: str | None = None,
     ) -> PangeaResponse[GetArchiveResult]:
         """
         Get archive

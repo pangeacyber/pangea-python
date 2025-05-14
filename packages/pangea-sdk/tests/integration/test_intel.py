@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 import unittest
-from typing import Dict
 
 import pangea.exceptions as pe
 from pangea import PangeaConfig
@@ -10,7 +11,7 @@ from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logge
 from tests.test_tools import load_test_environment
 
 
-def check_bulk_data(self: unittest.TestCase, data: Dict[str, IntelReputationData]):
+def check_bulk_data(self: unittest.TestCase, data: dict[str, IntelReputationData]):
     for item in data.values():
         self.assertIsNotNone(item.verdict)
         self.assertNotEqual("", item.verdict)

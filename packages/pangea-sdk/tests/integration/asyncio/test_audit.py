@@ -243,9 +243,9 @@ class TestAuditAsync(unittest.IsolatedAsyncioTestCase):
         self.assertIsNotNone(response.result.membership_proof)
         self.assertIsNotNone(response.result.envelope.public_key)
         key: dict = json.loads(response.result.envelope.public_key)
-        self.assertIsNotNone(key.get("vault_key_id", None))
-        self.assertIsNotNone(key.get("vault_key_version", None))
-        self.assertIsNotNone(key.get("key", None))
+        self.assertIsNotNone(key.get("vault_key_id"))
+        self.assertIsNotNone(key.get("vault_key_version"))
+        self.assertIsNotNone(key.get("key"))
         self.assertIsNotNone(response.result.envelope.signature)
         self.assertEqual(response.result.consistency_verification, EventVerification.NONE)
         self.assertEqual(response.result.membership_verification, EventVerification.PASS)
@@ -615,7 +615,7 @@ class TestAuditAsync(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(response.status, ResponseStatus.SUCCESS)
         self.assertNotEqual(0, len(response.result.events))
-        for idx, search_event in enumerate(response.result.events):
+        for _idx, search_event in enumerate(response.result.events):
             self.assertEqual(search_event.consistency_verification, EventVerification.PASS)
             self.assertEqual(search_event.membership_verification, EventVerification.PASS)
 

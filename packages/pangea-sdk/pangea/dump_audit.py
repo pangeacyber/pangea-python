@@ -7,7 +7,6 @@ import json
 import os
 import sys
 from datetime import datetime
-from typing import Tuple
 
 import dateutil.parser
 
@@ -103,7 +102,7 @@ def dump_after(audit: Audit, output: io.TextIOWrapper, start: datetime, last_eve
 
 def dump_page(
     audit: Audit, output: io.TextIOWrapper, start: datetime, end: datetime, first: bool = False
-) -> Tuple[datetime, int, bool, str, int]:
+) -> tuple[datetime, int, bool, str, int]:
     PAGE_SIZE = 1000
     print(start, end)
     print("Dumping...")
@@ -175,7 +174,7 @@ def parse_args(parser: argparse.ArgumentParser):
         raise ValueError("domain missing")
 
     if args.output is None:
-        args.output = open(f"dump-{datetime.now().strftime('%Y%m%d%H%M%S')}.jsonl", "w")
+        args.output = open(f"dump-{datetime.now().strftime('%Y%m%d%H%M%S')}.jsonl", "w")  # noqa: SIM115
 
     args.start = make_aware_datetime(args.start)
     args.end = make_aware_datetime(args.end)

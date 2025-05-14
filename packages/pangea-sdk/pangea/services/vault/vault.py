@@ -2,10 +2,9 @@
 # Author: Pangea Cyber Corporation
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, List, Literal, Optional, Union, cast, overload
+from typing import TYPE_CHECKING, Annotated, Any, Literal, Optional, Union, cast, overload
 
 from pydantic import Field, TypeAdapter
-from typing_extensions import Annotated
 
 from pangea.response import PangeaResponse, PangeaResponseResult
 from pangea.services.base import ServiceBase
@@ -34,7 +33,6 @@ from pangea.services.vault.models.common import (
     EncryptTransformRequest,
     EncryptTransformResult,
     ExportEncryptionAlgorithm,
-    ExportEncryptionType,
     ExportRequest,
     ExportResult,
     Folder,
@@ -98,7 +96,7 @@ vault_item_adapter: TypeAdapter[VaultItem] = TypeAdapter(VaultItem)
 
 
 class GetBulkResponse(PangeaResponseResult):
-    items: List[VaultItem]
+    items: list[VaultItem]
 
 
 class Vault(ServiceBase):

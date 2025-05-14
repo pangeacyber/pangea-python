@@ -1,19 +1,25 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+
+# TODO: Modernize.
+# ruff: noqa: UP006, UP035
+
+from __future__ import annotations
+
 import datetime
 import enum
 import os
-from typing import Any, Dict, Generic, List, Optional, Type, Union
+from typing import Annotated, Any, Dict, Generic, List, Optional, Type, Union
 
 import aiohttp
 import requests
 from pydantic import BaseModel, ConfigDict, PlainSerializer
-from typing_extensions import Annotated, TypeVar
+from typing_extensions import TypeVar
 
 from pangea.utils import format_datetime
 
 
-class AttachedFile(object):
+class AttachedFile:
     filename: str
     file: bytes
     content_type: str
@@ -40,10 +46,7 @@ class AttachedFile(object):
         base_name, ext = os.path.splitext(file_path)
         counter = 1
         while os.path.exists(file_path):
-            if ext:
-                file_path = f"{base_name}_{counter}{ext}"
-            else:
-                file_path = f"{base_name}_{counter}"
+            file_path = f"{base_name}_{counter}{ext}" if ext else f"{base_name}_{counter}"
             counter += 1
         return file_path
 
@@ -199,16 +202,16 @@ class PangeaResponse(ResponseHeader, Generic[T]):
     accepted_result: Optional[AcceptedResult] = None
     result_class: Type[T] = PangeaResponseResult  # type: ignore[assignment]
     _json: Any
-    attached_files: List[AttachedFile] = []
+    attached_files: list[AttachedFile] = []
 
     def __init__(
         self,
         response: requests.Response,
         result_class: Type[T],
         json: dict,
-        attached_files: List[AttachedFile] = [],
+        attached_files: list[AttachedFile] = [],  # noqa: B006
     ):
-        super(PangeaResponse, self).__init__(**json)
+        super().__init__(**json)
         self._json = json
         self.raw_response = response
         self.raw_result = self._json["result"]
@@ -241,10 +244,10 @@ class PangeaResponse(ResponseHeader, Generic[T]):
     @property
     def http_status(self) -> int:  # type: ignore[return]
         if self.raw_response:
-            if type(self.raw_response) == aiohttp.ClientResponse:
+            if isinstance(self.raw_response, aiohttp.ClientResponse):
                 return self.raw_response.status
             else:
-                return self.raw_response.status_code  # type: ignore[union-attr]
+                return self.raw_response.status_code
 
     @property
     def url(self) -> str:

@@ -1,6 +1,9 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 
+# TODO: Modernize.
+# ruff: noqa: UP006, UP035
+
 from __future__ import annotations
 
 import enum

@@ -1,8 +1,13 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+
+# TODO: Modernize.
+# ruff: noqa: UP006, UP035
+
 from __future__ import annotations
 
 import datetime
+from collections.abc import Mapping
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Union
 
 import pangea.exceptions as pexc
@@ -63,7 +68,7 @@ class AuditAsync(ServiceBaseAsync, AuditBase):
         token: str,
         config: PangeaConfig | None = None,
         private_key_file: str = "",
-        public_key_info: dict[str, str] = {},
+        public_key_info: Mapping[str, str] = {},
         tenant_id: str | None = None,
         logger_name: str = "pangea",
         config_id: str | None = None,

@@ -1,5 +1,9 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+
+# TODO: Modernize.
+# ruff: noqa: UP006, UP035
+
 from __future__ import annotations
 
 import io
@@ -194,7 +198,7 @@ class ShareAsync(ServiceBaseAsync):
 
     async def get_archive(
         self,
-        ids: List[str] = [],
+        ids: list[str],
         format: Optional[m.ArchiveFormat] = None,
         transfer_method: Optional[TransferMethod] = None,
         bucket_id: Optional[str] = None,

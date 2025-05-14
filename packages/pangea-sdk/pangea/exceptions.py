@@ -1,6 +1,9 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 
+# TODO: Modernize.
+# ruff: noqa: UP006, UP035
+
 from typing import List, Optional
 
 from pangea.response import AcceptedResult, ErrorField, PangeaResponse
@@ -44,7 +47,7 @@ class PangeaAPIException(PangeaException):
     response: PangeaResponse
 
     def __init__(self, message: str, response: PangeaResponse):
-        super(PangeaAPIException, self).__init__(message)
+        super().__init__(message)
         self.response = response
 
     @property
@@ -92,7 +95,7 @@ class UnauthorizedException(PangeaAPIException):
 
     def __init__(self, service_name: str, response: PangeaResponse):
         message = f"User is not authorized to access service {service_name}"
-        super(UnauthorizedException, self).__init__(message, response)
+        super().__init__(message, response)
 
 
 class NotFound(PangeaAPIException):
@@ -100,20 +103,20 @@ class NotFound(PangeaAPIException):
 
     def __init__(self, url: str, response: PangeaResponse):
         message = f"Resource url:'{url}' not found"
-        super(NotFound, self).__init__(message, response)
+        super().__init__(message, response)
 
 
 class ServiceNotEnabledException(PangeaAPIException):
     def __init__(self, service_name: str, response: PangeaResponse):
         message = f"{service_name} is not enabled. Go to console.pangea.cloud/service/{service_name} to enable"
-        super(ServiceNotEnabledException, self).__init__(message, response)
+        super().__init__(message, response)
 
 
 class MissingConfigID(PangeaAPIException):
     """No config ID was provided in either token scopes or explicitly"""
 
     def __init__(self, service_name: str, response: PangeaResponse):
-        super(MissingConfigID, self).__init__(
+        super().__init__(
             f"Token did not contain a config scope for service {service_name}. Create a new token or provide a config ID explicitly in the service base",
             response,
         )
