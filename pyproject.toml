@@ -1,0 +1,26 @@
+[project]
+name = "pangea-python-monorepo"
+version = "0.0.0"
+description = "Pangea Python monorepo"
+authors = []
+license = { text = "MIT" }
+readme = "README.md"
+requires-python = ">=3.10.0,<4.0.0"
+dependencies = []
+
+[project.urls]
+repository = "https://github.com/pangeacyber/pangea-python"
+
+[build-system]
+requires = ["pdm-backend==2.4.4"]
+build-backend = "pdm.backend"
+
+[tool.poetry]
+package-mode = false
+
+[tool.poetry.group.lint.dependencies]
+ruff = "0.11.9"
+
+[tool.poetry.group.dev.dependencies]
+pangea-django = { path = "./packages/pangea-django", develop = true }
+pangea-sdk = { path = "./packages/pangea-sdk", develop = true }

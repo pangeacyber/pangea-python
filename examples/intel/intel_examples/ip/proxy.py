@@ -1,8 +1,9 @@
 # Determine if an IP address originates from a proxy.
 
+from __future__ import annotations
+
 import os
 
-import pangea.exceptions as pe
 from pangea.config import PangeaConfig
 from pangea.services import IpIntel
 

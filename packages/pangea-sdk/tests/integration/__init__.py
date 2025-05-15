@@ -10,3 +10,22 @@ from .test_redact import TestRedact
 from .test_sanitize import TestSanitize
 from .test_share import TestShare
 from .test_vault import TestVault
+
+__all__ = (
+    "TestAIGuard",
+    "TestAudit",
+    "TestAuditTools",
+    "TestAuthN",
+    "TestEmbargo",
+    "TestFileScan",
+    "TestDomainIntel",
+    "TestFileIntel",
+    "TestIPIntel",
+    "TestURLIntel",
+    "TestUserIntel",
+    "TestPromptGuard",
+    "TestRedact",
+    "TestSanitize",
+    "TestShare",
+    "TestVault",
+)

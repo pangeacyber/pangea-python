@@ -1,9 +1,14 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+
+# TODO: Modernize.
+# ruff: noqa: UP006, UP035
+
 from __future__ import annotations
 
 import datetime
 import json
+from collections.abc import Mapping
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Set, Tuple, Union, cast, overload
 
 from pydantic import TypeAdapter
@@ -63,7 +68,7 @@ from pangea.utils import canonicalize_nested_json
 
 class AuditBase:
     def __init__(
-        self, private_key_file: str = "", public_key_info: dict[str, str] = {}, tenant_id: str | None = None
+        self, private_key_file: str = "", public_key_info: Mapping[str, str] = {}, tenant_id: str | None = None
     ) -> None:
         self.pub_roots: Dict[int, PublishedRoot] = {}
         self.buffer_data: Optional[str] = None
@@ -98,7 +103,7 @@ class AuditBase:
         return input  # type: ignore[return-value]
 
     def _process_log(self, event: dict, sign_local: bool) -> LogEvent:
-        if event.get("tenant_id", None) is None and self.tenant_id:
+        if event.get("tenant_id") is None and self.tenant_id:
             event["tenant_id"] = self.tenant_id
 
         event = {k: v for k, v in event.items() if v is not None}
@@ -229,10 +234,7 @@ class AuditBase:
         tree_sizes.add(result.root.size)
         tree_sizes.difference_update(self.pub_roots.keys())
 
-        if tree_sizes:
-            arweave_roots = get_arweave_published_roots(result.root.tree_name, tree_sizes)
-        else:
-            arweave_roots = {}
+        arweave_roots = get_arweave_published_roots(result.root.tree_name, tree_sizes) if tree_sizes else {}
 
         return tree_sizes, arweave_roots
 
@@ -393,7 +395,7 @@ class Audit(ServiceBase, AuditBase):
         token: str,
         config: PangeaConfig | None = None,
         private_key_file: str = "",
-        public_key_info: dict[str, str] = {},
+        public_key_info: Mapping[str, str] = {},
         tenant_id: str | None = None,
         logger_name: str = "pangea",
         config_id: str | None = None,

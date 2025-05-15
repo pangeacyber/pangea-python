@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import Generator
 from datetime import datetime, timedelta, timezone
 from secrets import token_hex
-from typing import Generic, Optional
+from typing import Generic
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -29,7 +29,7 @@ T = TypeVar("T", bound=PangeaResponseResult)
 class MockPangeaResponse(ResponseHeader, Generic[T]):
     """Lightweight mock of a PangeaResponse."""
 
-    result: Optional[T] = None
+    result: T | None = None
 
     def __init__(self, result: T, status: ResponseStatus = ResponseStatus.SUCCESS) -> None:
         super().__init__(status=status.value, request_id="", request_time="", response_time="", summary="")

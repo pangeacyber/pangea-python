@@ -74,10 +74,7 @@ class TestAuthN(unittest.TestCase):
         return self.authn.flow.update(flow_id=flow_id, choice=m.FlowChoice.AGREEMENTS, data=data)
 
     def choice_is_available(self, response, choice):
-        for c in response.result.flow_choices:
-            if c.choice == choice:
-                return True
-        return False
+        return any(c.choice == choice for c in response.result.flow_choices)
 
     def create_n_login(self, email, password) -> PangeaResponse[m.FlowCompleteResult]:
         response = self.authn.flow.start(email=email, flow_types=[m.FlowType.SIGNUP, m.FlowType.SIGNIN], cb_uri=CB_URI)

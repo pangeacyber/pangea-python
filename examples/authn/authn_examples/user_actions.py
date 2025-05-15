@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import random
 
@@ -44,10 +46,7 @@ def flow_handle_agreements_phase(authn, flow_id, response):
 
 
 def choice_is_available(response, choice):
-    for c in response.result.flow_choices:
-        if c.choice == choice:
-            return True
-    return False
+    return any(c.choice == choice for c in response.result.flow_choices)
 
 
 def main():

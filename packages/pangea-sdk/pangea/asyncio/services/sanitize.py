@@ -1,5 +1,9 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+
+# TODO: Modernize.
+# ruff: noqa: UP006, UP035
+
 from __future__ import annotations
 
 import io
@@ -116,7 +120,7 @@ class SanitizeAsync(ServiceBaseAsync):
         files: Optional[List[Tuple]] = None
         if file or file_path:
             if file_path:
-                file = open(file_path, "rb")
+                file = open(file_path, "rb")  # noqa: SIM115
             if transfer_method == TransferMethod.POST_URL and (sha256 is None or crc32c is None or size is None):
                 params = get_file_upload_params(file)  # type: ignore[arg-type]
                 crc32c = params.crc_hex if crc32c is None else crc32c

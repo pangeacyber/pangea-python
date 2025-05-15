@@ -7,7 +7,6 @@ import secrets
 import string
 import traceback
 from datetime import datetime, timezone
-from typing import Optional
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import BaseBackend
@@ -70,7 +69,7 @@ class PangeaAuthentication(BaseBackend):
         self.authn = AuthN(token, config=self.config, logger_name="pangea")
         super().__init__()
 
-    def authenticate(self, request: HttpRequest) -> Optional[AbstractBaseUser]:  # type: ignore[override]
+    def authenticate(self, request: HttpRequest) -> AbstractBaseUser | None:  # type: ignore[override]
         code = request.GET.get("code")
         state = request.GET.get("state")
         expected_state = request.session.get("PANGEA_LOGIN_STATE")
@@ -124,10 +123,7 @@ class PangeaAuthentication(BaseBackend):
         if not user_id and not username:
             raise ValueError("user_id or username is required")
         try:
-            if user_id:
-                user = UserModel.objects.get(pk=user_id)
-            else:
-                user = UserModel.objects.get(username=username)
+            user = UserModel.objects.get(pk=user_id) if user_id else UserModel.objects.get(username=username)
         except UserModel.DoesNotExist:
             return None
         return user if self.user_can_authenticate(user) else None

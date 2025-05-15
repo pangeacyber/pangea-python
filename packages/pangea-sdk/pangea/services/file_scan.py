@@ -1,5 +1,11 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+
+# TODO: Use `list` instead of `List`.
+# ruff: noqa: UP006, UP035
+
+from __future__ import annotations
+
 import io
 import logging
 from typing import Dict, List, Optional, Tuple
@@ -133,7 +139,7 @@ class FileScan(ServiceBase):
         files: Optional[List[Tuple]] = None
         if file or file_path:
             if file_path:
-                file = open(file_path, "rb")
+                file = open(file_path, "rb")  # noqa: SIM115
             if transfer_method == TransferMethod.POST_URL:
                 params = get_file_upload_params(file)  # type: ignore[arg-type]
                 crc = params.crc_hex

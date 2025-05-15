@@ -1,5 +1,11 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+
+# TODO: Use `list` instead of `List`.
+# ruff: noqa: UP006, UP035
+
+from __future__ import annotations
+
 from typing import Any, Dict, List
 
 from pangea.response import APIRequestModel, APIResponseModel, PangeaResponse, PangeaResponseResult

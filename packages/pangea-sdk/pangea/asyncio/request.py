@@ -1,23 +1,38 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+
+# TODO: Modernize.
+# ruff: noqa: UP006, UP035
+
 from __future__ import annotations
 
 import asyncio
 import json
 import time
 from collections.abc import Iterable, Mapping
-from typing import Dict, List, Literal, Optional, Sequence, Tuple, Type, Union, cast, overload
+from typing import Dict, List, Optional, Sequence, Tuple, Type, Union, cast, overload
 
 import aiohttp
 from aiohttp import FormData
 from pydantic import BaseModel, TypeAdapter
 from pydantic_core import to_jsonable_python
-from typing_extensions import Any, TypeVar
+from typing_extensions import Any, Literal, TypeAlias, TypeVar, override
 
 import pangea.exceptions as pe
 from pangea.request import MultipartResponse, PangeaRequestBase
 from pangea.response import AttachedFile, PangeaResponse, PangeaResponseResult, ResponseStatus, TransferMethod
 from pangea.utils import default_encoder
+
+_FileName: TypeAlias = Union[str, None]
+_FileContent: TypeAlias = Union[str, bytes]
+_FileContentType: TypeAlias = str
+_FileCustomHeaders: TypeAlias = Mapping[str, str]
+_FileSpecTuple2: TypeAlias = tuple[_FileName, _FileContent]
+_FileSpecTuple3: TypeAlias = tuple[_FileName, _FileContent, _FileContentType]
+_FileSpecTuple4: TypeAlias = tuple[_FileName, _FileContent, _FileContentType, _FileCustomHeaders]
+_FileSpec: TypeAlias = Union[_FileContent, _FileSpecTuple2, _FileSpecTuple3, _FileSpecTuple4]
+_Files: TypeAlias = Union[Mapping[str, _FileSpec], Iterable[tuple[str, _FileSpec]]]
+
 
 TResult = TypeVar("TResult", bound=PangeaResponseResult)
 
@@ -53,7 +68,7 @@ class PangeaRequestAsync(PangeaRequestBase):
         self,
         endpoint: str,
         result_class: Type[TResult],
-        data: str | BaseModel | dict[str, Any] | None = None,
+        data: str | BaseModel | Mapping[str, Any] | None = None,
         files: Optional[List[Tuple]] = None,
         poll_result: bool = True,
         url: Optional[str] = None,
@@ -77,7 +92,7 @@ class PangeaRequestAsync(PangeaRequestBase):
         self,
         endpoint: str,
         result_class: Type[TResult],
-        data: str | BaseModel | dict[str, Any] | None = None,
+        data: str | BaseModel | Mapping[str, Any] | None = None,
         files: Optional[List[Tuple]] = None,
         poll_result: bool = True,
         url: Optional[str] = None,
@@ -96,7 +111,7 @@ class PangeaRequestAsync(PangeaRequestBase):
         self,
         endpoint: str,
         result_class: Type[TResult],
-        data: str | BaseModel | dict[str, Any] | None = None,
+        data: str | BaseModel | Mapping[str, Any] | None = None,
         files: Optional[List[Tuple]] = None,
         poll_result: bool = True,
         url: Optional[str] = None,
@@ -141,8 +156,11 @@ class PangeaRequestAsync(PangeaRequestBase):
                 endpoint, result_class=result_class, data=data, files=files
             )
         else:
+            headers = self._headers()
+            if transfer_method == TransferMethod.MULTIPART.value:
+                del headers["Content-Type"]
             requests_response = await self._http_post(
-                url, headers=self._headers(), data=data, files=files, presigned_url_post=False
+                url, headers=headers, data=data, files=files, presigned_url_post=False
             )
 
         await self._check_http_errors(requests_response)
@@ -168,7 +186,9 @@ class PangeaRequestAsync(PangeaRequestBase):
 
                 pangea_response_obj = PangeaResponse(requests_response, result_class=result_class, json=json_resp)
             except aiohttp.ContentTypeError as e:
-                raise pe.PangeaException(f"Failed to decode json response. {e}. Body: {await requests_response.text()}")
+                raise pe.PangeaException(
+                    f"Failed to decode json response. {e}. Body: {await requests_response.text()}"
+                ) from e
 
         if poll_result:
             pangea_response_obj = await self._handle_queued_result(pangea_response_obj)
@@ -290,7 +310,7 @@ class PangeaRequestAsync(PangeaRequestBase):
 
         return await self.poll_result_by_id(request_id, response.result_class, check_response=check_response)
 
-    async def post_presigned_url(self, url: str, data: Dict, files: List[Tuple]):
+    async def post_presigned_url(self, url: str, data: dict[Any, Any], files: Sequence[Tuple]):
         # Send form request with file and upload_details as body
         resp = await self._http_post(url=url, data=data, files=files, presigned_url_post=True)
         self.logger.debug(
@@ -412,35 +432,44 @@ class PangeaRequestAsync(PangeaRequestBase):
     async def _http_post(
         self,
         url: str,
-        headers: Mapping[str, str | bytes | None] = {},
-        data: Union[str, Dict] = {},
-        files: Optional[List[Tuple]] = [],
+        headers: Mapping[str, str] = {},
+        data: str | dict[str, Any] | None = None,
+        files: _Files | None = None,
         presigned_url_post: bool = False,
     ) -> aiohttp.ClientResponse:
+        if data is None:
+            data = {}
+
         if files:
             form = FormData()
             if presigned_url_post:
-                for k, v in data.items():  # type: ignore[union-attr]
+                assert isinstance(data, dict)
+                assert isinstance(files, list)
+                for k, v in data.items():
                     form.add_field(k, v)
-                for name, value in files:
+                for _name, value in files:
                     form.add_field("file", value[1], filename=value[0], content_type=value[2])
             else:
-                data_send = json.dumps(data, default=default_encoder) if isinstance(data, dict) else data
+                assert isinstance(files, list)
+                data_send: str | FormData = (
+                    json.dumps(data, default=default_encoder) if isinstance(data, dict) else data
+                )
                 form.add_field("request", data_send, content_type="application/json")
                 for name, value in files:
                     form.add_field(name, value[1], filename=value[0], content_type=value[2])
 
-            data_send = form  # type: ignore[assignment]
+            data_send = form
         else:
             data_send = json.dumps(data, default=default_encoder) if isinstance(data, dict) else data
 
+        assert isinstance(self.session, aiohttp.ClientSession)
         return await self.session.post(url, headers=headers, data=data_send)
 
     async def _http_put(
         self,
         url: str,
         files: Sequence[Tuple],
-        headers: Dict = {},
+        headers: Mapping[str, str] = {},
     ) -> aiohttp.ClientResponse:
         self.logger.debug(
             json.dumps({"service": self.service, "action": "http_put", "url": url}, default=default_encoder)
@@ -452,8 +481,8 @@ class PangeaRequestAsync(PangeaRequestBase):
         self,
         endpoint: str,
         result_class: Type[PangeaResponseResult],
-        data: Union[str, Dict] = {},
-        files: List[Tuple] = [],
+        data: Union[str, Mapping[str, Any]] = {},
+        files: Sequence[Tuple] = [],
     ):
         if len(files) == 0:
             raise AttributeError("files attribute should have at least 1 file")
@@ -477,7 +506,7 @@ class PangeaRequestAsync(PangeaRequestBase):
         self,
         endpoint: str,
         result_class: Type[PangeaResponseResult],
-        data: Union[str, Dict] = {},
+        data: Union[str, Mapping[str, Any]] = {},
     ) -> PangeaResponse:
         # Send request
         try:
@@ -528,7 +557,7 @@ class PangeaRequestAsync(PangeaRequestBase):
                         {"service": self.service, "action": "poll_presigned_url", "step": "exit", "cause": {str(e)}}
                     )
                 )
-                raise pe.PresignedURLException("Failed to pull Presigned URL", loop_exc.response, e)
+                raise pe.PresignedURLException("Failed to pull Presigned URL", loop_exc.response, e) from e
 
         self.logger.debug(json.dumps({"service": self.service, "action": "poll_presigned_url", "step": "exit"}))
 
@@ -560,6 +589,7 @@ class PangeaRequestAsync(PangeaRequestBase):
         self.logger.debug(json.dumps({"service": self.service, "action": "poll_result_retry", "step": "exit"}))
         return self._check_response(response)
 
+    @override
     def _init_session(self) -> aiohttp.ClientSession:
         # retry_config = Retry(
         #     total=self.config.request_retries,

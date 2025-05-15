@@ -1,5 +1,11 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+
+# TODO: Modernize.
+# ruff: noqa: UP006, UP035
+
+from __future__ import annotations
+
 import base64
 import json
 import logging
@@ -155,9 +161,9 @@ def verify_membership_proof(node_hash: Hash, root_hash: Hash, proof: MembershipP
 def normalize_log(data: dict) -> dict:
     ans = {}
     for key in data:
-        if type(data[key]) == datetime:
+        if isinstance(data[key], datetime):
             ans[key] = format_datetime(data[key])
-        elif type(data[key]) == dict:
+        elif isinstance(data[key], dict):
             ans[key] = normalize_log(data[key])  # type: ignore[assignment]
         else:
             ans[key] = data[key]
@@ -223,9 +229,7 @@ def get_arweave_published_roots(tree_name: str, tree_sizes: Collection[int]) -> 
             }
         }
     }
-    """.replace(
-        "{tree_sizes}", ", ".join(f'"{tree_size}"' for tree_size in tree_sizes)
-    ).replace(
+    """.replace("{tree_sizes}", ", ".join(f'"{tree_size}"' for tree_size in tree_sizes)).replace(
         "{tree_name}", tree_name
     )
 
@@ -273,8 +277,4 @@ def verify_consistency_proof(new_root: Hash, prev_root: Hash, proof: Consistency
         return False
 
     logger.debug("Verifying the proofs for the new root")
-    for item in proof:
-        if not verify_membership_proof(item.node_hash, new_root, item.proof):
-            return False
-
-    return True
+    return all(verify_membership_proof(item.node_hash, new_root, item.proof) for item in proof)

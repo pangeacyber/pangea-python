@@ -1,0 +1,6 @@
+extend = "../../ruff.toml"
+
+src = ["pangea", "tests"]
+
+[lint.isort]
+known-first-party = ["pangea"]

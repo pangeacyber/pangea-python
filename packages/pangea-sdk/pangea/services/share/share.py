@@ -1,10 +1,16 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+
+# TODO: Use `list` instead of `List`.
+# ruff: noqa: UP006, UP035
+
 from __future__ import annotations
 
 import enum
 import io
-from typing import Dict, List, NewType, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
+
+from pydantic import RootModel
 
 from pangea.config import PangeaConfig
 from pangea.response import APIRequestModel, PangeaResponse, PangeaResponseResult, TransferMethod
@@ -12,8 +18,8 @@ from pangea.services.base import ServiceBase
 from pangea.services.share.file_format import FileFormat
 from pangea.utils import get_file_size, get_file_upload_params
 
-Metadata = NewType("Metadata", Dict[str, str])
-Tags = NewType("Tags", List[str])
+Metadata = RootModel[dict[str, str]]
+Tags = RootModel[list[str]]
 
 
 class ItemOrder(str, enum.Enum):
@@ -916,10 +922,10 @@ class Share(ServiceBase):
 
     def get_archive(
         self,
-        ids: List[str] = [],
-        format: Optional[ArchiveFormat] = None,
-        transfer_method: Optional[TransferMethod] = None,
-        bucket_id: Optional[str] = None,
+        ids: list[str],
+        format: ArchiveFormat | None = None,
+        transfer_method: TransferMethod | None = None,
+        bucket_id: str | None = None,
     ) -> PangeaResponse[GetArchiveResult]:
         """
         Get archive

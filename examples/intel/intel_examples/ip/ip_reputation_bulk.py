@@ -2,9 +2,10 @@
 # This score will fall under one of these categories: benign, suspicious,
 # malicious, or unknown.
 
+from __future__ import annotations
+
 import os
 
-import pangea.exceptions as pe
 from pangea.config import PangeaConfig
 from pangea.services import IpIntel
 
