@@ -1,13 +1,24 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import overload
 
-from typing_extensions import TypeVar
+from typing_extensions import Literal, TypeVar
 
 from pangea.asyncio.services.base import ServiceBaseAsync
 from pangea.config import PangeaConfig
 from pangea.response import PangeaResponse
-from pangea.services.ai_guard import LogFields, Overrides, TextGuardResult
+from pangea.services.ai_guard import (
+    AuditDataActivityConfig,
+    ConnectionsConfig,
+    LogFields,
+    Overrides,
+    RecipeConfig,
+    ServiceConfig,
+    ServiceConfigFilter,
+    ServiceConfigsPage,
+    TextGuardResult,
+)
 
 _T = TypeVar("_T")
 
@@ -169,4 +180,82 @@ class AIGuardAsync(ServiceBaseAsync):
                 "overrides": overrides,
                 "log_fields": log_fields,
             },
+        )
+
+    async def get_service_config(self, id: str) -> PangeaResponse[ServiceConfig]:
+        """
+        OperationId: ai_guard_post_v1beta_config
+        """
+        return await self.request.post("v1beta/config", data={"id": id}, result_class=ServiceConfig)
+
+    async def create_service_config(
+        self,
+        name: str,
+        *,
+        id: str | None = None,
+        audit_data_activity: AuditDataActivityConfig | None = None,
+        connections: ConnectionsConfig | None = None,
+        recipes: Mapping[str, RecipeConfig] | None = None,
+    ) -> PangeaResponse[ServiceConfig]:
+        """
+        OperationId: ai_guard_post_v1beta_config_create
+        """
+        return await self.request.post(
+            "v1beta/config/create",
+            data={
+                "name": name,
+                "id": id,
+                "audit_data_activity": audit_data_activity,
+                "connections": connections,
+                "recipes": recipes,
+            },
+            result_class=ServiceConfig,
+        )
+
+    async def update_service_config(
+        self,
+        id: str,
+        name: str,
+        *,
+        audit_data_activity: AuditDataActivityConfig | None = None,
+        connections: ConnectionsConfig | None = None,
+        recipes: Mapping[str, RecipeConfig] | None = None,
+    ) -> PangeaResponse[ServiceConfig]:
+        """
+        OperationId: ai_guard_post_v1beta_config_update
+        """
+        return await self.request.post(
+            "v1beta/config/update",
+            data={
+                "id": id,
+                "name": name,
+                "audit_data_activity": audit_data_activity,
+                "connections": connections,
+                "recipes": recipes,
+            },
+            result_class=ServiceConfig,
+        )
+
+    async def delete_service_config(self, id: str) -> PangeaResponse[ServiceConfig]:
+        """
+        OperationId: ai_guard_post_v1beta_config_delete
+        """
+        return await self.request.post("v1beta/config/delete", data={"id": id}, result_class=ServiceConfig)
+
+    async def list_service_configs(
+        self,
+        *,
+        filter: ServiceConfigFilter | None = None,
+        last: str | None = None,
+        order: Literal["asc", "desc"] | None = None,
+        order_by: Literal["id", "created_at", "updated_at"] | None = None,
+        size: int | None = None,
+    ) -> PangeaResponse[ServiceConfigsPage]:
+        """
+        OperationId: ai_guard_post_v1beta_config_list
+        """
+        return await self.request.post(
+            "v1beta/config/list",
+            data={"filter": filter, "last": last, "order": order, "order_by": order_by, "size": size},
+            result_class=ServiceConfigsPage,
         )

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import datetime
 import os
 from collections.abc import AsyncIterator, Iterator
 
@@ -8,7 +9,7 @@ import pytest
 from pangea import PangeaConfig
 from pangea.asyncio.services.ai_guard import AIGuardAsync
 from pangea.services import AIGuard
-from pangea.services.ai_guard import LogFields, TextGuardResult
+from pangea.services.ai_guard import LogFields, ServiceConfig, ServiceConfigFilter, ServiceConfigsPage, TextGuardResult
 
 from ..utils import assert_matches_type
 
@@ -42,6 +43,42 @@ class TestAIGuard:
         assert response.result
         assert_matches_type(TextGuardResult, response.result, path=["response"])
 
+    def test_get_service_config(self, client: AIGuard) -> None:
+        response = client.get_service_config("my_config_id")
+        assert response.status == "Success"
+        assert response.result
+        assert_matches_type(ServiceConfig, response.result, path=["response"])
+
+    def test_create_service_config(self, client: AIGuard) -> None:
+        response = client.create_service_config("my_config", recipes={})
+        assert response.status == "Success"
+        assert response.result
+        assert_matches_type(ServiceConfig, response.result, path=["response"])
+
+    def test_update_service_config(self, client: AIGuard) -> None:
+        response = client.update_service_config(id="my_config_id", name="my_config", recipes={})
+        assert response.status == "Success"
+        assert response.result
+        assert_matches_type(ServiceConfig, response.result, path=["response"])
+
+    def test_delete_service_config(self, client: AIGuard) -> None:
+        response = client.delete_service_config(id="my_config_id")
+        assert response.status == "Success"
+        assert response.result
+        assert_matches_type(ServiceConfig, response.result, path=["response"])
+
+    def test_list_service_configs(self, client: AIGuard) -> None:
+        response = client.list_service_configs(
+            filter=ServiceConfigFilter(
+                id="my_config_id",
+                id__contains=["my", "config", "id"],
+                created_at=datetime.datetime.now(),
+            )
+        )
+        assert response.status == "Success"
+        assert response.result
+        assert_matches_type(ServiceConfigsPage, response.result, path=["response"])
+
 
 class TestAIGuardAsync:
     async def test_text_guard(self, async_client: AIGuardAsync) -> None:
@@ -59,3 +96,39 @@ class TestAIGuardAsync:
         assert response.status == "Success"
         assert response.result
         assert_matches_type(TextGuardResult, response.result, path=["response"])
+
+    async def test_get_service_config(self, async_client: AIGuardAsync) -> None:
+        response = await async_client.get_service_config("my_config_id")
+        assert response.status == "Success"
+        assert response.result
+        assert_matches_type(ServiceConfig, response.result, path=["response"])
+
+    async def test_create_service_config(self, async_client: AIGuardAsync) -> None:
+        response = await async_client.create_service_config("my_config", recipes={})
+        assert response.status == "Success"
+        assert response.result
+        assert_matches_type(ServiceConfig, response.result, path=["response"])
+
+    async def test_update_service_config(self, async_client: AIGuardAsync) -> None:
+        response = await async_client.update_service_config(id="my_config_id", name="my_config", recipes={})
+        assert response.status == "Success"
+        assert response.result
+        assert_matches_type(ServiceConfig, response.result, path=["response"])
+
+    async def test_delete_service_config(self, async_client: AIGuardAsync) -> None:
+        response = await async_client.delete_service_config(id="my_config_id")
+        assert response.status == "Success"
+        assert response.result
+        assert_matches_type(ServiceConfig, response.result, path=["response"])
+
+    async def test_list_service_configs(self, async_client: AIGuardAsync) -> None:
+        response = await async_client.list_service_configs(
+            filter=ServiceConfigFilter(
+                id="my_config_id",
+                id__contains=["my", "config", "id"],
+                created_at=datetime.datetime.now(),
+            )
+        )
+        assert response.status == "Success"
+        assert response.result
+        assert_matches_type(ServiceConfigsPage, response.result, path=["response"])
