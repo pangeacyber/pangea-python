@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import List, Literal, Optional, Union, overload
+from typing import Literal, Optional, Union, overload
 
 from pydantic import Field
 
@@ -57,7 +57,7 @@ class ListProjectsFilter(APIRequestModel):
 
 
 class ListProjectsResult(PangeaResponseResult):
-    results: List[Project]
+    results: list[Project]
     """A list of projects"""
 
     count: int
@@ -82,11 +82,11 @@ class AccessClientInfo(PangeaResponseResult):
     """A list of space separated scope"""
     token_endpoint_auth_method: AccessClientTokenAuth
     """The authentication method for the token endpoint."""
-    redirect_uris: List[str]
+    redirect_uris: list[str]
     """A list of allowed redirect URIs for the client."""
-    grant_types: List[str]
+    grant_types: list[str]
     """A list of OAuth grant types that the client can use."""
-    response_types: List[Optional[str]]
+    response_types: list[Optional[str]]
     """A list of OAuth response types that the client can use."""
     client_token_expires_in: Optional[int] = None
     """A positive time duration in seconds or null"""
@@ -124,7 +124,7 @@ class AccessRole(PangeaResponseResult):
 
 
 class AccessClientListResult(PangeaResponseResult):
-    clients: List[AccessClientInfo]
+    clients: list[AccessClientInfo]
     count: int
     last: Optional[str] = None
 
@@ -163,13 +163,13 @@ class AccessClientSecretInfoWithMetadata(PangeaResponseResult):
 
 
 class AccessClientSecretInfoListResult(PangeaResponseResult):
-    client_secrets: List[AccessClientSecretInfoWithMetadata] = Field(alias="client-secrets")
+    client_secrets: list[AccessClientSecretInfoWithMetadata] = Field(alias="client-secrets")
     count: int
     last: Optional[str] = None
 
 
 class AccessRolesListResult(PangeaResponseResult):
-    roles: List[AccessRole]
+    roles: list[AccessRole]
     count: int
     last: Optional[str] = None
 
