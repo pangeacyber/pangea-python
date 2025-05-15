@@ -19,6 +19,8 @@ from pangea.services import Audit
 
 
 class TestEnvironment(str, enum.Enum):
+    __test__ = False
+
     DEVELOP = "DEV"
     LIVE = "LVE"
     STAGING = "STG"

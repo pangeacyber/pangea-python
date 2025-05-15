@@ -8,7 +8,9 @@ from __future__ import annotations
 
 import enum
 import io
-from typing import Dict, List, NewType, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
+
+from pydantic import RootModel
 
 from pangea.config import PangeaConfig
 from pangea.response import APIRequestModel, PangeaResponse, PangeaResponseResult, TransferMethod
@@ -16,8 +18,8 @@ from pangea.services.base import ServiceBase
 from pangea.services.share.file_format import FileFormat
 from pangea.utils import get_file_size, get_file_upload_params
 
-Metadata = NewType("Metadata", Dict[str, str])
-Tags = NewType("Tags", List[str])
+Metadata = RootModel[dict[str, str]]
+Tags = RootModel[list[str]]
 
 
 class ItemOrder(str, enum.Enum):

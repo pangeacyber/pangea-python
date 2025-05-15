@@ -10,7 +10,7 @@ import copy
 import json
 import logging
 import time
-from collections.abc import Mapping, Sequence
+from collections.abc import Iterable, Mapping
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Type, Union, cast
 
 import requests
@@ -18,7 +18,7 @@ from pydantic import BaseModel
 from pydantic_core import to_jsonable_python
 from requests.adapters import HTTPAdapter, Retry
 from requests_toolbelt import MultipartDecoder  # type: ignore[import-untyped]
-from typing_extensions import TypeVar
+from typing_extensions import TypeAlias, TypeVar, override
 from yarl import URL
 
 import pangea
@@ -29,6 +29,19 @@ from pangea.utils import default_encoder
 
 if TYPE_CHECKING:
     import aiohttp
+
+
+_Data: TypeAlias = Union[Iterable[bytes], str, bytes, list[tuple[Any, Any]]]
+
+_FileName: TypeAlias = Union[str, None]
+_FileContent: TypeAlias = Union[str, bytes]
+_FileContentType: TypeAlias = str
+_FileCustomHeaders: TypeAlias = Mapping[str, str]
+_FileSpecTuple2: TypeAlias = tuple[_FileName, _FileContent]
+_FileSpecTuple3: TypeAlias = tuple[_FileName, _FileContent, _FileContentType]
+_FileSpecTuple4: TypeAlias = tuple[_FileName, _FileContent, _FileContentType, _FileCustomHeaders]
+_FileSpec: TypeAlias = Union[_FileContent, _FileSpecTuple2, _FileSpecTuple3, _FileSpecTuple4]
+_Files: TypeAlias = Union[Mapping[str, _FileSpec], Iterable[tuple[str, _FileSpec]]]
 
 
 class MultipartResponse:
@@ -120,6 +133,7 @@ class PangeaRequestBase:
         headers = {
             "User-Agent": self._user_agent,
             "Authorization": f"Bearer {self.token}",
+            "Content-Type": "application/json",
         }
 
         # We want to ignore previous headers if user tried to set them, so we will overwrite them.
@@ -189,6 +203,9 @@ class PangeaRequestBase:
             raise pe.AcceptedRequestException(response)
         raise pe.PangeaAPIException(f"{summary} ", response)
 
+    def _init_session(self) -> requests.Session | aiohttp.ClientSession:
+        raise NotImplementedError
+
 
 TResult = TypeVar("TResult", bound=PangeaResponseResult)
 
@@ -255,9 +272,10 @@ class PangeaRequest(PangeaRequestBase):
                 endpoint, result_class=result_class, data=data, files=files
             )
         else:
-            requests_response = self._http_post(
-                url, headers=self._headers(), data=data, files=files, multipart_post=True
-            )
+            headers = self._headers()
+            if transfer_method == TransferMethod.MULTIPART.value:
+                del headers["Content-Type"]
+            requests_response = self._http_post(url, headers=headers, data=data, files=files)
 
         self._check_http_errors(requests_response)
 
@@ -331,7 +349,7 @@ class PangeaRequest(PangeaRequestBase):
         url: str,
         headers: Mapping[str, str] = {},
         data: str | dict[Any, Any] = {},  # noqa: B006
-        files: Optional[list[Tuple]] = None,
+        files: _Files | None = None,
         multipart_post: bool = True,
     ) -> requests.Response:
         data_send, files = self._http_post_process(data=data, files=files, multipart_post=multipart_post)
@@ -340,29 +358,23 @@ class PangeaRequest(PangeaRequestBase):
     def _http_post_process(
         self,
         data: str | dict[Any, Any] = {},  # noqa: B006
-        files: Optional[Sequence[Tuple[str, Tuple[Any, str, str]]]] = None,
+        files: _Files | None = None,
         multipart_post: bool = True,
-    ):
+    ) -> tuple[_Data | None, _Files | None]:
         if files:
             if multipart_post is True:
                 data_send: str = json.dumps(data, default=default_encoder) if isinstance(data, dict) else data
-                multi = [("request", (None, data_send, "application/json"))]
-                multi.extend(files)
-                files = multi
-                return None, files
-            # Post to presigned url as form
-            data_send: list = []  # type: ignore[no-redef]
-            for k, v in data.items():  # type: ignore[union-attr]
-                data_send.append((k, v))  # type: ignore[attr-defined]
-            # When posting to presigned url, file key should be 'file'
-            files = {  # type: ignore[assignment]
-                "file": files[0][1],
-            }
-            return data_send, files
+                multi: list[tuple[str, _FileSpec]] = [("request", (None, data_send, "application/json")), *files]
+                return None, multi
+
+            # Post to presigned URL as form.
+            # When posting to presigned URL, file key should be 'file'.
+            assert isinstance(data, dict)
+            assert isinstance(files, list)
+            return [(k, v) for k, v in data.items()], {"file": files[0][1]}
+
         data_send = json.dumps(data, default=default_encoder) if isinstance(data, dict) else data
         return data_send, None
-
-        return data, files
 
     def _handle_queued_result(self, response: PangeaResponse[TResult]) -> PangeaResponse[TResult]:
         if self._queued_retry_enabled and response.http_status == 202:
@@ -616,6 +628,7 @@ class PangeaRequest(PangeaRequestBase):
             return loop_resp
         raise loop_exc
 
+    @override
     def _init_session(self) -> requests.Session:
         retry_config = Retry(
             total=self.config.request_retries,

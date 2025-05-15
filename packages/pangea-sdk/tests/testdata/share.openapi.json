@@ -1,0 +1,5065 @@
+{
+  "info": {
+    "title": "share",
+    "description": "Secure file sharing",
+    "version": "1",
+    "contact": {
+      "name": "Pangea",
+      "url": "https://pangea.cloud/docs/support",
+      "email": "support@pangea.cloud"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://share.aws.us.pangea.cloud",
+      "description": "Pangea regional service cluster"
+    },
+    {
+      "url": "https://share.aws.us-east.pangea.cloud",
+      "description": "Pangea regional service cluster"
+    },
+    {
+      "url": "https://share.aws.eu.pangea.cloud",
+      "description": "Pangea regional service cluster"
+    }
+  ],
+  "paths": {
+    "/v1beta/config": {
+      "post": {
+        "operationId": "share_post_v1beta_config",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["id"],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Configuration fetched successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "type": "object",
+                          "properties": {}
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "$ref": "#/components/schemas/pangea-validation-errors"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["share"]
+      }
+    },
+    "/v1beta/config/create": {
+      "post": {
+        "operationId": "share_post_v1beta_config_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "docs_anchor": "settings",
+                "$ref": "#/components/schemas/share-service-config-create"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Configuration created successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "type": "object",
+                          "properties": {}
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "$ref": "#/components/schemas/pangea-validation-errors"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["share"]
+      }
+    },
+    "/v1beta/config/update": {
+      "post": {
+        "operationId": "share_post_v1beta_config_update",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "docs_anchor": "settings",
+                "$ref": "#/components/schemas/share-service-config"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Configuration updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "type": "object",
+                          "properties": {}
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "$ref": "#/components/schemas/pangea-validation-errors"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["share"]
+      }
+    },
+    "/v1beta/config/delete": {
+      "post": {
+        "operationId": "share_post_v1beta_config_delete",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "docs_anchor": "settings",
+                "type": "object",
+                "required": ["id"],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Configuration deleted successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "type": "object",
+                          "properties": {}
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "$ref": "#/components/schemas/pangea-validation-errors"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["share"]
+      }
+    },
+    "/v1/buckets": {
+      "post": {
+        "operationId": "share_post_v1_buckets",
+        "summary": "List buckets",
+        "description": "Get information on the accessible buckets.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BucketsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The object was successfully retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "$ref": "#/components/schemas/BucketsResponse"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "$ref": "#/components/schemas/pangea-validation-errors"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["share", "v1-general"]
+      }
+    },
+    "/v1beta/buckets": {
+      "post": {
+        "operationId": "share_post_v1beta_buckets",
+        "description": "Get information on the accessible buckets.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BucketsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The object was successfully retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "$ref": "#/components/schemas/BucketsResponse"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "$ref": "#/components/schemas/pangea-validation-errors"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["share", "v1beta-general"]
+      }
+    },
+    "/v1/delete": {
+      "post": {
+        "operationId": "share_post_v1_delete",
+        "summary": "Delete object",
+        "description": "Delete an item from the Secure Share by providing its `id`. The `force` parameter can be used to delete folders and their contents even if the folder is not empty.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "Delete object by ID.",
+                "properties": {
+                  "id": {
+                    "description": "The ID of the object to delete.",
+                    "$ref": "#/components/schemas/ID"
+                  },
+                  "force": {
+                    "description": "If true, delete a folder even if it's not empty. Deletes the contents of folder as well.",
+                    "type": "boolean"
+                  },
+                  "root_folder": {
+                    "description": "The path of a root folder to restrict the operation to. Must resolve to root_id if also set.",
+                    "$ref": "#/components/schemas/Folder"
+                  },
+                  "root_id": {
+                    "description": "The ID of a root folder to restrict the operation to. Must match root_folder if also set.",
+                    "$ref": "#/components/schemas/IDParent"
+                  },
+                  "tenant_id": {
+                    "description": "A tenant to associate with this request",
+                    "$ref": "#/components/schemas/Tenant"
+                  },
+                  "bucket_id": {
+                    "$ref": "#/components/schemas/IDShareBucket",
+                    "description": "The bucket to use, if not the default."
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Object(s) deleted successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "type": "object",
+                          "properties": {
+                            "count": {
+                              "type": "integer",
+                              "description": "Number of objects deleted."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "$ref": "#/components/schemas/pangea-validation-errors"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["share", "v1-general"]
+      }
+    },
+    "/v1beta/delete": {
+      "post": {
+        "operationId": "share_post_v1beta_delete",
+        "description": "Delete an item from the Secure Share by providing its `id` **or** `path`.\n\nProvide just `id` **OR** just `path`.\n\nThe `force` parameter can be used to delete folders and their contents even if the folder is not empty.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "Delete object by ID or path.  If both are supplied, the path must match that of the object represented by the ID.",
+                "properties": {
+                  "id": {
+                    "description": "The ID of the object to delete.",
+                    "$ref": "#/components/schemas/ID"
+                  },
+                  "force": {
+                    "description": "If true, delete a folder even if it's not empty. Deletes the contents of folder as well.",
+                    "type": "boolean"
+                  },
+                  "path": {
+                    "description": "The path of the object to delete.",
+                    "$ref": "#/components/schemas/Path"
+                  },
+                  "bucket_id": {
+                    "$ref": "#/components/schemas/IDShareBucket",
+                    "description": "The bucket to use, if not the default."
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Object(s) deleted successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "type": "object",
+                          "properties": {
+                            "count": {
+                              "type": "integer",
+                              "description": "Number of objects deleted."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "$ref": "#/components/schemas/pangea-validation-errors"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["share", "v1beta-general"]
+      }
+    },
+    "/v1/folder/create": {
+      "post": {
+        "operationId": "share_post_v1_folder_create",
+        "summary": "Create folder",
+        "description": "Create a Secure Share folder.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "$ref": "#/components/schemas/Name"
+                  },
+                  "file_ttl": {
+                    "$ref": "#/components/schemas/DurationNI",
+                    "description": "Duration until files within this folder are automatically deleted."
+                  },
+                  "folder": {
+                    "$ref": "#/components/schemas/Folder",
+                    "description": "The folder to place the folder in. Must match `parent_id` if also set."
+                  },
+                  "metadata": {
+                    "$ref": "#/components/schemas/Metadata"
+                  },
+                  "root_folder": {
+                    "description": "The path of a root folder to restrict the operation to. Must resolve to root_id if also set.",
+                    "$ref": "#/components/schemas/Folder"
+                  },
+                  "root_id": {
+                    "description": "The ID of a root folder to restrict the operation to. Must match root_folder if also set.",
+                    "$ref": "#/components/schemas/IDParent"
+                  },
+                  "parent_id": {
+                    "$ref": "#/components/schemas/ID",
+                    "description": "The ID of the parent folder. Must match `folder` if also set."
+                  },
+                  "tags": {
+                    "$ref": "#/components/schemas/Tags"
+                  },
+                  "tenant_id": {
+                    "$ref": "#/components/schemas/Tenant",
+                    "description": "A tenant to associate with this request"
+                  },
+                  "bucket_id": {
+                    "$ref": "#/components/schemas/IDShareBucket",
+                    "description": "The bucket to use, if not the default."
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The folder was successfully created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "type": "object",
+                          "description": "Information on the created folder.",
+                          "properties": {
+                            "object": {
+                              "$ref": "#/components/schemas/Object"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "$ref": "#/components/schemas/pangea-validation-errors"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["share", "v1-general"]
+      }
+    },
+    "/v1beta/folder/create": {
+      "post": {
+        "operationId": "share_post_v1beta_folder_create",
+        "description": "Create a Secure Share folder.\n\nUse either `parent_id` with `name` to specify the folder to be created, **or** use `path` only to specify the complete path to the folder to be created.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "$ref": "#/components/schemas/Name"
+                  },
+                  "metadata": {
+                    "$ref": "#/components/schemas/Metadata"
+                  },
+                  "parent_id": {
+                    "$ref": "#/components/schemas/ID"
+                  },
+                  "path": {
+                    "$ref": "#/components/schemas/Path"
+                  },
+                  "tags": {
+                    "$ref": "#/components/schemas/Tags"
+                  },
+                  "bucket_id": {
+                    "$ref": "#/components/schemas/IDShareBucket",
+                    "description": "The bucket to use, if not the default."
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The folder was successfully created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "type": "object",
+                          "description": "Information on the created folder.",
+                          "properties": {
+                            "object": {
+                              "$ref": "#/components/schemas/Object"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "$ref": "#/components/schemas/pangea-validation-errors"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["share", "v1beta-general"]
+      }
+    },
+    "/v1/get": {
+      "post": {
+        "operationId": "share_post_v1_get",
+        "summary": "Get or download object",
+        "description": "Get metadata or download a file with from Secure Share by `id`.\n\nSee [Transfer Methods](/docs/api/transfer-methods) for information on `transfer_method`.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "Get object.",
+                "properties": {
+                  "id": {
+                    "description": "The ID of the object to retrieve.",
+                    "$ref": "#/components/schemas/ID"
+                  },
+                  "password": {
+                    "description": "If the file was protected with a password, the password to decrypt with.",
+                    "type": "string"
+                  },
+                  "root_folder": {
+                    "description": "The path of a root folder to restrict the operation to. Must resolve to root_id if also set.",
+                    "$ref": "#/components/schemas/Folder"
+                  },
+                  "root_id": {
+                    "description": "The ID of a root folder to restrict the operation to. Must match root_folder if also set.",
+                    "$ref": "#/components/schemas/IDParent"
+                  },
+                  "tenant_id": {
+                    "$ref": "#/components/schemas/Tenant",
+                    "description": "A tenant to associate with this request"
+                  },
+                  "transfer_method": {
+                    "description": "The requested transfer method for the file data.",
+                    "type": "string",
+                    "enum": ["dest-url", "multipart"]
+                  },
+                  "bucket_id": {
+                    "$ref": "#/components/schemas/IDShareBucket",
+                    "description": "The bucket to use, if not the default."
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The object was successfully retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "type": "object",
+                          "description": "File information.",
+                          "properties": {
+                            "dest_url": {
+                              "description": "A URL where the file can be downloaded from. (transfer_method: dest-url)",
+                              "$ref": "#/components/schemas/Location"
+                            },
+                            "object": {
+                              "$ref": "#/components/schemas/Object"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "multipart/form-data": {
+                "schema": {
+                  "type": "object",
+                  "description": "File information. The following multipart part will include the binary contents of the file.",
+                  "properties": {
+                    "json": {
+                      "$ref": "#/components/schemas/Object"
+                    },
+                    "payload": {}
+                  }
+                },
+                "encoding": {
+                  "payload": {
+                    "contentType": "application/octet-stream"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "$ref": "#/components/schemas/pangea-validation-errors"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["share", "v1-general"]
+      }
+    },
+    "/v1beta/get": {
+      "post": {
+        "operationId": "share_post_v1beta_get",
+        "description": "Download a file with from Secure Share by `id` **OR** `path`.\n\nYou can use the `path` parameter alone to specify the full path to the file,\n**OR** you can use the `id` of the file to be downloaded.\n\nSee [Transfer Methods](/docs/api/transfer-methods) for information on `transfer_method`. ",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "Get object. If both ID and Path are supplied, the call will fail if the target object doesn't match both properties.",
+                "properties": {
+                  "id": {
+                    "description": "The ID of the object to retrieve.",
+                    "$ref": "#/components/schemas/ID"
+                  },
+                  "path": {
+                    "description": "The path of the object to retrieve.",
+                    "$ref": "#/components/schemas/Path"
+                  },
+                  "password": {
+                    "description": "If the file was protected with a password, the password to decrypt with.",
+                    "type": "string"
+                  },
+                  "transfer_method": {
+                    "description": "The requested transfer method for the file data.",
+                    "type": "string",
+                    "enum": ["dest-url", "multipart"]
+                  },
+                  "bucket_id": {
+                    "$ref": "#/components/schemas/IDShareBucket",
+                    "description": "The bucket to use, if not the default."
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The object was successfully retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "type": "object",
+                          "description": "File information.",
+                          "properties": {
+                            "dest_url": {
+                              "description": "A URL where the file can be downloaded from. (transfer_method: dest-url)",
+                              "$ref": "#/components/schemas/Location"
+                            },
+                            "object": {
+                              "$ref": "#/components/schemas/Object"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "multipart/form-data": {
+                "schema": {
+                  "type": "object",
+                  "description": "File information. The following multipart part will include the binary contents of the file.",
+                  "properties": {
+                    "json": {
+                      "$ref": "#/components/schemas/Object"
+                    },
+                    "payload": {}
+                  }
+                },
+                "encoding": {
+                  "payload": {
+                    "contentType": "application/octet-stream"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "$ref": "#/components/schemas/pangea-validation-errors"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["share", "v1beta-general"]
+      }
+    },
+    "/v1/get_archive": {
+      "post": {
+        "operationId": "share_post_v1_get_archive",
+        "summary": "Get archive of objects",
+        "description": "Download an archive (tar or zip) containing the items identified by the ids in the `ids` array parameter.\n\nSee [Transfer Methods](/docs/api/transfer-methods) for information on `transfer_method`.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "ids": {
+                    "description": "The IDs of the objects to include in the archive. Folders include all children.",
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/ID"
+                    }
+                  },
+                  "format": {
+                    "description": "The format to use to build the archive.",
+                    "$ref": "#/components/schemas/ArchiveFormat"
+                  },
+                  "root_folder": {
+                    "description": "The path of a root folder to restrict the operation to. Must resolve to root_id if also set.",
+                    "$ref": "#/components/schemas/Folder"
+                  },
+                  "root_id": {
+                    "description": "The ID of a root folder to restrict the operation to. Must match root_folder if also set.",
+                    "$ref": "#/components/schemas/IDParent"
+                  },
+                  "tenant_id": {
+                    "$ref": "#/components/schemas/Tenant",
+                    "description": "A tenant to associate with this request"
+                  },
+                  "transfer_method": {
+                    "description": "The requested transfer method for the file data.",
+                    "type": "string",
+                    "enum": ["dest-url", "multipart"]
+                  },
+                  "bucket_id": {
+                    "$ref": "#/components/schemas/IDShareBucket",
+                    "description": "The bucket to use, if not the default."
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The archive was successfully built.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "$ref": "#/components/schemas/GetArchiveResponse"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "multipart/form-data": {
+                "schema": {
+                  "type": "object",
+                  "description": "File information. The following multipart part will include the binary contents of the file.",
+                  "properties": {
+                    "json": {
+                      "$ref": "#/components/schemas/GetArchiveResponse"
+                    },
+                    "payload": {}
+                  }
+                },
+                "encoding": {
+                  "payload": {
+                    "contentType": "application/octet-stream"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "$ref": "#/components/schemas/pangea-validation-errors"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["share", "v1-general"]
+      }
+    },
+    "/v1beta/get_archive": {
+      "post": {
+        "operationId": "share_post_v1beta_get_archive",
+        "description": "Download an archive (tar or zip) containing the items identified by the ids in the `ids` array parameter.\n\nSee [Transfer Methods](/docs/api/transfer-methods) for information on `transfer_method`.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "ids": {
+                    "description": "The IDs of the objects to include in the archive. Folders include all children.",
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/ID"
+                    }
+                  },
+                  "format": {
+                    "description": "The format to use to build the archive.",
+                    "$ref": "#/components/schemas/ArchiveFormat"
+                  },
+                  "transfer_method": {
+                    "description": "The requested transfer method for the file data.",
+                    "type": "string",
+                    "enum": ["dest-url", "multipart"]
+                  },
+                  "bucket_id": {
+                    "$ref": "#/components/schemas/IDShareBucket",
+                    "description": "The bucket to use, if not the default."
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The archive was successfully built.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "$ref": "#/components/schemas/GetArchiveResponse"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "multipart/form-data": {
+                "schema": {
+                  "type": "object",
+                  "description": "File information. The following multipart part will include the binary contents of the file.",
+                  "properties": {
+                    "json": {
+                      "$ref": "#/components/schemas/GetArchiveResponse"
+                    },
+                    "payload": {}
+                  }
+                },
+                "encoding": {
+                  "payload": {
+                    "contentType": "application/octet-stream"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "$ref": "#/components/schemas/pangea-validation-errors"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["share", "v1beta-general"]
+      }
+    },
+    "/v1/list": {
+      "post": {
+        "operationId": "share_post_v1_list",
+        "summary": "List objects",
+        "description": "List files matching the given filter parameter.  \n\nUse the `order` parameter to specify \u201casc\u201d for ascending, or \u201cdesc\u201d for descending order of the results.\nUse the `order_by` parameter to specify which field the order parameter refers to.\nUse the `size` parameter to indicate the maximum number of results to include per call (for pagination of the results).\n\nWhen paginating results, use the value of `result.last` from the response to the previous call as the value for the input parameter `last`.\n`result.count` from the response gives the total number of items matching the filter.\n",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "filter": {
+                    "patternProperties": {},
+                    "properties": {
+                      "created_at": {
+                        "description": "Only records where created_at equals this value.",
+                        "format": "date-time",
+                        "nullable": false,
+                        "type": "string"
+                      },
+                      "created_at__gt": {
+                        "description": "Only records where created_at is greater than this value.",
+                        "format": "date-time",
+                        "type": "string"
+                      },
+                      "created_at__gte": {
+                        "description": "Only records where created_at is greater than or equal to this value.",
+                        "format": "date-time",
+                        "type": "string"
+                      },
+                      "created_at__lt": {
+                        "description": "Only records where created_at is less than this value.",
+                        "format": "date-time",
+                        "type": "string"
+                      },
+                      "created_at__lte": {
+                        "description": "Only records where created_at is less than or equal to this value.",
+                        "format": "date-time",
+                        "type": "string"
+                      },
+                      "folder": {
+                        "description": "Only records where the object exists in the supplied parent folder path name.",
+                        "$ref": "#/components/schemas/Folder"
+                      },
+                      "id": {
+                        "description": "Only records where id equals this value.",
+                        "nullable": false,
+                        "type": "string"
+                      },
+                      "id__in": {
+                        "description": "Only records where id equals one of the provided substrings.",
+                        "items": {
+                          "description": "A substring to check for.",
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      "name": {
+                        "description": "Only records where name equals this value.",
+                        "nullable": false,
+                        "type": "string"
+                      },
+                      "name__contains": {
+                        "description": "Only records where name includes each substring.",
+                        "items": {
+                          "description": "A substring to check for.",
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      "name__in": {
+                        "description": "Only records where name equals one of the provided substrings.",
+                        "items": {
+                          "description": "A substring to check for.",
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      "parent_id": {
+                        "description": "Only records where parent_id equals this value.",
+                        "nullable": false,
+                        "type": "string"
+                      },
+                      "parent_id__in": {
+                        "description": "Only records where parent_id equals one of the provided substrings.",
+                        "items": {
+                          "description": "A substring to check for.",
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      "size": {
+                        "description": "Only records where size equals this value.",
+                        "nullable": false,
+                        "type": "integer"
+                      },
+                      "size__gt": {
+                        "description": "Only records where size is greater than this value.",
+                        "type": "integer"
+                      },
+                      "size__gte": {
+                        "description": "Only records where size is greater than or equal to this value.",
+                        "type": "integer"
+                      },
+                      "size__lt": {
+                        "description": "Only records where size is less than to this value.",
+                        "type": "integer"
+                      },
+                      "size__lte": {
+                        "description": "Only records where size is less than or equal to this value.",
+                        "type": "integer"
+                      },
+                      "tags": {
+                        "description": "A list of tags that all must be present.",
+                        "items": {
+                          "description": "Tags.",
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      "type": {
+                        "description": "Only records where type equals this value.",
+                        "nullable": false,
+                        "type": "string"
+                      },
+                      "type__contains": {
+                        "description": "Only records where type includes each substring.",
+                        "items": {
+                          "description": "A substring to check for.",
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      "type__in": {
+                        "description": "Only records where type equals one of the provided substrings.",
+                        "items": {
+                          "description": "A substring to check for.",
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      "updated_at": {
+                        "description": "Only records where updated_at equals this value.",
+                        "format": "date-time",
+                        "nullable": false,
+                        "type": "string"
+                      },
+                      "updated_at__gt": {
+                        "description": "Only records where updated_at is greater than this value.",
+                        "format": "date-time",
+                        "type": "string"
+                      },
+                      "updated_at__gte": {
+                        "description": "Only records where updated_at is greater than or equal to this value.",
+                        "format": "date-time",
+                        "type": "string"
+                      },
+                      "updated_at__lt": {
+                        "description": "Only records where updated_at is less than this value.",
+                        "format": "date-time",
+                        "type": "string"
+                      },
+                      "updated_at__lte": {
+                        "description": "Only records where updated_at is less than or equal to this value.",
+                        "format": "date-time",
+                        "type": "string"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "include_external_bucket_key": {
+                    "description": "If true, include the external_bucket_key in results.",
+                    "type": "boolean"
+                  },
+                  "last": {
+                    "description": "Reflected value from a previous response to obtain the next page of results.",
+                    "type": "string"
+                  },
+                  "order": {
+                    "description": "Order results asc(ending) or desc(ending).",
+                    "enum": ["asc", "desc"],
+                    "type": "string"
+                  },
+                  "order_by": {
+                    "description": "Which field to order results by.",
+                    "enum": [
+                      "id",
+                      "name",
+                      "parent_id",
+                      "created_at",
+                      "updated_at",
+                      "size",
+                      "type"
+                    ],
+                    "type": "string"
+                  },
+                  "root_folder": {
+                    "description": "The path of a root folder to restrict the operation to. Must resolve to root_id if also set.",
+                    "$ref": "#/components/schemas/Folder"
+                  },
+                  "root_id": {
+                    "description": "The ID of a root folder to restrict the operation to. Must match root_folder if also set.",
+                    "$ref": "#/components/schemas/IDParent"
+                  },
+                  "size": {
+                    "description": "Maximum results to include in the response.",
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "bucket_id": {
+                    "$ref": "#/components/schemas/IDShareBucket",
+                    "description": "The bucket to use, if not the default."
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "type": "object",
+                          "properties": {
+                            "count": {
+                              "description": "The total number of objects matched by the list request.",
+                              "type": "integer"
+                            },
+                            "last": {
+                              "description": "Used to fetch the next page of the current listing when provided in a repeated request's last parameter.",
+                              "type": "string"
+                            },
+                            "objects": {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/components/schemas/Object"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "No description provided"
+          },
+          "400": {
+            "description": "Validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "$ref": "#/components/schemas/pangea-validation-errors"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["share", "v1-general"]
+      }
+    },
+    "/v1beta/list": {
+      "post": {
+        "operationId": "share_post_v1beta_list",
+        "description": "List files matching the given filter parameter.  \n\nUse the `order` parameter to specify \u201casc\u201d for ascending, or \u201cdesc\u201d for descending order of the results.\nUse the `order_by` parameter to specify which field the order parameter refers to.\nUse the `size` parameter to indicate the maximum number of results to include per call (for pagination of the results).\n\nWhen paginating results, use the value of `result.last` from the response to the previous call as the value for the input parameter `last`.\n`result.count` from the response gives the total number of items matching the filter.\n",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "filter": {
+                    "patternProperties": {},
+                    "properties": {
+                      "created_at": {
+                        "description": "Only records where created_at equals this value.",
+                        "format": "date-time",
+                        "nullable": false,
+                        "type": "string"
+                      },
+                      "created_at__gt": {
+                        "description": "Only records where created_at is greater than this value.",
+                        "format": "date-time",
+                        "type": "string"
+                      },
+                      "created_at__gte": {
+                        "description": "Only records where created_at is greater than or equal to this value.",
+                        "format": "date-time",
+                        "type": "string"
+                      },
+                      "created_at__lt": {
+                        "description": "Only records where created_at is less than this value.",
+                        "format": "date-time",
+                        "type": "string"
+                      },
+                      "created_at__lte": {
+                        "description": "Only records where created_at is less than or equal to this value.",
+                        "format": "date-time",
+                        "type": "string"
+                      },
+                      "folder": {
+                        "description": "Only records where the object exists in the supplied parent folder path name.",
+                        "$ref": "#/components/schemas/Folder"
+                      },
+                      "id": {
+                        "description": "Only records where id equals this value.",
+                        "nullable": false,
+                        "type": "string"
+                      },
+                      "id__in": {
+                        "description": "Only records where id equals one of the provided substrings.",
+                        "items": {
+                          "description": "A substring to check for.",
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      "name": {
+                        "description": "Only records where name equals this value.",
+                        "nullable": false,
+                        "type": "string"
+                      },
+                      "name__contains": {
+                        "description": "Only records where name includes each substring.",
+                        "items": {
+                          "description": "A substring to check for.",
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      "name__in": {
+                        "description": "Only records where name equals one of the provided substrings.",
+                        "items": {
+                          "description": "A substring to check for.",
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      "parent_id": {
+                        "description": "Only records where parent_id equals this value.",
+                        "nullable": false,
+                        "type": "string"
+                      },
+                      "parent_id__in": {
+                        "description": "Only records where parent_id equals one of the provided substrings.",
+                        "items": {
+                          "description": "A substring to check for.",
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      "size": {
+                        "description": "Only records where size equals this value.",
+                        "nullable": false,
+                        "type": "integer"
+                      },
+                      "size__gt": {
+                        "description": "Only records where size is greater than this value.",
+                        "type": "integer"
+                      },
+                      "size__gte": {
+                        "description": "Only records where size is greater than or equal to this value.",
+                        "type": "integer"
+                      },
+                      "size__lt": {
+                        "description": "Only records where size is less than to this value.",
+                        "type": "integer"
+                      },
+                      "size__lte": {
+                        "description": "Only records where size is less than or equal to this value.",
+                        "type": "integer"
+                      },
+                      "tags": {
+                        "description": "A list of tags that all must be present.",
+                        "items": {
+                          "description": "Tags.",
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      "type": {
+                        "description": "Only records where type equals this value.",
+                        "nullable": false,
+                        "type": "string"
+                      },
+                      "type__contains": {
+                        "description": "Only records where type includes each substring.",
+                        "items": {
+                          "description": "A substring to check for.",
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      "type__in": {
+                        "description": "Only records where type equals one of the provided substrings.",
+                        "items": {
+                          "description": "A substring to check for.",
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      "updated_at": {
+                        "description": "Only records where updated_at equals this value.",
+                        "format": "date-time",
+                        "nullable": false,
+                        "type": "string"
+                      },
+                      "updated_at__gt": {
+                        "description": "Only records where updated_at is greater than this value.",
+                        "format": "date-time",
+                        "type": "string"
+                      },
+                      "updated_at__gte": {
+                        "description": "Only records where updated_at is greater than or equal to this value.",
+                        "format": "date-time",
+                        "type": "string"
+                      },
+                      "updated_at__lt": {
+                        "description": "Only records where updated_at is less than this value.",
+                        "format": "date-time",
+                        "type": "string"
+                      },
+                      "updated_at__lte": {
+                        "description": "Only records where updated_at is less than or equal to this value.",
+                        "format": "date-time",
+                        "type": "string"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "include_external_bucket_key": {
+                    "description": "If true, include the external_bucket_key in results.",
+                    "type": "boolean"
+                  },
+                  "last": {
+                    "description": "Reflected value from a previous response to obtain the next page of results.",
+                    "type": "string"
+                  },
+                  "order": {
+                    "description": "Order results asc(ending) or desc(ending).",
+                    "enum": ["asc", "desc"],
+                    "type": "string"
+                  },
+                  "order_by": {
+                    "description": "Which field to order results by.",
+                    "enum": [
+                      "id",
+                      "name",
+                      "parent_id",
+                      "created_at",
+                      "updated_at",
+                      "size",
+                      "type"
+                    ],
+                    "type": "string"
+                  },
+                  "size": {
+                    "description": "Maximum results to include in the response.",
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "bucket_id": {
+                    "$ref": "#/components/schemas/IDShareBucket",
+                    "description": "The bucket to use, if not the default."
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "type": "object",
+                          "properties": {
+                            "count": {
+                              "description": "The total number of objects matched by the list request.",
+                              "type": "integer"
+                            },
+                            "last": {
+                              "description": "Used to fetch the next page of the current listing when provided in a repeated request's last parameter.",
+                              "type": "string"
+                            },
+                            "objects": {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/components/schemas/Object"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "No description provided"
+          },
+          "400": {
+            "description": "Validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "$ref": "#/components/schemas/pangea-validation-errors"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["share", "v1beta-general"]
+      }
+    },
+    "/v1/put": {
+      "post": {
+        "operationId": "share_post_v1_put",
+        "summary": "Upload object",
+        "description": "Upload a file to Secure Share.\n\nSee [Transfer Methods](/docs/api/transfer-methods) for information on `transfer_method`. ",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "$defs": {},
+                "required": ["request", "upload"],
+                "type": "object",
+                "properties": {
+                  "request": {
+                    "type": "object",
+                    "properties": {
+                      "transfer_method": {
+                        "description": "The transfer method used to upload the file data.",
+                        "type": "string",
+                        "enum": [
+                          "multipart",
+                          "post-url",
+                          "put-url",
+                          "source-url"
+                        ]
+                      },
+                      "size": {
+                        "description": "The size (in bytes) of the file. If the upload doesn't match, the call will fail.",
+                        "$ref": "#/components/schemas/Size"
+                      },
+                      "bucket_id": {
+                        "$ref": "#/components/schemas/IDShareBucket",
+                        "description": "The bucket to use, if not the default."
+                      },
+                      "crc32c": {
+                        "description": "The hexadecimal-encoded CRC32C hash of the file data, which will be verified by the server if provided.",
+                        "$ref": "#/components/schemas/HashCRC32CHex"
+                      },
+                      "sha256": {
+                        "description": "The SHA256 hash of the file data, which will be verified by the server if provided.",
+                        "$ref": "#/components/schemas/HashSHA256Hex"
+                      },
+                      "md5": {
+                        "description": "The hexadecimal-encoded MD5 hash of the file data, which will be verified by the server if provided.",
+                        "$ref": "#/components/schemas/HashMD5Hex"
+                      },
+                      "name": {
+                        "description": "The name of the object to store.",
+                        "$ref": "#/components/schemas/Name"
+                      },
+                      "folder": {
+                        "description": "The path to the parent folder. Leave blank for the root folder. Path must resolve to parent_id if also set.",
+                        "$ref": "#/components/schemas/Folder"
+                      },
+                      "file_ttl": {
+                        "description": "The TTL before expiry for the file.",
+                        "$ref": "#/components/schemas/DurationNI"
+                      },
+                      "format": {
+                        "description": "The format of the file, which will be verified by the server if provided. Uploads not matching the supplied format will be rejected.",
+                        "$ref": "#/components/schemas/Format"
+                      },
+                      "metadata": {
+                        "$ref": "#/components/schemas/Metadata"
+                      },
+                      "mimetype": {
+                        "description": "The MIME type of the file, which will be verified by the server if provided. Uploads not matching the supplied MIME type will be rejected.",
+                        "$ref": "#/components/schemas/MIMEType"
+                      },
+                      "parent_id": {
+                        "description": "The parent ID of the object (a folder). Leave blank for the root folder. ID must match match folder path if also set.",
+                        "$ref": "#/components/schemas/ID"
+                      },
+                      "password": {
+                        "$ref": "#/components/schemas/PlaintextPassword",
+                        "description": "An optional password to protect the file with. Downloading the file will require this password."
+                      },
+                      "password_algorithm": {
+                        "$ref": "#/components/schemas/PasswordAlgorithm",
+                        "description": "An optional password algorithm to protect the file with. See symmetric vault password_algorithm."
+                      },
+                      "root_folder": {
+                        "description": "The path of a root folder to restrict the operation to. Must resolve to root_id if also set.",
+                        "$ref": "#/components/schemas/Folder"
+                      },
+                      "root_id": {
+                        "description": "The ID of a root folder to restrict the operation to. Must match root_folder if also set.",
+                        "$ref": "#/components/schemas/IDParent"
+                      },
+                      "sha1": {
+                        "description": "The hexadecimal-encoded SHA1 hash of the file data, which will be verified by the server if provided.",
+                        "$ref": "#/components/schemas/HashSHA1Hex"
+                      },
+                      "sha512": {
+                        "description": "The hexadecimal-encoded SHA512 hash of the file data, which will be verified by the server if provided.",
+                        "$ref": "#/components/schemas/HashSHA512Hex"
+                      },
+                      "source_url": {
+                        "$ref": "#/components/schemas/api-share-v1beta-put-field-source-url"
+                      },
+                      "tags": {
+                        "$ref": "#/components/schemas/Tags"
+                      },
+                      "tenant_id": {
+                        "$ref": "#/components/schemas/Tenant",
+                        "description": "A tenant to associate with this request"
+                      }
+                    },
+                    "additionalProperties": false,
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/api-share-v1beta-put-require-post-url"
+                      },
+                      {
+                        "$ref": "#/components/schemas/api-share-v1beta-put-require-source-url"
+                      }
+                    ]
+                  },
+                  "upload": {}
+                }
+              }
+            },
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "transfer_method": {
+                    "description": "The transfer method used to upload the file data.",
+                    "type": "string",
+                    "enum": ["multipart", "post-url", "put-url", "source-url"]
+                  },
+                  "size": {
+                    "description": "The size (in bytes) of the file. If the upload doesn't match, the call will fail.",
+                    "$ref": "#/components/schemas/Size"
+                  },
+                  "bucket_id": {
+                    "$ref": "#/components/schemas/IDShareBucket",
+                    "description": "The bucket to use, if not the default."
+                  },
+                  "crc32c": {
+                    "description": "The hexadecimal-encoded CRC32C hash of the file data, which will be verified by the server if provided.",
+                    "$ref": "#/components/schemas/HashCRC32CHex"
+                  },
+                  "sha256": {
+                    "description": "The SHA256 hash of the file data, which will be verified by the server if provided.",
+                    "$ref": "#/components/schemas/HashSHA256Hex"
+                  },
+                  "md5": {
+                    "description": "The hexadecimal-encoded MD5 hash of the file data, which will be verified by the server if provided.",
+                    "$ref": "#/components/schemas/HashMD5Hex"
+                  },
+                  "name": {
+                    "description": "The name of the object to store.",
+                    "$ref": "#/components/schemas/Name"
+                  },
+                  "format": {
+                    "description": "The format of the file, which will be verified by the server if provided. Uploads not matching the supplied format will be rejected.",
+                    "$ref": "#/components/schemas/Format"
+                  },
+                  "metadata": {
+                    "$ref": "#/components/schemas/Metadata"
+                  },
+                  "mimetype": {
+                    "description": "The MIME type of the file, which will be verified by the server if provided. Uploads not matching the supplied MIME type will be rejected.",
+                    "$ref": "#/components/schemas/MIMEType"
+                  },
+                  "parent_id": {
+                    "description": "The parent ID of the object (a folder). Leave blank to keep in the root folder.",
+                    "$ref": "#/components/schemas/ID"
+                  },
+                  "password": {
+                    "$ref": "#/components/schemas/PlaintextPassword",
+                    "description": "An optional password to protect the file with. Downloading the file will require this password."
+                  },
+                  "password_algorithm": {
+                    "$ref": "#/components/schemas/PasswordAlgorithm",
+                    "description": "An optional password algorithm to protect the file with. See symmetric vault password_algorithm."
+                  },
+                  "sha1": {
+                    "description": "The hexadecimal-encoded SHA1 hash of the file data, which will be verified by the server if provided.",
+                    "$ref": "#/components/schemas/HashSHA1Hex"
+                  },
+                  "sha512": {
+                    "description": "The hexadecimal-encoded SHA512 hash of the file data, which will be verified by the server if provided.",
+                    "$ref": "#/components/schemas/HashSHA512Hex"
+                  },
+                  "source_url": {
+                    "$ref": "#/components/schemas/api-share-v1beta-put-field-source-url"
+                  },
+                  "tags": {
+                    "$ref": "#/components/schemas/Tags"
+                  }
+                },
+                "additionalProperties": false,
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/api-share-v1beta-put-require-post-url"
+                  },
+                  {
+                    "$ref": "#/components/schemas/api-share-v1beta-put-require-source-url"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The object was successfully stored.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "type": "object",
+                          "properties": {
+                            "object": {
+                              "description": "The object that was created.",
+                              "$ref": "#/components/schemas/Object"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "$ref": "#/components/schemas/pangea-validation-errors"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["share", "v1-general"]
+      }
+    },
+    "/v1beta/put": {
+      "post": {
+        "operationId": "share_post_v1beta_put",
+        "description": "Upload a file with a given name to a given destination folder path in Secure Share.\n\nYou can use the `path` parameter alone to specify the full path to the named file for upload,\n**OR** you can use the `parent_id` (destination folder path) and the `name` (for the file name) parameters together.\n\nSee [Transfer Methods](/docs/api/transfer-methods) for information on `transfer_method`. ",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "$defs": {},
+                "required": ["request", "upload"],
+                "type": "object",
+                "properties": {
+                  "request": {
+                    "type": "object",
+                    "properties": {
+                      "transfer_method": {
+                        "description": "The transfer method used to upload the file data.",
+                        "type": "string",
+                        "enum": [
+                          "multipart",
+                          "post-url",
+                          "put-url",
+                          "source-url"
+                        ]
+                      },
+                      "size": {
+                        "description": "The size (in bytes) of the file. If the upload doesn't match, the call will fail.",
+                        "$ref": "#/components/schemas/Size"
+                      },
+                      "bucket_id": {
+                        "$ref": "#/components/schemas/IDShareBucket",
+                        "description": "The bucket to use, if not the default."
+                      },
+                      "crc32c": {
+                        "description": "The hexadecimal-encoded CRC32C hash of the file data, which will be verified by the server if provided.",
+                        "$ref": "#/components/schemas/HashCRC32CHex"
+                      },
+                      "sha256": {
+                        "description": "The SHA256 hash of the file data, which will be verified by the server if provided.",
+                        "$ref": "#/components/schemas/HashSHA256Hex"
+                      },
+                      "md5": {
+                        "description": "The hexadecimal-encoded MD5 hash of the file data, which will be verified by the server if provided.",
+                        "$ref": "#/components/schemas/HashMD5Hex"
+                      },
+                      "name": {
+                        "description": "The name of the object to store.",
+                        "$ref": "#/components/schemas/Name"
+                      },
+                      "format": {
+                        "description": "The format of the file, which will be verified by the server if provided. Uploads not matching the supplied format will be rejected.",
+                        "$ref": "#/components/schemas/Format"
+                      },
+                      "metadata": {
+                        "$ref": "#/components/schemas/Metadata"
+                      },
+                      "mimetype": {
+                        "description": "The MIME type of the file, which will be verified by the server if provided. Uploads not matching the supplied MIME type will be rejected.",
+                        "$ref": "#/components/schemas/MIMEType"
+                      },
+                      "parent_id": {
+                        "description": "The parent ID of the object (a folder). Leave blank to keep in the root folder.",
+                        "$ref": "#/components/schemas/ID"
+                      },
+                      "path": {
+                        "description": "An optional path where the file should be placed. It will auto-create directories if necessary.",
+                        "$ref": "#/components/schemas/Path"
+                      },
+                      "password": {
+                        "$ref": "#/components/schemas/PlaintextPassword",
+                        "description": "An optional password to protect the file with. Downloading the file will require this password."
+                      },
+                      "password_algorithm": {
+                        "$ref": "#/components/schemas/PasswordAlgorithm",
+                        "description": "An optional password algorithm to protect the file with. See symmetric vault password_algorithm."
+                      },
+                      "sha1": {
+                        "description": "The hexadecimal-encoded SHA1 hash of the file data, which will be verified by the server if provided.",
+                        "$ref": "#/components/schemas/HashSHA1Hex"
+                      },
+                      "sha512": {
+                        "description": "The hexadecimal-encoded SHA512 hash of the file data, which will be verified by the server if provided.",
+                        "$ref": "#/components/schemas/HashSHA512Hex"
+                      },
+                      "source_url": {
+                        "$ref": "#/components/schemas/api-share-v1beta-put-field-source-url"
+                      },
+                      "tags": {
+                        "$ref": "#/components/schemas/Tags"
+                      }
+                    },
+                    "additionalProperties": false,
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/api-share-v1beta-put-require-post-url"
+                      },
+                      {
+                        "$ref": "#/components/schemas/api-share-v1beta-put-require-source-url"
+                      }
+                    ]
+                  },
+                  "upload": {}
+                }
+              }
+            },
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "transfer_method": {
+                    "description": "The transfer method used to upload the file data.",
+                    "type": "string",
+                    "enum": ["multipart", "post-url", "put-url", "source-url"]
+                  },
+                  "size": {
+                    "description": "The size (in bytes) of the file. If the upload doesn't match, the call will fail.",
+                    "$ref": "#/components/schemas/Size"
+                  },
+                  "bucket_id": {
+                    "$ref": "#/components/schemas/IDShareBucket",
+                    "description": "The bucket to use, if not the default."
+                  },
+                  "crc32c": {
+                    "description": "The hexadecimal-encoded CRC32C hash of the file data, which will be verified by the server if provided.",
+                    "$ref": "#/components/schemas/HashCRC32CHex"
+                  },
+                  "sha256": {
+                    "description": "The SHA256 hash of the file data, which will be verified by the server if provided.",
+                    "$ref": "#/components/schemas/HashSHA256Hex"
+                  },
+                  "md5": {
+                    "description": "The hexadecimal-encoded MD5 hash of the file data, which will be verified by the server if provided.",
+                    "$ref": "#/components/schemas/HashMD5Hex"
+                  },
+                  "name": {
+                    "description": "The name of the object to store.",
+                    "$ref": "#/components/schemas/Name"
+                  },
+                  "format": {
+                    "description": "The format of the file, which will be verified by the server if provided. Uploads not matching the supplied format will be rejected.",
+                    "$ref": "#/components/schemas/Format"
+                  },
+                  "metadata": {
+                    "$ref": "#/components/schemas/Metadata"
+                  },
+                  "mimetype": {
+                    "description": "The MIME type of the file, which will be verified by the server if provided. Uploads not matching the supplied MIME type will be rejected.",
+                    "$ref": "#/components/schemas/MIMEType"
+                  },
+                  "parent_id": {
+                    "description": "The parent ID of the object (a folder). Leave blank to keep in the root folder.",
+                    "$ref": "#/components/schemas/ID"
+                  },
+                  "path": {
+                    "description": "An optional path where the file should be placed. It will auto-create directories if necessary.",
+                    "$ref": "#/components/schemas/Path"
+                  },
+                  "password": {
+                    "$ref": "#/components/schemas/PlaintextPassword",
+                    "description": "An optional password to protect the file with. Downloading the file will require this password."
+                  },
+                  "password_algorithm": {
+                    "$ref": "#/components/schemas/PasswordAlgorithm",
+                    "description": "An optional password algorithm to protect the file with. See symmetric vault password_algorithm."
+                  },
+                  "sha1": {
+                    "description": "The hexadecimal-encoded SHA1 hash of the file data, which will be verified by the server if provided.",
+                    "$ref": "#/components/schemas/HashSHA1Hex"
+                  },
+                  "sha512": {
+                    "description": "The hexadecimal-encoded SHA512 hash of the file data, which will be verified by the server if provided.",
+                    "$ref": "#/components/schemas/HashSHA512Hex"
+                  },
+                  "source_url": {
+                    "$ref": "#/components/schemas/api-share-v1beta-put-field-source-url"
+                  },
+                  "tags": {
+                    "$ref": "#/components/schemas/Tags"
+                  }
+                },
+                "additionalProperties": false,
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/api-share-v1beta-put-require-post-url"
+                  },
+                  {
+                    "$ref": "#/components/schemas/api-share-v1beta-put-require-source-url"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The object was successfully stored.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "type": "object",
+                          "properties": {
+                            "object": {
+                              "description": "The object that was created.",
+                              "$ref": "#/components/schemas/Object"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "$ref": "#/components/schemas/pangea-validation-errors"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["share", "v1beta-general"]
+      }
+    },
+    "/v1/update": {
+      "post": {
+        "operationId": "share_post_v1_update",
+        "summary": "Update object details",
+        "description": "Update information, such as tags or metadata, about an object by `id`.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "$ref": "#/components/schemas/ID",
+                    "description": "An identifier for the file to update."
+                  },
+                  "bucket_id": {
+                    "$ref": "#/components/schemas/IDShareBucket",
+                    "description": "The bucket to use, if not the default."
+                  },
+                  "add_metadata": {
+                    "$ref": "#/components/schemas/Metadata",
+                    "description": "A list of Metadata key/values to set in the object. If a provided key exists, the value will be replaced."
+                  },
+                  "add_password": {
+                    "$ref": "#/components/schemas/PlaintextPassword",
+                    "description": "Protect the file with the supplied password."
+                  },
+                  "add_password_algorithm": {
+                    "$ref": "#/components/schemas/PasswordAlgorithm",
+                    "description": "The algorithm to use to password protect the file."
+                  },
+                  "add_tags": {
+                    "$ref": "#/components/schemas/Tags",
+                    "description": "A list of Tags to add. It is not an error to provide a tag which already exists."
+                  },
+                  "file_ttl": {
+                    "$ref": "#/components/schemas/DurationNI",
+                    "description": "Set the file TTL."
+                  },
+                  "folder": {
+                    "$ref": "#/components/schemas/Folder",
+                    "description": "Set the parent (folder). Leave blank for the root folder. Path must resolve to parent_id if also set."
+                  },
+                  "name": {
+                    "$ref": "#/components/schemas/Name",
+                    "description": "Sets the object's Name."
+                  },
+                  "metadata": {
+                    "$ref": "#/components/schemas/Metadata",
+                    "description": "Set the object's  metadata."
+                  },
+                  "parent_id": {
+                    "$ref": "#/components/schemas/IDParent",
+                    "description": "Set the parent (folder). Leave blank for the root folder. Must match folder if also set."
+                  },
+                  "remove_metadata": {
+                    "$ref": "#/components/schemas/Metadata",
+                    "description": "A list of metadata key/values to remove in the object. It is not an error for a provided key to not exist. If a provided key exists but doesn't match the provided value, it will not be removed."
+                  },
+                  "remove_password": {
+                    "$ref": "#/components/schemas/PlaintextPassword",
+                    "description": "Remove the supplied password from the file."
+                  },
+                  "remove_tags": {
+                    "$ref": "#/components/schemas/Tags",
+                    "description": "A list of tags to remove. It is not an error to provide a tag which is not present."
+                  },
+                  "root_folder": {
+                    "description": "The path of a root folder to restrict the operation to. Must resolve to root_id if also set.",
+                    "$ref": "#/components/schemas/Folder"
+                  },
+                  "root_id": {
+                    "description": "The ID of a root folder to restrict the operation to. Must match root_folder if also set.",
+                    "$ref": "#/components/schemas/IDParent"
+                  },
+                  "tags": {
+                    "$ref": "#/components/schemas/Tags",
+                    "description": "Set the object's tags."
+                  },
+                  "tenant_id": {
+                    "$ref": "#/components/schemas/Tenant",
+                    "description": "A tenant to associate with this request"
+                  },
+                  "updated_at": {
+                    "description": "The date and time the object was last updated. If included, the update will fail if this doesn't match the date and time of the last update for the object.",
+                    "$ref": "#/components/schemas/DateTime"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The object was successfully updated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "type": "object",
+                          "properties": {
+                            "object": {
+                              "$ref": "#/components/schemas/Object"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "$ref": "#/components/schemas/pangea-validation-errors"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["share", "v1-general"]
+      }
+    },
+    "/v1beta/update": {
+      "post": {
+        "operationId": "share_post_v1beta_update",
+        "description": "Update information, such as tags or metadata, about an object by `id` **OR** by`path`.\n\nYou can use the `path` parameter alone to specify the full path to the file,\n**OR** you can use the `id` of the file whose information is to be updated.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "$ref": "#/components/schemas/ID",
+                    "description": "An identifier for the file to update."
+                  },
+                  "path": {
+                    "$ref": "#/components/schemas/Path",
+                    "description": "An alternative to ID for identifying the target file."
+                  },
+                  "bucket_id": {
+                    "$ref": "#/components/schemas/IDShareBucket",
+                    "description": "The bucket to use, if not the default."
+                  },
+                  "add_metadata": {
+                    "$ref": "#/components/schemas/Metadata",
+                    "description": "A list of Metadata key/values to set in the object. If a provided key exists, the value will be replaced."
+                  },
+                  "add_password": {
+                    "$ref": "#/components/schemas/PlaintextPassword",
+                    "description": "Protect the file with the supplied password."
+                  },
+                  "add_password_algorithm": {
+                    "$ref": "#/components/schemas/PasswordAlgorithm",
+                    "description": "The algorithm to use to password protect the file."
+                  },
+                  "add_tags": {
+                    "$ref": "#/components/schemas/Tags",
+                    "description": "A list of Tags to add. It is not an error to provide a tag which already exists."
+                  },
+                  "name": {
+                    "$ref": "#/components/schemas/Name",
+                    "description": "Sets the object's Name."
+                  },
+                  "metadata": {
+                    "$ref": "#/components/schemas/Metadata",
+                    "description": "Set the object's  metadata."
+                  },
+                  "remove_metadata": {
+                    "$ref": "#/components/schemas/Metadata",
+                    "description": "A list of metadata key/values to remove in the object. It is not an error for a provided key to not exist. If a provided key exists but doesn't match the provided value, it will not be removed."
+                  },
+                  "remove_password": {
+                    "$ref": "#/components/schemas/PlaintextPassword",
+                    "description": "Remove the supplied password from the file."
+                  },
+                  "remove_tags": {
+                    "$ref": "#/components/schemas/Tags",
+                    "description": "A list of tags to remove. It is not an error to provide a tag which is not present."
+                  },
+                  "parent_id": {
+                    "$ref": "#/components/schemas/IDParent",
+                    "description": "Set the parent (folder) of the object. Can be an empty string for the root folder."
+                  },
+                  "tags": {
+                    "$ref": "#/components/schemas/Tags",
+                    "description": "Set the object's tags."
+                  },
+                  "updated_at": {
+                    "description": "The date and time the object was last updated. If included, the update will fail if this doesn't match the date and time of the last update for the object.",
+                    "$ref": "#/components/schemas/DateTime"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The object was successfully updated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "type": "object",
+                          "properties": {
+                            "object": {
+                              "$ref": "#/components/schemas/Object"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "$ref": "#/components/schemas/pangea-validation-errors"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["share", "v1beta-general"]
+      }
+    },
+    "/v1/share/link/create": {
+      "post": {
+        "operationId": "share_post_v1_share_link_create",
+        "summary": "Create share link",
+        "description": "The `link/create` API takes an array of secure `links` objects and returns the `result.share_link_object[]` array containing a unique secured share link (`result.share_link_objects[].link`) for each of the elements in the `links[].authenticators[]` array . \n \n`links.targets[]` is an array of object IDs for the file and/or folder objects that the link secures access to.\n\nThe `links.link_type` gives the type of link: `download`, `upload`, or `editor`.  An upload type can only apply to a folder.  Download and editor can apply to folders or files.  Editor gives rename, delete, upload (put), and download (get) access to the objects listed in the `links.targets[]` array.\n\n`links[].expires_at` gives the date and time that the secure link expires, and `links[].max_access_count` gives the maximum times a user can be authenticated to access a secure share link.\n\n`links[].authenticators[]` is an array of authenticators objects, each of which contains an `auth_type` and an `auth_context` member.  The  `links[].authenticators[].auth_type` can be `sms_otp`, `email_otp`, or `password`, and the corresponding `links[].authenticators[].auth_context` must be the phone number (`sms_otp`), email address (`email_otp`), or password (`password`) to be used for securing the requested secure share link, which is returned in `result.share_link_objects[].link`.  \n\n`links[].title` and `links[].message` are optional parameters that can specify a title string and a message string to be used in notification emails and seen by the recipient when accessing shared content.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShareLinkCreateObject"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Share link(s) created successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "type": "object",
+                          "properties": {
+                            "share_link_objects": {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/components/schemas/ShareLinkObject"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "$ref": "#/components/schemas/pangea-validation-errors"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["share", "v1-share-links"]
+      }
+    },
+    "/v1beta/share/link/create": {
+      "post": {
+        "operationId": "share_post_v1beta_share_link_create",
+        "description": "The `link/create` API takes an array of secure `links` objects and returns the `result.share_link_object[]` array containing a unique secured share link (`result.share_link_objects[].link`) for each of the elements in the `links[].authenticators[]` array . \n \n`links.targets[]` is an array of object IDs for the file and/or folder objects that the link secures access to.\n\nThe `links.link_type` gives the type of link: `download`, `upload`, or `editor`.  An upload type can only apply to a folder.  Download and editor can apply to folders or files.  Editor gives rename, delete, upload (put), and download (get) access to the objects listed in the `links.targets[]` array.\n\n`links[].expires_at` gives the date and time that the secure link expires, and `links[].max_access_count` gives the maximum times a user can be authenticated to access a secure share link.\n\n`links[].authenticators[]` is an array of authenticators objects, each of which contains an `auth_type` and an `auth_context` member.  The  `links[].authenticators[].auth_type` can be `sms_otp`, `email_otp`, or `password`, and the corresponding `links[].authenticators[].auth_context` must be the phone number (`sms_otp`), email address (`email_otp`), or password (`password`) to be used for securing the requested secure share link, which is returned in `result.share_link_objects[].link`.  \n\n`links[].title` and `links[].message` are optional parameters that can specify a title string and a message string to be used in notification emails and seen by the recipient when accessing shared content.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShareLinkCreateObject"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Share link(s) created successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "type": "object",
+                          "properties": {
+                            "share_link_objects": {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/components/schemas/ShareLinkObject"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "$ref": "#/components/schemas/pangea-validation-errors"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["share", "v1beta-share-links"]
+      }
+    },
+    "/v1/share/link/get": {
+      "post": {
+        "operationId": "share_post_v1_share_link_get",
+        "summary": "Get share link",
+        "description": "Get an existing secured share-link object by ID.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "$ref": "#/components/schemas/IDShareLink"
+                  },
+                  "tenant_id": {
+                    "$ref": "#/components/schemas/Tenant",
+                    "description": "A tenant to associate with this request"
+                  }
+                },
+                "required": ["id"],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Share link(s) read successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "type": "object",
+                          "properties": {
+                            "share_link_object": {
+                              "$ref": "#/components/schemas/ShareLinkObject"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "$ref": "#/components/schemas/pangea-validation-errors"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["share", "v1-share-links"]
+      }
+    },
+    "/v1beta/share/link/get": {
+      "post": {
+        "operationId": "share_post_v1beta_share_link_get",
+        "description": "Get an existing secured share-link object by ID.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShareLinkIDItem"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Share link(s) read successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "type": "object",
+                          "properties": {
+                            "share_link_object": {
+                              "$ref": "#/components/schemas/ShareLinkObject"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "$ref": "#/components/schemas/pangea-validation-errors"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["share", "v1beta-share-links"]
+      }
+    },
+    "/v1/share/link/list": {
+      "post": {
+        "operationId": "share_post_v1_share_link_list",
+        "summary": "List share links",
+        "description": "Return a list of existing secure share-links based on the given filter.  \n\nUse the `order` parameter to specify \u201casc\u201d for ascending, or \u201cdesc\u201d for descending order of the results.\nUse the `order_by` parameter to specify which field the order parameter refers to.\nUse the `size` parameter to indicate the maximum number of results to include per call (for pagination of the results).\nWhen paginating results, use the value of `result.last` from the response to the previous call as the value for the input parameter `last`. \n`result.count' from the response gives the total number of items matching the filter.\n",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShareLinkListObject"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "type": "object",
+                          "properties": {
+                            "count": {
+                              "description": "The total number of share links matched by the list request.",
+                              "type": "integer"
+                            },
+                            "last": {
+                              "description": "Used to fetch the next page of the current listing when provided in a repeated request's last parameter.",
+                              "type": "string"
+                            },
+                            "share_link_objects": {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/components/schemas/ShareLinkObject"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "No description provided"
+          },
+          "400": {
+            "description": "Validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "$ref": "#/components/schemas/pangea-validation-errors"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["share", "v1-share-links"]
+      }
+    },
+    "/v1beta/share/link/list": {
+      "post": {
+        "operationId": "share_post_v1beta_share_link_list",
+        "description": "Return a list of existing secure share-links based on the given filter.  \n\nUse the `order` parameter to specify \u201casc\u201d for ascending, or \u201cdesc\u201d for descending order of the results.\nUse the `order_by` parameter to specify which field the order parameter refers to.\nUse the `size` parameter to indicate the maximum number of results to include per call (for pagination of the results).\nWhen paginating results, use the value of `result.last` from the response to the previous call as the value for the input parameter `last`. \n`result.count' from the response gives the total number of items matching the filter.\n",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShareLinkListObject"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "type": "object",
+                          "properties": {
+                            "count": {
+                              "description": "The total number of share links matched by the list request.",
+                              "type": "integer"
+                            },
+                            "last": {
+                              "description": "Used to fetch the next page of the current listing when provided in a repeated request's last parameter.",
+                              "type": "string"
+                            },
+                            "share_link_objects": {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/components/schemas/ShareLinkObject"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "No description provided"
+          },
+          "400": {
+            "description": "Validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "$ref": "#/components/schemas/pangea-validation-errors"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["share", "v1beta-share-links"]
+      }
+    },
+    "/v1/share/link/delete": {
+      "post": {
+        "operationId": "share_post_v1_share_link_delete",
+        "summary": "Delete share link",
+        "description": "Delete a list of secured share-links by ID(s).",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShareLinkDeleteObject"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Share link(s) deleted successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "type": "object",
+                          "properties": {
+                            "share_link_objects": {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/components/schemas/ShareLinkObject"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "$ref": "#/components/schemas/pangea-validation-errors"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["share", "v1-share-links"]
+      }
+    },
+    "/v1beta/share/link/delete": {
+      "post": {
+        "operationId": "share_post_v1beta_share_link_delete",
+        "description": "Delete a list of secured share-links by ID(s).",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShareLinkDeleteObject"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Share link(s) deleted successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "type": "object",
+                          "properties": {
+                            "share_link_objects": {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/components/schemas/ShareLinkObject"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "$ref": "#/components/schemas/pangea-validation-errors"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["share", "v1beta-share-links"]
+      }
+    },
+    "/v1/share/link/send": {
+      "post": {
+        "operationId": "share_post_v1_share_link_send",
+        "summary": "Send share link notifications",
+        "description": "Send a secure share-link notification to a set of email addresses.  \n\nThe notification email will contain an Open button that the recipient can use to  follow the secured share-link to authenticate and then access the shared content.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShareLinkSendObject"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Share link(s) notifications via e-mail sent successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "type": "object",
+                          "properties": {
+                            "share_link_objects": {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/components/schemas/ShareLinkObject"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "$ref": "#/components/schemas/pangea-validation-errors"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["share", "v1-share-links"]
+      }
+    },
+    "/v1beta/share/link/send": {
+      "post": {
+        "operationId": "share_post_v1beta_share_link_send",
+        "description": "Send a secure share-link notification to a set of email addresses.  \n\nThe notification email will contain an Open button that the recipient can use to  follow the secured share-link to authenticate and then access the shared content.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShareLinkSendObject"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Share link(s) notifications via e-mail sent successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "type": "object",
+                          "properties": {
+                            "share_link_objects": {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/components/schemas/ShareLinkObject"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "$ref": "#/components/schemas/pangea-validation-errors"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["share", "v1beta-share-links"]
+      }
+    },
+    "/request/{requestId}": {
+      "get": {
+        "operationId": "get_async_request",
+        "summary": "Get an asynchronous request",
+        "description": "Will retrieve the result, or will return 202 if the original request is still in progress",
+        "tags": ["share"],
+        "parameters": [
+          {
+            "name": "requestId",
+            "in": "path",
+            "description": "The request ID to poll",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Asynchronous request in progress",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "type": "object",
+                          "properties": {
+                            "ttl_mins": {
+                              "type": "integer"
+                            },
+                            "retry_counter": {
+                              "type": "integer"
+                            },
+                            "location": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/pangea-response"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "openapi": "3.1.0",
+  "components": {
+    "schemas": {
+      "pangea-response": {
+        "title": "Response Schema",
+        "description": "Pangea standard response schema",
+        "type": "object",
+        "required": ["request_id", "request_time", "response_time", "status"],
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "description": "A unique identifier assigned to each request made to the API. It is used to track and identify a specific request and its associated data. The `request_id` can be helpful for troubleshooting, auditing, and tracing the flow of requests within the system. It allows users to reference and retrieve information related to a particular request, such as the response, parameters, and raw data associated with that specific request.\n\n```\n\"request_id\":\"prq_x6fdiizbon6j3bsdvnpmwxsz2aan7fqd\"\n```"
+          },
+          "request_time": {
+            "type": "string",
+            "description": "The timestamp indicates the exact moment when a request is made to the API. It represents the date and time at which the request was initiated by the client. The `request_time` is useful for tracking and analyzing the timing of requests, measuring response times, and monitoring performance metrics. It allows users to determine the duration between the request initiation and the corresponding response, aiding in the assessment of API performance and latency.\n\n```\n\"request_time\":\"2022-09-21T17:24:33.105Z\"\n```"
+          },
+          "response_time": {
+            "type": "string",
+            "description": "Duration it takes for the API to process a request and generate a response. It represents the elapsed time from when the request is received by the API to when the corresponding response is returned to the client.\n\n```\n\"response_time\":\"2022-09-21T17:24:34.007Z\"\n```"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["Success"],
+            "description": "It represents the status or outcome of the API request made for IP information. It indicates the current state or condition of the request and provides information on the success or failure of the request.\n\n```\n\"status\":\"success\"\n```"
+          },
+          "summary": {
+            "type": "string",
+            "description": "Provides a concise and brief overview of the purpose or primary objective of the API endpoint. It serves as a high-level summary or description of the functionality or feature offered by the endpoint."
+          },
+          "result": {
+            "type": "object"
+          }
+        },
+        "examples": [
+          {
+            "request_id": "prq_x6fdiizbon6j3bsdvnpmwxsz2aan7fqd",
+            "request_time": "2022-09-21T17:24:33.105Z",
+            "response_time": "2022-09-21T17:24:34.007Z",
+            "status": "success"
+          }
+        ]
+      },
+      "pangea-validation-errors": {
+        "$ref": "#/components/schemas/pangea-response",
+        "required": ["result"],
+        "properties": {
+          "result": {
+            "type": "object",
+            "required": ["errors"],
+            "properties": {
+              "errors": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "required": ["code", "detail", "source"],
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "FieldRequired",
+                        "InvalidString",
+                        "InvalidNumber",
+                        "InvalidInteger",
+                        "InvalidObject",
+                        "InvalidArray",
+                        "InvalidNull",
+                        "InvalidBool",
+                        "BadFormat",
+                        "BadFormatPangeaDuration",
+                        "BadFormatDateTime",
+                        "BadFormatTime",
+                        "BadFormatDate",
+                        "BadFormatEmail",
+                        "BadFormatHostname",
+                        "BadFormatIPv4",
+                        "BadFormatIPv6",
+                        "BadFormatIPAddress",
+                        "BadFormatUUID",
+                        "BadFormatURI",
+                        "BadFormatURIReference",
+                        "BadFormatIRI",
+                        "BadFormatIRIReference",
+                        "BadFormatJSONPointer",
+                        "BadFormatRelativeJSONPointer",
+                        "BadFormatRegex",
+                        "BadFormatJSONPath",
+                        "BadFormatBase64",
+                        "DoesNotMatchPattern",
+                        "DoesNotMatchPatternProperties",
+                        "NotEnumMember",
+                        "AboveMaxLength",
+                        "BelowMinLength",
+                        "AboveMaxItems",
+                        "BelowMinItems",
+                        "NotMultipleOf",
+                        "NotWithinRange",
+                        "UnexpectedProperty",
+                        "InvalidPropertyName",
+                        "AboveMaxProperties",
+                        "BelowMinProperties",
+                        "NotContains",
+                        "ContainsTooMany",
+                        "ContainsTooFew",
+                        "ItemNotUnique",
+                        "UnexpectedAdditionalItem",
+                        "InvalidConst",
+                        "IsDependentOn",
+                        "IsTooBig",
+                        "IsTooSmall",
+                        "ShouldNotBeValid",
+                        "NoUnevaluatedItems",
+                        "NoUnevaluatedProperties",
+                        "DoesNotExist",
+                        "IsReadOnly",
+                        "CannotAddToDefault",
+                        "MustProvideOne",
+                        "MutuallyExclusive",
+                        "BadState",
+                        "InaccessibleURI",
+                        "ProviderDisabled",
+                        "ConfigProjectMismatch",
+                        "ConfigServiceMismatch",
+                        "ConfigNotExist"
+                      ]
+                    },
+                    "detail": {
+                      "type": "string",
+                      "description": "Human readable description of the error"
+                    },
+                    "source": {
+                      "type": "string",
+                      "description": "Path to the data source of the error",
+                      "format": "json-pointer"
+                    },
+                    "path": {
+                      "type": "string",
+                      "description": "The Schema path where the error ocurred",
+                      "format": "json-pointer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "pangea-service-config-id": {
+        "type": "string",
+        "description": "An ID for a service config",
+        "pattern": "^pci_[a-z2-7]{32}$",
+        "examples": ["pci_wuk7tvtpswyjtlsx52b7yyi2l7zotv4a"]
+      },
+      "pangea-timestamp": {
+        "type": "string",
+        "description": "A time in ISO-8601 format",
+        "examples": ["2022-10-01T19:07:31.314Z"],
+        "format": "date-time"
+      },
+      "ArchiveFormat": {
+        "description": "The format to use for an archive file.",
+        "type": "string",
+        "enum": ["tar", "zip"]
+      },
+      "AllowedFormats": {
+        "description": "A list of allowed or unallowed file formats.",
+        "type": "object",
+        "additionalProperties": {
+          "description": "True if the format is allowed, false otherwise.",
+          "type": "boolean"
+        },
+        "propertyNames": {
+          "$ref": "#/components/schemas/Format"
+        }
+      },
+      "AllowedMedia": {
+        "description": "A list of allowed or unallowed IANA media file types.",
+        "type": "object",
+        "additionalProperties": {
+          "description": "Configuration for this specific media type.",
+          "type": "object",
+          "properties": {
+            "all": {
+              "description": "If true, allow all formats for this media type.",
+              "type": "boolean"
+            },
+            "formats": {
+              "description": "If all is false, configuration for a specific media subtype.",
+              "type": "object",
+              "additionalProperties": {
+                "description": "Allow (true) or block (false) this subtype.",
+                "type": "boolean"
+              },
+              "propertyNames": {
+                "type": "string",
+                "enum": [
+                  "application",
+                  "audio",
+                  "font",
+                  "image",
+                  "text",
+                  "video"
+                ]
+              }
+            }
+          }
+        },
+        "propertyNames": {
+          "type": "string",
+          "enum": ["application", "audio", "font", "image", "text", "video"]
+        }
+      },
+      "DateTime": {
+        "description": "A date and time.",
+        "format": "date-time",
+        "type": "string",
+        "examples": ["2025-01-01T10:22:33.456789Z"]
+      },
+      "Duration": {
+        "description": "A period of time.",
+        "type": "string",
+        "format": "pangea-duration",
+        "examples": ["10d", "44h"]
+      },
+      "DurationNI": {
+        "description": "A duration, or one of the values: \"never\", \"inherited\".",
+        "type": "string",
+        "format": "pangea-duration",
+        "examples": ["10d", "44h", "never", "inherited"]
+      },
+      "ExternalBucket": {
+        "description": "An external (customer-owned) bucket with an existing CSP. Includes read-only verification state information.",
+        "type": "object",
+        "required": ["csp", "name", "id"],
+        "if": {
+          "properties": {
+            "csp": {
+              "const": "cloudflare"
+            }
+          }
+        },
+        "then": {
+          "required": ["account_id", "access_key_id", "access_key_secret"]
+        },
+        "properties": {
+          "id": {
+            "description": "A unique identifier for the external bucket.",
+            "$ref": "#/components/schemas/IDExternalBucket"
+          },
+          "csp": {
+            "description": "The cloud service provider (CSP) that hosts the bucket.",
+            "enum": ["aws", "gcp", "cloudflare"],
+            "type": "string"
+          },
+          "name": {
+            "description": "The bucket name of the external bucket to use.",
+            "type": "string"
+          },
+          "prefix": {
+            "description": "An optional prefix to attach to all items placed in the bucket.",
+            "type": "string"
+          },
+          "verified": {
+            "description": "If true, indicates that the bucket has had it's ownership verified.",
+            "readOnly": true,
+            "type": "boolean"
+          },
+          "verified_at": {
+            "description": "If verified, a timestamp of when this occurred.",
+            "readOnly": true,
+            "$ref": "#/components/schemas/DateTime"
+          },
+          "verify_error": {
+            "description": "A description of the last verification error, if any.",
+            "readOnly": true,
+            "type": "string"
+          },
+          "verify_name": {
+            "description": "The bucket key name to be used to verify ownership of the bucket.",
+            "readOnly": true,
+            "type": "string"
+          },
+          "verify_payload": {
+            "description": "The bucket key data to be used to verify ownership of the bucket.",
+            "format": "base64",
+            "readOnly": true,
+            "type": "string"
+          },
+          "account_id": {
+            "description": "Account ID that owns the bucket. Required for CloudFlare.",
+            "type": "string"
+          },
+          "access_key_id": {
+            "description": "Access Key ID for API authentication. Required for CloudFlare.",
+            "type": "string"
+          },
+          "access_key_secret": {
+            "description": "Access Key Secret for API authentication. Required for CloudFlare.",
+            "type": "string"
+          },
+          "jurisdiction": {
+            "description": "Jurisdiction of the bucket. Optional for CloudFlare.",
+            "type": "string",
+            "enum": ["DEFAULT", "EU", "FEDRAMP"]
+          }
+        }
+      },
+      "Folder": {
+        "description": "A case-sensitive path to a folder. Contains a sequence of /-delimited names set of folders.",
+        "nullable": false,
+        "type": "string",
+        "examples": ["", "/", "/list/of/folders"]
+      },
+      "Format": {
+        "description": "The file format.",
+        "type": "string",
+        "enum": [
+          "3G2",
+          "3GP",
+          "3MF",
+          "7Z",
+          "A",
+          "AAC",
+          "ACCDB",
+          "AIFF",
+          "AMF",
+          "AMR",
+          "APE",
+          "ASF",
+          "ATOM",
+          "AU",
+          "AVI",
+          "AVIF",
+          "BIN",
+          "BMP",
+          "BPG",
+          "BZ2",
+          "CAB",
+          "CLASS",
+          "CPIO",
+          "CRX",
+          "CSV",
+          "DAE",
+          "DBF",
+          "DCM",
+          "DEB",
+          "DJVU",
+          "DLL",
+          "DOC",
+          "DOCX",
+          "DWG",
+          "EOT",
+          "EPUB",
+          "EXE",
+          "FDF",
+          "FITS",
+          "FLAC",
+          "FLV",
+          "GBR",
+          "GEOJSON",
+          "GIF",
+          "GLB",
+          "GML",
+          "GPX",
+          "GZ",
+          "HAR",
+          "HDR",
+          "HEIC",
+          "HEIF",
+          "HTML",
+          "ICNS",
+          "ICO",
+          "ICS",
+          "ISO",
+          "JAR",
+          "JP2",
+          "JPF",
+          "JPG",
+          "JPM",
+          "JS",
+          "JSON",
+          "JXL",
+          "JXR",
+          "KML",
+          "LIT",
+          "LNK",
+          "LUA",
+          "LZ",
+          "M3U",
+          "M4A",
+          "MACHO",
+          "MDB",
+          "MIDI",
+          "MKV",
+          "MOBI",
+          "MOV",
+          "MP3",
+          "MP4",
+          "MPC",
+          "MPEG",
+          "MQV",
+          "MRC",
+          "MSG",
+          "MSI",
+          "NDJSON",
+          "NES",
+          "ODC",
+          "ODF",
+          "ODG",
+          "ODP",
+          "ODS",
+          "ODT",
+          "OGA",
+          "OGV",
+          "OTF",
+          "OTG",
+          "OTP",
+          "OTS",
+          "OTT",
+          "OWL",
+          "P7S",
+          "PAT",
+          "PDF",
+          "PHP",
+          "PL",
+          "PNG",
+          "PPT",
+          "PPTX",
+          "PS",
+          "PSD",
+          "PUB",
+          "PY",
+          "QCP",
+          "RAR",
+          "RMVB",
+          "RPM",
+          "RSS",
+          "RTF",
+          "SHP",
+          "SHX",
+          "SO",
+          "SQLITE",
+          "SRT",
+          "SVG",
+          "SWF",
+          "SXC",
+          "TAR",
+          "TCL",
+          "TCX",
+          "TIFF",
+          "TORRENT",
+          "TSV",
+          "TTC",
+          "TTF",
+          "TXT",
+          "VCF",
+          "VOC",
+          "VTT",
+          "WARC",
+          "WASM",
+          "WAV",
+          "WEBM",
+          "WEBP",
+          "WOFF",
+          "WOFF2",
+          "X3D",
+          "XAR",
+          "XCF",
+          "XFDF",
+          "XLF",
+          "XLS",
+          "XLSX",
+          "XML",
+          "XPM",
+          "XZ",
+          "ZIP",
+          "ZST"
+        ]
+      },
+      "BucketsRequest": {
+        "type": "object",
+        "additionalProperties": false
+      },
+      "BucketsResponse": {
+        "type": "object",
+        "description": "A response to a buckets call.",
+        "properties": {
+          "buckets": {
+            "description": "A list of available buckets.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BucketsResponseBucket"
+            }
+          }
+        }
+      },
+      "BucketsResponseBucket": {
+        "type": "object",
+        "description": "A configured bucket that can be references with API calls.",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/IDShareBucket"
+          },
+          "default": {
+            "description": "If true, is the default bucket.",
+            "type": "boolean"
+          },
+          "name": {
+            "description": "The bucket's friendly name.",
+            "type": "string"
+          },
+          "transfer_methods": {
+            "description": "",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TransferMethod"
+            }
+          }
+        }
+      },
+      "GetArchiveResponse": {
+        "type": "object",
+        "description": "A response to a get_archive call.",
+        "properties": {
+          "count": {
+            "type": "integer",
+            "description": "Number of objects included in the archive."
+          },
+          "dest_url": {
+            "description": "A location where the archive can be downloaded from. (transfer_method: dest-url)",
+            "$ref": "#/components/schemas/Location"
+          },
+          "objects": {
+            "description": "A list of all objects included in the archive.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Object"
+            }
+          }
+        }
+      },
+      "HashCRC32CHex": {
+        "type": "string",
+        "description": "A CRC32C hash in hexadecimal format.",
+        "pattern": "^[0-9a-fA-F]{8}$"
+      },
+      "HashMD5Hex": {
+        "type": "string",
+        "description": "An MD5 hash in hexadecimal format.",
+        "pattern": "^[0-9a-fA-F]{32}$"
+      },
+      "HashSHA1Hex": {
+        "type": "string",
+        "description": "A SHA1 hash in hexadecimal format.",
+        "pattern": "^[0-9a-fA-F]{40}$"
+      },
+      "HashSHA256Hex": {
+        "type": "string",
+        "description": "A SHA256 hash in hexadecimal format.",
+        "pattern": "^[0-9a-fA-F]{64}$"
+      },
+      "HashSHA512Hex": {
+        "type": "string",
+        "description": "A SHA512 hash in hexadecimal format.",
+        "pattern": "^[0-9a-fA-F]{128}$"
+      },
+      "ID": {
+        "description": "The ID of a stored object.",
+        "type": "string",
+        "minLength": 36,
+        "examples": ["pos_3djfmzg2db4c6donarecbyv5begtj2bm"]
+      },
+      "IDShareBucket": {
+        "description": "The ID of a share bucket resource.",
+        "type": "string",
+        "maxLength": 36,
+        "minLength": 36,
+        "examples": ["pro_3djfmzg2db4c6donarecbyv5begtj2bm"]
+      },
+      "IDExternalBucket": {
+        "description": "An unique identifier for an external bucket.",
+        "type": "string"
+      },
+      "IDGeneric": {
+        "description": "A Pangea ID.",
+        "type": "string",
+        "maxLength": 36,
+        "minLength": 36
+      },
+      "IDParent": {
+        "description": "The ID of a parent object. Can be an empty string for the root folder.",
+        "examples": ["pos_3djfmzg2db4c6donarecbyv5begtj2bm"],
+        "type": "string"
+      },
+      "IDServiceConfig": {
+        "description": "The ID of a service configuration.",
+        "type": "string",
+        "maxLength": 36,
+        "minLength": 36,
+        "examples": ["pci_3djfmzg2db4c6donarecbyv5begtj2bm"]
+      },
+      "IDVault": {
+        "description": "An ID of a vault item.",
+        "examples": ["pvi_psc7ehomnwrtj5dd4gmgocoupm57zcy7"],
+        "type": "string"
+      },
+      "IDShareLink": {
+        "description": "The ID of a share link.",
+        "type": "string",
+        "minLength": 36,
+        "examples": ["psl_3djfmzg2db4c6donarecbyv5begtj2bm"]
+      },
+      "AuditBasicSettings": {
+        "type": "object",
+        "required": ["audit_service_config_id", "areas"],
+        "description": "Audit Basic Activity Settings",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "audit_service_config_id": {
+            "type": "string"
+          },
+          "areas": {
+            "type": "object",
+            "required": ["file_activity"],
+            "properties": {
+              "file_activity": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      },
+      "AuditShareSettings": {
+        "type": "object",
+        "required": ["audit_service_config_id", "areas"],
+        "description": "Audit Share Link Activity Settings",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "audit_service_config_id": {
+            "type": "string"
+          },
+          "areas": {
+            "type": "object",
+            "required": ["file_activity", "share_activity"],
+            "properties": {
+              "file_activity": {
+                "type": "boolean"
+              },
+              "share_activity": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      },
+      "Location": {
+        "description": "A URL that can be used to fetch a file.",
+        "type": "string"
+      },
+      "Metadata": {
+        "description": "A set of string-based key/value pairs used to provide additional data about an object.",
+        "type": "object",
+        "maxProperties": 256,
+        "patternProperties": {
+          "^.{1,64}$": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          }
+        },
+        "examples": [
+          {
+            "created_by": "jim",
+            "priority": "medium"
+          }
+        ]
+      },
+      "MIMEType": {
+        "description": "The IANA MIME or media type of the file. See https://www.iana.org/assignments/media-types/media-types.xhtml",
+        "type": "string",
+        "examples": ["application/x-tar", "audio/flac", "video/ogg"]
+      },
+      "Name": {
+        "type": "string",
+        "description": "The name of an object.",
+        "pattern": "^[^/]+$"
+      },
+      "Object": {
+        "type": "object",
+        "properties": {
+          "billable_size": {
+            "description": "The number of billable bytes (includes Metadata, Tags, etc.) for the object.",
+            "type": "integer"
+          },
+          "created_at": {
+            "description": "The date and time the object was created.",
+            "$ref": "#/components/schemas/DateTime"
+          },
+          "expires_at": {
+            "description": "The date and time the object TTL will expire and the object will be deleted, if the file has a TTL.",
+            "$ref": "#/components/schemas/DateTime",
+            "readOnly": true
+          },
+          "external_bucket_key": {
+            "description": "The key in the external bucket that contains this file.",
+            "type": "string"
+          },
+          "file_ttl": {
+            "description": "The explicit file TTL setting for this object.",
+            "$ref": "#/components/schemas/DurationNI"
+          },
+          "file_ttl_effective": {
+            "description": "The effective file TTL setting for this object, either explicitly set or inherited (see file_ttl_from_id.)",
+            "$ref": "#/components/schemas/DurationNI",
+            "readOnly": true
+          },
+          "file_ttl_from_id": {
+            "description": "The ID of the object the expiry / TTL is set from. Either a service configuration, the object itself, or a parent folder.",
+            "$ref": "#/components/schemas/IDGeneric",
+            "readOnly": true
+          },
+          "folder": {
+            "$ref": "#/components/schemas/Folder",
+            "description": "The full path to the folder the object is stored in.",
+            "readOnly": true
+          },
+          "id": {
+            "$ref": "#/components/schemas/ID"
+          },
+          "md5": {
+            "description": "The MD5 hash of the file contents. Cannot be written to.",
+            "$ref": "#/components/schemas/HashMD5Hex"
+          },
+          "metadata": {
+            "$ref": "#/components/schemas/Metadata"
+          },
+          "metadata_protected": {
+            "description": "Protected (read-only) metadata.",
+            "$ref": "#/components/schemas/Metadata"
+          },
+          "name": {
+            "description": "The name of the object.",
+            "$ref": "#/components/schemas/Name"
+          },
+          "parent_id": {
+            "description": "The parent ID (a folder). Blanks means the root folder.",
+            "$ref": "#/components/schemas/ID"
+          },
+          "sha256": {
+            "description": "The SHA256 hash of the file contents. Cannot be written to.",
+            "$ref": "#/components/schemas/HashSHA256Hex"
+          },
+          "sha512": {
+            "description": "The SHA512 hash of the file contents. Cannot be written to.",
+            "$ref": "#/components/schemas/HashSHA512Hex"
+          },
+          "size": {
+            "description": "The size of the object in bytes.",
+            "$ref": "#/components/schemas/Size"
+          },
+          "tags": {
+            "$ref": "#/components/schemas/Tags"
+          },
+          "tags_protected": {
+            "description": "Protected (read-only) flags.",
+            "$ref": "#/components/schemas/Tags"
+          },
+          "type": {
+            "description": "The type of the item (file or dir). Cannot be written to.",
+            "type": "string",
+            "enum": ["dir", "file"]
+          },
+          "updated_at": {
+            "description": "The date and time the object was last updated.",
+            "$ref": "#/components/schemas/DateTime",
+            "readOnly": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ShareLinkObject": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/IDShareLink"
+          },
+          "bucket_id": {
+            "$ref": "#/components/schemas/IDShareBucket"
+          },
+          "targets": {
+            "$ref": "#/components/schemas/Targets"
+          },
+          "link_type": {
+            "$ref": "#/components/schemas/LinkType"
+          },
+          "access_count": {
+            "description": "The number of times a user has authenticated to access the share link.",
+            "type": "integer"
+          },
+          "max_access_count": {
+            "description": "The maximum number of times a user can be authenticated to access the share link.",
+            "type": "integer"
+          },
+          "created_at": {
+            "description": "The date and time the share link was created.",
+            "$ref": "#/components/schemas/DateTime"
+          },
+          "expires_at": {
+            "description": "The date and time the share link expires.",
+            "$ref": "#/components/schemas/DateTime"
+          },
+          "last_accessed_at": {
+            "description": "The date and time the share link was last accessed.",
+            "$ref": "#/components/schemas/DateTime"
+          },
+          "authenticators": {
+            "type": "array",
+            "description": "A list of authenticators",
+            "items": {
+              "$ref": "#/components/schemas/AuthenticatorInfo"
+            },
+            "minItems": 1,
+            "maxItems": 10
+          },
+          "title": {
+            "description": "An optional title to use in accessing shares.",
+            "type": "string"
+          },
+          "message": {
+            "description": "An optional message to use in accessing shares.",
+            "type": "string"
+          },
+          "link": {
+            "description": "A URL to access the file/folders shared with a link.",
+            "type": "string"
+          },
+          "recipient_email": {
+            "$ref": "#/components/schemas/AuthN-Email"
+          },
+          "sender_email": {
+            "$ref": "#/components/schemas/AuthN-Email"
+          },
+          "sender_name": {
+            "description": "The sender name information. Can be sender's full name for example.",
+            "type": "string"
+          },
+          "tags": {
+            "$ref": "#/components/schemas/Tags"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ShareLinkSettings": {
+        "description": "Settings related to share links.",
+        "type": "object",
+        "properties": {
+          "max_access_count": {
+            "description": "Maximum allowable access count.",
+            "type": "integer"
+          },
+          "max_expires_after": {
+            "description": "Maximum allowable duration before expiry.",
+            "$ref": "#/components/schemas/Duration"
+          }
+        }
+      },
+      "AuthenticatorInfo": {
+        "type": "object",
+        "properties": {
+          "auth_type": {
+            "$ref": "#/components/schemas/AuthType"
+          },
+          "auth_context": {
+            "$ref": "#/components/schemas/AuthCtxt"
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "auth_type": {
+                  "const": "email_otp"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "auth_context": {
+                  "$ref": "#/components/schemas/AuthN-Email"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "auth_type": {
+                  "const": "sms_otp"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "auth_context": {
+                  "$ref": "#/components/schemas/AuthN-Phone"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "auth_type": {
+                  "const": "password"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "auth_context": {
+                  "$ref": "#/components/schemas/AuthN-Password"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "auth_type": {
+                  "const": "social"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "auth_context": {
+                  "$ref": "#/components/schemas/AuthN-Email"
+                }
+              }
+            }
+          }
+        ],
+        "additionalProperties": false
+      },
+      "AuthN-Email": {
+        "type": "string",
+        "title": "Email Address",
+        "description": "An email address",
+        "$comment": "XXX TODO: come up with a better validation for email formats",
+        "pattern": "^[0-9a-zA-Z+._-]+@[0-9a-zA-Z.-]+$",
+        "examples": ["joe.user@email.com"]
+      },
+      "AuthN-Phone": {
+        "type": "string",
+        "title": "Phone Number",
+        "description": "A phone number",
+        "format": "phone-E164-format",
+        "examples": ["+1-808-555-0173"]
+      },
+      "AuthN-Password": {
+        "type": "string",
+        "title": "Password",
+        "description": "A password to access share link",
+        "examples": ["my_fav_Pa55word"]
+      },
+      "AuthN-Password-Policy": {
+        "type": "object",
+        "properties": {
+          "password_chars_min": {
+            "type": "integer"
+          },
+          "password_chars_max": {
+            "type": "integer"
+          },
+          "password_lower_min": {
+            "type": "integer"
+          },
+          "password_upper_min": {
+            "type": "integer"
+          },
+          "password_punct_min": {
+            "type": "integer"
+          },
+          "password_number_min": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "password_chars_min",
+          "password_lower_min",
+          "password_upper_min",
+          "password_punct_min"
+        ]
+      },
+      "AuthType": {
+        "type": "string",
+        "description": "An authentication mechanism",
+        "enum": ["email_otp", "password", "sms_otp", "social"],
+        "examples": ["password"]
+      },
+      "AuthCtxt": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/AuthN-Email"
+          },
+          {
+            "$ref": "#/components/schemas/AuthN-Phone"
+          },
+          {
+            "$ref": "#/components/schemas/AuthN-Password"
+          }
+        ]
+      },
+      "LinkType": {
+        "type": "string",
+        "description": "Type of link",
+        "enum": ["upload", "download", "editor"],
+        "examples": ["upload"]
+      },
+      "Targets": {
+        "type": "array",
+        "description": "List of storage IDs",
+        "items": {
+          "type": "string",
+          "$ref": "#/components/schemas/ID"
+        },
+        "minItems": 1,
+        "maxItems": 1000
+      },
+      "SendParams": {
+        "type": "object",
+        "description": "Send share link parameters",
+        "recipient_email": {
+          "$ref": "#/components/schemas/AuthN-Email"
+        },
+        "sender_email": {
+          "$ref": "#/components/schemas/AuthN-Email"
+        },
+        "sender_name": {
+          "description": "The sender name information. Can be sender's full name for example.",
+          "type": "string"
+        }
+      },
+      "ShareLinkCreateItem": {
+        "type": "object",
+        "properties": {
+          "targets": {
+            "$ref": "#/components/schemas/Targets"
+          },
+          "link_type": {
+            "$ref": "#/components/schemas/LinkType"
+          },
+          "expires_at": {
+            "description": "The date and time the share link expires.",
+            "$ref": "#/components/schemas/DateTime"
+          },
+          "max_access_count": {
+            "description": "The maximum number of times a user can be authenticated to access the share link.",
+            "type": "integer"
+          },
+          "authenticators": {
+            "type": "array",
+            "description": "A list of authenticators",
+            "items": {
+              "$ref": "#/components/schemas/AuthenticatorInfo"
+            }
+          },
+          "tenant_id": {
+            "$ref": "#/components/schemas/Tenant",
+            "description": "A tenant to associate with this request"
+          },
+          "title": {
+            "description": "An optional title to use in accessing shares.",
+            "type": "string"
+          },
+          "message": {
+            "description": "An optional message to use in accessing shares.",
+            "type": "string"
+          },
+          "send_params": {
+            "$ref": "#/components/schemas/SendParams"
+          },
+          "tags": {
+            "$ref": "#/components/schemas/Tags"
+          }
+        },
+        "required": ["targets", "link_type", "authenticators"],
+        "additionalProperties": false
+      },
+      "ShareLinkCreateObject": {
+        "description": "A list of share link create items.",
+        "type": "object",
+        "properties": {
+          "bucket_id": {
+            "$ref": "#/components/schemas/IDShareBucket",
+            "description": "The bucket to use, if not the default."
+          },
+          "links": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ShareLinkCreateItem"
+            },
+            "minItems": 1,
+            "maxItems": 100
+          },
+          "tenant_id": {
+            "$ref": "#/components/schemas/Tenant",
+            "description": "A tenant to associate with this request"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ShareLinkSendItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/IDShareLink"
+          },
+          "email": {
+            "$ref": "#/components/schemas/AuthN-Email"
+          }
+        },
+        "required": ["id", "email"],
+        "additionalProperties": false
+      },
+      "ShareLinkSendObject": {
+        "description": "A list of share link items to send.",
+        "type": "object",
+        "properties": {
+          "bucket_id": {
+            "$ref": "#/components/schemas/IDShareBucket",
+            "description": "The bucket to use, if not the default."
+          },
+          "links": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ShareLinkSendItem"
+            },
+            "minItems": 1,
+            "maxItems": 100
+          },
+          "sender_email": {
+            "$ref": "#/components/schemas/AuthN-Email"
+          },
+          "sender_name": {
+            "description": "The sender name information. Can be sender's full name for example.",
+            "type": "string"
+          },
+          "tenant_id": {
+            "$ref": "#/components/schemas/Tenant",
+            "description": "A tenant to associate with this request"
+          }
+        },
+        "required": ["links", "sender_email"],
+        "additionalProperties": false
+      },
+      "ShareLinkIDItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/IDShareLink"
+          }
+        },
+        "required": ["id"],
+        "additionalProperties": false
+      },
+      "ShareLinkDeleteObject": {
+        "description": "A list of share link delete items.",
+        "type": "object",
+        "properties": {
+          "bucket_id": {
+            "$ref": "#/components/schemas/IDShareBucket",
+            "description": "The bucket to use, if not the default."
+          },
+          "ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "$ref": "#/components/schemas/IDShareLink"
+            },
+            "minItems": 1,
+            "maxItems": 100
+          },
+          "tenant_id": {
+            "$ref": "#/components/schemas/Tenant",
+            "description": "A tenant to associate with this request"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ShareLinkListObject": {
+        "additionalProperties": false,
+        "description": "List or filter/search records.",
+        "properties": {
+          "bucket_id": {
+            "$ref": "#/components/schemas/IDShareBucket",
+            "description": "The bucket to use, if not the default."
+          },
+          "filter": {
+            "patternProperties": {},
+            "properties": {
+              "id": {
+                "description": "Only records where id equals this value.",
+                "nullable": false,
+                "type": "string"
+              },
+              "id__contains": {
+                "description": "Only records where id includes each substring.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "id__in": {
+                "description": "Only records where id equals one of the provided substrings.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "target_id": {
+                "description": "Only records where target_id equals this value.",
+                "nullable": false,
+                "type": "string"
+              },
+              "target_id__contains": {
+                "description": "Only records where target_id includes each substring.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "target_id__in": {
+                "description": "Only records where target_id equals one of the provided substrings.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "link_type": {
+                "description": "Only records where link_type equals this value.",
+                "nullable": false,
+                "type": "string"
+              },
+              "link_type__contains": {
+                "description": "Only records where link_type includes each substring.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "link_type__in": {
+                "description": "Only records where link_type equals one of the provided substrings.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "access_count": {
+                "description": "Only records where access_count equals this value.",
+                "nullable": false,
+                "type": "integer"
+              },
+              "access_count__gt": {
+                "description": "Only records where access_count is greater than this value.",
+                "type": "integer"
+              },
+              "access_count__gte": {
+                "description": "Only records where access_count is greater than or equal to this value.",
+                "type": "integer"
+              },
+              "access_count__lt": {
+                "description": "Only records where access_count is less than this value.",
+                "type": "integer"
+              },
+              "access_count__lte": {
+                "description": "Only records where access_count is less than or equal to this value.",
+                "type": "integer"
+              },
+              "max_access_count": {
+                "description": "Only records where max_access_count equals this value.",
+                "nullable": false,
+                "type": "integer"
+              },
+              "max_access_count__gt": {
+                "description": "Only records where max_access_count is greater than this value.",
+                "type": "integer"
+              },
+              "max_access_count__gte": {
+                "description": "Only records where max_access_count is greater than or equal to this value.",
+                "type": "integer"
+              },
+              "max_access_count__lt": {
+                "description": "Only records where max_access_count is less than this value.",
+                "type": "integer"
+              },
+              "max_access_count__lte": {
+                "description": "Only records where max_access_count is less than or equal to this value.",
+                "type": "integer"
+              },
+              "created_at": {
+                "description": "Only records where created_at equals this value.",
+                "format": "date-time",
+                "nullable": false,
+                "type": "string"
+              },
+              "created_at__gt": {
+                "description": "Only records where created_at is greater than this value.",
+                "format": "date-time",
+                "type": "string"
+              },
+              "created_at__gte": {
+                "description": "Only records where created_at is greater than or equal to this value.",
+                "format": "date-time",
+                "type": "string"
+              },
+              "created_at__lt": {
+                "description": "Only records where created_at is less than this value.",
+                "format": "date-time",
+                "type": "string"
+              },
+              "created_at__lte": {
+                "description": "Only records where created_at is less than or equal to this value.",
+                "format": "date-time",
+                "type": "string"
+              },
+              "expires_at": {
+                "description": "Only records where expires_at equals this value.",
+                "format": "date-time",
+                "nullable": false,
+                "type": "string"
+              },
+              "expires_at__gt": {
+                "description": "Only records where expires_at is greater than this value.",
+                "format": "date-time",
+                "type": "string"
+              },
+              "expires_at__gte": {
+                "description": "Only records where expires_at is greater than or equal to this value.",
+                "format": "date-time",
+                "type": "string"
+              },
+              "expires_at__lt": {
+                "description": "Only records where expires_at is less than this value.",
+                "format": "date-time",
+                "type": "string"
+              },
+              "expires_at__lte": {
+                "description": "Only records where expires_at is less than or equal to this value.",
+                "format": "date-time",
+                "type": "string"
+              },
+              "last_accessed_at": {
+                "description": "Only records where last_accessed_at equals this value.",
+                "format": "date-time",
+                "nullable": true,
+                "type": "string"
+              },
+              "last_accessed_at__gt": {
+                "description": "Only records where last_accessed_at is greater than this value.",
+                "format": "date-time",
+                "type": "string"
+              },
+              "last_accessed_at__gte": {
+                "description": "Only records where last_accessed_at is greater than or equal to this value.",
+                "format": "date-time",
+                "type": "string"
+              },
+              "last_accessed_at__lt": {
+                "description": "Only records where last_accessed_at is less than this value.",
+                "format": "date-time",
+                "type": "string"
+              },
+              "last_accessed_at__lte": {
+                "description": "Only records where last_accessed_at is less than or equal to this value.",
+                "format": "date-time",
+                "type": "string"
+              },
+              "link": {
+                "description": "Only records where link equals this value.",
+                "nullable": false,
+                "type": "string"
+              },
+              "link__contains": {
+                "description": "Only records where link includes each substring.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "link__in": {
+                "description": "Only records where link equals one of the provided substrings.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "title": {
+                "description": "Only records where title equals this value.",
+                "nullable": false,
+                "type": "string"
+              },
+              "title__contains": {
+                "description": "Only records where title includes each substring.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "title__in": {
+                "description": "Only records where title equals one of the provided substrings.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "message": {
+                "description": "Only records where message equals this value.",
+                "nullable": false,
+                "type": "string"
+              },
+              "message__contains": {
+                "description": "Only records where message includes each substring.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "message__in": {
+                "description": "Only records where message equals one of the provided substrings.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "recipient_email": {
+                "description": "Only records where recipient_email equals this value.",
+                "nullable": false,
+                "type": "string"
+              },
+              "recipient_email__contains": {
+                "description": "Only records where recipient_email includes each substring.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "recipient_email__in": {
+                "description": "Only records where recipient_email equals one of the provided substrings.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "sender_email": {
+                "description": "Only records where sender_email equals this value.",
+                "nullable": false,
+                "type": "string"
+              },
+              "sender_email__contains": {
+                "description": "Only records where sender_email includes each substring.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "sender_email__in": {
+                "description": "Only records where sender_email equals one of the provided substrings.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "tags": {
+                "description": "A list of tags that all must be present.",
+                "items": {
+                  "description": "Tags.",
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            },
+            "type": "object"
+          },
+          "last": {
+            "description": "Reflected value from a previous response to obtain the next page of results.",
+            "type": "string"
+          },
+          "order": {
+            "description": "Order results asc(ending) or desc(ending).",
+            "enum": ["asc", "desc"],
+            "type": "string"
+          },
+          "order_by": {
+            "description": "Which field to order results by.",
+            "enum": [
+              "id",
+              "bucket_id",
+              "target",
+              "link_type",
+              "access_count",
+              "max_access_count",
+              "created_at",
+              "expires_at",
+              "last_accessed_at",
+              "link",
+              "title",
+              "message",
+              "recipient_email",
+              "sender_email"
+            ],
+            "type": "string"
+          },
+          "size": {
+            "description": "Maximum results to include in the response.",
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "PasswordAlgorithm": {
+        "description": "A password protection encryption algorithm.",
+        "type": "string",
+        "enum": ["AES-CFB-128", "AES-CFB-256", "AES-GCM-256"]
+      },
+      "Path": {
+        "description": "An case-sensitive path to an object. Contains a sequence of path segments delimited by the the / character. Any path ending in a / character refers to a folder.",
+        "type": "string",
+        "maxLength": 256,
+        "minLength": 1,
+        "examples": ["/", "/path", "/path/to/dir/", "/path/to/file"]
+      },
+      "PlaintextPassword": {
+        "description": "A password in plaintext.",
+        "type": "string"
+      },
+      "share-resource-config": {
+        "description": "",
+        "type": "object",
+        "properties": {
+          "created_at": {
+            "description": "When the resource was created.",
+            "$ref": "#/components/schemas/pangea-timestamp"
+          },
+          "external_buckets": {
+            "description": "A list of external buckets that have been configured.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExternalBucket"
+            }
+          },
+          "id": {
+            "description": "The ID of the share resource.",
+            "readOnly": true,
+            "$ref": "#/components/schemas/IDShareBucket"
+          },
+          "root_bucket_id": {
+            "description": "May reference an external bucket, which will be used to store all permanent files.",
+            "type": "string"
+          },
+          "verify": {
+            "description": "If true, verify currently unverified external buckets.",
+            "writeOnly": true,
+            "type": "boolean"
+          },
+          "updated_at": {
+            "description": "When the resource configuration was last edited.",
+            "$ref": "#/components/schemas/pangea-timestamp",
+            "readOnly": true
+          }
+        }
+      },
+      "share-resource-config-create": {
+        "$ref": "#/components/schemas/share-resource-config",
+        "allOf": [
+          {
+            "not": {
+              "required": ["created_at"],
+              "description": "Creating a share resource does not accept created_at."
+            }
+          },
+          {
+            "not": {
+              "required": ["id"],
+              "description": "Creating a share resource does not accept id."
+            }
+          },
+          {
+            "not": {
+              "required": ["updated_at"],
+              "description": "Creating a share resource does not accept updated_at."
+            }
+          }
+        ]
+      },
+      "share-resource-config-delete": {
+        "$ref": "#/components/schemas/share-resource-config",
+        "required": ["id", "updated_at"]
+      },
+      "share-resource-config-update": {
+        "$ref": "#/components/schemas/share-resource-config",
+        "required": ["id", "updated_at"]
+      },
+      "share-service-config-create": {
+        "type": "object",
+        "$ref": "#/components/schemas/share-service-config",
+        "description": "",
+        "allOf": [
+          {
+            "not": {
+              "required": ["created_at"],
+              "description": "Creating a share resource does not accept created_at."
+            }
+          },
+          {
+            "not": {
+              "required": ["id"],
+              "description": "Creating a share resource does not accept id."
+            }
+          },
+          {
+            "not": {
+              "required": ["updated_at"],
+              "description": "Creating a share resource does not accept updated_at."
+            }
+          }
+        ]
+      },
+      "share-service-config": {
+        "additionalProperties": false,
+        "properties": {
+          "allowed_formats": {
+            "$ref": "#/components/schemas/AllowedFormats"
+          },
+          "allowed_media": {
+            "$ref": "#/components/schemas/AllowedMedia"
+          },
+          "audit_basic_activity": {
+            "$ref": "#/components/schemas/AuditBasicSettings"
+          },
+          "audit_share_activity": {
+            "$ref": "#/components/schemas/AuditShareSettings"
+          },
+          "authn_config_id": {
+            "$ref": "#/components/schemas/IDServiceConfig"
+          },
+          "block_unable_to_scan": {
+            "description": "If true, don't allow non-scannable files to be uploaded.",
+            "type": "boolean"
+          },
+          "branding_resource_id": {
+            "$ref": "#/components/schemas/IDGeneric"
+          },
+          "default_file_ttl": {
+            "$ref": "#/components/schemas/Duration",
+            "description": "The default duration to delete files after."
+          },
+          "file_scan_config_id": {
+            "$ref": "#/components/schemas/IDServiceConfig",
+            "description": "An ID for a File Scan instance to use with this share."
+          },
+          "file_scan_provider_id": {
+            "type": "string",
+            "description": "The File Scan provider to use."
+          },
+          "file_scan_enabled": {
+            "type": "boolean",
+            "description": "Enable File Scan"
+          },
+          "id": {
+            "$ref": "#/components/schemas/pangea-service-config-id"
+          },
+          "max_size": {
+            "type": "integer",
+            "description": "The maximum size of files that can be stored."
+          },
+          "name": {
+            "description": "A friendly name.",
+            "$ref": "#/components/schemas/Name"
+          },
+          "share_bucket_id": {
+            "$ref": "#/components/schemas/IDShareBucket",
+            "description": "The default share bucket for this configuration."
+          },
+          "share_bucket_ids": {
+            "type": "array",
+            "description": "A list of alternate buckets (used via an API parameter) for this configuration.",
+            "items": {
+              "$ref": "#/components/schemas/IDShareBucket"
+            }
+          },
+          "share_links": {
+            "$ref": "#/components/schemas/ShareLinkSettings"
+          },
+          "vault_auto_create_master_key": {
+            "description": "If true, have the share service create and manage the vault master key.",
+            "type": "boolean"
+          },
+          "vault_config_id": {
+            "$ref": "#/components/schemas/IDServiceConfig",
+            "description": "An ID for a vault instance to use with this share."
+          },
+          "vault_default_password_algorithm": {
+            "description": "The default vault password algorithm to use when password-protecting files.",
+            "type": "string",
+            "enum": ["AES-CFB-128", "AES-CFB-256"]
+          },
+          "vault_master_key_id": {
+            "$ref": "#/components/schemas/IDVault",
+            "description": "An ID for a vault master key to use to encrypt all data with this share."
+          },
+          "updated_at": {
+            "description": "The date and time the object was last updated.",
+            "$ref": "#/components/schemas/DateTime",
+            "readOnly": true
+          },
+          "version": {
+            "type": "integer",
+            "enum": [1]
+          }
+        }
+      },
+      "Size": {
+        "description": "Size in 8-bit bytes.",
+        "type": "integer"
+      },
+      "StatsResponse": {
+        "description": "Size in 8-bit bytes.",
+        "type": "object",
+        "properties": {
+          "file_count": {
+            "description": "The number of files in the current bucket.",
+            "type": "integer"
+          },
+          "folder_count": {
+            "description": "The number of folders in the current bucket.",
+            "type": "integer"
+          },
+          "share_link_count": {
+            "description": "The number of active share links in the current bucket.",
+            "type": "integer"
+          }
+        }
+      },
+      "Tag": {
+        "description": "A free form textual string used to mark or classify an object.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 64
+      },
+      "Tags": {
+        "description": "A list of user-defined tags",
+        "examples": [["irs_2023", "personal"]],
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Tag",
+          "maxContains": 256
+        }
+      },
+      "Tenant": {
+        "description": "An identifier for a tenant.",
+        "type": "string",
+        "minLength": 1
+      },
+      "TransferMethod": {
+        "description": "A method to transfer a file payload.",
+        "type": "string",
+        "enum": ["dest-url", "multipart", "post-url", "put-url", "source-url"]
+      },
+      "api-share-v1beta-put-field-source-url": {
+        "description": "The URL to fetch the file payload from (for transfer_method source-url).",
+        "type": "string"
+      },
+      "api-share-v1beta-put-require-post-url": {
+        "if": {
+          "properties": {
+            "transfer_method": {
+              "const": "post-url"
+            }
+          },
+          "required": ["transfer_method"]
+        },
+        "then": {
+          "required": ["crc32c", "sha256", "size"]
+        }
+      },
+      "api-share-v1beta-put-require-source-url": {
+        "if": {
+          "properties": {
+            "transfer_method": {
+              "const": "source-url"
+            }
+          },
+          "required": ["transfer_method"]
+        },
+        "then": {
+          "required": ["source_url"]
+        }
+      }
+    },
+    "securitySchemes": {
+      "APIToken": {
+        "type": "http",
+        "bearerFormat": "token",
+        "description": "Pangea API Token",
+        "scheme": "bearer"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "share",
+      "description": "Secure file sharing"
+    },
+    {
+      "name": "v1-general",
+      "description": "General"
+    },
+    {
+      "name": "v1-share-links",
+      "description": "Share Links"
+    },
+    {
+      "name": "v1beta-general",
+      "description": "General (Beta)"
+    },
+    {
+      "name": "v1beta-share-links",
+      "description": "Share Links (Beta)"
+    }
+  ]
+}

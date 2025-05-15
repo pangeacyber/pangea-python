@@ -182,6 +182,42 @@ jobs:
       - name: Unit test
         run: poetry run python -m unittest tests.unit
 
+  sdk-test-integration:
+    needs: [prefetch]
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13']
+    defaults:
+      run:
+        working-directory: ./packages/pangea-sdk
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+
+      - name: Install poetry
+        run: |
+          pip install --upgrade poetry==${{ env.POETRY_VERSION }}
+          poetry --version
+
+      - name: Setup Python
+        uses: actions/setup-python@v5.6.0
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: poetry
+          cache-dependency-path: ./packages/pangea-sdk/poetry.lock
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: |
+          poetry check
+          poetry install
+
+      - name: Integration tests
+        run: bash ./scripts/test.sh
+
   sdk-docs:
     needs: [prefetch]
     runs-on: ubuntu-24.04

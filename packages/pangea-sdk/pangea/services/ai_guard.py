@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from typing import Any, Generic, Literal, Optional, TypeVar, overload
+from typing import Generic, Literal, Optional, overload
+
+from typing_extensions import TypeVar
 
 from pangea.config import PangeaConfig
 from pangea.response import APIRequestModel, APIResponseModel, PangeaResponse, PangeaResponseResult
@@ -199,9 +201,9 @@ class PiiEntityResult(APIResponseModel):
 class MaliciousEntity(APIResponseModel):
     type: str
     value: str
-    action: str
+    action: Optional[str] = None
     start_pos: Optional[int] = None
-    raw: Optional[dict[str, Any]] = None
+    raw: Optional[dict[str, object]] = None
 
 
 class MaliciousEntityResult(APIResponseModel):
@@ -215,7 +217,7 @@ class CustomEntity(APIResponseModel):
     action: str
     """The action taken on this Entity"""
     start_pos: Optional[int] = None
-    raw: Optional[dict[str, Any]] = None
+    raw: Optional[dict[str, object]] = None
 
 
 class CustomEntityResult(APIResponseModel):
@@ -266,9 +268,9 @@ class TextGuardDetectors(APIResponseModel):
     prompt_injection: Optional[TextGuardDetector[PromptInjectionResult]] = None
     pii_entity: Optional[TextGuardDetector[PiiEntityResult]] = None
     malicious_entity: Optional[TextGuardDetector[MaliciousEntityResult]] = None
-    custom_entity: Optional[TextGuardDetector[Any]] = None
+    custom_entity: Optional[TextGuardDetector[object]] = None
     secrets_detection: Optional[TextGuardDetector[SecretsEntityResult]] = None
-    profanity_and_toxicity: Optional[TextGuardDetector[Any]] = None
+    profanity_and_toxicity: Optional[TextGuardDetector[object]] = None
     language_detection: Optional[TextGuardDetector[LanguageDetectionResult]] = None
     topic_detection: Optional[TextGuardDetector[TopicDetectionResult]] = None
     code_detection: Optional[TextGuardDetector[CodeDetectionResult]] = None
