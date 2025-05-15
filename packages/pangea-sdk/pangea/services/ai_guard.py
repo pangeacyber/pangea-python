@@ -1,7 +1,10 @@
 from __future__ import annotations
 
-from typing import Generic, Literal, Optional, overload
+from collections.abc import Mapping
+from datetime import datetime
+from typing import Annotated, Generic, Literal, Optional, Union, overload
 
+from pydantic import BaseModel, ConfigDict, Field, RootModel
 from typing_extensions import TypeVar
 
 from pangea.config import PangeaConfig
@@ -299,6 +302,405 @@ class TextGuardResult(PangeaResponseResult, Generic[_T]):
     """
 
 
+class Areas(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    text_guard: bool
+
+
+class AuditDataActivityConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    enabled: bool
+    audit_service_config_id: str
+    areas: Areas
+
+
+class PromptGuard(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    enabled: Optional[bool] = None
+    config_id: Optional[str] = None
+    confidence_threshold: Optional[float] = None
+
+
+class IpIntel(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    enabled: Optional[bool] = None
+    config_id: Optional[str] = None
+    reputation_provider: Optional[str] = None
+    risk_threshold: Optional[float] = None
+
+
+class UserIntel(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    enabled: Optional[bool] = None
+    config_id: Optional[str] = None
+    breach_provider: Optional[str] = None
+
+
+class UrlIntel(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    enabled: Optional[bool] = None
+    config_id: Optional[str] = None
+    reputation_provider: Optional[str] = None
+    risk_threshold: Optional[float] = None
+
+
+class DomainIntel(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    enabled: Optional[bool] = None
+    config_id: Optional[str] = None
+    reputation_provider: Optional[str] = None
+    risk_threshold: Optional[float] = None
+
+
+class FileScan(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    enabled: Optional[bool] = None
+    config_id: Optional[str] = None
+    scan_provider: Optional[str] = None
+    risk_threshold: Optional[float] = None
+
+
+class Redact(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    enabled: Optional[bool] = None
+    config_id: Optional[str] = None
+
+
+class Vault(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    config_id: Optional[str] = None
+
+
+class Lingua(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    enabled: Optional[bool] = None
+
+
+class Code(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    enabled: Optional[bool] = None
+
+
+class ConnectionsConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    prompt_guard: Optional[PromptGuard] = None
+    ip_intel: Optional[IpIntel] = None
+    user_intel: Optional[UserIntel] = None
+    url_intel: Optional[UrlIntel] = None
+    domain_intel: Optional[DomainIntel] = None
+    file_scan: Optional[FileScan] = None
+    redact: Optional[Redact] = None
+    vault: Optional[Vault] = None
+    lingua: Optional[Lingua] = None
+    code: Optional[Code] = None
+
+
+class PartialMasking(BaseModel):
+    masking_type: Optional[Literal["unmask", "mask"]] = "unmask"
+    unmasked_from_left: Annotated[Optional[int], Field(ge=0)] = None
+    unmasked_from_right: Annotated[Optional[int], Field(ge=0)] = None
+    masked_from_left: Annotated[Optional[int], Field(ge=0)] = None
+    masked_from_right: Annotated[Optional[int], Field(ge=0)] = None
+    chars_to_ignore: Optional[list[CharsToIgnoreItem]] = None
+    masking_char: Annotated[Optional[str], Field(max_length=1, min_length=1)] = "*"
+
+
+class RuleRedactionConfig1(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    redaction_type: Literal[
+        "mask",
+        "partial_masking",
+        "replacement",
+        "hash",
+        "detect_only",
+        "fpe",
+        "mask",
+        "detect_only",
+    ]
+    redaction_value: Optional[str] = None
+    partial_masking: Optional[PartialMasking] = None
+    hash: Optional[Hash] = None
+    fpe_alphabet: Optional[
+        Literal[
+            "numeric",
+            "alphalower",
+            "alphaupper",
+            "alpha",
+            "alphanumericlower",
+            "alphanumericupper",
+            "alphanumeric",
+        ]
+    ] = None
+
+
+class PartialMasking1(BaseModel):
+    masking_type: Optional[Literal["unmask", "mask"]] = "unmask"
+    unmasked_from_left: Annotated[Optional[int], Field(ge=0)] = None
+    unmasked_from_right: Annotated[Optional[int], Field(ge=0)] = None
+    masked_from_left: Annotated[Optional[int], Field(ge=0)] = None
+    masked_from_right: Annotated[Optional[int], Field(ge=0)] = None
+    chars_to_ignore: Optional[list[CharsToIgnoreItem]] = None
+    masking_char: Annotated[Optional[str], Field(max_length=1, min_length=1)] = "*"
+
+
+class RuleRedactionConfig2(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    redaction_type: Literal["replacement"]
+    redaction_value: str
+    partial_masking: Optional[PartialMasking1] = None
+    hash: Optional[Hash] = None
+    fpe_alphabet: Optional[
+        Literal[
+            "numeric",
+            "alphalower",
+            "alphaupper",
+            "alpha",
+            "alphanumericlower",
+            "alphanumericupper",
+            "alphanumeric",
+        ]
+    ] = None
+
+
+class PartialMasking2(BaseModel):
+    masking_type: Optional[Literal["unmask", "mask"]] = "unmask"
+    unmasked_from_left: Annotated[Optional[int], Field(ge=0)] = None
+    unmasked_from_right: Annotated[Optional[int], Field(ge=0)] = None
+    masked_from_left: Annotated[Optional[int], Field(ge=0)] = None
+    masked_from_right: Annotated[Optional[int], Field(ge=0)] = None
+    chars_to_ignore: Optional[list[CharsToIgnoreItem]] = None
+    masking_char: Annotated[Optional[str], Field(max_length=1, min_length=1)] = "*"
+
+
+class RuleRedactionConfig3(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    redaction_type: Literal["partial_masking"]
+    redaction_value: str
+    partial_masking: PartialMasking2
+    hash: Optional[Hash] = None
+    fpe_alphabet: Optional[
+        Literal[
+            "numeric",
+            "alphalower",
+            "alphaupper",
+            "alpha",
+            "alphanumericlower",
+            "alphanumericupper",
+            "alphanumeric",
+        ]
+    ] = None
+
+
+class PartialMasking3(BaseModel):
+    masking_type: Optional[Literal["unmask", "mask"]] = "unmask"
+    unmasked_from_left: Annotated[Optional[int], Field(ge=0)] = None
+    unmasked_from_right: Annotated[Optional[int], Field(ge=0)] = None
+    masked_from_left: Annotated[Optional[int], Field(ge=0)] = None
+    masked_from_right: Annotated[Optional[int], Field(ge=0)] = None
+    chars_to_ignore: Optional[list[CharsToIgnoreItem]] = None
+    masking_char: Annotated[Optional[str], Field(max_length=1, min_length=1)] = "*"
+
+
+class RuleRedactionConfig4(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    redaction_type: Literal["hash"]
+    redaction_value: str
+    partial_masking: PartialMasking3
+    hash: Optional[Hash] = None
+    fpe_alphabet: Optional[
+        Literal[
+            "numeric",
+            "alphalower",
+            "alphaupper",
+            "alpha",
+            "alphanumericlower",
+            "alphanumericupper",
+            "alphanumeric",
+        ]
+    ] = None
+
+
+class CharsToIgnoreItem(RootModel[str]):
+    root: Annotated[str, Field(max_length=1, min_length=1)]
+
+
+class PartialMasking4(BaseModel):
+    masking_type: Optional[Literal["unmask", "mask"]] = "unmask"
+    unmasked_from_left: Annotated[Optional[int], Field(ge=0)] = None
+    unmasked_from_right: Annotated[Optional[int], Field(ge=0)] = None
+    masked_from_left: Annotated[Optional[int], Field(ge=0)] = None
+    masked_from_right: Annotated[Optional[int], Field(ge=0)] = None
+    chars_to_ignore: Optional[list[CharsToIgnoreItem]] = None
+    masking_char: Annotated[Optional[str], Field(max_length=1, min_length=1)] = "*"
+
+
+class Hash(BaseModel):
+    hash_type: Literal["md5", "sha256"]
+    """The type of hashing algorithm"""
+
+
+class RuleRedactionConfig5(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    redaction_type: Literal["fpe"]
+    redaction_value: str
+    partial_masking: PartialMasking4
+    hash: Optional[Hash] = None
+    fpe_alphabet: Optional[
+        Literal[
+            "numeric",
+            "alphalower",
+            "alphaupper",
+            "alpha",
+            "alphanumericlower",
+            "alphanumericupper",
+            "alphanumeric",
+        ]
+    ] = None
+
+
+class Rule(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    redact_rule_id: str
+    redaction: Union[
+        RuleRedactionConfig1,
+        RuleRedactionConfig2,
+        RuleRedactionConfig3,
+        RuleRedactionConfig4,
+        RuleRedactionConfig5,
+    ]
+    block: Optional[bool] = None
+    disabled: Optional[bool] = None
+    reputation_check: Optional[bool] = None
+    transform_if_malicious: Optional[bool] = None
+
+
+class Settings(BaseModel):
+    rules: Optional[list[Rule]] = None
+
+
+class DetectorSetting(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    detector_name: str
+    state: Literal["disabled", "enabled"]
+    settings: Settings
+
+
+class RedactConnectorSettings(BaseModel):
+    fpe_tweak_vault_secret_id: Optional[str] = None
+
+
+class ConnectorSettings(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    redact: Optional[RedactConnectorSettings] = None
+
+
+class RecipeConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    name: str
+    description: str
+    version: Optional[str] = ""
+    detectors: Optional[list[DetectorSetting]] = None
+    """Setting for Detectors"""
+    connector_settings: Optional[ConnectorSettings] = None
+
+
+class ServiceConfig(PangeaResponseResult):
+    id: Optional[str] = None
+    name: Optional[str] = None
+    audit_data_activity: Optional[AuditDataActivityConfig] = None
+    connections: Optional[ConnectionsConfig] = None
+    recipes: Optional[dict[str, RecipeConfig]] = None
+
+
+class ServiceConfigFilter(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: Optional[str] = None
+    """
+    Only records where id equals this value.
+    """
+    id__contains: Optional[list[str]] = None
+    """
+    Only records where id includes each substring.
+    """
+    id__in: Optional[list[str]] = None
+    """
+    Only records where id equals one of the provided substrings.
+    """
+    created_at: Optional[datetime] = None
+    """
+    Only records where created_at equals this value.
+    """
+    created_at__gt: Optional[datetime] = None
+    """
+    Only records where created_at is greater than this value.
+    """
+    created_at__gte: Optional[datetime] = None
+    """
+    Only records where created_at is greater than or equal to this value.
+    """
+    created_at__lt: Optional[datetime] = None
+    """
+    Only records where created_at is less than this value.
+    """
+    created_at__lte: Optional[datetime] = None
+    """
+    Only records where created_at is less than or equal to this value.
+    """
+    updated_at: Optional[datetime] = None
+    """
+    Only records where updated_at equals this value.
+    """
+    updated_at__gt: Optional[datetime] = None
+    """
+    Only records where updated_at is greater than this value.
+    """
+    updated_at__gte: Optional[datetime] = None
+    """
+    Only records where updated_at is greater than or equal to this value.
+    """
+    updated_at__lt: Optional[datetime] = None
+    """
+    Only records where updated_at is less than this value.
+    """
+    updated_at__lte: Optional[datetime] = None
+    """
+    Only records where updated_at is less than or equal to this value.
+    """
+
+
+class ServiceConfigsPage(PangeaResponseResult):
+    count: Optional[int] = None
+    """The total number of service configs matched by the list request."""
+    last: Optional[str] = None
+    """
+    Used to fetch the next page of the current listing when provided in a
+    repeated request's last parameter.
+    """
+    items: Optional[list[ServiceConfig]] = None
+
+
 class AIGuard(ServiceBase):
     """AI Guard service client.
 
@@ -456,4 +858,82 @@ class AIGuard(ServiceBase):
                 "overrides": overrides,
                 "log_fields": log_fields,
             },
+        )
+
+    def get_service_config(self, id: str) -> PangeaResponse[ServiceConfig]:
+        """
+        OperationId: ai_guard_post_v1beta_config
+        """
+        return self.request.post("v1beta/config", data={"id": id}, result_class=ServiceConfig)
+
+    def create_service_config(
+        self,
+        name: str,
+        *,
+        id: str | None = None,
+        audit_data_activity: AuditDataActivityConfig | None = None,
+        connections: ConnectionsConfig | None = None,
+        recipes: Mapping[str, RecipeConfig] | None = None,
+    ) -> PangeaResponse[ServiceConfig]:
+        """
+        OperationId: ai_guard_post_v1beta_config_create
+        """
+        return self.request.post(
+            "v1beta/config/create",
+            data={
+                "name": name,
+                "id": id,
+                "audit_data_activity": audit_data_activity,
+                "connections": connections,
+                "recipes": recipes,
+            },
+            result_class=ServiceConfig,
+        )
+
+    def update_service_config(
+        self,
+        id: str,
+        name: str,
+        *,
+        audit_data_activity: AuditDataActivityConfig | None = None,
+        connections: ConnectionsConfig | None = None,
+        recipes: Mapping[str, RecipeConfig] | None = None,
+    ) -> PangeaResponse[ServiceConfig]:
+        """
+        OperationId: ai_guard_post_v1beta_config_update
+        """
+        return self.request.post(
+            "v1beta/config/update",
+            data={
+                "id": id,
+                "name": name,
+                "audit_data_activity": audit_data_activity,
+                "connections": connections,
+                "recipes": recipes,
+            },
+            result_class=ServiceConfig,
+        )
+
+    def delete_service_config(self, id: str) -> PangeaResponse[ServiceConfig]:
+        """
+        OperationId: ai_guard_post_v1beta_config_delete
+        """
+        return self.request.post("v1beta/config/delete", data={"id": id}, result_class=ServiceConfig)
+
+    def list_service_configs(
+        self,
+        *,
+        filter: ServiceConfigFilter | None = None,
+        last: str | None = None,
+        order: Literal["asc", "desc"] | None = None,
+        order_by: Literal["id", "created_at", "updated_at"] | None = None,
+        size: int | None = None,
+    ) -> PangeaResponse[ServiceConfigsPage]:
+        """
+        OperationId: ai_guard_post_v1beta_config_list
+        """
+        return self.request.post(
+            "v1beta/config/list",
+            data={"filter": filter, "last": last, "order": order, "order_by": order_by, "size": size},
+            result_class=ServiceConfigsPage,
         )

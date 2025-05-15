@@ -100,6 +100,8 @@ def assert_matches_type(
         assert isinstance(value, int)
     elif origin is bool:
         assert isinstance(value, bool)
+    elif origin is float:
+        assert isinstance(value, float)
     elif origin is object:
         # Expected unknown type.
         pass
