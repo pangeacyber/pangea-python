@@ -97,28 +97,22 @@ class TestShare(unittest.TestCase):
             self.assertTrue(False)
 
     def test_put_transfer_method_post_url_zero_bytes_file(self):
-        try:
-            with get_zero_bytes_test_file() as f:
-                name = f"{TIME}_file_zero_bytes_post_url"
-                response = self.client.put(file=f, name=name, transfer_method=TransferMethod.POST_URL)
-                self.assertEqual(response.status, "Success")
+        with get_zero_bytes_test_file() as f:
+            name = f"{TIME}_file_zero_bytes_post_url"
+            response = self.client.put(file=f, name=name, transfer_method=TransferMethod.POST_URL)
+            self.assertEqual(response.status, "Success")
 
-            # Get file. Transfer method dest-url
-            resp_get = self.client.get(id=response.result.object.id, transfer_method=TransferMethod.DEST_URL)
-            self.assertEqual(len(resp_get.attached_files), 0)
-            self.assertIsNotNone(resp_get.result.dest_url)
+        # Get file. Transfer method dest-url
+        resp_get = self.client.get(id=response.result.object.id, transfer_method=TransferMethod.DEST_URL)
+        self.assertEqual(len(resp_get.attached_files), 0)
+        self.assertIsNotNone(resp_get.result.dest_url)
 
-            # Get file. Transfer method multipart
-            resp_get = self.client.get(id=response.result.object.id, transfer_method=TransferMethod.MULTIPART)
-            self.assertEqual(len(resp_get.attached_files), 1)
-            self.assertIsNone(resp_get.result.dest_url)
-            self.assertEqual(len(resp_get.attached_files[0].file), 0)
-            resp_get.attached_files[0].save("./download/")
-
-        except pe.PangeaAPIException as e:
-            print(e)
-            print(type(e))
-            self.assertTrue(False)
+        # Get file. Transfer method multipart
+        resp_get = self.client.get(id=response.result.object.id, transfer_method=TransferMethod.MULTIPART)
+        self.assertEqual(len(resp_get.attached_files), 1)
+        self.assertIsNone(resp_get.result.dest_url)
+        self.assertEqual(len(resp_get.attached_files[0].file), 0)
+        resp_get.attached_files[0].save("./download/")
 
     def test_put_transfer_method_multipart(self):
         try:
@@ -214,7 +208,6 @@ class TestShare(unittest.TestCase):
             resp_put_path = self.client.put(file=f, folder=path, transfer_method=TransferMethod.MULTIPART)
 
         self.assertEqual(resp_put_path.status, "Success")
-        # self.assertEqual(folder_id, resp_put_path.result.object.parent_id)
         self.assertIsNone(resp_put_path.result.object.metadata)
         self.assertIsNone(resp_put_path.result.object.tags)
         self.assertIsNotNone(resp_put_path.result.object.md5)
@@ -234,8 +227,8 @@ class TestShare(unittest.TestCase):
             )
         self.assertEqual(resp_put_id.status, "Success")
         self.assertEqual(folder_id, resp_put_id.result.object.parent_id)
-        self.assertEqual(METADATA, resp_put_id.result.object.metadata)
-        self.assertEqual(TAGS, resp_put_id.result.object.tags)
+        self.assertEqual(METADATA, resp_put_id.result.object.metadata.model_dump())
+        self.assertEqual(TAGS, resp_put_id.result.object.tags.model_dump())
         self.assertIsNotNone(resp_put_id.result.object.md5)
         self.assertIsNotNone(resp_put_id.result.object.sha256)
         self.assertIsNotNone(resp_put_id.result.object.sha512)
@@ -243,8 +236,8 @@ class TestShare(unittest.TestCase):
         # Update file. full metadata and tags
         resp_update = self.client.update(id=resp_put_path.result.object.id, metadata=METADATA, tags=TAGS)
         self.assertTrue(resp_update.success)
-        self.assertEqual(METADATA, resp_update.result.object.metadata)
-        self.assertEqual(TAGS, resp_update.result.object.tags)
+        self.assertEqual(METADATA, resp_update.result.object.metadata.model_dump())
+        self.assertEqual(TAGS, resp_update.result.object.tags.model_dump())
 
         # Get file. Transfer method dest-url
         resp_get = self.client.get(id=resp_update.result.object.id, transfer_method=TransferMethod.DEST_URL)
@@ -269,11 +262,11 @@ class TestShare(unittest.TestCase):
         metadata_final = {}
         metadata_final.update(METADATA)
         metadata_final.update(ADD_METADATA)
-        self.assertEqual(metadata_final, resp_update_add.result.object.metadata)
+        self.assertEqual(metadata_final, resp_update_add.result.object.metadata.model_dump())
         tags_final = []
         tags_final.extend(TAGS)
         tags_final.extend(ADD_TAGS)
-        self.assertEqual(tags_final, resp_update_add.result.object.tags)
+        self.assertEqual(tags_final, resp_update_add.result.object.tags.model_dump())
 
         # Get archive
         resp_get_archive = self.client.get_archive(

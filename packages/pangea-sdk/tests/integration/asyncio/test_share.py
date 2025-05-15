@@ -238,8 +238,8 @@ class TestShare(unittest.IsolatedAsyncioTestCase):
             )
         self.assertEqual(resp_put_id.status, "Success")
         self.assertEqual(folder_id, resp_put_id.result.object.parent_id)
-        self.assertEqual(METADATA, resp_put_id.result.object.metadata)
-        self.assertEqual(TAGS, resp_put_id.result.object.tags)
+        self.assertEqual(METADATA, resp_put_id.result.object.metadata.model_dump())
+        self.assertEqual(TAGS, resp_put_id.result.object.tags.model_dump())
         self.assertIsNotNone(resp_put_id.result.object.md5)
         self.assertIsNotNone(resp_put_id.result.object.sha256)
         self.assertIsNotNone(resp_put_id.result.object.sha512)
@@ -247,8 +247,8 @@ class TestShare(unittest.IsolatedAsyncioTestCase):
         # Update file. full metadata and tags
         resp_update = await self.client.update(id=resp_put_path.result.object.id, metadata=METADATA, tags=TAGS)
         self.assertTrue(resp_update.success)
-        self.assertEqual(METADATA, resp_update.result.object.metadata)
-        self.assertEqual(TAGS, resp_update.result.object.tags)
+        self.assertEqual(METADATA, resp_update.result.object.metadata.model_dump())
+        self.assertEqual(TAGS, resp_update.result.object.tags.model_dump())
 
         # Get file. Transfer method dest-url
         resp_get = await self.client.get(id=resp_update.result.object.id, transfer_method=TransferMethod.DEST_URL)
@@ -273,11 +273,11 @@ class TestShare(unittest.IsolatedAsyncioTestCase):
         metadata_final = {}
         metadata_final.update(METADATA)
         metadata_final.update(ADD_METADATA)
-        self.assertEqual(metadata_final, resp_update_add.result.object.metadata)
+        self.assertEqual(metadata_final, resp_update_add.result.object.metadata.model_dump())
         tags_final = []
         tags_final.extend(TAGS)
         tags_final.extend(ADD_TAGS)
-        self.assertEqual(tags_final, resp_update_add.result.object.tags)
+        self.assertEqual(tags_final, resp_update_add.result.object.tags.model_dump())
 
         # Get archive
         resp_get_archive = await self.client.get_archive(
