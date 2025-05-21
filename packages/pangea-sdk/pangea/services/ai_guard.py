@@ -1,14 +1,13 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from datetime import datetime
 from typing import Annotated, Generic, Literal, Optional, Union, overload
 
 from pydantic import BaseModel, ConfigDict, Field, RootModel
 from typing_extensions import TypeVar
 
 from pangea.config import PangeaConfig
-from pangea.response import APIRequestModel, APIResponseModel, PangeaResponse, PangeaResponseResult
+from pangea.response import APIRequestModel, APIResponseModel, PangeaDateTime, PangeaResponse, PangeaResponseResult
 from pangea.services.base import ServiceBase
 
 # This is named "prompt injection" in the API spec even though it is also used
@@ -648,43 +647,43 @@ class ServiceConfigFilter(BaseModel):
     """
     Only records where id equals one of the provided substrings.
     """
-    created_at: Optional[datetime] = None
+    created_at: Optional[PangeaDateTime] = None
     """
     Only records where created_at equals this value.
     """
-    created_at__gt: Optional[datetime] = None
+    created_at__gt: Optional[PangeaDateTime] = None
     """
     Only records where created_at is greater than this value.
     """
-    created_at__gte: Optional[datetime] = None
+    created_at__gte: Optional[PangeaDateTime] = None
     """
     Only records where created_at is greater than or equal to this value.
     """
-    created_at__lt: Optional[datetime] = None
+    created_at__lt: Optional[PangeaDateTime] = None
     """
     Only records where created_at is less than this value.
     """
-    created_at__lte: Optional[datetime] = None
+    created_at__lte: Optional[PangeaDateTime] = None
     """
     Only records where created_at is less than or equal to this value.
     """
-    updated_at: Optional[datetime] = None
+    updated_at: Optional[PangeaDateTime] = None
     """
     Only records where updated_at equals this value.
     """
-    updated_at__gt: Optional[datetime] = None
+    updated_at__gt: Optional[PangeaDateTime] = None
     """
     Only records where updated_at is greater than this value.
     """
-    updated_at__gte: Optional[datetime] = None
+    updated_at__gte: Optional[PangeaDateTime] = None
     """
     Only records where updated_at is greater than or equal to this value.
     """
-    updated_at__lt: Optional[datetime] = None
+    updated_at__lt: Optional[PangeaDateTime] = None
     """
     Only records where updated_at is less than this value.
     """
-    updated_at__lte: Optional[datetime] = None
+    updated_at__lte: Optional[PangeaDateTime] = None
     """
     Only records where updated_at is less than or equal to this value.
     """
