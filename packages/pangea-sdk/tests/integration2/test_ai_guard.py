@@ -78,6 +78,8 @@ class TestAIGuard:
         assert response.status == "Success"
         assert response.result
         assert_matches_type(ServiceConfigsPage, response.result, path=["response"])
+        assert response.result.count is not None
+        assert response.result.items is not None
 
 
 class TestAIGuardAsync:
@@ -132,3 +134,5 @@ class TestAIGuardAsync:
         assert response.status == "Success"
         assert response.result
         assert_matches_type(ServiceConfigsPage, response.result, path=["response"])
+        assert response.result.count is not None
+        assert response.result.items is not None
