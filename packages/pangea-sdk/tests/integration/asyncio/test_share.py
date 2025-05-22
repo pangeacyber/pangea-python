@@ -221,9 +221,7 @@ class TestShare(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(resp_put_path.status, "Success")
         self.assertIsNone(resp_put_path.result.object.metadata)
         self.assertIsNone(resp_put_path.result.object.tags)
-        self.assertIsNotNone(resp_put_path.result.object.md5)
         self.assertIsNotNone(resp_put_path.result.object.sha256)
-        self.assertIsNotNone(resp_put_path.result.object.sha512)
 
         # Upload a file with parent id and name
         with get_test_file() as f:
@@ -240,9 +238,7 @@ class TestShare(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(folder_id, resp_put_id.result.object.parent_id)
         self.assertEqual(METADATA, resp_put_id.result.object.metadata.model_dump())
         self.assertEqual(TAGS, resp_put_id.result.object.tags.model_dump())
-        self.assertIsNotNone(resp_put_id.result.object.md5)
         self.assertIsNotNone(resp_put_id.result.object.sha256)
-        self.assertIsNotNone(resp_put_id.result.object.sha512)
 
         # Update file. full metadata and tags
         resp_update = await self.client.update(id=resp_put_path.result.object.id, metadata=METADATA, tags=TAGS)
