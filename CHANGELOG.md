@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## 6.2.0beta2 - 2025-05-22
+
 ### Added
 
 - AI Guard: config APIs.
