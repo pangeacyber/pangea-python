@@ -19,7 +19,7 @@ python = "^3.9.20"
 pangea-sdk = { path = "../../packages/pangea-sdk", develop = true }
 
 [tool.poetry.group.dev.dependencies]
-mypy = "^1.15.0"
+mypy = "^1.16.0"
 
 
 [tool.mypy]
