@@ -16,7 +16,7 @@ python = "^3.9.20"
 pangea-sdk = "^6.1.1"
 
 [tool.poetry.group.dev.dependencies]
-mypy = "^1.15.0"
+mypy = "^1.16.0"
 
 [build-system]
 requires = ["poetry-core>=2.1.3"]
