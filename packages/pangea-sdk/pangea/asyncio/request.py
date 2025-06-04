@@ -32,6 +32,10 @@ _FileSpecTuple3: TypeAlias = tuple[_FileName, _FileContent, _FileContentType]
 _FileSpecTuple4: TypeAlias = tuple[_FileName, _FileContent, _FileContentType, _FileCustomHeaders]
 _FileSpec: TypeAlias = Union[_FileContent, _FileSpecTuple2, _FileSpecTuple3, _FileSpecTuple4]
 _Files: TypeAlias = Union[Mapping[str, _FileSpec], Iterable[tuple[str, _FileSpec]]]
+_LooseHeaders = Union[
+    Mapping[str, str],
+    Iterable[tuple[str, str]],
+]
 
 
 TResult = TypeVar("TResult", bound=PangeaResponseResult)
@@ -299,7 +303,7 @@ class PangeaRequestAsync(PangeaRequestBase):
     async def _http_post(
         self,
         url: str,
-        headers: Mapping[str, str] = {},
+        headers: _LooseHeaders = {},  # noqa: B006
         data: str | dict[str, Any] | None = None,
         files: _Files | None = None,
         presigned_url_post: bool = False,
@@ -336,7 +340,7 @@ class PangeaRequestAsync(PangeaRequestBase):
         self,
         url: str,
         files: Sequence[Tuple],
-        headers: Mapping[str, str] = {},
+        headers: _LooseHeaders = {},  # noqa: B006
     ) -> aiohttp.ClientResponse:
         self.logger.debug(
             json.dumps({"service": self.service, "action": "http_put", "url": url}, default=default_encoder)
