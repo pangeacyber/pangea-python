@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import overload
 
 from typing_extensions import TypeVar
@@ -7,7 +8,7 @@ from typing_extensions import TypeVar
 from pangea.asyncio.services.base import ServiceBaseAsync
 from pangea.config import PangeaConfig
 from pangea.response import PangeaResponse
-from pangea.services.ai_guard import LogFields, Overrides, TextGuardResult
+from pangea.services.ai_guard import LogFields, Message, Overrides, TextGuardResult
 
 _T = TypeVar("_T")
 
@@ -60,7 +61,7 @@ class AIGuardAsync(ServiceBaseAsync):
         debug: bool | None = None,
         overrides: Overrides | None = None,
         log_fields: LogFields | None = None,
-    ) -> PangeaResponse[TextGuardResult[None]]:
+    ) -> PangeaResponse[TextGuardResult]:
         """
         Text Guard for scanning LLM inputs and outputs
 
@@ -88,12 +89,12 @@ class AIGuardAsync(ServiceBaseAsync):
     async def guard_text(
         self,
         *,
-        messages: _T,
+        messages: Sequence[Message],
         recipe: str | None = None,
         debug: bool | None = None,
         overrides: Overrides | None = None,
         log_fields: LogFields | None = None,
-    ) -> PangeaResponse[TextGuardResult[_T]]:
+    ) -> PangeaResponse[TextGuardResult]:
         """
         Text Guard for scanning LLM inputs and outputs
 
@@ -115,19 +116,19 @@ class AIGuardAsync(ServiceBaseAsync):
             log_field: Additional fields to include in activity log
 
         Examples:
-            response = await ai_guard.guard_text(messages=[{"role": "user", "content": "hello world"}])
+            response = await ai_guard.guard_text(messages=[Message(role="user", content="hello world")])
         """
 
-    async def guard_text(  # type: ignore[misc]
+    async def guard_text(
         self,
         text: str | None = None,
         *,
-        messages: _T | None = None,
+        messages: Sequence[Message] | None = None,
         recipe: str | None = None,
         debug: bool | None = None,
         overrides: Overrides | None = None,
         log_fields: LogFields | None = None,
-    ) -> PangeaResponse[TextGuardResult[None]]:
+    ) -> PangeaResponse[TextGuardResult]:
         """
         Text Guard for scanning LLM inputs and outputs
 
