@@ -43,6 +43,8 @@ _FileSpecTuple4: TypeAlias = tuple[_FileName, _FileContent, _FileContentType, _F
 _FileSpec: TypeAlias = Union[_FileContent, _FileSpecTuple2, _FileSpecTuple3, _FileSpecTuple4]
 _Files: TypeAlias = Union[Mapping[str, _FileSpec], Iterable[tuple[str, _FileSpec]]]
 
+_HeadersUpdateMapping: TypeAlias = Mapping[str, str]
+
 
 class MultipartResponse:
     pangea_json: Dict[str, str]
@@ -66,7 +68,7 @@ class PangeaRequestBase:
         self._queued_retry_enabled = config.queued_retry_enabled
 
         # Custom headers
-        self._extra_headers: Dict = {}
+        self._extra_headers: _HeadersUpdateMapping = {}
         self._user_agent = ""
 
         self.set_custom_user_agent(config.custom_user_agent)
@@ -81,18 +83,17 @@ class PangeaRequestBase:
 
         return self._session
 
-    def set_extra_headers(self, headers: dict):
+    def set_extra_headers(self, headers: _HeadersUpdateMapping):
         """Sets any additional headers in the request.
 
         Args:
-            headers (dict): key-value pair containing extra headers to et
+            headers: key-value pairs containing extra headers to set
 
         Example:
             set_extra_headers({ "My-Header" : "foobar" })
         """
 
-        if isinstance(headers, dict):
-            self._extra_headers = headers
+        self._extra_headers = headers
 
     def set_custom_user_agent(self, user_agent: Optional[str]):
         self.config.custom_user_agent = user_agent
@@ -129,16 +130,13 @@ class PangeaRequestBase:
         url = URL(self.config.base_url_template.format(SERVICE_NAME=self.service))
         return str(url / path)
 
-    def _headers(self) -> dict:
-        headers = {
-            "User-Agent": self._user_agent,
+    def _headers(self) -> dict[str, str]:
+        return {
+            **self._extra_headers,
             "Authorization": f"Bearer {self.token}",
             "Content-Type": "application/json",
+            "User-Agent": self._user_agent,
         }
-
-        # We want to ignore previous headers if user tried to set them, so we will overwrite them.
-        self._extra_headers.update(headers)
-        return self._extra_headers
 
     def _get_filename_from_content_disposition(self, content_disposition: str) -> Optional[str]:
         filename_parts = content_disposition.split("name=")
@@ -347,7 +345,7 @@ class PangeaRequest(PangeaRequestBase):
     def _http_post(
         self,
         url: str,
-        headers: Mapping[str, str] = {},
+        headers: _HeadersUpdateMapping = {},  # noqa: B006
         data: str | dict[Any, Any] = {},  # noqa: B006
         files: _Files | None = None,
         multipart_post: bool = True,

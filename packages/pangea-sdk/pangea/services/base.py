@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import copy
 import logging
-from typing import Dict, Optional, Type, Union
+from typing import Optional, Type, Union
 
 from typing_extensions import TypeVar
 
@@ -47,8 +47,7 @@ class ServiceBase:
         self._token = token
         self.config_id: Optional[str] = config_id
         self._request: Optional[Union[PangeaRequest, PangeaRequestAsync]] = None
-        extra_headers: Dict = {}
-        self.request.set_extra_headers(extra_headers)
+        self.request.set_extra_headers({})
 
     @property
     def token(self) -> str:
