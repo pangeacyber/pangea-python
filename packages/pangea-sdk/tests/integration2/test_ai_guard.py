@@ -8,7 +8,7 @@ import pytest
 from pangea import PangeaConfig
 from pangea.asyncio.services.ai_guard import AIGuardAsync
 from pangea.services import AIGuard
-from pangea.services.ai_guard import LogFields, TextGuardResult
+from pangea.services.ai_guard import LogFields, Message, TextGuardResult
 
 from ..utils import assert_matches_type
 
@@ -34,7 +34,7 @@ class TestAIGuard:
 
     def test_text_guard_messages(self, client: AIGuard) -> None:
         response = client.guard_text(
-            messages=[{"role": "user", "content": "hello world"}],
+            messages=[Message(role="user", content="hello world")],
             debug=False,
             log_fields=LogFields(source="Acme Wizard"),
         )
@@ -52,7 +52,7 @@ class TestAIGuardAsync:
 
     async def test_text_guard_messages(self, async_client: AIGuardAsync) -> None:
         response = await async_client.guard_text(
-            messages=[{"role": "user", "content": "hello world"}],
+            messages=[Message(role="user", content="hello world")],
             debug=False,
             log_fields=LogFields(source="Acme Wizard"),
         )
