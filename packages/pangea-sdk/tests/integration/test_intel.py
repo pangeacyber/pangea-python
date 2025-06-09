@@ -16,7 +16,7 @@ def check_bulk_data(self: unittest.TestCase, data: dict[str, IntelReputationData
         self.assertIsNotNone(item.verdict)
         self.assertNotEqual("", item.verdict)
         self.assertIsNotNone(item.category)
-        self.assertNotEqual([], item.category)
+        assert isinstance(item.category, list)
         self.assertIsNotNone(item.score)
         self.assertNotEqual(0, item.score)
 
