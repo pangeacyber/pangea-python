@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
-from typing import overload
+from typing import Any, overload
 
 from typing_extensions import Literal, TypeVar
 
@@ -13,6 +13,7 @@ from pangea.services.ai_guard import (
     ConnectionsConfig,
     LogFields,
     Message,
+    MultimodalMessage,
     Overrides,
     RecipeConfig,
     ServiceConfig,
@@ -180,6 +181,70 @@ class AIGuardAsync(ServiceBaseAsync):
                 "debug": debug,
                 "overrides": overrides,
                 "log_fields": log_fields,
+            },
+        )
+
+    async def guard(
+        self,
+        messages: Sequence[MultimodalMessage],
+        recipe: str | None = None,
+        debug: bool | None = None,
+        overrides: Overrides | None = None,
+        app_name: str | None = None,
+        llm_provider: str | None = None,
+        model: str | None = None,
+        model_version: str | None = None,
+        request_token_count: int | None = None,
+        response_token_count: int | None = None,
+        source_ip: str | None = None,
+        source_location: str | None = None,
+        tenant_id: str | None = None,
+        sensor_mode: str | None = None,
+        context: Mapping[str, Any] | None = None,
+    ) -> PangeaResponse[TextGuardResult]:
+        """
+        Guard LLM input and output
+
+        Analyze and redact content to avoid manipulation of the model, addition
+        of malicious content, and other undesirable data transfers.
+
+        OperationId: ai_guard_post_v1beta_guard
+
+        Args:
+            messages: Prompt content and role array in JSON format. The `content` is the multimodal text or image input that will be analyzed.
+            recipe: Recipe key of a configuration of data types and settings defined in the Pangea User Console. It specifies the rules that are to be applied to the text, such as defang malicious URLs.
+            debug: Setting this value to true will provide a detailed analysis of the text data
+            app_name: Name of source application.
+            llm_provider: Underlying LLM.  Example: 'OpenAI'.
+            model: Model used to perform the event. Example: 'gpt'.
+            model_version: Model version used to perform the event. Example: '3.5'.
+            request_token_count: Number of tokens in the request.
+            response_token_count: Number of tokens in the response.
+            source_ip: IP address of user or app or agent.
+            source_location: Location of user or app or agent.
+            tenant_id: For gateway-like integrations with multi-tenant support.
+            sensor_mode: (AIDR) sensor mode.
+            context: (AIDR) Logging schema.
+        """
+        return await self.request.post(
+            "v1beta/guard",
+            TextGuardResult,
+            data={
+                "messages": messages,
+                "recipe": recipe,
+                "debug": debug,
+                "overrides": overrides,
+                "app_name": app_name,
+                "llm_provider": llm_provider,
+                "model": model,
+                "model_version": model_version,
+                "request_token_count": request_token_count,
+                "response_token_count": response_token_count,
+                "source_ip": source_ip,
+                "source_location": source_location,
+                "tenant_id": tenant_id,
+                "sensor_mode": sensor_mode,
+                "context": context,
             },
         )
 
