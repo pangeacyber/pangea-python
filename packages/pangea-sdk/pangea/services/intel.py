@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import enum
 import hashlib
-from typing import Dict, List, Optional
+from typing import Dict, List, Literal, Optional
 
 from pangea.exceptions import PangeaException
 from pangea.response import APIRequestModel, PangeaResponse, PangeaResponseResult
@@ -65,8 +65,20 @@ class FileReputationBulkRequest(APIRequestModel):
     hash_type (str): Type of hash, can be "sha256", "sha" or "md5"
     """
 
-    hashes: List[str]
-    hash_type: str
+    hashes: list[str]
+    """The hash of the file to be looked up"""
+
+    hash_type: Literal["sha256", "sha", "md5"]
+    """One of "sha256", "sha", "md5"."""
+
+    verbose: Optional[bool] = None
+    """Echo the API parameters in the response"""
+
+    raw: Optional[bool] = None
+    """Include raw data from this provider"""
+
+    provider: Optional[Literal["reversinglabs", "crowdstrike"]] = None
+    """Use reputation data from this provider"""
 
 
 class FileReputationData(IntelReputationData):
@@ -360,7 +372,8 @@ class DomainWhoIsRequest(DomainCommonRequest):
     Domain whois request data
     """
 
-    pass
+    domain: str
+    """The domain to query."""
 
 
 class DomainWhoIsData(PangeaResponseResult):
@@ -534,11 +547,11 @@ class FileIntel(ServiceBase):
 
     def hash_reputation_bulk(
         self,
-        hashes: List[str],
-        hash_type: str,
-        provider: Optional[str] = None,
-        verbose: Optional[bool] = None,
-        raw: Optional[bool] = None,
+        hashes: list[str],
+        hash_type: Literal["sha256", "sha", "md5"],
+        provider: Literal["reversinglabs", "crowdstrike"] | None = None,
+        verbose: bool | None = None,
+        raw: bool | None = None,
     ) -> PangeaResponse[FileReputationBulkResult]:
         """
         Reputation check V2
@@ -566,7 +579,7 @@ class FileIntel(ServiceBase):
                 provider="reversinglabs",
             )
         """
-        input = FileReputationBulkRequest(  # type: ignore[call-arg]
+        input = FileReputationBulkRequest(
             hashes=hashes, hash_type=hash_type, verbose=verbose, raw=raw, provider=provider
         )
         return self.request.post("v2/reputation", FileReputationBulkResult, data=input.model_dump(exclude_none=True))
@@ -614,10 +627,10 @@ class FileIntel(ServiceBase):
 
     def filepath_reputation_bulk(
         self,
-        filepaths: List[str],
-        provider: Optional[str] = None,
-        verbose: Optional[bool] = None,
-        raw: Optional[bool] = None,
+        filepaths: list[str],
+        provider: Literal["reversinglabs", "crowdstrike"] | None = None,
+        verbose: bool | None = None,
+        raw: bool | None = None,
     ) -> PangeaResponse[FileReputationBulkResult]:
         """
         Reputation, from filepath V2
@@ -628,10 +641,10 @@ class FileIntel(ServiceBase):
         OperationId: file_intel_post_v2_reputation
 
         Args:
-            filepaths (List[str]): The path list to the files to be looked up
-            provider (str, optional): Use reputation data from these providers: "reversinglabs" or "crowdstrike"
-            verbose (bool, optional): Echo the API parameters in the response
-            raw (bool, optional): Include raw data from this provider
+            filepaths: The path list to the files to be looked up
+            provider: Use reputation data from these providers: "reversinglabs" or "crowdstrike"
+            verbose: Echo the API parameters in the response
+            raw: Include raw data from this provider
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -781,7 +794,7 @@ class DomainIntel(ServiceBase):
                 provider="whoisxml",
             )
         """
-        input = DomainWhoIsRequest(domain=domain, verbose=verbose, provider=provider, raw=raw)  # type: ignore[call-arg]
+        input = DomainWhoIsRequest(domain=domain, verbose=verbose, provider=provider, raw=raw)
         return self.request.post("v1/whois", DomainWhoIsResult, data=input.model_dump(exclude_none=True))
 
 

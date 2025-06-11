@@ -19,6 +19,8 @@
     "/v1beta/config": {
       "post": {
         "operationId": "ai_guard_post_v1beta_config",
+        "summary": "Get AI Guard config",
+        "description": "Retrieve an AI Guard service configuration by its ID.",
         "requestBody": {
           "content": {
             "application/json": {
@@ -27,7 +29,7 @@
                 "required": ["id"],
                 "properties": {
                   "id": {
-                    "type": "string"
+                    "$ref": "#/components/schemas/ai-guard-service-config-id"
                   }
                 },
                 "additionalProperties": false
@@ -37,7 +39,7 @@
         },
         "responses": {
           "200": {
-            "description": "Service config if it exists",
+            "description": "AI Guard service configuration retrieved successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -48,7 +50,7 @@
                     {
                       "properties": {
                         "result": {
-                          "$ref": "#/components/schemas/ai-guard-service-config"
+                          "$ref": "#/components/schemas/ai-guard-v1beta-service-config"
                         }
                       }
                     }
@@ -75,19 +77,40 @@
             }
           }
         },
-        "tags": ["ai-guard"]
+        "tags": ["ai-guard", "config-management"]
       }
     },
     "/v1beta/config/create": {
       "post": {
         "operationId": "ai_guard_post_v1beta_config_create",
+        "summary": "Create AI Guard config",
+        "description": "Create a new AI Guard service configuration.",
         "requestBody": {
-          "description": "Create an AI Guard service config",
           "content": {
             "application/json": {
               "schema": {
-                "required": ["name"],
-                "$ref": "#/components/schemas/ai-guard-v1beta-service-config"
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Human-readable name of the AI Guard service configuration"
+                  },
+                  "audit_data_activity": {
+                    "$ref": "#/components/schemas/audit-data-activity-v1beta-config"
+                  },
+                  "connections": {
+                    "$ref": "#/components/schemas/connections-config"
+                  },
+                  "recipes": {
+                    "type": "object",
+                    "patternProperties": {
+                      "^.*$": {
+                        "$ref": "#/components/schemas/recipe-config"
+                      }
+                    }
+                  }
+                },
+                "required": ["name"]
               }
             }
           }
@@ -132,18 +155,20 @@
             }
           }
         },
-        "tags": ["ai-guard"]
+        "tags": ["ai-guard", "config-management"]
       }
     },
     "/v1beta/config/update": {
       "post": {
         "operationId": "ai_guard_post_v1beta_config_update",
+        "summary": "Update AI Guard config",
+        "description": "Update an AI Guard service configuration.\n\nTo update a configuration, first retrieve the current version, apply your changes, and submit the updated configuration to this endpoint.\n\nFor a full example using a Project Admin management client, see the [Service Configuration APIs](https://pangea.cloud/docs/admin-guide/projects/credentials#service-configuration-apis) documentation.",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "required": ["id", "name", "updated_at"],
-                "$ref": "#/components/schemas/ai-guard-service-config"
+                "$ref": "#/components/schemas/ai-guard-v1beta-service-config"
               }
             }
           }
@@ -161,7 +186,7 @@
                     {
                       "properties": {
                         "result": {
-                          "$ref": "#/components/schemas/ai-guard-service-config"
+                          "$ref": "#/components/schemas/ai-guard-v1beta-service-config"
                         }
                       }
                     }
@@ -188,12 +213,14 @@
             }
           }
         },
-        "tags": ["ai-guard"]
+        "tags": ["ai-guard", "config-management"]
       }
     },
     "/v1beta/config/delete": {
       "post": {
         "operationId": "ai_guard_post_v1beta_config_delete",
+        "summary": "Delete AI Guard config",
+        "description": "Delete an AI Guard service configuration.",
         "requestBody": {
           "content": {
             "application/json": {
@@ -202,7 +229,7 @@
                 "required": ["id"],
                 "properties": {
                   "id": {
-                    "type": "string"
+                    "$ref": "#/components/schemas/ai-guard-service-config-id"
                   }
                 }
               }
@@ -222,7 +249,7 @@
                     {
                       "properties": {
                         "result": {
-                          "$ref": "#/components/schemas/ai-guard-service-config"
+                          "$ref": "#/components/schemas/ai-guard-v1beta-service-config"
                         }
                       }
                     }
@@ -249,14 +276,15 @@
             }
           }
         },
-        "tags": ["ai-guard"]
+        "tags": ["ai-guard", "config-management"]
       }
     },
     "/v1beta/config/list": {
       "post": {
         "operationId": "ai_guard_post_v1beta_config_list",
+        "summary": "List AI Guard configs",
+        "description": "Retrieve a paginated list of AI Guard service configurations.",
         "requestBody": {
-          "description": "List ai-guard service configs",
           "content": {
             "application/json": {
               "schema": {
@@ -280,17 +308,16 @@
                           "type": "object",
                           "properties": {
                             "count": {
-                              "description": "The total number of service configs matched by the list request.",
+                              "description": "Number of service configs matched by the list request",
                               "type": "integer"
                             },
                             "last": {
-                              "description": "Used to fetch the next page of the current listing when provided in a repeated request's last parameter.",
-                              "type": "string"
+                              "$ref": "#/components/schemas/last"
                             },
                             "items": {
                               "type": "array",
                               "items": {
-                                "$ref": "#/components/schemas/ai-guard-service-config"
+                                "$ref": "#/components/schemas/ai-guard-v1beta-service-config"
                               }
                             }
                           }
@@ -321,14 +348,14 @@
             }
           }
         },
-        "tags": ["ai-guard"]
+        "tags": ["ai-guard", "config-management"]
       }
     },
     "/v1/text/guard": {
       "post": {
         "operationId": "ai_guard_post_v1_text_guard",
         "summary": "Guard LLM input and output text",
-        "description": "Analyze and redact text to avoid manipulation of the model, addition of malicious content, and other undesirable data transfers.",
+        "description": "Detect, remove, or block malicious content and intent in LLM inputs and outputs to prevent model manipulation and data leakage.",
         "requestBody": {
           "content": {
             "application/json": {
@@ -381,6 +408,281 @@
                             "prompt_messages": {
                               "type": "object",
                               "description": "Updated structured prompt, if applicable."
+                            },
+                            "blocked": {
+                              "type": "boolean",
+                              "description": "Whether or not the prompt triggered a block detection."
+                            },
+                            "recipe": {
+                              "type": "string",
+                              "description": "The Recipe that was used."
+                            },
+                            "detectors": {
+                              "type": "object",
+                              "description": "Result of the recipe analyzing and input prompt.",
+                              "properties": {
+                                "prompt_injection": {
+                                  "type": "object",
+                                  "properties": {
+                                    "detected": {
+                                      "type": "boolean",
+                                      "description": "Whether or not the Malicious Prompt was detected."
+                                    },
+                                    "data": {
+                                      "type": "object",
+                                      "description": "Details about the analyzers.",
+                                      "$ref": "#/components/schemas/prompt-injection-result"
+                                    }
+                                  }
+                                },
+                                "gibberish": {
+                                  "type": "object",
+                                  "properties": {
+                                    "detected": {
+                                      "type": "boolean",
+                                      "description": "Whether or not the Gibberish was detected."
+                                    },
+                                    "data": {
+                                      "type": "object",
+                                      "description": "Details about the analyzers.",
+                                      "$ref": "#/components/schemas/classification-result"
+                                    }
+                                  }
+                                },
+                                "sentiment": {
+                                  "type": "object",
+                                  "properties": {
+                                    "detected": {
+                                      "type": "boolean",
+                                      "description": "Whether or not the Negative Sentiment was detected."
+                                    },
+                                    "data": {
+                                      "type": "object",
+                                      "description": "Details about the analyzers.",
+                                      "$ref": "#/components/schemas/classification-result"
+                                    }
+                                  }
+                                },
+                                "selfharm": {
+                                  "type": "object",
+                                  "properties": {
+                                    "detected": {
+                                      "type": "boolean",
+                                      "description": "Whether or not the Self-harm was detected."
+                                    },
+                                    "data": {
+                                      "type": "object",
+                                      "description": "Details about the analyzers.",
+                                      "$ref": "#/components/schemas/classification-result"
+                                    }
+                                  }
+                                },
+                                "pii_entity": {
+                                  "type": "object",
+                                  "properties": {
+                                    "detected": {
+                                      "type": "boolean",
+                                      "description": "Whether or not the PII Entities were detected."
+                                    },
+                                    "data": {
+                                      "type": "object",
+                                      "description": "Details about the detected entities.",
+                                      "$ref": "#/components/schemas/redact-entity-result"
+                                    }
+                                  }
+                                },
+                                "malicious_entity": {
+                                  "type": "object",
+                                  "properties": {
+                                    "detected": {
+                                      "type": "boolean",
+                                      "description": "Whether or not the Malicious Entities were detected."
+                                    },
+                                    "data": {
+                                      "type": "object",
+                                      "description": "Details about the detected entities.",
+                                      "$ref": "#/components/schemas/malicious-entity-result"
+                                    }
+                                  }
+                                },
+                                "custom_entity": {
+                                  "type": "object",
+                                  "properties": {
+                                    "detected": {
+                                      "type": "boolean",
+                                      "description": "Whether or not the Custom Entities were detected."
+                                    },
+                                    "data": {
+                                      "type": "object",
+                                      "description": "Details about the detected entities.",
+                                      "$ref": "#/components/schemas/redact-entity-result"
+                                    }
+                                  }
+                                },
+                                "secrets_detection": {
+                                  "type": "object",
+                                  "properties": {
+                                    "detected": {
+                                      "type": "boolean",
+                                      "description": "Whether or not the Secret Entities were detected."
+                                    },
+                                    "data": {
+                                      "type": "object",
+                                      "description": "Details about the detected entities.",
+                                      "$ref": "#/components/schemas/redact-entity-result"
+                                    }
+                                  }
+                                },
+                                "competitors": {
+                                  "type": "object",
+                                  "properties": {
+                                    "detected": {
+                                      "type": "boolean",
+                                      "description": "Whether or not the Competitors were detected."
+                                    },
+                                    "data": {
+                                      "type": "object",
+                                      "description": "Details about the detected entities.",
+                                      "$ref": "#/components/schemas/single-entity-result"
+                                    }
+                                  }
+                                },
+                                "profanity_and_toxicity": {
+                                  "type": "object",
+                                  "properties": {
+                                    "detected": {
+                                      "type": "boolean",
+                                      "description": "Whether or not the Profanity and Toxic were detected."
+                                    },
+                                    "data": {
+                                      "type": "object",
+                                      "description": "Details about the detected entities.",
+                                      "$ref": "#/components/schemas/classification-result"
+                                    }
+                                  }
+                                },
+                                "hardening": {
+                                  "type": "object",
+                                  "properties": {
+                                    "data": {
+                                      "type": "object",
+                                      "description": "Details about the detected languages.",
+                                      "$ref": "#/components/schemas/hardening-result"
+                                    }
+                                  }
+                                },
+                                "language_detection": {
+                                  "type": "object",
+                                  "properties": {
+                                    "detected": {
+                                      "type": "boolean",
+                                      "description": "Whether or not the Languages were detected."
+                                    },
+                                    "data": {
+                                      "type": "object",
+                                      "description": "Details about the detected languages.",
+                                      "$ref": "#/components/schemas/language-result"
+                                    }
+                                  }
+                                },
+                                "topic": {
+                                  "type": "object",
+                                  "properties": {
+                                    "detected": {
+                                      "type": "boolean",
+                                      "description": "Whether or not the Topics were detected."
+                                    },
+                                    "data": {
+                                      "type": "object",
+                                      "description": "Details about the detected topics.",
+                                      "$ref": "#/components/schemas/topic-result"
+                                    }
+                                  }
+                                },
+                                "code_detection": {
+                                  "type": "object",
+                                  "properties": {
+                                    "detected": {
+                                      "type": "boolean",
+                                      "description": "Whether or not the Code was detected."
+                                    },
+                                    "data": {
+                                      "type": "object",
+                                      "description": "Details about the detected code.",
+                                      "$ref": "#/components/schemas/language-result"
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            "fpe_context": {
+                              "type": "string",
+                              "format": "base64",
+                              "description": "If an FPE redaction method returned results, this will be the context passed to unredact."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "No description provided"
+          },
+          "400": {
+            "description": "Validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "$ref": "#/components/schemas/pangea-validation-errors"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["ai-guard"]
+      }
+    },
+    "/v1beta/guard": {
+      "post": {
+        "operationId": "ai_guard_post_v1beta_guard",
+        "summary": "Guard LLM input and output",
+        "description": "Analyze and redact content to avoid manipulation of the model, addition of malicious content, and other undesirable data transfers.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/multimodal-guard"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "type": "object",
+                          "required": ["detectors"],
+                          "properties": {
+                            "prompt_messages": {
+                              "type": "object",
+                              "description": "Updated structured prompt."
                             },
                             "blocked": {
                               "type": "boolean",
@@ -703,12 +1005,10 @@
           },
           "request_time": {
             "type": "string",
-            "format": "date-time",
             "description": "The timestamp indicates the exact moment when a request is made to the API. It represents the date and time at which the request was initiated by the client. The `request_time` is useful for tracking and analyzing the timing of requests, measuring response times, and monitoring performance metrics. It allows users to determine the duration between the request initiation and the corresponding response, aiding in the assessment of API performance and latency.\n\n```\n\"request_time\":\"2022-09-21T17:24:33.105Z\"\n```"
           },
           "response_time": {
             "type": "string",
-            "format": "date-time",
             "description": "Duration it takes for the API to process a request and generate a response. It represents the elapsed time from when the request is received by the API to when the corresponding response is returned to the client.\n\n```\n\"response_time\":\"2022-09-21T17:24:34.007Z\"\n```"
           },
           "status": {
@@ -810,11 +1110,7 @@
                         "MustProvideOne",
                         "MutuallyExclusive",
                         "BadState",
-                        "InaccessibleURI",
-                        "ProviderDisabled",
-                        "ConfigProjectMismatch",
-                        "ConfigServiceMismatch",
-                        "ConfigNotExist"
+                        "InaccessibleURI"
                       ]
                     },
                     "detail": {
@@ -862,7 +1158,8 @@
                   "type": "boolean"
                 },
                 "start_pos": {
-                  "type": "integer"
+                  "type": "integer",
+                  "minimum": 0
                 }
               }
             }
@@ -889,7 +1186,8 @@
                   "type": "boolean"
                 },
                 "start_pos": {
-                  "type": "integer"
+                  "type": "integer",
+                  "minimum": 0
                 },
                 "raw": {
                   "type": "object"
@@ -1011,306 +1309,7 @@
             "default": false
           },
           "overrides": {
-            "type": "object",
-            "properties": {
-              "ignore_recipe": {
-                "type": "boolean",
-                "description": "Bypass existing Recipe content and create an on-the-fly Recipe.",
-                "default": false
-              },
-              "code_detection": {
-                "type": "object",
-                "properties": {
-                  "disabled": {
-                    "type": "boolean"
-                  },
-                  "action": {
-                    "$ref": "#/components/schemas/code-detection-action"
-                  }
-                },
-                "additionalProperties": false
-              },
-              "language_detection": {
-                "$ref": "#/components/schemas/language-detection-items"
-              },
-              "topic": {
-                "$ref": "#/components/schemas/topic-detection-items"
-              },
-              "prompt_injection": {
-                "type": "object",
-                "properties": {
-                  "disabled": {
-                    "type": "boolean"
-                  },
-                  "action": {
-                    "$ref": "#/components/schemas/prompt-injection-action"
-                  }
-                },
-                "additionalProperties": false
-              },
-              "selfharm": {
-                "type": "object",
-                "properties": {
-                  "disabled": {
-                    "type": "boolean"
-                  },
-                  "action": {
-                    "$ref": "#/components/schemas/prompt-injection-action"
-                  },
-                  "threshold": {
-                    "$ref": "#/components/schemas/classify-threshold"
-                  }
-                },
-                "additionalProperties": false
-              },
-              "gibberish": {
-                "type": "object",
-                "properties": {
-                  "disabled": {
-                    "type": "boolean"
-                  },
-                  "action": {
-                    "$ref": "#/components/schemas/prompt-injection-action"
-                  }
-                },
-                "additionalProperties": false
-              },
-              "roleplay": {
-                "type": "object",
-                "properties": {
-                  "disabled": {
-                    "type": "boolean"
-                  },
-                  "action": {
-                    "$ref": "#/components/schemas/prompt-injection-action"
-                  }
-                },
-                "additionalProperties": false
-              },
-              "sentiment": {
-                "type": "object",
-                "properties": {
-                  "disabled": {
-                    "type": "boolean"
-                  },
-                  "action": {
-                    "$ref": "#/components/schemas/prompt-injection-action"
-                  },
-                  "threshold": {
-                    "$ref": "#/components/schemas/classify-threshold"
-                  }
-                },
-                "additionalProperties": false
-              },
-              "malicious_entity": {
-                "type": "object",
-                "properties": {
-                  "disabled": {
-                    "type": "boolean"
-                  },
-                  "ip_address": {
-                    "$ref": "#/components/schemas/malicious-entity-action"
-                  },
-                  "url": {
-                    "$ref": "#/components/schemas/malicious-entity-action"
-                  },
-                  "domain": {
-                    "$ref": "#/components/schemas/malicious-entity-action"
-                  }
-                },
-                "additionalProperties": false
-              },
-              "competitors": {
-                "type": "object",
-                "properties": {
-                  "disabled": {
-                    "type": "boolean"
-                  },
-                  "action": {
-                    "$ref": "#/components/schemas/competitors-action"
-                  }
-                },
-                "additionalProperties": false
-              },
-              "pii_entity": {
-                "type": "object",
-                "properties": {
-                  "disabled": {
-                    "type": "boolean"
-                  },
-                  "email_address": {
-                    "$ref": "#/components/schemas/pii-entity-action"
-                  },
-                  "nrp": {
-                    "$ref": "#/components/schemas/pii-entity-action"
-                  },
-                  "location": {
-                    "$ref": "#/components/schemas/pii-entity-action"
-                  },
-                  "person": {
-                    "$ref": "#/components/schemas/pii-entity-action"
-                  },
-                  "phone_number": {
-                    "$ref": "#/components/schemas/pii-entity-action"
-                  },
-                  "date_time": {
-                    "$ref": "#/components/schemas/pii-entity-action"
-                  },
-                  "ip_address": {
-                    "$ref": "#/components/schemas/pii-entity-action"
-                  },
-                  "url": {
-                    "$ref": "#/components/schemas/pii-entity-action"
-                  },
-                  "money": {
-                    "$ref": "#/components/schemas/pii-entity-action"
-                  },
-                  "credit_card": {
-                    "$ref": "#/components/schemas/pii-entity-action"
-                  },
-                  "crypto": {
-                    "$ref": "#/components/schemas/pii-entity-action"
-                  },
-                  "iban_code": {
-                    "$ref": "#/components/schemas/pii-entity-action"
-                  },
-                  "us_bank_number": {
-                    "$ref": "#/components/schemas/pii-entity-action"
-                  },
-                  "nif": {
-                    "$ref": "#/components/schemas/pii-entity-action"
-                  },
-                  "fin/nric": {
-                    "$ref": "#/components/schemas/pii-entity-action"
-                  },
-                  "au_abn": {
-                    "$ref": "#/components/schemas/pii-entity-action"
-                  },
-                  "au_acn": {
-                    "$ref": "#/components/schemas/pii-entity-action"
-                  },
-                  "au_tfn": {
-                    "$ref": "#/components/schemas/pii-entity-action"
-                  },
-                  "medical_license": {
-                    "$ref": "#/components/schemas/pii-entity-action"
-                  },
-                  "uk_nhs": {
-                    "$ref": "#/components/schemas/pii-entity-action"
-                  },
-                  "au_medicare": {
-                    "$ref": "#/components/schemas/pii-entity-action"
-                  },
-                  "us_drivers_license": {
-                    "$ref": "#/components/schemas/pii-entity-action"
-                  },
-                  "us_itin": {
-                    "$ref": "#/components/schemas/pii-entity-action"
-                  },
-                  "us_passport": {
-                    "$ref": "#/components/schemas/pii-entity-action"
-                  },
-                  "us_ssn": {
-                    "$ref": "#/components/schemas/pii-entity-action"
-                  }
-                },
-                "additionalProperties": false
-              },
-              "secrets_detection": {
-                "type": "object",
-                "properties": {
-                  "disabled": {
-                    "type": "boolean"
-                  },
-                  "slack_token": {
-                    "$ref": "#/components/schemas/pii-entity-action"
-                  },
-                  "rsa_private_key": {
-                    "$ref": "#/components/schemas/pii-entity-action"
-                  },
-                  "ssh_dsa_private_key": {
-                    "$ref": "#/components/schemas/pii-entity-action"
-                  },
-                  "ssh_ec_private_key": {
-                    "$ref": "#/components/schemas/pii-entity-action"
-                  },
-                  "pgp_private_key_block": {
-                    "$ref": "#/components/schemas/pii-entity-action"
-                  },
-                  "amazon_aws_access_key_id": {
-                    "$ref": "#/components/schemas/pii-entity-action"
-                  },
-                  "amazon_aws_secret_access_key": {
-                    "$ref": "#/components/schemas/pii-entity-action"
-                  },
-                  "amazon_mws_auth_token": {
-                    "$ref": "#/components/schemas/pii-entity-action"
-                  },
-                  "facebook_access_token": {
-                    "$ref": "#/components/schemas/pii-entity-action"
-                  },
-                  "github_access_token": {
-                    "$ref": "#/components/schemas/pii-entity-action"
-                  },
-                  "jwt_token": {
-                    "$ref": "#/components/schemas/pii-entity-action"
-                  },
-                  "google_api_key": {
-                    "$ref": "#/components/schemas/pii-entity-action"
-                  },
-                  "google_cloud_platform_api_key": {
-                    "$ref": "#/components/schemas/pii-entity-action"
-                  },
-                  "google_drive_api_key": {
-                    "$ref": "#/components/schemas/pii-entity-action"
-                  },
-                  "google_cloud_platform_service_account": {
-                    "$ref": "#/components/schemas/pii-entity-action"
-                  },
-                  "google_gmail_api_key": {
-                    "$ref": "#/components/schemas/pii-entity-action"
-                  },
-                  "youtube_api_key": {
-                    "$ref": "#/components/schemas/pii-entity-action"
-                  },
-                  "mailchimp_api_key": {
-                    "$ref": "#/components/schemas/pii-entity-action"
-                  },
-                  "mailgun_api_key": {
-                    "$ref": "#/components/schemas/pii-entity-action"
-                  },
-                  "basic_auth": {
-                    "$ref": "#/components/schemas/pii-entity-action"
-                  },
-                  "picatic_api_key": {
-                    "$ref": "#/components/schemas/pii-entity-action"
-                  },
-                  "slack_webhook": {
-                    "$ref": "#/components/schemas/pii-entity-action"
-                  },
-                  "stripe_api_key": {
-                    "$ref": "#/components/schemas/pii-entity-action"
-                  },
-                  "stripe_restricted_api_key": {
-                    "$ref": "#/components/schemas/pii-entity-action"
-                  },
-                  "square_access_token": {
-                    "$ref": "#/components/schemas/pii-entity-action"
-                  },
-                  "square_oauth_secret": {
-                    "$ref": "#/components/schemas/pii-entity-action"
-                  },
-                  "twilio_api_key": {
-                    "$ref": "#/components/schemas/pii-entity-action"
-                  },
-                  "pangea_token": {
-                    "$ref": "#/components/schemas/pii-entity-action"
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
+            "$ref": "#/components/schemas/guard-overrides"
           },
           "log_fields": {
             "type": "object",
@@ -1318,7 +1317,7 @@
             "properties": {
               "citations": {
                 "type": "string",
-                "description": "Origin or source application of the event. Examples: 'Slack', 'GDrive', 'Confluence', 'Workday'."
+                "description": "Origin or source application of the event. Examples: `Slack`, `GDrive`, `Confluence`, `Workday`."
               },
               "extra_info": {
                 "type": "string",
@@ -1326,7 +1325,7 @@
               },
               "model": {
                 "type": "string",
-                "description": "Model used to perform the event. Example: '{model: gpt, version: 3.5}'."
+                "description": "Model used to perform the event. Example: `{model: gpt, version: 3.5}`."
               },
               "source": {
                 "type": "string",
@@ -1334,12 +1333,476 @@
               },
               "tools": {
                 "type": "string",
-                "description": "Tools used to perform the event. Example: '{tool:ai-guard}'."
+                "description": "Tools used to perform the event. Example: `{tool: ai-guard}`."
               }
             },
             "additionalProperties": false
           }
         }
+      },
+      "multimodal-guard": {
+        "type": "object",
+        "required": ["messages"],
+        "properties": {
+          "messages": {
+            "type": "array",
+            "description": "Prompt content and role array in JSON format. The `content` is the multimodel text or image input that will be analyzed.",
+            "examples": [
+              [
+                {
+                  "role": "user",
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "whats in this image?"
+                    },
+                    {
+                      "type": "image",
+                      "image_src": "https://pangea.cloud/home/home-callout-technologies.png"
+                    }
+                  ]
+                }
+              ]
+            ],
+            "items": {
+              "type": "object",
+              "required": ["role", "content"],
+              "properties": {
+                "role": {
+                  "type": "string"
+                },
+                "content": {
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "oneOf": [
+                          {
+                            "type": "object",
+                            "required": ["type", "text"],
+                            "properties": {
+                              "type": {
+                                "type": "string",
+                                "enum": ["text"]
+                              },
+                              "text": {
+                                "type": "string"
+                              }
+                            },
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "object",
+                            "required": ["type", "image_src"],
+                            "properties": {
+                              "type": {
+                                "type": "string",
+                                "enum": ["image"]
+                              },
+                              "image_src": {
+                                "type": "string",
+                                "format": "uri",
+                                "pattern": "^(data:image/(jpeg|png|gif);base64,|https?://).*"
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        ]
+                      },
+                      "allOf": [
+                        {
+                          "contains": {
+                            "type": "object",
+                            "required": ["type"],
+                            "properties": {
+                              "type": {
+                                "const": "text"
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "contains": {
+                            "type": "object",
+                            "required": ["type"],
+                            "properties": {
+                              "type": {
+                                "const": "image"
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "recipe": {
+            "type": "string",
+            "description": "Recipe key of a configuration of data types and settings defined in the Pangea User Console. It specifies the rules that are to be applied to the text, such as defang malicious URLs.",
+            "default": "pangea_prompt_guard"
+          },
+          "debug": {
+            "type": "boolean",
+            "description": "Setting this value to true will provide a detailed analysis of the text data",
+            "default": false
+          },
+          "overrides": {
+            "$ref": "#/components/schemas/guard-overrides"
+          },
+          "app_name": {
+            "type": "string",
+            "description": "Name of source application."
+          },
+          "llm_provider": {
+            "type": "string",
+            "description": "Underlying LLM.  Example: 'OpenAI'."
+          },
+          "model": {
+            "type": "string",
+            "description": "Model used to perform the event. Example: 'gpt'."
+          },
+          "model_version": {
+            "type": "string",
+            "description": "Model version used to perform the event. Example: '3.5'."
+          },
+          "request_token_count": {
+            "type": "integer",
+            "description": "Number of tokens in the request."
+          },
+          "response_token_count": {
+            "type": "integer",
+            "description": "Number of tokens in the response."
+          },
+          "source_ip": {
+            "type": "string",
+            "description": "IP address of user or app or agent."
+          },
+          "source_location": {
+            "type": "string",
+            "description": "Location of user or app or agent."
+          },
+          "tenant_id": {
+            "type": "string",
+            "description": "For gateway-like integrations with multi-tenant support."
+          },
+          "sensor_mode": {
+            "type": "string",
+            "description": "(AIDR) sensor mode."
+          },
+          "context": {
+            "type": "object",
+            "description": "(AIDR) Logging schema."
+          }
+        }
+      },
+      "guard-overrides": {
+        "type": "object",
+        "properties": {
+          "ignore_recipe": {
+            "type": "boolean",
+            "description": "Bypass existing Recipe content and create an on-the-fly Recipe.",
+            "default": false
+          },
+          "code_detection": {
+            "type": "object",
+            "properties": {
+              "disabled": {
+                "type": "boolean"
+              },
+              "action": {
+                "$ref": "#/components/schemas/code-detection-action"
+              }
+            },
+            "additionalProperties": false
+          },
+          "language_detection": {
+            "$ref": "#/components/schemas/language-detection-items"
+          },
+          "topic": {
+            "$ref": "#/components/schemas/topic-detection-items"
+          },
+          "prompt_injection": {
+            "type": "object",
+            "properties": {
+              "disabled": {
+                "type": "boolean"
+              },
+              "action": {
+                "$ref": "#/components/schemas/prompt-injection-action"
+              }
+            },
+            "additionalProperties": false
+          },
+          "selfharm": {
+            "type": "object",
+            "properties": {
+              "disabled": {
+                "type": "boolean"
+              },
+              "action": {
+                "$ref": "#/components/schemas/prompt-injection-action"
+              },
+              "threshold": {
+                "$ref": "#/components/schemas/classify-threshold"
+              }
+            },
+            "additionalProperties": false
+          },
+          "gibberish": {
+            "type": "object",
+            "properties": {
+              "disabled": {
+                "type": "boolean"
+              },
+              "action": {
+                "$ref": "#/components/schemas/prompt-injection-action"
+              }
+            },
+            "additionalProperties": false
+          },
+          "roleplay": {
+            "type": "object",
+            "properties": {
+              "disabled": {
+                "type": "boolean"
+              },
+              "action": {
+                "$ref": "#/components/schemas/prompt-injection-action"
+              }
+            },
+            "additionalProperties": false
+          },
+          "sentiment": {
+            "type": "object",
+            "properties": {
+              "disabled": {
+                "type": "boolean"
+              },
+              "action": {
+                "$ref": "#/components/schemas/prompt-injection-action"
+              },
+              "threshold": {
+                "$ref": "#/components/schemas/classify-threshold"
+              }
+            },
+            "additionalProperties": false
+          },
+          "malicious_entity": {
+            "type": "object",
+            "properties": {
+              "disabled": {
+                "type": "boolean"
+              },
+              "ip_address": {
+                "$ref": "#/components/schemas/malicious-entity-action"
+              },
+              "url": {
+                "$ref": "#/components/schemas/malicious-entity-action"
+              },
+              "domain": {
+                "$ref": "#/components/schemas/malicious-entity-action"
+              }
+            },
+            "additionalProperties": false
+          },
+          "competitors": {
+            "type": "object",
+            "properties": {
+              "disabled": {
+                "type": "boolean"
+              },
+              "action": {
+                "$ref": "#/components/schemas/competitors-action"
+              }
+            },
+            "additionalProperties": false
+          },
+          "pii_entity": {
+            "type": "object",
+            "properties": {
+              "disabled": {
+                "type": "boolean"
+              },
+              "email_address": {
+                "$ref": "#/components/schemas/pii-entity-action"
+              },
+              "nrp": {
+                "$ref": "#/components/schemas/pii-entity-action"
+              },
+              "location": {
+                "$ref": "#/components/schemas/pii-entity-action"
+              },
+              "person": {
+                "$ref": "#/components/schemas/pii-entity-action"
+              },
+              "phone_number": {
+                "$ref": "#/components/schemas/pii-entity-action"
+              },
+              "date_time": {
+                "$ref": "#/components/schemas/pii-entity-action"
+              },
+              "ip_address": {
+                "$ref": "#/components/schemas/pii-entity-action"
+              },
+              "url": {
+                "$ref": "#/components/schemas/pii-entity-action"
+              },
+              "money": {
+                "$ref": "#/components/schemas/pii-entity-action"
+              },
+              "credit_card": {
+                "$ref": "#/components/schemas/pii-entity-action"
+              },
+              "crypto": {
+                "$ref": "#/components/schemas/pii-entity-action"
+              },
+              "iban_code": {
+                "$ref": "#/components/schemas/pii-entity-action"
+              },
+              "us_bank_number": {
+                "$ref": "#/components/schemas/pii-entity-action"
+              },
+              "nif": {
+                "$ref": "#/components/schemas/pii-entity-action"
+              },
+              "fin/nric": {
+                "$ref": "#/components/schemas/pii-entity-action"
+              },
+              "au_abn": {
+                "$ref": "#/components/schemas/pii-entity-action"
+              },
+              "au_acn": {
+                "$ref": "#/components/schemas/pii-entity-action"
+              },
+              "au_tfn": {
+                "$ref": "#/components/schemas/pii-entity-action"
+              },
+              "medical_license": {
+                "$ref": "#/components/schemas/pii-entity-action"
+              },
+              "uk_nhs": {
+                "$ref": "#/components/schemas/pii-entity-action"
+              },
+              "au_medicare": {
+                "$ref": "#/components/schemas/pii-entity-action"
+              },
+              "us_drivers_license": {
+                "$ref": "#/components/schemas/pii-entity-action"
+              },
+              "us_itin": {
+                "$ref": "#/components/schemas/pii-entity-action"
+              },
+              "us_passport": {
+                "$ref": "#/components/schemas/pii-entity-action"
+              },
+              "us_ssn": {
+                "$ref": "#/components/schemas/pii-entity-action"
+              }
+            },
+            "additionalProperties": false
+          },
+          "secrets_detection": {
+            "type": "object",
+            "properties": {
+              "disabled": {
+                "type": "boolean"
+              },
+              "slack_token": {
+                "$ref": "#/components/schemas/pii-entity-action"
+              },
+              "rsa_private_key": {
+                "$ref": "#/components/schemas/pii-entity-action"
+              },
+              "ssh_dsa_private_key": {
+                "$ref": "#/components/schemas/pii-entity-action"
+              },
+              "ssh_ec_private_key": {
+                "$ref": "#/components/schemas/pii-entity-action"
+              },
+              "pgp_private_key_block": {
+                "$ref": "#/components/schemas/pii-entity-action"
+              },
+              "amazon_aws_access_key_id": {
+                "$ref": "#/components/schemas/pii-entity-action"
+              },
+              "amazon_aws_secret_access_key": {
+                "$ref": "#/components/schemas/pii-entity-action"
+              },
+              "amazon_mws_auth_token": {
+                "$ref": "#/components/schemas/pii-entity-action"
+              },
+              "facebook_access_token": {
+                "$ref": "#/components/schemas/pii-entity-action"
+              },
+              "github_access_token": {
+                "$ref": "#/components/schemas/pii-entity-action"
+              },
+              "jwt_token": {
+                "$ref": "#/components/schemas/pii-entity-action"
+              },
+              "google_api_key": {
+                "$ref": "#/components/schemas/pii-entity-action"
+              },
+              "google_cloud_platform_api_key": {
+                "$ref": "#/components/schemas/pii-entity-action"
+              },
+              "google_drive_api_key": {
+                "$ref": "#/components/schemas/pii-entity-action"
+              },
+              "google_cloud_platform_service_account": {
+                "$ref": "#/components/schemas/pii-entity-action"
+              },
+              "google_gmail_api_key": {
+                "$ref": "#/components/schemas/pii-entity-action"
+              },
+              "youtube_api_key": {
+                "$ref": "#/components/schemas/pii-entity-action"
+              },
+              "mailchimp_api_key": {
+                "$ref": "#/components/schemas/pii-entity-action"
+              },
+              "mailgun_api_key": {
+                "$ref": "#/components/schemas/pii-entity-action"
+              },
+              "basic_auth": {
+                "$ref": "#/components/schemas/pii-entity-action"
+              },
+              "picatic_api_key": {
+                "$ref": "#/components/schemas/pii-entity-action"
+              },
+              "slack_webhook": {
+                "$ref": "#/components/schemas/pii-entity-action"
+              },
+              "stripe_api_key": {
+                "$ref": "#/components/schemas/pii-entity-action"
+              },
+              "stripe_restricted_api_key": {
+                "$ref": "#/components/schemas/pii-entity-action"
+              },
+              "square_access_token": {
+                "$ref": "#/components/schemas/pii-entity-action"
+              },
+              "square_oauth_secret": {
+                "$ref": "#/components/schemas/pii-entity-action"
+              },
+              "twilio_api_key": {
+                "$ref": "#/components/schemas/pii-entity-action"
+              },
+              "pangea_token": {
+                "$ref": "#/components/schemas/pii-entity-action"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
       },
       "language-result": {
         "type": "object",
@@ -1498,14 +1961,31 @@
         "type": "string",
         "enum": ["report", "defang", "disabled", "block"]
       },
+      "last": {
+        "description": "Base64-encoded pagination cursor from the previous response, used to retrieve the next page of results",
+        "type": "string",
+        "examples": ["MTox"]
+      },
+      "ai-guard-service-config-id": {
+        "type": "string",
+        "description": "ID of an AI Guard service configuration",
+        "pattern": "^pci_[a-z2-7]{32}$",
+        "examples": ["pci_wuk7tvtpswyjtlsx52b7yyi2l7zotv4a"]
+      },
+      "ai-guard-service-config-name": {
+        "type": "string",
+        "description": "Human-readable name of the AI Guard service configuration"
+      },
       "ai-guard-service-config": {
         "type": "object",
+        "summary": "AI Guard config",
+        "description": "Configuration used by the AI Guard service",
         "properties": {
           "id": {
-            "type": "string"
+            "$ref": "#/components/schemas/ai-guard-service-config-id"
           },
           "name": {
-            "type": "string"
+            "$ref": "#/components/schemas/ai-guard-service-config-name"
           },
           "audit_data_activity": {
             "$ref": "#/components/schemas/audit-data-activity-config"
@@ -1525,12 +2005,14 @@
       },
       "ai-guard-v1beta-service-config": {
         "type": "object",
+        "summary": "AI Guard config",
+        "description": "Configuration used by the AI Guard service",
         "properties": {
           "id": {
-            "type": "string"
+            "$ref": "#/components/schemas/ai-guard-service-config-id"
           },
           "name": {
-            "type": "string"
+            "$ref": "#/components/schemas/ai-guard-service-config-name"
           },
           "audit_data_activity": {
             "$ref": "#/components/schemas/audit-data-activity-v1beta-config"
@@ -1551,7 +2033,7 @@
       "ai-guard-service-config-list": {
         "type": "object",
         "additionalProperties": false,
-        "description": "List or filter/search records.",
+        "description": "Schema for filtering and listing AI Guard service configuration records.",
         "properties": {
           "filter": {
             "type": "object",
@@ -1633,8 +2115,7 @@
             "additionalProperties": false
           },
           "last": {
-            "description": "Reflected value from a previous response to obtain the next page of results.",
-            "type": "string"
+            "$ref": "#/components/schemas/last"
           },
           "order": {
             "description": "Order results asc(ending) or desc(ending).",
@@ -1670,18 +2151,23 @@
       },
       "audit-data-activity-config": {
         "type": "object",
+        "description": "Configuration for enabling [AI Guard Activity Log](https://pangea.cloud/docs/ai-guard/activity-log) integration with Pangea Secure Audit Log.\n\nWhen enabled, this logs AI Guard service interactions (including inputs, outputs, and detection results) to a tamperproof audit trail. You must provide a Secure Audit Log service configuration ID and specify at least one activity area to log, such as `text_guard`.",
         "properties": {
           "enabled": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Whether activity logging is enabled for this configuration"
           },
           "audit_service_config_id": {
-            "type": "string"
+            "type": "string",
+            "description": "ID of the Secure Audit Log service configuration where activity events should be recorded"
           },
           "areas": {
             "type": "object",
+            "description": "Specifies which AI Guard API endpoints should generate audit log entries",
             "properties": {
               "text_guard": {
-                "type": "boolean"
+                "type": "boolean",
+                "description": "Logs events for requests to the `/v1/text/guard` endpoint"
               }
             },
             "required": ["text_guard"],
@@ -1693,18 +2179,23 @@
       },
       "audit-data-activity-v1beta-config": {
         "type": "object",
+        "description": "Configuration for enabling [AI Guard Activity Log](https://pangea.cloud/docs/ai-guard/activity-log) integration with Pangea Secure Audit Log.\n\nWhen enabled, this logs AI Guard service interactions (including inputs, outputs, and detection results) to a tamperproof audit trail. You must provide a Secure Audit Log service configuration ID and specify at least one activity area to log, such as `text_guard`.",
         "properties": {
           "enabled": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Whether activity logging is enabled for this configuration"
           },
           "audit_service_config_id": {
-            "type": "string"
+            "type": "string",
+            "description": "ID of the Secure Audit Log service configuration where activity events should be recorded"
           },
           "areas": {
             "type": "object",
+            "description": "Specifies which AI Guard API endpoints should generate audit log entries",
             "properties": {
               "text_guard": {
-                "type": "boolean"
+                "type": "boolean",
+                "description": "Logs events for requests to the `/v1/text/guard` endpoint"
               }
             },
             "required": ["text_guard"],
@@ -1726,144 +2217,192 @@
       },
       "connections-config": {
         "type": "object",
+        "description": "Configuration for service integrations used by [AI Guard detectors](https://pangea.cloud/docs/ai-guard/recipes#detectors).\n\nThese connections allow AI Guard to leverage additional sources and services for risk detection, sensitive data redaction, analysis, and secret management.\n\nFor details, see the [AI Guard Settings](https://pangea.cloud/docs/ai-guard/general) documentation.",
         "properties": {
           "prompt_guard": {
             "type": "object",
+            "description": "Analyzes prompts to identify malicious and harmful intents like prompt injections or attempts to misuse or abuse the LLM.\n\nUsed in the Malicious Prompt detector.",
             "properties": {
               "enabled": {
-                "type": "boolean"
+                "type": "boolean",
+                "description": "Whether the Prompt Guard integration is enabled for detecting prompt injection attempts"
               },
               "config_id": {
-                "type": "string"
+                "type": "string",
+                "description": "ID of the Prompt Guard service configuration to use"
               },
               "confidence_threshold": {
-                "type": "number"
+                "type": "number",
+                "description": "Minimum confidence level for a detection",
+                "minimum": 0,
+                "maximum": 1
               }
             },
             "additionalProperties": false
           },
           "ip_intel": {
             "type": "object",
+            "description": "Detects malicious IP addresses using threat intelligence data.\n\nUsed in the Malicious Entity detector.",
             "properties": {
               "enabled": {
-                "type": "boolean"
+                "type": "boolean",
+                "description": "Whether the IP Intel integration is enabled for detecting malicious IP addresses"
               },
               "config_id": {
-                "type": "string"
+                "type": "string",
+                "description": "ID of the IP Intel service configuration to use"
               },
               "reputation_provider": {
-                "type": "string"
+                "type": "string",
+                "description": "Provider of the IP reputation data"
               },
               "risk_threshold": {
-                "type": "number"
+                "type": "number",
+                "description": "Minimum risk level for a detection",
+                "minimum": 0,
+                "maximum": 100
               }
             },
             "additionalProperties": false
           },
           "user_intel": {
             "type": "object",
+            "description": "Detects compromised user accounts using threat intelligence data",
             "properties": {
               "enabled": {
-                "type": "boolean"
+                "type": "boolean",
+                "description": "Whether the User Intel integration is enabled for detecting breached user accounts"
               },
               "config_id": {
-                "type": "string"
+                "type": "string",
+                "description": "ID of the User Intel service configuration to use"
               },
               "breach_provider": {
-                "type": "string"
+                "type": "string",
+                "description": "Provider of the user breach data"
               }
             },
             "additionalProperties": false
           },
           "url_intel": {
             "type": "object",
+            "description": "Checks URL reputation using threat intelligence data.\n\nUsed in the Malicious Entity detector.",
             "properties": {
               "enabled": {
-                "type": "boolean"
+                "type": "boolean",
+                "description": "Whether the URL Intel integration is enabled for detecting malicious URLs"
               },
               "config_id": {
-                "type": "string"
+                "type": "string",
+                "description": "ID of the URL Intel service configuration to use"
               },
               "reputation_provider": {
-                "type": "string"
+                "type": "string",
+                "description": "Provider of the URL reputation data"
               },
               "risk_threshold": {
-                "type": "number"
+                "type": "number",
+                "description": "Minimum risk level for a detection",
+                "minimum": 0,
+                "maximum": 100
               }
             },
             "additionalProperties": false
           },
           "domain_intel": {
             "type": "object",
+            "description": "Checks domain reputation using threat intelligence data.\n\nUsed in the Malicious Entity detector.",
             "properties": {
               "enabled": {
-                "type": "boolean"
+                "type": "boolean",
+                "description": "Whether the Domain Intel integration is enabled for detecting malicious domains"
               },
               "config_id": {
-                "type": "string"
+                "type": "string",
+                "description": "ID of the Domain Intel service configuration to use"
               },
               "reputation_provider": {
-                "type": "string"
+                "type": "string",
+                "description": "Provider of the domain reputation data"
               },
               "risk_threshold": {
-                "type": "number"
+                "type": "number",
+                "description": "Minimum risk level for a detection",
+                "minimum": 0,
+                "maximum": 100
               }
             },
             "additionalProperties": false
           },
           "file_scan": {
             "type": "object",
+            "description": "Scans files for known malware",
             "properties": {
               "enabled": {
-                "type": "boolean"
+                "type": "boolean",
+                "description": "Whether the File Scan integration is enabled for detecting malicious files"
               },
               "config_id": {
-                "type": "string"
+                "type": "string",
+                "description": "ID of the File Scan service configuration to use"
               },
               "scan_provider": {
-                "type": "string"
+                "type": "string",
+                "description": "Malicious content and threats detection provider used for scanning"
               },
               "risk_threshold": {
-                "type": "number"
+                "type": "number",
+                "description": "Minimum risk level for a detection",
+                "minimum": 0,
+                "maximum": 100
               }
             },
             "additionalProperties": false
           },
           "redact": {
             "type": "object",
+            "description": "Detects and redacts sensitive information from text.\n\nUsed in the Confidential and PII, Secret and Key Entity, and Custom Entity detectors.",
             "properties": {
               "enabled": {
-                "type": "boolean"
+                "type": "boolean",
+                "description": "Whether the Redact integration is enabled for identifying and removing sensitive information"
               },
               "config_id": {
-                "type": "string"
+                "type": "string",
+                "description": "ID of the Redact service configuration to use"
               }
             },
             "additionalProperties": false
           },
           "vault": {
             "type": "object",
+            "description": "Securely manages secrets and keys required by the AI Guard service",
             "properties": {
               "config_id": {
-                "type": "string"
+                "type": "string",
+                "description": "ID of the Vault service configuration to use"
               }
             },
             "additionalProperties": false
           },
           "lingua": {
             "type": "object",
+            "description": "Language detection and analysis",
             "properties": {
               "enabled": {
-                "type": "boolean"
+                "type": "boolean",
+                "description": "Whether the Lingua integration is enabled for detecting languages"
               }
             },
             "additionalProperties": false
           },
           "code": {
             "type": "object",
+            "description": "Detects code snippets and programming languages",
             "properties": {
               "enabled": {
-                "type": "boolean"
+                "type": "boolean",
+                "description": "Whether the Code integration is enabled for detecting code snippets"
               }
             },
             "additionalProperties": false
@@ -1873,34 +2412,45 @@
       },
       "recipe-config": {
         "type": "object",
+        "description": "Defines an AI Guard recipe - a named configuration of detectors and redaction settings used to analyze and protect data flows in AI-powered applications.\n\nRecipes specify which detectors are active, how they behave, and may include reusable settings such as FPE tweaks.\n\nFor details, see the [AI Guard Recipes](https://pangea.cloud/docs/ai-guard/recipes) documentation.",
         "properties": {
           "name": {
-            "type": "string"
+            "type": "string",
+            "description": "Human-readable name of the recipe"
           },
           "description": {
-            "type": "string"
+            "type": "string",
+            "description": "Detailed description of the recipe's purpose or use case"
           },
           "version": {
             "type": "string",
-            "default": ""
+            "description": "Optional version identifier for the recipe. Can be used to track changes.",
+            "default": "v1",
+            "examples": ["v1"]
           },
           "detectors": {
-            "description": "Setting for Detectors",
-            "$ref": "#/components/schemas/detector-settings"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/detector-settings"
+              }
+            ],
+            "description": "Settings for [AI Guard Detectors](https://pangea.cloud/docs/ai-guard/recipes#detectors), including which detectors to enable and how they behave"
           },
           "connector_settings": {
             "type": "object",
+            "description": "Connector-level Redact configuration. These settings allow you to define reusable redaction parameters, such as FPE tweak value.",
             "properties": {
               "redact": {
                 "type": "object",
+                "description": "Settings for Redact integration at the recipe level",
                 "properties": {
                   "fpe_tweak_vault_secret_id": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "ID of a Vault secret containing the tweak value used for Format-Preserving Encryption (FPE). Enables deterministic encryption, ensuring that identical inputs produce consistent encrypted outputs."
                   }
                 }
               }
-            },
-            "additionalProperties": false
+            }
           }
         },
         "required": ["name", "description"],
@@ -1908,41 +2458,53 @@
       },
       "detector-settings": {
         "type": "array",
+        "description": "Configuration for individual detectors used in an AI Guard recipe. Each entry specifies the detector to use, its enabled state, detector-specific settings, and the [action](https://pangea.cloud/docs/ai-guard/recipes#actions) to apply when detections occur.",
         "items": {
           "type": "object",
           "properties": {
             "detector_name": {
-              "type": "string"
+              "type": "string",
+              "description": "Identifier of the detector to apply, such as `prompt_injection`, `pii_entity`, or `malicious_entity`"
             },
             "state": {
+              "type": "string",
               "enum": ["disabled", "enabled"],
-              "default": "disabled"
+              "default": "disabled",
+              "description": "Specifies whether the detector is enabled or disabled in this configuration"
             },
             "settings": {
               "type": "object",
+              "description": "Detector-specific settings",
               "properties": {
                 "rules": {
                   "type": "array",
+                  "description": "List of detection and redaction rules applied by this detector",
                   "items": {
                     "type": "object",
+                    "description": "Defines redaction behavior and flags for a specific rule used by the detector",
                     "properties": {
                       "redact_rule_id": {
-                        "type": "string"
+                        "type": "string",
+                        "description": "Identifier of the redaction rule to apply. This should match a rule defined in the [Redact service](https://pangea.cloud/docs/redact/using-redact/using-redact)."
                       },
                       "redaction": {
                         "$ref": "#/components/schemas/rule-redaction-config"
                       },
                       "block": {
-                        "type": "boolean"
+                        "type": "boolean",
+                        "description": "If `true`, indicates that further processing should be stopped when this rule is triggered"
                       },
                       "disabled": {
-                        "type": "boolean"
+                        "type": "boolean",
+                        "description": "If `true`, disables this specific rule even if the detector is enabled"
                       },
                       "reputation_check": {
-                        "type": "boolean"
+                        "type": "boolean",
+                        "description": "If `true`, performs a reputation check using the configured intel provider. Applies to the Malicious Entity detector when using IP, URL, or Domain Intel services."
                       },
                       "transform_if_malicious": {
-                        "type": "boolean"
+                        "type": "boolean",
+                        "description": "If `true`, applies redaction or transformation when the detected value is determined to be malicious by intel analysis"
                       }
                     },
                     "required": ["redact_rule_id", "redaction"],
@@ -1960,6 +2522,7 @@
         "type": "object",
         "required": ["redaction_type"],
         "additionalProperties": false,
+        "description": "Configuration for the redaction method applied to detected values.\n\nEach rule supports one redaction type, such as masking, replacement, hashing, Format-Preserving Encryption (FPE), or detection-only mode. Additional parameters may be required depending on the selected redaction type.\n\nFor more details, see the [AI Guard Recipe Actions](https://pangea.cloud/docs/ai-guard/recipes#actions) documentation.",
         "oneOf": [
           {
             "properties": {
@@ -1987,9 +2550,6 @@
           {
             "required": ["hash"],
             "properties": {
-              "hash": {
-                "type": "object"
-              },
               "redaction_type": {
                 "const": "hash"
               }
@@ -1998,9 +2558,6 @@
           {
             "required": ["fpe_alphabet"],
             "properties": {
-              "fpe_alphabet": {
-                "type": "string"
-              },
               "redaction_type": {
                 "const": "fpe"
               }
@@ -2017,34 +2574,42 @@
               "hash",
               "detect_only",
               "fpe"
-            ]
+            ],
+            "description": "Redaction method to apply for this rule"
           },
           "redaction_value": {
-            "type": "string"
+            "type": "string",
+            "description": "Replacement string to use when `redaction_type` is `replacement`"
           },
           "partial_masking": {
             "type": "object",
+            "description": "Parameters to control how text is masked when `redaction_type` is `partial_masking`",
             "properties": {
               "masking_type": {
                 "type": "string",
                 "enum": ["unmask", "mask"],
-                "default": "unmask"
+                "default": "unmask",
+                "description": "Defines the masking strategy. Use `unmask` to specify how many characters to keep visible. Use `mask` to specify how many to hide."
               },
               "unmasked_from_left": {
                 "type": "integer",
-                "minimum": 0
+                "minimum": 0,
+                "description": "Number of leading characters to leave unmasked when `masking_type` is `unmask`"
               },
               "unmasked_from_right": {
                 "type": "integer",
-                "minimum": 0
+                "minimum": 0,
+                "description": "Number of trailing characters to leave unmasked when `masking_type` is `unmask`"
               },
               "masked_from_left": {
                 "type": "integer",
-                "minimum": 0
+                "minimum": 0,
+                "description": "Number of leading characters to mask when `masking_type` is `mask`"
               },
               "masked_from_right": {
                 "type": "integer",
-                "minimum": 0
+                "minimum": 0,
+                "description": "Number of trailing characters to mask when `masking_type` is `mask`"
               },
               "chars_to_ignore": {
                 "type": "array",
@@ -2052,24 +2617,27 @@
                   "type": "string",
                   "minLength": 1,
                   "maxLength": 1
-                }
+                },
+                "description": "List of characters that should not be masked (for example, hyphens or periods)"
               },
               "masking_char": {
                 "type": "string",
                 "minLength": 1,
                 "maxLength": 1,
-                "default": "*"
+                "default": "*",
+                "description": "Character to use when masking text"
               }
             }
           },
           "hash": {
             "type": ["object", "null"],
             "required": ["hash_type"],
+            "description": "Hash configuration when `redaction_type` is `hash`",
             "properties": {
               "hash_type": {
                 "type": "string",
-                "description": "The type of hashing algorithm",
-                "enum": ["md5", "sha256"]
+                "enum": ["md5", "sha256"],
+                "description": "Hashing algorithm to use for redaction"
               }
             }
           },
@@ -2090,20 +2658,10 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "description": "Alphabet used for Format-Preserving Encryption (FPE). Determines the character set for encryption."
           }
         }
-      },
-      "redaction-type": {
-        "type": "string",
-        "enum": [
-          "replacement",
-          "mask",
-          "partial_masking",
-          "detect_only",
-          "hash",
-          "fpe"
-        ]
       },
       "ai-guard-subscription": {
         "type": "object",
@@ -2160,6 +2718,10 @@
     {
       "name": "ai-guard",
       "description": "Monitor, sanitize and protect data."
+    },
+    {
+      "name": "config-management",
+      "description": "Config Management"
     }
   ]
 }

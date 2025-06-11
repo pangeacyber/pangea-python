@@ -21,8 +21,8 @@ EMAIL_INVITE_DELETE = f"user.email+invite_del{TIME}@pangea.cloud"
 EMAIL_INVITE_KEEP = f"user.email+invite_keep{TIME}@pangea.cloud"
 PASSWORD_OLD = "My1s+Password"
 PASSWORD_NEW = "My1s+Password_new"
-PROFILE_OLD = m.Profile(first_name="Name", last_name="Last")
-PROFILE_NEW = m.Profile(first_name="NameUpdate")
+PROFILE_OLD = dict(first_name="Name", last_name="Last")
+PROFILE_NEW = dict(first_name="NameUpdate")
 USER_ID = None  # Will be set once user is created
 CB_URI = "https://someurl.com/callbacklink"
 
@@ -162,7 +162,7 @@ class TestAuthN(unittest.IsolatedAsyncioTestCase):
             final_profile: dict[str, str] = {}
             final_profile.update(PROFILE_OLD)
             final_profile.update(PROFILE_NEW)
-            self.assertEqual(m.Profile(**final_profile), response.result.profile)
+            assert response.result.profile == final_profile
         except pe.PangeaAPIException as e:
             print(e)
             raise

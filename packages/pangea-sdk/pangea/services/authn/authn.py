@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import Dict, List, Literal, Optional, Union
 
 import pangea.services.authn.models as m
@@ -481,7 +482,7 @@ class AuthN(ServiceBase):
         def create(
             self,
             email: str,
-            profile: m.Profile,
+            profile: Mapping[str, str],
             *,
             username: str | None = None,
         ) -> PangeaResponse[m.UserCreateResult]:
@@ -868,7 +869,7 @@ class AuthN(ServiceBase):
 
             def update(
                 self,
-                profile: m.Profile,
+                profile: Mapping[str, str],
                 id: str | None = None,
                 email: str | None = None,
                 *,
