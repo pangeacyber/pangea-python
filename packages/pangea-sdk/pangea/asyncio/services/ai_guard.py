@@ -3,14 +3,10 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import overload
 
-from typing_extensions import TypeVar
-
 from pangea.asyncio.services.base import ServiceBaseAsync
 from pangea.config import PangeaConfig
 from pangea.response import PangeaResponse
 from pangea.services.ai_guard import LogFields, Message, Overrides, TextGuardResult
-
-_T = TypeVar("_T")
 
 
 class AIGuardAsync(ServiceBaseAsync):
