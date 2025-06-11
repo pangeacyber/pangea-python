@@ -3,9 +3,10 @@
 
 # TODO: Modernize.
 # ruff: noqa: UP006, UP035
+from __future__ import annotations
 
 import hashlib
-from typing import List, Optional
+from typing import List, Literal, Optional
 
 import pangea.services.intel as m
 from pangea.asyncio.services.base import ServiceBaseAsync
@@ -77,11 +78,11 @@ class FileIntelAsync(ServiceBaseAsync):
 
     async def hash_reputation_bulk(
         self,
-        hashes: List[str],
-        hash_type: str,
-        provider: Optional[str] = None,
-        verbose: Optional[bool] = None,
-        raw: Optional[bool] = None,
+        hashes: list[str],
+        hash_type: Literal["sha256", "sha", "md5"],
+        provider: Literal["reversinglabs", "crowdstrike"] | None = None,
+        verbose: bool | None = None,
+        raw: bool | None = None,
     ) -> PangeaResponse[m.FileReputationBulkResult]:
         """
         Reputation check
@@ -89,11 +90,11 @@ class FileIntelAsync(ServiceBaseAsync):
         Retrieve hash-based file reputation from a provider, including an optional detailed report.
 
         Args:
-            hashes (List[str]): The hash of each file to be looked up
-            hash_type (str): One of "sha256", "sha", "md5"
-            provider (str, optional): Use reputation data from these providers: "reversinglabs" or "crowdstrike"
-            verbose (bool, optional): Echo the API parameters in the response
-            raw (bool, optional): Include raw data from this provider
+            hashes: The hash of each file to be looked up
+            hash_type: One of "sha256", "sha", "md5"
+            provider: Use reputation data from these providers: "reversinglabs" or "crowdstrike"
+            verbose: Echo the API parameters in the response
+            raw: Include raw data from this provider
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -101,12 +102,8 @@ class FileIntelAsync(ServiceBaseAsync):
         Returns:
             A PangeaResponse where the sanctioned source(s) are in the
                 response.result field.  Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/file-intel).
-
-        Examples:
-            FIXME:
-
         """
-        input = m.FileReputationBulkRequest(  # type: ignore[call-arg]
+        input = m.FileReputationBulkRequest(
             hashes=hashes, hash_type=hash_type, verbose=verbose, raw=raw, provider=provider
         )
         return await self.request.post(
@@ -158,8 +155,8 @@ class FileIntelAsync(ServiceBaseAsync):
 
     async def filepath_reputation_bulk(
         self,
-        filepaths: List[str],
-        provider: Optional[str] = None,
+        filepaths: list[str],
+        provider: Literal["reversinglabs", "crowdstrike"] | None = None,
         verbose: Optional[bool] = None,
         raw: Optional[bool] = None,
     ) -> PangeaResponse[m.FileReputationBulkResult]:
@@ -172,10 +169,10 @@ class FileIntelAsync(ServiceBaseAsync):
         OperationId: file_intel_post_v1_reputation
 
         Args:
-            filepaths (List[str]): The path list to the files to be looked up
-            provider (str, optional): Use reputation data from these providers: "reversinglabs" or "crowdstrike"
-            verbose (bool, optional): Echo the API parameters in the response
-            raw (bool, optional): Include raw data from this provider
+            filepaths: The path list to the files to be looked up
+            provider: Use reputation data from these providers: "reversinglabs" or "crowdstrike"
+            verbose: Echo the API parameters in the response
+            raw: Include raw data from this provider
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -183,9 +180,6 @@ class FileIntelAsync(ServiceBaseAsync):
         Returns:
             A PangeaResponse where the sanctioned source(s) are in the
                 response.result field.  Available response fields can be found in our [API documentation](https://pangea.cloud/docs/api/file-intel).
-
-        Examples:
-            FIXME:
         """
         hashes = []
         for filepath in filepaths:
@@ -321,7 +315,7 @@ class DomainIntelAsync(ServiceBaseAsync):
                 provider="whoisxml",
             )
         """
-        input = m.DomainWhoIsRequest(domain=domain, verbose=verbose, provider=provider, raw=raw)  # type: ignore[call-arg]
+        input = m.DomainWhoIsRequest(domain=domain, verbose=verbose, provider=provider, raw=raw)
         return await self.request.post("v1/whois", m.DomainWhoIsResult, data=input.model_dump(exclude_none=True))
 
 

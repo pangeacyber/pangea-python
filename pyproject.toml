@@ -19,7 +19,7 @@ build-backend = "pdm.backend"
 package-mode = false
 
 [tool.poetry.group.lint.dependencies]
-ruff = "0.11.10"
+ruff = "0.11.13"
 
 [tool.poetry.group.dev.dependencies]
 pangea-django = { path = "./packages/pangea-django", develop = true }

@@ -19,8 +19,8 @@ EMAIL_TEST = f"user.email+test{TIME}@pangea.cloud"
 EMAIL_DELETE = f"user.email+delete{TIME}@pangea.cloud"
 PASSWORD_OLD = "My1s+Password"
 PASSWORD_NEW = "My1s+Password_new"
-PROFILE_OLD = m.Profile(first_name="Name", last_name="Last")
-PROFILE_NEW = m.Profile(first_name="NameUpdate")
+PROFILE_OLD = dict(first_name="Name", last_name="Last")
+PROFILE_NEW = dict(first_name="NameUpdate")
 EMAIL_INVITE_DELETE = f"user.email+invite_del{TIME}@pangea.cloud"
 EMAIL_INVITE_KEEP = f"user.email+invite_keep{TIME}@pangea.cloud"
 USER_ID = None  # Will be set once user is created
@@ -118,35 +118,35 @@ class TestAuthN(unittest.TestCase):
             print(e)
             self.assertTrue(False)
 
-    def test_authn_a4_user_profile(self):
+    def test_authn_a4_user_profile(self) -> None:
         global USER_ID
         # This could (should) fail if test_authn_a1_user_create_with_password failed
         try:
             # Get profile by email. Should be empty because it was created without profile parameter
             response = self.authn.user.profile.get(email=EMAIL_TEST)
             self.assertEqual(response.status, "Success")
-            self.assertIsNotNone(response.result)
+            assert response.result
             USER_ID = response.result.id
             self.assertEqual(EMAIL_TEST, response.result.email)
             self.assertEqual(PROFILE_OLD, response.result.profile)
 
             response = self.authn.user.profile.get(id=USER_ID)
             self.assertEqual(response.status, "Success")
-            self.assertIsNotNone(response.result)
+            assert response.result
             self.assertEqual(USER_ID, response.result.id)
             self.assertEqual(EMAIL_TEST, response.result.email)
             self.assertEqual(PROFILE_OLD, response.result.profile)
 
             # Add one new field to profile
-            response = self.authn.user.profile.update(id=USER_ID, profile=PROFILE_NEW)
-            self.assertEqual(response.status, "Success")
-            self.assertIsNotNone(response.result)
-            self.assertEqual(USER_ID, response.result.id)
-            self.assertEqual(EMAIL_TEST, response.result.email)
+            update_response = self.authn.user.profile.update(id=USER_ID, profile=PROFILE_NEW)
+            self.assertEqual(update_response.status, "Success")
+            assert update_response.result
+            self.assertEqual(USER_ID, update_response.result.id)
+            self.assertEqual(EMAIL_TEST, update_response.result.email)
             final_profile: dict[str, str] = {}
             final_profile.update(PROFILE_OLD)
             final_profile.update(PROFILE_NEW)
-            self.assertEqual(m.Profile(**final_profile), response.result.profile)
+            assert update_response.result.profile == final_profile
         except pe.PangeaAPIException as e:
             print(e)
             raise

@@ -5,6 +5,7 @@ import os
 
 from pangea import PangeaConfig
 from pangea.asyncio.services import AIGuardAsync
+from pangea.services.ai_guard import Message
 
 token = os.getenv("PANGEA_AI_GUARD_TOKEN", "")
 domain = os.getenv("PANGEA_DOMAIN", "aws.us.pangea.cloud")
@@ -21,7 +22,7 @@ async def main() -> None:
     print("Response:", text_response.result.prompt_text)
 
     # Structured input.
-    structured_input = [{"role": "user", "content": "hello world"}]
+    structured_input = [Message(role="user", content="hello world")]
     print("Guarding structured input:", structured_input)
     structured_response = await ai_guard.guard_text(messages=structured_input)
     assert structured_response.result

@@ -180,7 +180,7 @@ jobs:
           poetry install
 
       - name: Unit test
-        run: poetry run python -m unittest tests.unit
+        run: poetry run pytest tests/unit/
 
   sdk-test-integration:
     needs: [prefetch]

@@ -82,14 +82,12 @@ class TransferMethod(str, enum.Enum):
 PangeaDateTime = Annotated[datetime.datetime, PlainSerializer(format_datetime)]
 
 
-# API response should accept arbitrary fields to make them accept possible new parameters
-class APIResponseModel(BaseModel):
-    model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
-
-
-# API request models doesn't not allow arbitrary fields
 class APIRequestModel(BaseModel):
-    model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
+    model_config = ConfigDict(extra="forbid")
+
+
+class APIResponseModel(BaseModel):
+    model_config = ConfigDict(extra="allow")
 
 
 class PangeaResponseResult(APIResponseModel):
@@ -195,6 +193,8 @@ T = TypeVar("T", bound=PangeaResponseResult)
 
 
 class PangeaResponse(ResponseHeader, Generic[T]):
+    model_config = ConfigDict(arbitrary_types_allowed=True, extra="forbid")
+
     raw_result: Optional[Dict[str, Any]] = None
     raw_response: Optional[Union[requests.Response, aiohttp.ClientResponse]] = None
     result: Optional[T] = None

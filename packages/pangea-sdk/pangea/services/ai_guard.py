@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from typing import Annotated, Generic, Literal, Optional, Union, overload
 
 from pydantic import BaseModel, ConfigDict, Field, RootModel
@@ -19,6 +19,13 @@ MaliciousEntityAction = Literal["report", "defang", "disabled", "block"]
 # This is named "PII entity" in the API spec even though it is also used for the
 # secrets detector.
 PiiEntityAction = Literal["disabled", "report", "block", "mask", "partial_masking", "replacement", "hash", "fpe"]
+
+
+class Message(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    role: str
+    content: str
 
 
 class CodeDetectionOverride(APIRequestModel):
@@ -278,14 +285,14 @@ class TextGuardDetectors(APIResponseModel):
     code_detection: Optional[TextGuardDetector[CodeDetectionResult]] = None
 
 
-class TextGuardResult(PangeaResponseResult, Generic[_T]):
+class TextGuardResult(PangeaResponseResult):
     detectors: TextGuardDetectors
     """Result of the recipe analyzing and input prompt."""
 
     prompt_text: Optional[str] = None
     """Updated prompt text, if applicable."""
 
-    prompt_messages: Optional[_T] = None
+    prompt_messages: Optional[object] = None
     """Updated structured prompt, if applicable."""
 
     blocked: bool
@@ -748,7 +755,7 @@ class AIGuard(ServiceBase):
         debug: bool | None = None,
         overrides: Overrides | None = None,
         log_fields: LogFields | None = None,
-    ) -> PangeaResponse[TextGuardResult[None]]:
+    ) -> PangeaResponse[TextGuardResult]:
         """
         Text Guard for scanning LLM inputs and outputs
 
@@ -776,12 +783,12 @@ class AIGuard(ServiceBase):
     def guard_text(
         self,
         *,
-        messages: _T,
+        messages: Sequence[Message],
         recipe: str | None = None,
         debug: bool | None = None,
         overrides: Overrides | None = None,
         log_fields: LogFields | None = None,
-    ) -> PangeaResponse[TextGuardResult[_T]]:
+    ) -> PangeaResponse[TextGuardResult]:
         """
         Text Guard for scanning LLM inputs and outputs
 
@@ -803,19 +810,19 @@ class AIGuard(ServiceBase):
             log_field: Additional fields to include in activity log
 
         Examples:
-            response = ai_guard.guard_text(messages=[{"role": "user", "content": "hello world"}])
+            response = ai_guard.guard_text(messages=[Message(role="user", content="hello world")])
         """
 
-    def guard_text(  # type: ignore[misc]
+    def guard_text(
         self,
         text: str | None = None,
         *,
-        messages: _T | None = None,
+        messages: Sequence[Message] | None = None,
         recipe: str | None = None,
         debug: bool | None = None,
         overrides: Overrides | None = None,
         log_fields: LogFields | None = None,
-    ) -> PangeaResponse[TextGuardResult[None]]:
+    ) -> PangeaResponse[TextGuardResult]:
         """
         Text Guard for scanning LLM inputs and outputs
 
