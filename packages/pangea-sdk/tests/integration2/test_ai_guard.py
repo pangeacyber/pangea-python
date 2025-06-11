@@ -5,16 +5,20 @@ import os
 from collections.abc import AsyncIterator, Iterator
 
 import pytest
+from pydantic import AnyUrl
 
 from pangea import PangeaConfig
 from pangea.asyncio.services.ai_guard import AIGuardAsync
 from pangea.services import AIGuard
 from pangea.services.ai_guard import (
+    ImageContent,
     LogFields,
     Message,
+    MultimodalMessage,
     ServiceConfig,
     ServiceConfigFilter,
     ServiceConfigsPage,
+    TextContent,
     TextGuardResult,
 )
 
@@ -45,6 +49,27 @@ class TestAIGuard:
             messages=[Message(role="user", content="hello world")],
             debug=False,
             log_fields=LogFields(source="Acme Wizard"),
+        )
+        assert response.status == "Success"
+        assert response.result
+        assert_matches_type(TextGuardResult, response.result, path=["response"])
+
+    def test_guard(self, client: AIGuard) -> None:
+        response = client.guard(
+            messages=[
+                MultimodalMessage(
+                    role="user",
+                    content=[
+                        TextContent(type="text", text="hello world"),
+                        ImageContent(type="image", image_src=AnyUrl("https://example.org/favicon.ico")),
+                        ImageContent(type="image", image_src=AnyUrl("data:image/jpeg;base64,000000")),
+                    ],
+                ),
+            ],
+            recipe="foobar",
+            debug=True,
+            app_name="foobar",
+            context={"foo": "bar", "baz": 123},
         )
         assert response.status == "Success"
         assert response.result
@@ -101,6 +126,27 @@ class TestAIGuardAsync:
             messages=[Message(role="user", content="hello world")],
             debug=False,
             log_fields=LogFields(source="Acme Wizard"),
+        )
+        assert response.status == "Success"
+        assert response.result
+        assert_matches_type(TextGuardResult, response.result, path=["response"])
+
+    async def test_guard(self, async_client: AIGuardAsync) -> None:
+        response = await async_client.guard(
+            messages=[
+                MultimodalMessage(
+                    role="user",
+                    content=[
+                        TextContent(type="text", text="hello world"),
+                        ImageContent(type="image", image_src=AnyUrl("https://example.org/favicon.ico")),
+                        ImageContent(type="image", image_src=AnyUrl("data:image/jpeg;base64,000000")),
+                    ],
+                ),
+            ],
+            recipe="foobar",
+            debug=True,
+            app_name="foobar",
+            context={"foo": "bar", "baz": 123},
         )
         assert response.status == "Success"
         assert response.result
