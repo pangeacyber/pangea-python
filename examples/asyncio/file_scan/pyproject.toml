@@ -18,7 +18,7 @@ packages = [{include = "file_scan_examples"}]
 python = "^3.9.20"
 
 [tool.poetry.group.dev.dependencies]
-mypy = "1.16.0"
+mypy = "1.16.1"
 
 [build-system]
 requires = ["poetry-core>=2.1.3"]
