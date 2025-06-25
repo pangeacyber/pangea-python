@@ -10,6 +10,9 @@ import datetime
 import enum
 from typing import Any, Dict, List, Optional, Sequence, Union
 
+from pydantic import Field
+from typing_extensions import Annotated
+
 from pangea.response import APIRequestModel, APIResponseModel, PangeaDateTime, PangeaResponseResult
 
 
@@ -117,20 +120,25 @@ class Event(Dict[str, Any]):
 
 
 class EventEnvelope(APIResponseModel):
-    """
-    Contain extra information about an event.
+    event: Optional[dict[str, Any]] = None
 
-    Arguments:
-    event -- Event describing auditable activity.
-    signature -- An optional client-side signature for forgery protection.
-    public_key -- The base64-encoded ed25519 public key used for the signature, if one is provided
-    received_at -- A server-supplied timestamp
-    """
-
-    event: Dict[str, Any]
     signature: Optional[str] = None
+    """
+    This is the signature of the hash of the canonicalized event that can be
+    verified with the public key provided in the public_key field. Signatures
+    cannot be used with the redaction feature turned on. If redaction is
+    required, the user needs to perform redaction before computing the signature
+    that is to be sent with the message. The SDK facilitates this for users.
+    """
+
     public_key: Optional[str] = None
-    received_at: PangeaDateTime
+    """
+    The base64-encoded ed25519 public key used for the signature, if one is
+    provided
+    """
+
+    received_at: Optional[PangeaDateTime] = None
+    """A Pangea provided timestamp of when the event was received."""
 
 
 class LogRequest(APIRequestModel):
@@ -181,21 +189,28 @@ class LogBulkRequest(APIRequestModel):
 
 
 class LogResult(PangeaResponseResult):
-    """
-    Result class after an audit log action
-
-    envelope -- Event envelope information.
-    hash -- Event envelope hash.
-    unpublished_root -- The current unpublished root.
-    membership_proof -- A proof for verifying the unpublished root.
-    consistency_proof -- If prev_root was present in the request, this proof verifies that the new unpublished root is a continuation of the prev_root
-    """
-
     envelope: Optional[EventEnvelope] = None
-    hash: str
+    """
+    The sealed envelope containing the event that was logged. Includes event
+    metadata such as optional client-side signature details and server-added
+    timestamps.
+    """
+
+    hash: Annotated[Optional[str], Field(max_length=64, min_length=64)] = None
+    """The hash of the event data."""
+
     unpublished_root: Optional[str] = None
+    """The current unpublished root."""
+
     membership_proof: Optional[str] = None
+    """A proof for verifying that the buffer_root contains the received event"""
+
     consistency_proof: Optional[List[str]] = None
+    """
+    If prev_buffer_root was present in the request, this proof verifies that the
+    new unpublished root is a continuation of prev_unpublished_root
+    """
+
     consistency_verification: EventVerification = EventVerification.NONE
     membership_verification: EventVerification = EventVerification.NONE
     signature_verification: EventVerification = EventVerification.NONE
@@ -358,29 +373,47 @@ class RootResult(PangeaResponseResult):
 
 
 class SearchEvent(APIResponseModel):
-    """
-    Event information received after a search request
-
-    Arguments:
-    envelope -- Event related information.
-    hash -- The record's hash.
-    leaf_index -- The index of the leaf of the Merkle Tree where this record was inserted.
-    membership_proof -- A cryptographic proof that the record has been persisted in the log.
-    consistency_verification -- Consistency verification calculated if required.
-    membership_verification -- Membership verification calculated if required.
-    signature_verification -- Signature verification calculated if required.
-    fpe_context -- The context data needed to decrypt secure audit events that have been redacted with format preserving encryption.
-    """
-
     envelope: EventEnvelope
-    hash: str
+
     membership_proof: Optional[str] = None
+    """A cryptographic proof that the record has been persisted in the log"""
+
+    hash: Annotated[Optional[str], Field(max_length=64, min_length=64)] = None
+    """The record's hash"""
+
     published: Optional[bool] = None
+    """
+    If true, a root has been published after this event. If false, there is no
+    published root for this event
+    """
+
+    imported: Optional[bool] = None
+    """
+    If true, the even was imported manually and not logged by the standard
+    procedure. Some features such as tamper proofing may not be available
+    """
+
     leaf_index: Optional[int] = None
+    """
+    The index of the leaf of the Merkle Tree where this record was inserted or
+    null if published=false
+    """
+
+    valid_signature: Optional[bool] = None
+    """
+    Result of the verification of the Vault signature, if the event was signed
+    and the parameter `verify_signature` is `true`
+    """
+
+    fpe_context: Optional[str] = None
+    """
+    The context data needed to decrypt secure audit events that have been
+    redacted with format preserving encryption.
+    """
+
     consistency_verification: EventVerification = EventVerification.NONE
     membership_verification: EventVerification = EventVerification.NONE
     signature_verification: EventVerification = EventVerification.NONE
-    fpe_context: Optional[str] = None
 
 
 class SearchResultOutput(PangeaResponseResult):

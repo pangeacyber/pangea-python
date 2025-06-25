@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import datetime
 import os
 
@@ -86,6 +88,7 @@ def print_page_results(search_res: PangeaResponse[SearchResultOutput], offset: i
     assert search_res.result
     print("\n--------------------------------------------------------------------\n")
     for row in search_res.result.events:
+        assert row.envelope.event
         print(
             f"{row.envelope.received_at}\t{row.envelope.event['message']}\t{row.membership_verification}\t\t {row.consistency_verification}\t\t {row.signature_verification}\t\t"
         )
