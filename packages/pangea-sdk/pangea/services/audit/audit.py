@@ -338,6 +338,7 @@ class AuditBase:
         public_key = get_public_key(audit_envelope.public_key)
 
         if audit_envelope and audit_envelope.signature and public_key:
+            assert audit_envelope.event
             v = Verifier()
             verification = v.verify_signature(
                 audit_envelope.signature,

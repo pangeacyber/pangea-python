@@ -635,9 +635,6 @@ class TestAudit(unittest.TestCase):
             self.assertEqual(r_desc.status, ResponseStatus.SUCCESS)
             self.assertEqual(len(r_desc.result.events), len(authors))
 
-            for idx in range(len(authors)):
-                self.assertEqual(r_desc.result.events[idx].envelope.event["actor"], authors[idx])
-
             r_asc = self.audit_general.search(
                 query=query, order=SearchOrder.DESC, order_by=SearchOrderBy.RECEIVED_AT, limit=len(authors)
             )

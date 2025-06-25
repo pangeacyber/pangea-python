@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - AI Guard: `messages` parameter is no longer a generic. A new `Message` model
   has been introduced, and `messages` is now a `Sequence[Message]`.
+- Audit: event data's `hash` is now optional.
 
 ## 6.1.1 - 2025-05-12
 
