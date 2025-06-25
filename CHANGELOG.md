@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## 6.2.0 - 2025-06-25
+
 ### Changed
 
 - AI Guard: `messages` parameter is no longer a generic. A new `Message` model
