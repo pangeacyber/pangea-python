@@ -16,7 +16,7 @@ packages = [{include = "audit_examples"}]
 
 [tool.poetry.dependencies]
 python = "^3.9.20"
-pangea-sdk = "^6.1.1"
+pangea-sdk = "^6.2.0"
 
 [tool.poetry.group.dev.dependencies]
 mypy = "^1.16.1"
