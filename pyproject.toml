@@ -12,7 +12,7 @@ dependencies = []
 repository = "https://github.com/pangeacyber/pangea-python"
 
 [build-system]
-requires = ["pdm-backend==2.4.4"]
+requires = ["pdm-backend==2.4.5"]
 build-backend = "pdm.backend"
 
 [tool.poetry]
