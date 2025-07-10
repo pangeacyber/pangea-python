@@ -437,7 +437,7 @@ class AuthNAsync(ServiceBaseAsync):
             ) -> None:
                 super().__init__(token, config, logger_name=logger_name)
 
-            async def check(self, token: str) -> PangeaResponse[m.ClientTokenCheckResult]:
+            async def check(self, token: m.Token) -> PangeaResponse[m.ClientTokenCheckResult]:
                 """
                 Check a token
 
@@ -446,7 +446,7 @@ class AuthNAsync(ServiceBaseAsync):
                 OperationId: authn_post_v2_client_token_check
 
                 Args:
-                    token (str): A token value
+                    token: A token value
 
                 Returns:
                     A PangeaResponse with a token and its information in the response.result field.
@@ -454,14 +454,11 @@ class AuthNAsync(ServiceBaseAsync):
                         [API Documentation](https://pangea.cloud/docs/api/authn/flow#/v2/client/token/check-post).
 
                 Examples:
-                    response = authn.client.token_endpoints.check(
+                    response = await authn.client.token_endpoints.check(
                         token="ptu_wuk7tvtpswyjtlsx52b7yyi2l7zotv4a",
                     )
                 """
-                input = m.ClientTokenCheckRequest(token=token)
-                return await self.request.post(
-                    "v2/client/token/check", m.ClientTokenCheckResult, data=input.model_dump(exclude_none=True)
-                )
+                return await self.request.post("v2/client/token/check", m.ClientTokenCheckResult, data={"token": token})
 
     class UserAsync(ServiceBaseAsync):
         service_name = _SERVICE_NAME
