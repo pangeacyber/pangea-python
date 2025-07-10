@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- AuthN: modernized models around token check.
+- AuthZ: modernized models around tuples.
+
 ## 6.2.0 - 2025-06-25
 
 ### Changed

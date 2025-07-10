@@ -1,16 +1,16 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
 
-# TODO: Use `list` instead of `List`.
-# ruff: noqa: UP006, UP035
-
 from __future__ import annotations
 
 import enum
-from typing import Any, Dict, List, Optional, Union
+from collections.abc import Mapping, Sequence
+from typing import Annotated, Any, Optional, Union
+
+from pydantic import Field
 
 from pangea.config import PangeaConfig
-from pangea.response import APIRequestModel, APIResponseModel, PangeaResponse, PangeaResponseResult
+from pangea.response import APIRequestModel, APIResponseModel, PangeaDateTime, PangeaResponse, PangeaResponseResult
 from pangea.services.base import ServiceBase
 
 
@@ -47,20 +47,18 @@ class Resource(PangeaResponseResult):
 
 class Subject(PangeaResponseResult):
     type: str
-    id: Optional[str] = None
-    action: Optional[str] = None
+    id: Annotated[str, Field(pattern="^([a-zA-Z0-9_][a-zA-Z0-9/|_.@-]*)$")]
+    action: Annotated[Optional[str], Field(pattern="^([a-zA-Z0-9_][a-zA-Z0-9/|_]*)$")] = None
 
 
 class Tuple(PangeaResponseResult):
     resource: Resource
-    relation: str
+    relation: Annotated[str, Field(pattern="^([a-zA-Z0-9_][a-zA-Z0-9/|_]*)$")]
     subject: Subject
-    expires_at: Optional[str] = None
+    expires_at: Optional[PangeaDateTime] = None
     """A time in ISO-8601 format"""
-
-
-class TupleCreateRequest(APIRequestModel):
-    tuples: List[Tuple]
+    attributes: Optional[dict[str, Any]] = None
+    """A JSON object of attribute data."""
 
 
 class TupleCreateResult(PangeaResponseResult):
@@ -70,54 +68,54 @@ class TupleCreateResult(PangeaResponseResult):
 class TupleListFilter(APIRequestModel):
     resource_type: Optional[str] = None
     """Only records where resource type equals this value."""
-    resource_type__contains: Optional[List[str]] = None
+    resource_type__contains: Optional[list[str]] = None
     """Only records where resource type includes each substring."""
-    resource_type__in: Optional[List[str]] = None
+    resource_type__in: Optional[list[str]] = None
     """Only records where resource type equals one of the provided substrings."""
     resource_id: Optional[str] = None
     """Only records where resource id equals this value."""
-    resource_id__contains: Optional[List[str]] = None
+    resource_id__contains: Optional[list[str]] = None
     """Only records where resource id includes each substring."""
-    resource_id__in: Optional[List[str]] = None
+    resource_id__in: Optional[list[str]] = None
     """Only records where resource id equals one of the provided substrings."""
     relation: Optional[str] = None
     """Only records where relation equals this value."""
-    relation__contains: Optional[List[str]] = None
+    relation__contains: Optional[list[str]] = None
     """Only records where relation includes each substring."""
-    relation__in: Optional[List[str]] = None
+    relation__in: Optional[list[str]] = None
     """Only records where relation equals one of the provided substrings."""
     subject_type: Optional[str] = None
     """Only records where subject type equals this value."""
-    subject_type__contains: Optional[List[str]] = None
+    subject_type__contains: Optional[list[str]] = None
     """Only records where subject type includes each substring."""
-    subject_type__in: Optional[List[str]] = None
+    subject_type__in: Optional[list[str]] = None
     """Only records where subject type equals one of the provided substrings."""
     subject_id: Optional[str] = None
     """Only records where subject id equals this value."""
-    subject_id__contains: Optional[List[str]] = None
+    subject_id__contains: Optional[list[str]] = None
     """Only records where subject id includes each substring."""
-    subject_id__in: Optional[List[str]] = None
+    subject_id__in: Optional[list[str]] = None
     """Only records where subject id equals one of the provided substrings."""
     subject_action: Optional[str] = None
     """Only records where subject action equals this value."""
-    subject_action__contains: Optional[List[str]] = None
+    subject_action__contains: Optional[list[str]] = None
     """Only records where subject action includes each substring."""
-    subject_action__in: Optional[List[str]] = None
+    subject_action__in: Optional[list[str]] = None
     """Only records where subject action equals one of the provided substrings."""
-    expires_at: Optional[str] = None
+    expires_at: Optional[PangeaDateTime] = None
     """Only records where expires_at equals this value."""
-    expires_at__gt: Optional[str] = None
+    expires_at__gt: Optional[PangeaDateTime] = None
     """Only records where expires_at is greater than this value."""
-    expires_at__gte: Optional[str] = None
+    expires_at__gte: Optional[PangeaDateTime] = None
     """Only records where expires_at is greater than or equal to this value."""
-    expires_at__lt: Optional[str] = None
+    expires_at__lt: Optional[PangeaDateTime] = None
     """Only records where expires_at is less than this value."""
-    expires_at__lte: Optional[str] = None
+    expires_at__lte: Optional[PangeaDateTime] = None
     """Only records where expires_at is less than or equal to this value."""
 
 
 class TupleListRequest(APIRequestModel):
-    filter: Optional[Union[Dict, TupleListFilter]] = None
+    filter: Optional[Union[dict, TupleListFilter]] = None
     size: Optional[int] = None
     last: Optional[str] = None
     order: Optional[ItemOrder] = None
@@ -125,37 +123,27 @@ class TupleListRequest(APIRequestModel):
 
 
 class TupleListResult(PangeaResponseResult):
-    tuples: List[Tuple]
+    tuples: list[Tuple]
     last: str
     count: int
 
 
 class TupleDeleteRequest(APIRequestModel):
-    tuples: List[Tuple]
+    tuples: list[Tuple]
 
 
 class TupleDeleteResult(PangeaResponseResult):
     pass
 
 
-class CheckRequest(APIRequestModel):
-    resource: Resource
-    action: str
-    subject: Subject
-    debug: Optional[bool] = None
-    """In the event of an allowed check, return a path that granted access."""
-    attributes: Optional[Dict[str, Any]] = None
-    """A JSON object of attribute data."""
-
-
 class DebugPath(APIResponseModel):
-    type: str
-    id: str
+    type: Optional[str] = None
+    id: Optional[str] = None
     action: Optional[str] = None
 
 
 class Debug(APIResponseModel):
-    path: List[DebugPath]
+    path: list[DebugPath]
 
 
 class CheckResult(PangeaResponseResult):
@@ -170,23 +158,23 @@ class ListResourcesRequest(APIRequestModel):
     type: str
     action: str
     subject: Subject
-    attributes: Optional[Dict[str, Any]] = None
+    attributes: Optional[dict[str, Any]] = None
 
 
 class ListResourcesResult(PangeaResponseResult):
-    ids: List[str]
+    ids: list[str]
 
 
 class ListSubjectsRequest(APIRequestModel):
     resource: Resource
     action: str
-    attributes: Optional[Dict[str, Any]] = None
+    attributes: Optional[dict[str, Any]] = None
     debug: Optional[bool] = None
     """Return a path for each found subject"""
 
 
 class ListSubjectsResult(PangeaResponseResult):
-    subjects: List[Subject]
+    subjects: list[Subject]
 
 
 class AuthZ(ServiceBase):
@@ -232,7 +220,7 @@ class AuthZ(ServiceBase):
 
         super().__init__(token, config, logger_name, config_id=config_id)
 
-    def tuple_create(self, tuples: list[Tuple]) -> PangeaResponse[TupleCreateResult]:
+    def tuple_create(self, tuples: Sequence[Tuple]) -> PangeaResponse[TupleCreateResult]:
         """Create tuples.
 
         Create tuples in the AuthZ Service. The request will fail if there is no schema
@@ -261,8 +249,7 @@ class AuthZ(ServiceBase):
             )
         """
 
-        input_data = TupleCreateRequest(tuples=tuples)
-        return self.request.post("v1/tuple/create", TupleCreateResult, data=input_data.model_dump(exclude_none=True))
+        return self.request.post("v1/tuple/create", TupleCreateResult, data={"tuples": tuples})
 
     def tuple_list(
         self,
@@ -337,8 +324,9 @@ class AuthZ(ServiceBase):
         resource: Resource,
         action: str,
         subject: Subject,
+        *,
         debug: bool | None = None,
-        attributes: dict[str, Any] | None = None,
+        attributes: Mapping[str, Any] | None = None,
     ) -> PangeaResponse[CheckResult]:
         """Perform a check request.
 
@@ -349,7 +337,7 @@ class AuthZ(ServiceBase):
             action: The action to check.
             subject: The subject to check.
             debug: In the event of an allowed check, return a path that granted access.
-            attributes: Additional attributes for the check.
+            attributes: A JSON object of attribute data.
 
         Raises:
             PangeaAPIException: If an API Error happens.
@@ -368,8 +356,11 @@ class AuthZ(ServiceBase):
             )
         """
 
-        input_data = CheckRequest(resource=resource, action=action, subject=subject, debug=debug, attributes=attributes)
-        return self.request.post("v1/check", CheckResult, data=input_data.model_dump(exclude_none=True))
+        return self.request.post(
+            "v1/check",
+            CheckResult,
+            data={"resource": resource, "action": action, "subject": subject, "debug": debug, "attributes": attributes},
+        )
 
     def list_resources(
         self, type: str, action: str, subject: Subject, attributes: dict[str, Any] | None = None
