@@ -3,13 +3,13 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import Any
 
 from pangea.asyncio.services.base import ServiceBaseAsync
 from pangea.config import PangeaConfig
 from pangea.response import PangeaResponse
 from pangea.services.authz import (
-    CheckRequest,
     CheckResult,
     ItemOrder,
     ListResourcesRequest,
@@ -19,7 +19,6 @@ from pangea.services.authz import (
     Resource,
     Subject,
     Tuple,
-    TupleCreateRequest,
     TupleCreateResult,
     TupleDeleteRequest,
     TupleDeleteResult,
@@ -73,7 +72,7 @@ class AuthZAsync(ServiceBaseAsync):
 
         super().__init__(token, config, logger_name, config_id=config_id)
 
-    async def tuple_create(self, tuples: list[Tuple]) -> PangeaResponse[TupleCreateResult]:
+    async def tuple_create(self, tuples: Sequence[Tuple]) -> PangeaResponse[TupleCreateResult]:
         """Create tuples.
 
         Create tuples in the AuthZ Service. The request will fail if there is no schema
@@ -102,10 +101,7 @@ class AuthZAsync(ServiceBaseAsync):
             )
         """
 
-        input_data = TupleCreateRequest(tuples=tuples)
-        return await self.request.post(
-            "v1/tuple/create", TupleCreateResult, data=input_data.model_dump(exclude_none=True)
-        )
+        return await self.request.post("v1/tuple/create", TupleCreateResult, data={"tuples": tuples})
 
     async def tuple_list(
         self,
@@ -190,8 +186,8 @@ class AuthZAsync(ServiceBaseAsync):
         Check if a subject has permission to perform an action on the resource.
 
         Args:
-            resource (Resource): The resource to check.
-            action (str): The action to check.
+            resource: The resource to check.
+            action: The action to check.
             subject: The subject to check.
             debug: Setting this value to True will provide a detailed analysis of the check.
             attributes: Additional attributes for the check.
@@ -213,8 +209,11 @@ class AuthZAsync(ServiceBaseAsync):
             )
         """
 
-        input_data = CheckRequest(resource=resource, action=action, subject=subject, debug=debug, attributes=attributes)
-        return await self.request.post("v1/check", CheckResult, data=input_data.model_dump(exclude_none=True))
+        return await self.request.post(
+            "v1/check",
+            CheckResult,
+            data={"resource": resource, "action": action, "subject": subject, "debug": debug, "attributes": attributes},
+        )
 
     async def list_resources(
         self, type: str, action: str, subject: Subject, attributes: dict[str, Any] | None = None

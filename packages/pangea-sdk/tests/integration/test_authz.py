@@ -158,7 +158,7 @@ class TestAuthZIntegration(unittest.TestCase):
                     resource=m.Resource(type=type_folder, id=folder1),
                     relation=relation_reader,
                     subject=m.Subject(type=type_user, id=user1),
-                    expires_at="2999-09-21T17:24:33.105Z",
+                    expires_at=datetime.datetime(2099, 9, 21, 17, 24, 33, 105000),
                 )
             ]
         )
