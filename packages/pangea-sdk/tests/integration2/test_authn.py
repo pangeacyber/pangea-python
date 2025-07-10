@@ -9,6 +9,7 @@ from pangea import PangeaConfig
 from pangea.asyncio.services.authn import AuthNAsync
 from pangea.services import AuthN
 from pangea.services.authn.models import (
+    ClientTokenCheckResult,
     SessionInvalidateResult,
     SessionListResults,
     UserProfileGetResult,
@@ -31,6 +32,12 @@ async def async_client(request: pytest.FixtureRequest) -> AsyncIterator[AuthNAsy
 
 
 class TestAuthN:
+    def test_client_token_check(self, client: AuthN) -> None:
+        response = client.client.token_endpoints.check(token="ptu_wuk7tvtpswyjtlsx52b7yyi2l7zotv4a")
+        assert response.status == "Success"
+        assert response.result
+        assert_matches_type(ClientTokenCheckResult, response.result, path=["response"])
+
     def test_session_invalidate(self, client: AuthN) -> None:
         response = client.session.invalidate("pmt_jn4j24cg2ijbsgoc26xsase5an3ybtfk")
         assert response.status == "Success"
@@ -57,6 +64,12 @@ class TestAuthN:
 
 
 class TestAuthNAsync:
+    async def test_client_token_check(self, async_client: AuthNAsync) -> None:
+        response = await async_client.client.token_endpoints.check(token="ptu_wuk7tvtpswyjtlsx52b7yyi2l7zotv4a")
+        assert response.status == "Success"
+        assert response.result
+        assert_matches_type(ClientTokenCheckResult, response.result, path=["response"])
+
     async def test_session_invalidate(self, async_client: AuthNAsync) -> None:
         response = await async_client.session.invalidate("pmt_jn4j24cg2ijbsgoc26xsase5an3ybtfk")
         assert response.status == "Success"
