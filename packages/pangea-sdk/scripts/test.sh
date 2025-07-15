@@ -28,3 +28,8 @@ pnpm dlx start-server-and-test --expect 404 \
   "pnpm dlx @stoplight/prism-cli mock -d --json-schema-faker-fillProperties=false tests/testdata/specs/share.openapi.json" \
   4010 \
   "poetry run pytest tests/integration2/test_share.py"
+
+pnpm dlx start-server-and-test --expect 404 \
+  "pnpm dlx @stoplight/prism-cli mock -d --json-schema-faker-fillProperties=false tests/testdata/specs/vault.openapi.json" \
+  4010 \
+  "poetry run pytest tests/integration2/test_vault.py"
