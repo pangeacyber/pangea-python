@@ -1,17 +1,12 @@
 # Copyright 2022 Pangea Cyber Corporation
 # Author: Pangea Cyber Corporation
+from collections.abc import Mapping
 from typing import Optional
 
 from typing_extensions import Literal
 
 from pangea.response import APIRequestModel, PangeaDateTime
-from pangea.services.vault.models.common import (
-    CommonRotateRequest,
-    CommonRotateResult,
-    CommonStoreResult,
-    Metadata,
-    Tags,
-)
+from pangea.services.vault.models.common import CommonRotateRequest, CommonRotateResult, CommonStoreResult, Tags
 
 
 class SecretStoreRequest(APIRequestModel):
@@ -31,7 +26,7 @@ class SecretStoreRequest(APIRequestModel):
     # Optional.
     name: Optional[str] = None
     folder: Optional[str] = None
-    metadata: Optional[Metadata] = None
+    metadata: Optional[Mapping[str, str]] = None
     tags: Optional[Tags] = None
     disabled_at: Optional[PangeaDateTime] = None
 

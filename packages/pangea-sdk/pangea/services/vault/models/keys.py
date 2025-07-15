@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import Literal, Optional, Union
 
 from pangea.response import APIRequestModel, PangeaDateTime
@@ -10,13 +11,7 @@ from pangea.services.vault.models.asymmetric import (
     AsymmetricKeyPurpose,
     AsymmetricKeySigningAlgorithm,
 )
-from pangea.services.vault.models.common import (
-    ItemType,
-    Metadata,
-    RequestManualRotationState,
-    RequestRotationState,
-    Tags,
-)
+from pangea.services.vault.models.common import ItemType, RequestManualRotationState, RequestRotationState, Tags
 from pangea.services.vault.models.symmetric import (
     SymmetricKeyEncryptionAlgorithm,
     SymmetricKeyFpeAlgorithm,
@@ -39,7 +34,7 @@ class CommonGenerateRequest(APIRequestModel):
     ]
     name: Optional[str] = None
     folder: Optional[str] = None
-    metadata: Optional[Metadata] = None
+    metadata: Optional[Mapping[str, str]] = None
     tags: Optional[Tags] = None
     rotation_frequency: Optional[str] = None
     rotation_state: Optional[RequestRotationState] = RequestRotationState.INHERITED
@@ -71,7 +66,7 @@ class KeyStoreRequest(APIRequestModel):
     # Optional.
     name: Optional[str] = None
     folder: Optional[str] = None
-    metadata: Optional[Metadata] = None
+    metadata: Optional[Mapping[str, str]] = None
     tags: Optional[Tags] = None
     rotation_frequency: Optional[str] = None
     rotation_state: Optional[RequestRotationState] = RequestRotationState.INHERITED
