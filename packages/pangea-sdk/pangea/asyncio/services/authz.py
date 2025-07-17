@@ -3,13 +3,15 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from typing import Any
 
 from pangea.asyncio.services.base import ServiceBaseAsync
 from pangea.config import PangeaConfig
 from pangea.response import PangeaResponse
 from pangea.services.authz import (
+    BulkCheckRequestItem,
+    BulkCheckResult,
     CheckResult,
     ItemOrder,
     ListResourcesRequest,
@@ -213,6 +215,39 @@ class AuthZAsync(ServiceBaseAsync):
             "v1/check",
             CheckResult,
             data={"resource": resource, "action": action, "subject": subject, "debug": debug, "attributes": attributes},
+        )
+
+    async def bulk_check(
+        self,
+        checks: Sequence[BulkCheckRequestItem],
+        *,
+        debug: bool | None = None,
+        attributes: Mapping[str, Any] | None = None,
+    ) -> PangeaResponse[BulkCheckResult]:
+        """Perform a bulk check request
+
+        Perform multiple checks in a single request to see if a subjects have
+        permission to do actions on the resources.
+
+        Args:
+            checks: Check requests to perform.
+            debug: In the event of an allowed check, return a path that granted access.
+            attributes: A JSON object of attribute data.
+
+        Examples:
+            await authz.bulk_check(
+                checks=[
+                    BulkCheckRequestItem(
+                        resource=Resource(type="file", id="file_1"),
+                        action="read",
+                        subject=Subject(type="user", id="user_1", action="read"),
+                    )
+                ]
+            )
+        """
+
+        return await self.request.post(
+            "v1/check/bulk", BulkCheckResult, data={"checks": checks, "debug": debug, "attributes": attributes}
         )
 
     async def list_resources(

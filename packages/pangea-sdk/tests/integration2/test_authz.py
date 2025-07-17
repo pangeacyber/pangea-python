@@ -9,7 +9,15 @@ import pytest
 from pangea import PangeaConfig
 from pangea.asyncio.services import AuthZAsync
 from pangea.services import AuthZ
-from pangea.services.authz import CheckResult, Resource, Subject, Tuple, TupleCreateResult
+from pangea.services.authz import (
+    BulkCheckRequestItem,
+    BulkCheckResult,
+    CheckResult,
+    Resource,
+    Subject,
+    Tuple,
+    TupleCreateResult,
+)
 
 from ..utils import assert_matches_type
 
@@ -53,6 +61,20 @@ class TestAuthZ:
         assert response.result
         assert_matches_type(CheckResult, response.result, path=["response"])
 
+    def test_bulk_check(self, client: AuthZ) -> None:
+        response = client.bulk_check(
+            checks=[
+                BulkCheckRequestItem(
+                    resource=Resource(type="file", id="file_1"),
+                    action="read",
+                    subject=Subject(type="user", id="user_1", action="read"),
+                )
+            ]
+        )
+        assert response.status == "Success"
+        assert response.result
+        assert_matches_type(BulkCheckResult, response.result, path=["response"])
+
 
 class TestAuthZAsync:
     async def test_tuple_create(self, async_client: AuthZAsync) -> None:
@@ -80,3 +102,17 @@ class TestAuthZAsync:
         assert response.status == "Success"
         assert response.result
         assert_matches_type(CheckResult, response.result, path=["response"])
+
+    async def test_bulk_check(self, async_client: AuthZAsync) -> None:
+        response = await async_client.bulk_check(
+            checks=[
+                BulkCheckRequestItem(
+                    resource=Resource(type="file", id="file_1"),
+                    action="read",
+                    subject=Subject(type="user", id="user_1", action="read"),
+                )
+            ]
+        )
+        assert response.status == "Success"
+        assert response.result
+        assert_matches_type(BulkCheckResult, response.result, path=["response"])

@@ -154,6 +154,26 @@ class CheckResult(PangeaResponseResult):
     debug: Optional[Debug] = None
 
 
+class BulkCheckRequestItem(APIRequestModel):
+    resource: Resource
+    action: Annotated[str, Field(pattern="^([a-zA-Z0-9_][a-zA-Z0-9/|_]*)$")]
+    subject: Subject
+
+
+class BulkCheckItemResult(APIResponseModel):
+    checked: str
+    allowed: bool
+    depth: int
+    debug: Optional[Debug] = None
+
+
+class BulkCheckResult(PangeaResponseResult):
+    schema_id: str
+    schema_version: int
+    allowed: bool
+    results: list[BulkCheckItemResult]
+
+
 class ListResourcesRequest(APIRequestModel):
     type: str
     action: str
@@ -360,6 +380,39 @@ class AuthZ(ServiceBase):
             "v1/check",
             CheckResult,
             data={"resource": resource, "action": action, "subject": subject, "debug": debug, "attributes": attributes},
+        )
+
+    def bulk_check(
+        self,
+        checks: Sequence[BulkCheckRequestItem],
+        *,
+        debug: bool | None = None,
+        attributes: Mapping[str, Any] | None = None,
+    ) -> PangeaResponse[BulkCheckResult]:
+        """Perform a bulk check request
+
+        Perform multiple checks in a single request to see if a subjects have
+        permission to do actions on the resources.
+
+        Args:
+            checks: Check requests to perform.
+            debug: In the event of an allowed check, return a path that granted access.
+            attributes: A JSON object of attribute data.
+
+        Examples:
+            authz.bulk_check(
+                checks=[
+                    BulkCheckRequestItem(
+                        resource=Resource(type="file", id="file_1"),
+                        action="read",
+                        subject=Subject(type="user", id="user_1", action="read"),
+                    )
+                ]
+            )
+        """
+
+        return self.request.post(
+            "v1/check/bulk", BulkCheckResult, data={"checks": checks, "debug": debug, "attributes": attributes}
         )
 
     def list_resources(
