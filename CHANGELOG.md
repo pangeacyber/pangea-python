@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- AuthZ: bulk check endpoint.
+
 ### Changed
 
 - AuthN: modernized models around token check.
