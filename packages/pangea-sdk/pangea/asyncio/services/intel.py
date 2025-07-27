@@ -9,6 +9,7 @@ import hashlib
 from typing import List, Literal, Optional
 
 import pangea.services.intel as m
+from pangea._typing import SequenceNotStr
 from pangea.asyncio.services.base import ServiceBaseAsync
 from pangea.response import PangeaResponse
 from pangea.utils import hash_256_filepath
@@ -320,33 +321,26 @@ class DomainIntelAsync(ServiceBaseAsync):
 
 
 class IpIntelAsync(ServiceBaseAsync):
-    """IP Intel service client
-
-    Provides methods to interact with [Pangea IP Intel Service](/docs/api/ip-intel)
-
-    The following information is needed:
-        PANGEA_TOKEN - service token which can be found on the Pangea User
-            Console at [https://console.pangea.cloud/project/tokens](https://console.pangea.cloud/project/tokens)
+    """
+    IP Intel service client
 
     Examples:
         import os
 
-        # Pangea SDK
-        from pangea.config import PangeaConfig
-        from pangea.services import IpIntel
+        from pangea.asyncio.services import IpIntelAsync
 
-        PANGEA_TOKEN = os.getenv("PANGEA_TOKEN")
-
-        ip_intel_config = PangeaConfig(domain="pangea.cloud")
-
-        # Setup Pangea IP Intel service
-        ip_intel = IpIntel(token=PANGEA_TOKEN, config=ip_intel_config)
+        ip_intel = IpIntelAsync(token="my_api_token")
     """
 
     service_name = "ip-intel"
 
     async def reputation(
-        self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
+        self,
+        ip: str,
+        *,
+        verbose: bool | None = None,
+        raw: bool | None = None,
+        provider: Literal["crowdstrike", "cymru"] | None = None,
     ) -> PangeaResponse[m.IPReputationResult]:
         """
         Reputation
@@ -356,10 +350,10 @@ class IpIntelAsync(ServiceBaseAsync):
         OperationId: ip_intel_post_v1_reputation
 
         Args:
-            ip (str): The IP to be looked up
-            verbose (bool, optional): Echo the API parameters in the response
-            raw (bool, optional): Include raw data from this provider
-            provider (str, optional): Use reputation data from this provider
+            ip: The IP to be looked up
+            verbose: Echo the API parameters in the response
+            raw: Include raw data from this provider
+            provider: Use reputation data from this provider
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -374,24 +368,30 @@ class IpIntelAsync(ServiceBaseAsync):
                 provider="crowdstrike",
             )
         """
-        input = m.IPReputationRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
-        return await self.request.post("v1/reputation", m.IPReputationResult, data=input.model_dump(exclude_none=True))
+        return await self.request.post(
+            "v1/reputation", m.IPReputationResult, data={"ip": ip, "verbose": verbose, "raw": raw, "provider": provider}
+        )
 
     async def reputation_bulk(
-        self, ips: List[str], verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
+        self,
+        ips: SequenceNotStr[str],
+        *,
+        verbose: bool | None = None,
+        raw: bool | None = None,
+        provider: Literal["crowdstrike", "cymru"] | None = None,
     ) -> PangeaResponse[m.IPReputationBulkResult]:
         """
         Reputation
 
         Retrieve a reputation score for an IP address from a provider, including an optional detailed report.
 
-        OperationId: FIXME:
+        OperationId: ip_intel_post_v2_reputation
 
         Args:
-            ips (List[str]): The IP list to be looked up
-            verbose (bool, optional): Echo the API parameters in the response
-            raw (bool, optional): Include raw data from this provider
-            provider (str, optional): Use reputation data from this provider
+            ips: The IP to be looked up
+            verbose: Echo the API parameters in the response
+            raw: Include raw data from this provider
+            provider: Use reputation data from this provider
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -403,13 +403,19 @@ class IpIntelAsync(ServiceBaseAsync):
         Examples:
             FIXME:
         """
-        input = m.IPReputationBulkRequest(ips=ips, verbose=verbose, raw=raw, provider=provider)
         return await self.request.post(
-            "v2/reputation", m.IPReputationBulkResult, data=input.model_dump(exclude_none=True)
+            "v2/reputation",
+            m.IPReputationBulkResult,
+            data={"ips": ips, "verbose": verbose, "raw": raw, "provider": provider},
         )
 
     async def geolocate(
-        self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
+        self,
+        ip: str,
+        *,
+        verbose: bool | None = None,
+        raw: bool | None = None,
+        provider: Literal["digitalenvoy", "digitalelement"] | None = None,
     ) -> PangeaResponse[m.IPGeolocateResult]:
         """
         Geolocate
@@ -419,10 +425,10 @@ class IpIntelAsync(ServiceBaseAsync):
         OperationId: ip_intel_post_v1_geolocate
 
         Args:
-            ips (List[str]): IP address' list to be geolocated
-            provider (str, optional): Use geolocation data from this provider ("digitalelement"). Default provider defined by the configuration.
-            verbose (bool, optional): Echo the API parameters in the response
-            raw (bool, optional): Include raw data from this provider
+            ip: The IP to be looked up
+            verbose: Echo the API parameters in the response
+            raw: Include raw data from this provider
+            provider: Use location data from this provider
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -437,24 +443,30 @@ class IpIntelAsync(ServiceBaseAsync):
                 provider="digitalelement",
             )
         """
-        input = m.IPGeolocateRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
-        return await self.request.post("v1/geolocate", m.IPGeolocateResult, data=input.model_dump(exclude_none=True))
+        return await self.request.post(
+            "v1/geolocate", m.IPGeolocateResult, data={"ip": ip, "verbose": verbose, "raw": raw, "provider": provider}
+        )
 
     async def geolocate_bulk(
-        self, ips: List[str], verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
+        self,
+        ips: SequenceNotStr[str],
+        *,
+        verbose: bool | None = None,
+        raw: bool | None = None,
+        provider: Literal["digitalenvoy", "digitalelement"] | None = None,
     ) -> PangeaResponse[m.IPGeolocateBulkResult]:
         """
         Geolocate
 
         Retrieve information about the location of an IP address.
 
-        OperationId: FIXME:
+        OperationId: ip_intel_post_v2_geolocate
 
         Args:
-            ips (List[str]): IP addresses list to be geolocated
-            provider (str, optional): Use geolocation data from this provider ("digitalelement"). Default provider defined by the configuration.
-            verbose (bool, optional): Echo the API parameters in the response
-            raw (bool, optional): Include raw data from this provider
+            ips: The IP(s) to be looked up
+            verbose: Echo the API parameters in the response
+            raw: Include raw data from this provider
+            provider: Use location data from this provider
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -464,15 +476,24 @@ class IpIntelAsync(ServiceBaseAsync):
                 response.result field.  Available response fields can be found in our [API documentation](/docs/api/ip-intel)
 
         Examples:
-            FIXME:
+            response = await ip_intel.geolocate_bulk(
+                ips=["93.231.182.110"],
+                provider="digitalelement",
+            )
         """
-        input = m.IPGeolocateBulkRequest(ips=ips, verbose=verbose, raw=raw, provider=provider)
         return await self.request.post(
-            "v2/geolocate", m.IPGeolocateBulkResult, data=input.model_dump(exclude_none=True)
+            "v2/geolocate",
+            m.IPGeolocateBulkResult,
+            data={"ips": ips, "verbose": verbose, "raw": raw, "provider": provider},
         )
 
     async def get_domain(
-        self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
+        self,
+        ip: str,
+        *,
+        verbose: bool | None = None,
+        raw: bool | None = None,
+        provider: Literal["digitalenvoy", "digitalelement"] | None = None,
     ) -> PangeaResponse[m.IPDomainResult]:
         """
         Domain
@@ -482,10 +503,10 @@ class IpIntelAsync(ServiceBaseAsync):
         OperationId: ip_intel_post_v1_domain
 
         Args:
-            ip (str): The IP to be looked up
-            provider (str, optional): Use geolocation data from this provider ("digitalelement"). Default provider defined by the configuration.
-            verbose (bool, optional): Echo the API parameters in the response
-            raw (bool, optional): Include raw data from this provider
+            ip: The IP to be looked up
+            verbose: Echo the API parameters in the response
+            raw: Include raw data from this provider
+            provider: Use domain data from this provider
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -500,24 +521,30 @@ class IpIntelAsync(ServiceBaseAsync):
                 provider="digitalelement",
             )
         """
-        input = m.IPDomainRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
-        return await self.request.post("v1/domain", m.IPDomainResult, data=input.model_dump(exclude_none=True))
+        return await self.request.post(
+            "v1/domain", m.IPDomainResult, data={"ip": ip, "verbose": verbose, "raw": raw, "provider": provider}
+        )
 
     async def get_domain_bulk(
-        self, ips: List[str], verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
+        self,
+        ips: SequenceNotStr[str],
+        *,
+        verbose: bool | None = None,
+        raw: bool | None = None,
+        provider: Literal["digitalenvoy", "digitalelement"] | None = None,
     ) -> PangeaResponse[m.IPDomainBulkResult]:
         """
         Domain
 
         Retrieve the domain name associated with an IP address.
 
-        OperationId: FIXME:
+        OperationId: ip_intel_post_v2_domain
 
         Args:
-            ips (List[str]): The IP to be looked up
-            provider (str, optional): Use geolocation data from this provider ("digitalelement"). Default provider defined by the configuration.
-            verbose (bool, optional): Echo the API parameters in the response
-            raw (bool, optional): Include raw data from this provider
+            ips: The IP(s) to be looked up
+            verbose: Echo the API parameters in the response
+            raw: Include raw data from this provider
+            provider: Use domain data from this provider
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -527,13 +554,24 @@ class IpIntelAsync(ServiceBaseAsync):
                 response.result field.  Available response fields can be found in our [API documentation](/docs/api/ip-intel)
 
         Examples:
-            FIXME:
+            response = await ip_intel.get_domain_bulk(
+                ips=["93.231.182.110"],
+                provider="digitalelement",
+            )
         """
-        input = m.IPDomainBulkRequest(ips=ips, verbose=verbose, raw=raw, provider=provider)
-        return await self.request.post("v2/domain", m.IPDomainBulkResult, data=input.model_dump(exclude_none=True))
+        return await self.request.post(
+            "v2/domain",
+            m.IPDomainBulkResult,
+            data={"ips": ips, "verbose": verbose, "raw": raw, "provider": provider},
+        )
 
     async def is_vpn(
-        self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
+        self,
+        ip: str,
+        *,
+        verbose: bool | None = None,
+        raw: bool | None = None,
+        provider: Literal["digitalenvoy", "digitalelement"] | None = None,
     ) -> PangeaResponse[m.IPVPNResult]:
         """
         VPN
@@ -543,10 +581,10 @@ class IpIntelAsync(ServiceBaseAsync):
         OperationId: ip_intel_post_v1_vpn
 
         Args:
-            ip (str): The IP to be looked up
-            provider (str, optional): Use geolocation data from this provider ("digitalelement"). Default provider defined by the configuration.
-            verbose (bool, optional): Echo the API parameters in the response
-            raw (bool, optional): Include raw data from this provider
+            ip: The IP to be looked up
+            verbose: Echo the API parameters in the response
+            raw: Include raw data from this provider
+            provider: Use vpn data from this provider
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -561,24 +599,32 @@ class IpIntelAsync(ServiceBaseAsync):
                 provider="digitalelement",
             )
         """
-        input = m.IPVPNRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
-        return await self.request.post("v1/vpn", m.IPVPNResult, data=input.model_dump(exclude_none=True))
+        return await self.request.post(
+            "v1/vpn",
+            m.IPVPNResult,
+            data={"ip": ip, "verbose": verbose, "raw": raw, "provider": provider},
+        )
 
     async def is_vpn_bulk(
-        self, ips: List[str], verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
+        self,
+        ips: SequenceNotStr[str],
+        *,
+        verbose: bool | None = None,
+        raw: bool | None = None,
+        provider: Literal["digitalenvoy", "digitalelement"] | None = None,
     ) -> PangeaResponse[m.IPVPNBulkResult]:
         """
         VPN
 
         Determine if an IP address is provided by a VPN service.
 
-        OperationId: FIXME:
+        OperationId: ip_intel_post_v2_vpn
 
         Args:
-            ips (List[str]): The IP's list to be looked up
-            provider (str, optional): Use geolocation data from this provider ("digitalelement"). Default provider defined by the configuration.
-            verbose (bool, optional): Echo the API parameters in the response
-            raw (bool, optional): Include raw data from this provider
+            ips: The IP(s) to be looked up
+            verbose: Echo the API parameters in the response
+            raw: Include raw data from this provider
+            provider: Use vpn data from this provider
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -588,13 +634,22 @@ class IpIntelAsync(ServiceBaseAsync):
                 response.result field.  Available response fields can be found in our [API documentation](/docs/api/ip-intel)
 
         Examples:
-            FIXME:
+            response = await ip_intel.is_vpn_bulk(
+                ip="93.231.182.110",
+                provider="digitalelement",
+            )
         """
-        input = m.IPVPNBulkRequest(ips=ips, verbose=verbose, raw=raw, provider=provider)
-        return await self.request.post("v2/vpn", m.IPVPNBulkResult, data=input.model_dump(exclude_none=True))
+        return await self.request.post(
+            "v2/vpn", m.IPVPNBulkResult, data={"ips": ips, "verbose": verbose, "raw": raw, "provider": provider}
+        )
 
     async def is_proxy(
-        self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
+        self,
+        ip: str,
+        *,
+        verbose: bool | None = None,
+        raw: bool | None = None,
+        provider: Literal["digitalenvoy", "digitalelement"] | None = None,
     ) -> PangeaResponse[m.IPProxyResult]:
         """
         Proxy
@@ -604,10 +659,10 @@ class IpIntelAsync(ServiceBaseAsync):
         OperationId: ip_intel_post_v1_proxy
 
         Args:
-            ip (str): The IP to be looked up
-            provider (str, optional): Use geolocation data from this provider ("digitalelement"). Default provider defined by the configuration.
-            verbose (bool, optional): Echo the API parameters in the response
-            raw (bool, optional): Include raw data from this provider
+            ip: The IP to be looked up
+            verbose: Echo the API parameters in the response
+            raw: Include raw data from this provider
+            provider: Use proxy data from this provider
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -622,24 +677,30 @@ class IpIntelAsync(ServiceBaseAsync):
                 provider="digitalelement",
             )
         """
-        input = m.IPProxyRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
-        return await self.request.post("v1/proxy", m.IPProxyResult, data=input.model_dump(exclude_none=True))
+        return await self.request.post(
+            "v1/proxy", m.IPProxyResult, data={"ip": ip, "verbose": verbose, "raw": raw, "provider": provider}
+        )
 
     async def is_proxy_bulk(
-        self, ips: List[str], verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
+        self,
+        ips: SequenceNotStr[str],
+        *,
+        verbose: bool | None = None,
+        raw: bool | None = None,
+        provider: Literal["digitalenvoy", "digitalelement"] | None = None,
     ) -> PangeaResponse[m.IPProxyBulkResult]:
         """
         Proxy
 
         Determine if an IP address is provided by a proxy service.
 
-        OperationId: FIXME:
+        OperationId: ip_intel_post_v2_proxy
 
         Args:
-            ips (List[str]): The IP's list to be looked up
-            provider (str, optional): Use geolocation data from this provider ("digitalelement"). Default provider defined by the configuration.
-            verbose (bool, optional): Echo the API parameters in the response
-            raw (bool, optional): Include raw data from this provider
+            ips: The IP(s) to be looked up
+            verbose: Echo the API parameters in the response
+            raw: Include raw data from this provider
+            provider: Use proxy data from this provider
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -649,10 +710,14 @@ class IpIntelAsync(ServiceBaseAsync):
                 response.result field.  Available response fields can be found in our [API documentation](/docs/api/ip-intel)
 
         Examples:
-            FIXME:
+            response = await ip_intel.is_proxy_bulk(
+                ips=["34.201.32.172"],
+                provider="digitalelement",
+            )
         """
-        input = m.IPProxyBulkRequest(ips=ips, verbose=verbose, raw=raw, provider=provider)
-        return await self.request.post("v2/proxy", m.IPProxyBulkResult, data=input.model_dump(exclude_none=True))
+        return await self.request.post(
+            "v2/proxy", m.IPProxyBulkResult, data={"ips": ips, "verbose": verbose, "raw": raw, "provider": provider}
+        )
 
 
 class UrlIntelAsync(ServiceBaseAsync):

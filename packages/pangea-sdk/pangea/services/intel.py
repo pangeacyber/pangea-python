@@ -8,8 +8,9 @@ from __future__ import annotations
 
 import enum
 import hashlib
-from typing import Dict, List, Literal, Optional
+from typing import Any, Dict, List, Literal, Optional
 
+from pangea._typing import SequenceNotStr
 from pangea.exceptions import PangeaException
 from pangea.response import APIRequestModel, PangeaResponse, PangeaResponseResult
 from pangea.services.base import ServiceBase
@@ -31,18 +32,25 @@ class IntelCommonRequest(APIRequestModel):
 
 
 class IntelCommonResult(PangeaResponseResult):
-    """
-    Intel common result data
-    """
+    parameters: Optional[dict[str, Any]] = None
+    """The parameters, which were passed in the request, echoed back"""
 
-    parameters: Optional[Dict] = None
-    raw_data: Optional[Dict] = None
+    raw_data: Optional[dict[str, Any]] = None
+    """
+    The raw data from the provider. Each provider's data will have its own
+    format
+    """
 
 
 class IntelReputationData(PangeaResponseResult):
-    category: List[str]
-    score: int
-    verdict: str
+    category: Optional[list[str]] = None
+    """The categories that apply to this indicator as determined by the provider"""
+
+    score: Optional[int] = None
+    """The score, given by the Pangea service, for the indicator"""
+
+    verdict: Optional[Literal["malicious", "suspicious", "unknown", "benign"]] = None
+    """The verdict, given by the Pangea service, for the indicator"""
 
 
 class FileReputationRequest(IntelCommonRequest):
@@ -105,42 +113,6 @@ class FileReputationBulkResult(IntelCommonResult):
     data: Dict[str, FileReputationData]
 
 
-class IPCommonRequest(IntelCommonRequest):
-    """
-    IP common request data
-    ip (str): IP address to search for reputation information
-    """
-
-    ip: str
-
-
-class IPCommonBulkRequest(IntelCommonRequest):
-    """
-    IP common request data
-    ips (List[str]): IP addresses to search for reputation information
-    """
-
-    ips: List[str]
-
-
-class IPReputationRequest(IPCommonRequest):
-    """
-    IP reputation request data
-
-    """
-
-    pass
-
-
-class IPReputationBulkRequest(IPCommonBulkRequest):
-    """
-    IP reputation bulk request data
-
-    """
-
-    pass
-
-
 class IPReputationData(IntelReputationData):
     """
     IP reputation information
@@ -150,176 +122,87 @@ class IPReputationData(IntelReputationData):
 
 
 class IPReputationResult(IntelCommonResult):
-    """
-    IP reputation result
-    """
-
     data: IPReputationData
 
 
 class IPReputationBulkResult(IntelCommonResult):
-    """
-    IP reputation result
-    """
-
-    data: Dict[str, IPReputationData]
-
-
-class IPGeolocateRequest(IPCommonRequest):
-    """
-    IP geolocate request data
-    """
-
-    pass
-
-
-class IPGeolocateBulkRequest(IPCommonBulkRequest):
-    """
-    IP geolocate bulk request data
-
-    """
-
-    pass
+    data: dict[str, IPReputationData]
 
 
 class IPGeolocateData(PangeaResponseResult):
-    """
-    IP geolocate data
-    """
+    country: Optional[str] = None
+    """The country where the IP is located"""
 
-    country: str
-    city: str
-    latitude: float
-    longitude: float
-    postal_code: str
-    country_code: str
+    city: Optional[str] = None
+    """The city where the IP is located"""
+
+    latitude: Optional[float] = None
+    """The latitude of the IP"""
+
+    longitude: Optional[float] = None
+    """The longitude of the IP"""
+
+    postal_code: Optional[str] = None
+    """The postal code where the IP is located"""
+
+    country_code: Optional[str] = None
+    """The two-digit country code associated with the IP address"""
 
 
 class IPGeolocateResult(IntelCommonResult):
-    """
-    IP geolocate result
-    """
-
     data: IPGeolocateData
 
 
 class IPGeolocateBulkResult(IntelCommonResult):
-    """
-    IP geolocate result
-    """
-
-    data: Dict[str, IPGeolocateData]
-
-
-class IPDomainRequest(IPCommonRequest):
-    """
-    IP domain request data
-    """
-
-    pass
-
-
-class IPDomainBulkRequest(IPCommonBulkRequest):
-    """
-    IP domain bulk request data
-
-    """
-
-    pass
+    data: dict[str, IPGeolocateData]
 
 
 class IPDomainData(PangeaResponseResult):
-    domain_found: bool
+    domain_found: Optional[bool] = None
+    """True, if the domain was found"""
+
     domain: Optional[str] = None
+    """The domain associated with the IP address"""
 
 
 class IPDomainResult(IntelCommonResult):
-    """
-    IP domain result
-    """
-
     data: IPDomainData
 
 
 class IPDomainBulkResult(IntelCommonResult):
-    """
-    IP domain bulk result
-    """
-
-    data: Dict[str, IPDomainData]
-
-
-class IPVPNRequest(IPCommonRequest):
-    """
-    IP VPN request data
-    """
-
-    pass
-
-
-class IPVPNBulkRequest(IPCommonBulkRequest):
-    """
-    IP vpn bulk request data
-
-    """
-
-    pass
+    data: dict[str, IPDomainData]
 
 
 class IPVPNData(PangeaResponseResult):
     is_vpn: bool
+    """
+    - True - Indicates the IP address belongs to a VPN service
+    - False - Indicates the IP address is not associated with a VPN service
+    """
 
 
 class IPVPNResult(IntelCommonResult):
-    """
-    IP VPN result
-    """
-
     data: IPVPNData
 
 
 class IPVPNBulkResult(IntelCommonResult):
-    """
-    IP VPN bulk result
-    """
-
-    data: Dict[str, IPVPNData]
-
-
-class IPProxyRequest(IPCommonRequest):
-    """
-    IP VPN request data
-    """
-
-    pass
-
-
-class IPProxyBulkRequest(IPCommonBulkRequest):
-    """
-    IP VPN bulk request data
-    """
-
-    pass
+    data: dict[str, IPVPNData]
 
 
 class IPProxyData(PangeaResponseResult):
     is_proxy: bool
+    """
+    - True - Indicates the IP address belongs to a proxy service
+    - False - Indicates the IP address is not associated with a proxy service
+    """
 
 
 class IPProxyResult(IntelCommonResult):
-    """
-    IP proxy result
-    """
-
     data: IPProxyData
 
 
 class IPProxyBulkResult(IntelCommonResult):
-    """
-    IP proxy bulk result
-    """
-
-    data: Dict[str, IPProxyData]
+    data: dict[str, IPProxyData]
 
 
 class DomainCommonRequest(IntelCommonRequest):
@@ -799,33 +682,26 @@ class DomainIntel(ServiceBase):
 
 
 class IpIntel(ServiceBase):
-    """IP Intel service client
+    """
+    IP Intel service client
 
-    Provides methods to interact with [Pangea IP Intel Service](/docs/api/ip-intel)
-
-    The following information is needed:
-        PANGEA_TOKEN - service token which can be found on the Pangea User
-            Console at [https://console.pangea.cloud/project/tokens](https://console.pangea.cloud/project/tokens)
+    Provides methods to interact with the Pangea IP Intel Service.
 
     Examples:
-        import os
-
-        # Pangea SDK
-        from pangea.config import PangeaConfig
         from pangea.services import IpIntel
 
-        PANGEA_TOKEN = os.getenv("PANGEA_TOKEN")
-
-        ip_intel_config = PangeaConfig(domain="pangea.cloud")
-
-        # Setup Pangea IP Intel service
-        ip_intel = IpIntel(token=PANGEA_TOKEN, config=ip_intel_config)
+        ip_intel = IpIntel(token="my_api_token")
     """
 
     service_name = "ip-intel"
 
     def reputation(
-        self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
+        self,
+        ip: str,
+        *,
+        verbose: bool | None = None,
+        raw: bool | None = None,
+        provider: Literal["crowdstrike", "cymru"] | None = None,
     ) -> PangeaResponse[IPReputationResult]:
         """
         Reputation
@@ -835,10 +711,10 @@ class IpIntel(ServiceBase):
         OperationId: ip_intel_post_v1_reputation
 
         Args:
-            ip (str): The IP to be looked up
-            verbose (bool, optional): Echo the API parameters in the response
-            raw (bool, optional): Include raw data from this provider
-            provider (str, optional): Use reputation data from this provider
+            ip: The IP to be looked up
+            verbose: Echo the API parameters in the response
+            raw: Include raw data from this provider
+            provider: Use reputation data from this provider
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -853,11 +729,17 @@ class IpIntel(ServiceBase):
                 provider="crowdstrike",
             )
         """
-        input = IPReputationRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
-        return self.request.post("v1/reputation", IPReputationResult, data=input.model_dump(exclude_none=True))
+        return self.request.post(
+            "v1/reputation", IPReputationResult, data={"ip": ip, "verbose": verbose, "raw": raw, "provider": provider}
+        )
 
     def reputation_bulk(
-        self, ips: List[str], verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
+        self,
+        ips: SequenceNotStr[str],
+        *,
+        verbose: bool | None = None,
+        raw: bool | None = None,
+        provider: Literal["crowdstrike", "cymru"] | None = None,
     ) -> PangeaResponse[IPReputationBulkResult]:
         """
         Reputation V2
@@ -867,10 +749,10 @@ class IpIntel(ServiceBase):
         OperationId: ip_intel_post_v2_reputation
 
         Args:
-            ips (List[str]): The IP list to be looked up
-            verbose (bool, optional): Echo the API parameters in the response
-            raw (bool, optional): Include raw data from this provider
-            provider (str, optional): Use reputation data from this provider
+            ips: The IP to be looked up
+            verbose: Echo the API parameters in the response
+            raw: Include raw data from this provider
+            provider: Use reputation data from this provider
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -885,11 +767,19 @@ class IpIntel(ServiceBase):
                 provider="crowdstrike",
             )
         """
-        input = IPReputationBulkRequest(ips=ips, verbose=verbose, raw=raw, provider=provider)
-        return self.request.post("v2/reputation", IPReputationBulkResult, data=input.model_dump(exclude_none=True))
+        return self.request.post(
+            "v2/reputation",
+            IPReputationBulkResult,
+            data={"ips": ips, "verbose": verbose, "raw": raw, "provider": provider},
+        )
 
     def geolocate(
-        self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
+        self,
+        ip: str,
+        *,
+        verbose: bool | None = None,
+        raw: bool | None = None,
+        provider: Literal["digitalenvoy", "digitalelement"] | None = None,
     ) -> PangeaResponse[IPGeolocateResult]:
         """
         Geolocate
@@ -899,10 +789,10 @@ class IpIntel(ServiceBase):
         OperationId: ip_intel_post_v1_geolocate
 
         Args:
-            ip (str): IP address to be geolocated
-            provider (str, optional): Use geolocation data from this provider ("digitalelement"). Default provider defined by the configuration.
-            verbose (bool, optional): Echo the API parameters in the response
-            raw (bool, optional): Include raw data from this provider
+            ip: The IP to be looked up
+            verbose: Echo the API parameters in the response
+            raw: Include raw data from this provider
+            provider: Use location data from this provider
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -917,11 +807,17 @@ class IpIntel(ServiceBase):
                 provider="digitalelement",
             )
         """
-        input = IPGeolocateRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
-        return self.request.post("v1/geolocate", IPGeolocateResult, data=input.model_dump(exclude_none=True))
+        return self.request.post(
+            "v1/geolocate", IPGeolocateResult, data={"ip": ip, "verbose": verbose, "raw": raw, "provider": provider}
+        )
 
     def geolocate_bulk(
-        self, ips: List[str], verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
+        self,
+        ips: SequenceNotStr[str],
+        *,
+        verbose: bool | None = None,
+        raw: bool | None = None,
+        provider: Literal["digitalenvoy", "digitalelement"] | None = None,
     ) -> PangeaResponse[IPGeolocateBulkResult]:
         """
         Geolocate V2
@@ -931,10 +827,10 @@ class IpIntel(ServiceBase):
         OperationId: ip_intel_post_v2_geolocate
 
         Args:
-            ips (List[str]): List of IP addresses to be geolocated
-            provider (str, optional): Use geolocation data from this provider ("digitalelement"). Default provider defined by the configuration.
-            verbose (bool, optional): Echo the API parameters in the response
-            raw (bool, optional): Include raw data from this provider
+            ips: The IP(s) to be looked up
+            verbose: Echo the API parameters in the response
+            raw: Include raw data from this provider
+            provider: Use location data from this provider
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -949,11 +845,19 @@ class IpIntel(ServiceBase):
                 provider="digitalelement",
             )
         """
-        input = IPGeolocateBulkRequest(ips=ips, verbose=verbose, raw=raw, provider=provider)
-        return self.request.post("v2/geolocate", IPGeolocateBulkResult, data=input.model_dump(exclude_none=True))
+        return self.request.post(
+            "v2/geolocate",
+            IPGeolocateBulkResult,
+            data={"ips": ips, "verbose": verbose, "raw": raw, "provider": provider},
+        )
 
     def get_domain(
-        self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
+        self,
+        ip: str,
+        *,
+        verbose: bool | None = None,
+        raw: bool | None = None,
+        provider: Literal["digitalenvoy", "digitalelement"] | None = None,
     ) -> PangeaResponse[IPDomainResult]:
         """
         Domain
@@ -963,10 +867,10 @@ class IpIntel(ServiceBase):
         OperationId: ip_intel_post_v1_domain
 
         Args:
-            ip (str): The IP to be looked up
-            provider (str, optional): Use geolocation data from this provider ("digitalelement"). Default provider defined by the configuration.
-            verbose (bool, optional): Echo the API parameters in the response
-            raw (bool, optional): Include raw data from this provider
+            ip: The IP to be looked up
+            verbose: Echo the API parameters in the response
+            raw: Include raw data from this provider
+            provider: Use domain data from this provider
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -981,11 +885,17 @@ class IpIntel(ServiceBase):
                 provider="digitalelement",
             )
         """
-        input = IPDomainRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
-        return self.request.post("v1/domain", IPDomainResult, data=input.model_dump(exclude_none=True))
+        return self.request.post(
+            "v1/domain", IPDomainResult, data={"ip": ip, "verbose": verbose, "raw": raw, "provider": provider}
+        )
 
     def get_domain_bulk(
-        self, ips: List[str], verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
+        self,
+        ips: SequenceNotStr[str],
+        *,
+        verbose: bool | None = None,
+        raw: bool | None = None,
+        provider: Literal["digitalenvoy", "digitalelement"] | None = None,
     ) -> PangeaResponse[IPDomainBulkResult]:
         """
         Domain V2
@@ -995,10 +905,10 @@ class IpIntel(ServiceBase):
         OperationId: ip_intel_post_v2_domain
 
         Args:
-            ips (List[str]): List of IPs to be looked up
-            provider (str, optional): Use geolocation data from this provider ("digitalelement"). Default provider defined by the configuration.
-            verbose (bool, optional): Echo the API parameters in the response
-            raw (bool, optional): Include raw data from this provider
+            ips: The IP(s) to be looked up
+            verbose: Echo the API parameters in the response
+            raw: Include raw data from this provider
+            provider: Use domain data from this provider
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -1013,11 +923,17 @@ class IpIntel(ServiceBase):
                 provider="digitalelement",
             )
         """
-        input = IPDomainBulkRequest(ips=ips, verbose=verbose, raw=raw, provider=provider)
-        return self.request.post("v2/domain", IPDomainBulkResult, data=input.model_dump(exclude_none=True))
+        return self.request.post(
+            "v2/domain", IPDomainBulkResult, data={"ips": ips, "verbose": verbose, "raw": raw, "provider": provider}
+        )
 
     def is_vpn(
-        self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
+        self,
+        ip: str,
+        *,
+        verbose: bool | None = None,
+        raw: bool | None = None,
+        provider: Literal["digitalenvoy", "digitalelement"] | None = None,
     ) -> PangeaResponse[IPVPNResult]:
         """
         VPN
@@ -1027,10 +943,10 @@ class IpIntel(ServiceBase):
         OperationId: ip_intel_post_v1_vpn
 
         Args:
-            ip (str): The IP to be looked up
-            provider (str, optional): Use geolocation data from this provider ("digitalelement"). Default provider defined by the configuration.
-            verbose (bool, optional): Echo the API parameters in the response
-            raw (bool, optional): Include raw data from this provider
+            ip: The IP to be looked up
+            verbose: Echo the API parameters in the response
+            raw: Include raw data from this provider
+            provider: Use vpn data from this provider
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -1045,11 +961,17 @@ class IpIntel(ServiceBase):
                 provider="digitalelement",
             )
         """
-        input = IPVPNRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
-        return self.request.post("v1/vpn", IPVPNResult, data=input.model_dump(exclude_none=True))
+        return self.request.post(
+            "v1/vpn", IPVPNResult, {"ip": ip, "verbose": verbose, "raw": raw, "provider": provider}
+        )
 
     def is_vpn_bulk(
-        self, ips: List[str], verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
+        self,
+        ips: SequenceNotStr[str],
+        *,
+        verbose: bool | None = None,
+        raw: bool | None = None,
+        provider: Literal["digitalenvoy", "digitalelement"] | None = None,
     ) -> PangeaResponse[IPVPNBulkResult]:
         """
         VPN V2
@@ -1059,10 +981,10 @@ class IpIntel(ServiceBase):
         OperationId: ip_intel_post_v2_vpn
 
         Args:
-            ips (List[str]): The IPs list to be looked up
-            provider (str, optional): Use geolocation data from this provider ("digitalelement"). Default provider defined by the configuration.
-            verbose (bool, optional): Echo the API parameters in the response
-            raw (bool, optional): Include raw data from this provider
+            ips: The IP(s) to be looked up
+            verbose: Echo the API parameters in the response
+            raw: Include raw data from this provider
+            provider: Use vpn data from this provider
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -1077,11 +999,17 @@ class IpIntel(ServiceBase):
                 provider="digitalelement",
             )
         """
-        input = IPVPNBulkRequest(ips=ips, verbose=verbose, raw=raw, provider=provider)
-        return self.request.post("v2/vpn", IPVPNBulkResult, data=input.model_dump(exclude_none=True))
+        return self.request.post(
+            "v2/vpn", IPVPNBulkResult, data={"ips": ips, "verbose": verbose, "raw": raw, "provider": provider}
+        )
 
     def is_proxy(
-        self, ip: str, verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
+        self,
+        ip: str,
+        *,
+        verbose: bool | None = None,
+        raw: bool | None = None,
+        provider: Literal["digitalenvoy", "digitalelement"] | None = None,
     ) -> PangeaResponse[IPProxyResult]:
         """
         Proxy
@@ -1091,10 +1019,10 @@ class IpIntel(ServiceBase):
         OperationId: ip_intel_post_v1_proxy
 
         Args:
-            ip (str): The IP to be looked up
-            provider (str, optional): Use geolocation data from this provider ("digitalelement"). Default provider defined by the configuration.
-            verbose (bool, optional): Echo the API parameters in the response
-            raw (bool, optional): Include raw data from this provider
+            ip: The IP to be looked up
+            verbose: Echo the API parameters in the response
+            raw: Include raw data from this provider
+            provider: Use proxy data from this provider
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -1109,11 +1037,17 @@ class IpIntel(ServiceBase):
                 provider="digitalelement",
             )
         """
-        input = IPProxyRequest(ip=ip, verbose=verbose, raw=raw, provider=provider)
-        return self.request.post("v1/proxy", IPProxyResult, data=input.model_dump(exclude_none=True))
+        return self.request.post(
+            "v1/proxy", IPProxyResult, data={"ip": ip, "verbose": verbose, "raw": raw, "provider": provider}
+        )
 
     def is_proxy_bulk(
-        self, ips: List[str], verbose: Optional[bool] = None, raw: Optional[bool] = None, provider: Optional[str] = None
+        self,
+        ips: SequenceNotStr[str],
+        *,
+        verbose: bool | None = None,
+        raw: bool | None = None,
+        provider: Literal["digitalenvoy", "digitalelement"] | None = None,
     ) -> PangeaResponse[IPProxyBulkResult]:
         """
         Proxy V2
@@ -1123,10 +1057,10 @@ class IpIntel(ServiceBase):
         OperationId: ip_intel_post_v2_proxy
 
         Args:
-            ips (List[str]): The IPs list to be looked up
-            provider (str, optional): Use geolocation data from this provider ("digitalelement"). Default provider defined by the configuration.
-            verbose (bool, optional): Echo the API parameters in the response
-            raw (bool, optional): Include raw data from this provider
+            ips: The IP(s) to be looked up
+            verbose: Echo the API parameters in the response
+            raw: Include raw data from this provider
+            provider: Use proxy data from this provider
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -1141,8 +1075,9 @@ class IpIntel(ServiceBase):
                 provider="digitalelement",
             )
         """
-        input = IPProxyBulkRequest(ips=ips, verbose=verbose, raw=raw, provider=provider)
-        return self.request.post("v2/proxy", IPProxyBulkResult, data=input.model_dump(exclude_none=True))
+        return self.request.post(
+            "v2/proxy", IPProxyBulkResult, data={"ips": ips, "verbose": verbose, "raw": raw, "provider": provider}
+        )
 
 
 class UrlIntel(ServiceBase):
@@ -1727,10 +1662,10 @@ class UserIntel(ServiceBase):
             hash: Password hash
         """
 
-        if response.result.raw_data is None:  # type: ignore[union-attr]
+        if response.result is None or response.result.raw_data is None:
             raise PangeaException("Need raw data to check if hash is breached. Send request with raw=true")
 
-        hash_data = response.result.raw_data.pop(hash, None)  # type: ignore[union-attr]
+        hash_data = response.result.raw_data.pop(hash, None)
         if hash_data is not None:
             # If hash is present in raw data, it's because it was breached
             return UserIntel.PasswordStatus.BREACHED
@@ -1738,7 +1673,7 @@ class UserIntel(ServiceBase):
             # If it's not present, should check if I have all breached hash
             # Server will return a maximum of 1000 hash, so if breached count is greater than that,
             # I can't conclude is password is or is not breached
-            if len(response.result.raw_data.keys()) >= 1000:  # type: ignore[union-attr]
+            if len(response.result.raw_data.keys()) >= 1000:
                 return UserIntel.PasswordStatus.INCONCLUSIVE
             else:
                 return UserIntel.PasswordStatus.UNBREACHED

@@ -19,239 +19,15 @@
       "description": "Pangea regional service cluster"
     },
     {
+      "url": "https://authn.aws.us-west-2.pangea.cloud",
+      "description": "Pangea regional service cluster"
+    },
+    {
       "url": "https://authn.aws.eu.pangea.cloud",
       "description": "Pangea regional service cluster"
     }
   ],
   "paths": {
-    "/v1beta/config": {
-      "post": {
-        "operationId": "authn_post_v1beta_config",
-        "summary": "Get service configuration for AuthN",
-        "description": "Get service configuration for AuthN.",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/authn-service-config"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "The service configuration for AuthN",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/pangea-response"
-                    },
-                    {
-                      "properties": {
-                        "result": {
-                          "$ref": "#/components/schemas/authn-service-config-result"
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validation errors",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/pangea-response"
-                    },
-                    {
-                      "$ref": "#/components/schemas/pangea-validation-errors"
-                    }
-                  ]
-                }
-              }
-            }
-          }
-        },
-        "tags": ["authn"]
-      }
-    },
-    "/v1beta/config/create": {
-      "post": {
-        "operationId": "authn_post_v1beta_config_create",
-        "summary": "Create a service configuration for AuthN",
-        "description": "Create a service configuration for AuthN.",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/authn-service-config-filled"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "The created service configuration for AuthN",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/pangea-response"
-                    },
-                    {
-                      "properties": {
-                        "result": {
-                          "$ref": "#/components/schemas/authn-service-config-result"
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validation errors",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/pangea-response"
-                    },
-                    {
-                      "$ref": "#/components/schemas/pangea-validation-errors"
-                    }
-                  ]
-                }
-              }
-            }
-          }
-        },
-        "tags": ["authn"]
-      }
-    },
-    "/v1beta/config/update": {
-      "post": {
-        "operationId": "authn_post_v1beta_config_update",
-        "summary": "Update a service configuration for AuthN",
-        "description": "Update a service configuration for AuthN.",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/authn-service-config-filled"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "The updated service configuration for AuthN",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/pangea-response"
-                    },
-                    {
-                      "properties": {
-                        "result": {
-                          "$ref": "#/components/schemas/authn-service-config-result"
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validation errors",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/pangea-response"
-                    },
-                    {
-                      "$ref": "#/components/schemas/pangea-validation-errors"
-                    }
-                  ]
-                }
-              }
-            }
-          }
-        },
-        "tags": ["authn"]
-      }
-    },
-    "/v1beta/config/delete": {
-      "post": {
-        "operationId": "authn_post_v1beta_config_delete",
-        "summary": "Delete a service configuration for AuthN",
-        "description": "Delete a service configuration for AuthN.",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/authn-service-config"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "The deleted service configuration for AuthN",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/pangea-response"
-                    },
-                    {
-                      "properties": {
-                        "result": {
-                          "$ref": "#/components/schemas/authn-service-config-result"
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validation errors",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/pangea-response"
-                    },
-                    {
-                      "$ref": "#/components/schemas/pangea-validation-errors"
-                    }
-                  ]
-                }
-              }
-            }
-          }
-        },
-        "tags": ["authn"]
-      }
-    },
     "/v2/client/token/check": {
       "post": {
         "operationId": "authn_post_v2_client_token_check",
@@ -2086,6 +1862,9 @@
                   },
                   "email": {
                     "$ref": "#/components/schemas/authn-email"
+                  },
+                  "phone": {
+                    "$ref": "#/components/schemas/authn-phone"
                   },
                   "username": {
                     "$ref": "#/components/schemas/authn-username"
@@ -4023,6 +3802,198 @@
                   }
                 }
               }
+            }
+          }
+        }
+      },
+      "SCIMName": {
+        "type": "object",
+        "properties": {
+          "formatted": {
+            "type": "string"
+          },
+          "familyName": {
+            "type": "string"
+          },
+          "givenName": {
+            "type": "string"
+          },
+          "middleName": {
+            "type": "string"
+          },
+          "honorificPrefix": {
+            "type": "string"
+          },
+          "honorificSuffix": {
+            "type": "string"
+          }
+        }
+      },
+      "SCIMEmail": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "primary": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SCIMPhoneNumber": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          }
+        }
+      },
+      "SCIMGroupRef": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          },
+          "display": {
+            "type": "string"
+          }
+        }
+      },
+      "SCIMMeta": {
+        "type": "object",
+        "properties": {
+          "resourceType": {
+            "type": "string"
+          },
+          "created": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastModified": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "location": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          }
+        }
+      },
+      "SCIMUser": {
+        "type": "object",
+        "required": ["schemas", "userName"],
+        "properties": {
+          "schemas": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": ["urn:ietf:params:scim:schemas:core:2.0:User"]
+          },
+          "id": {
+            "type": "string"
+          },
+          "externalId": {
+            "type": "string"
+          },
+          "userName": {
+            "type": "string"
+          },
+          "name": {
+            "$ref": "#/components/schemas/SCIMName"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "nickName": {
+            "type": "string"
+          },
+          "profileUrl": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "userType": {
+            "type": "string"
+          },
+          "preferredLanguage": {
+            "type": "string"
+          },
+          "locale": {
+            "type": "string"
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "emails": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SCIMEmail"
+            }
+          },
+          "phoneNumbers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SCIMPhoneNumber"
+            }
+          },
+          "groups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SCIMGroupRef"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/SCIMMeta"
+          }
+        }
+      },
+      "SCIMListResponse": {
+        "type": "object",
+        "required": [
+          "schemas",
+          "totalResults",
+          "startIndex",
+          "itemsPerPage",
+          "Resources"
+        ],
+        "properties": {
+          "schemas": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": ["urn:ietf:params:scim:api:messages:2.0:ListResponse"]
+          },
+          "totalResults": {
+            "type": "integer",
+            "description": "Total number of results matching the filter."
+          },
+          "startIndex": {
+            "type": "integer",
+            "description": "1-based index of the first result in the current page."
+          },
+          "itemsPerPage": {
+            "type": "integer",
+            "description": "Number of results in the current page."
+          },
+          "Resources": {
+            "type": "array",
+            "description": "Returned SCIM user resources.",
+            "items": {
+              "$ref": "#/components/schemas/SCIMUser"
             }
           }
         }
@@ -6501,7 +6472,9 @@
             "type": "integer"
           },
           "verdict": {
-            "type": "string"
+            "type": "string",
+            "enum": ["malicious", "suspicious", "unknown", "benign"],
+            "description": "The verdict, given by the Pangea service, for the indicator"
           }
         }
       },
@@ -6543,7 +6516,9 @@
             "type": "integer"
           },
           "verdict": {
-            "type": "string"
+            "type": "string",
+            "enum": ["malicious", "suspicious", "unknown", "benign"],
+            "description": "The verdict, given by the Pangea service, for the indicator"
           }
         }
       },
