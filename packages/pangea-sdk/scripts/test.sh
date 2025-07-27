@@ -25,6 +25,11 @@ pnpm dlx start-server-and-test --expect 404 \
   "uv run pytest tests/integration2/test_authz.py"
 
 pnpm dlx start-server-and-test --expect 404 \
+  "pnpm dlx @stoplight/prism-cli mock -d --json-schema-faker-fillProperties=false tests/testdata/specs/ip-intel.openapi.json" \
+  4010 \
+  "uv run pytest tests/integration2/test_ip_intel.py"
+
+pnpm dlx start-server-and-test --expect 404 \
   "pnpm dlx @stoplight/prism-cli mock -d --json-schema-faker-fillProperties=false tests/testdata/specs/share.openapi.json" \
   4010 \
   "uv run pytest tests/integration2/test_share.py"

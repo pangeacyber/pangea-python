@@ -1,0 +1,2394 @@
+{
+  "info": {
+    "title": "ip-intel",
+    "description": "Malicious behavior check on IP",
+    "version": "2",
+    "contact": {
+      "name": "Pangea",
+      "url": "https://pangea.cloud/docs/support",
+      "email": "support@pangea.cloud"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://ip-intel.aws.us.pangea.cloud",
+      "description": "Pangea regional service cluster"
+    },
+    {
+      "url": "https://ip-intel.aws.us-west-2.pangea.cloud",
+      "description": "Pangea regional service cluster"
+    }
+  ],
+  "paths": {
+    "/v2/reputation": {
+      "post": {
+        "operationId": "ip_intel_post_v2_reputation",
+        "summary": "Get reputation for IP",
+        "description": "Retrieve a reputation score for an IP address from a provider, including an optional detailed report. When requesting reputation for multiple IP addresses, the response will be asynchronous. See API Reference/Asynchronous Responses",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["ips"],
+                "additionalProperties": false,
+                "properties": {
+                  "ips": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "ip-address"
+                    },
+                    "maxItems": 100,
+                    "minItems": 1,
+                    "examples": [["190.28.74.251"]],
+                    "description": "The IP to be looked up"
+                  },
+                  "verbose": {
+                    "type": "boolean",
+                    "default": false,
+                    "examples": [true],
+                    "description": "Echo the API parameters in the response"
+                  },
+                  "raw": {
+                    "type": "boolean",
+                    "default": false,
+                    "examples": [true],
+                    "description": "Include raw data from this provider"
+                  },
+                  "provider": {
+                    "type": "string",
+                    "enum": ["crowdstrike", "cymru"],
+                    "examples": ["crowdstrike"],
+                    "description": "Use reputation data from this provider"
+                  }
+                },
+                "examples": [
+                  {
+                    "ips": ["190.28.74.251"],
+                    "provider": "crowdstrike"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "type": "object",
+                          "properties": {
+                            "data": {
+                              "type": "object",
+                              "additionalProperties": {
+                                "type": "object",
+                                "properties": {
+                                  "category": {
+                                    "type": "array",
+                                    "description": "The categories that apply to this indicator as determined by the provider",
+                                    "items": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "score": {
+                                    "type": "integer",
+                                    "description": "The score, given by the Pangea service, for the indicator"
+                                  },
+                                  "verdict": {
+                                    "type": "string",
+                                    "enum": [
+                                      "malicious",
+                                      "suspicious",
+                                      "unknown",
+                                      "benign"
+                                    ],
+                                    "description": "The verdict, given by the Pangea service, for the indicator"
+                                  }
+                                }
+                              }
+                            },
+                            "parameters": {
+                              "type": "object",
+                              "description": "The parameters, which were passed in the request, echoed back",
+                              "properties": {}
+                            },
+                            "raw_data": {
+                              "type": "object",
+                              "description": "The raw data from the provider. Each provider's data will have its own format",
+                              "properties": {}
+                            }
+                          },
+                          "examples": [
+                            {
+                              "data": {
+                                "190.28.74.251": {
+                                  "category": [
+                                    "Banking",
+                                    "BruteForce",
+                                    "Criminal"
+                                  ],
+                                  "score": 100,
+                                  "verdict": "malicious"
+                                }
+                              },
+                              "parameters": {
+                                "ip": ["190.28.74.251"],
+                                "verbose": true,
+                                "raw": true,
+                                "provider": "crowdstrike"
+                              },
+                              "raw_data": {
+                                "190.28.74.251": {
+                                  "indicator": "190.28.74.251",
+                                  "type": "ip_address",
+                                  "deleted": false,
+                                  "published": 1680291547,
+                                  "updated": 1680291569,
+                                  "malware_families": ["Qakbot"],
+                                  "kill_chains": ["C2"],
+                                  "ip_address_types": [],
+                                  "domain_types": [],
+                                  "confidence": "low",
+                                  "labels": [
+                                    {
+                                      "name": "Actor/MALLARDSPIDER",
+                                      "created_on": 1680291552,
+                                      "last_valid_on": 1680291552
+                                    },
+                                    {
+                                      "name": "KillChain/C2",
+                                      "created_on": 1680291547,
+                                      "last_valid_on": 1680291569
+                                    },
+                                    {
+                                      "name": "MaliciousConfidence/Low",
+                                      "created_on": 1680291547,
+                                      "last_valid_on": 1680291569
+                                    },
+                                    {
+                                      "name": "Malware/Qakbot",
+                                      "created_on": 1680291552,
+                                      "last_valid_on": 1680291552
+                                    },
+                                    {
+                                      "name": "ThreatType/Banking",
+                                      "created_on": 1680291552,
+                                      "last_valid_on": 1680291552
+                                    },
+                                    {
+                                      "name": "ThreatType/BruteForce",
+                                      "created_on": 1680291552,
+                                      "last_valid_on": 1680291552
+                                    },
+                                    {
+                                      "name": "ThreatType/Criminal",
+                                      "created_on": 1680291552,
+                                      "last_valid_on": 1680291552
+                                    }
+                                  ],
+                                  "threat_types": [
+                                    "Banking",
+                                    "BruteForce",
+                                    "Criminal"
+                                  ],
+                                  "vulnerabilities": []
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "No description provided"
+          },
+          "400": {
+            "description": "Validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "$ref": "#/components/schemas/pangea-validation-errors"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["ip-intel"]
+      }
+    },
+    "/v1/reputation": {
+      "post": {
+        "operationId": "ip_intel_post_v1_reputation",
+        "summary": "Get reputation for IP (deprecated)",
+        "description": "Retrieve a reputation score for an IP address from a provider, including an optional detailed report.",
+        "tags": ["ip-intel", "deprecated"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["ip"],
+                "additionalProperties": false,
+                "properties": {
+                  "ip": {
+                    "type": "string",
+                    "format": "ip-address",
+                    "examples": ["190.28.74.251"],
+                    "description": "The IP to be looked up"
+                  },
+                  "verbose": {
+                    "type": "boolean",
+                    "default": false,
+                    "examples": [true],
+                    "description": "Echo the API parameters in the response"
+                  },
+                  "raw": {
+                    "type": "boolean",
+                    "default": false,
+                    "examples": [true],
+                    "description": "Include raw data from this provider"
+                  },
+                  "provider": {
+                    "type": "string",
+                    "enum": ["crowdstrike", "cymru"],
+                    "examples": ["crowdstrike"],
+                    "description": "Use reputation data from this provider"
+                  }
+                },
+                "examples": [
+                  {
+                    "ip": "190.28.74.251",
+                    "provider": "crowdstrike"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "type": "object",
+                          "properties": {
+                            "data": {
+                              "type": "object",
+                              "properties": {
+                                "category": {
+                                  "type": "array",
+                                  "description": "The categories that apply to this indicator as determined by the provider",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "score": {
+                                  "type": "integer",
+                                  "description": "The score, given by the Pangea service, for the indicator"
+                                },
+                                "verdict": {
+                                  "type": "string",
+                                  "enum": [
+                                    "malicious",
+                                    "suspicious",
+                                    "unknown",
+                                    "benign"
+                                  ],
+                                  "description": "The verdict, given by the Pangea service, for the indicator"
+                                }
+                              }
+                            },
+                            "parameters": {
+                              "type": "object",
+                              "description": "The parameters, which were passed in the request, echoed back",
+                              "properties": {}
+                            },
+                            "raw_data": {
+                              "type": "object",
+                              "description": "The raw data from the provider. Each provider's data will have its own format",
+                              "properties": {}
+                            }
+                          },
+                          "examples": [
+                            {
+                              "data": {
+                                "category": [
+                                  "Banking",
+                                  "BruteForce",
+                                  "Criminal"
+                                ],
+                                "score": 100,
+                                "verdict": "malicious"
+                              },
+                              "parameters": {
+                                "ip": "190.28.74.251",
+                                "verbose": true,
+                                "raw": true,
+                                "provider": "crowdstrike"
+                              },
+                              "raw_data": {
+                                "indicator": "190.28.74.251",
+                                "type": "ip_address",
+                                "deleted": false,
+                                "published": 1680291547,
+                                "updated": 1680291569,
+                                "malware_families": ["Qakbot"],
+                                "kill_chains": ["C2"],
+                                "ip_address_types": [],
+                                "domain_types": [],
+                                "confidence": "low",
+                                "labels": [
+                                  {
+                                    "name": "Actor/MALLARDSPIDER",
+                                    "created_on": 1680291552,
+                                    "last_valid_on": 1680291552
+                                  },
+                                  {
+                                    "name": "KillChain/C2",
+                                    "created_on": 1680291547,
+                                    "last_valid_on": 1680291569
+                                  },
+                                  {
+                                    "name": "MaliciousConfidence/Low",
+                                    "created_on": 1680291547,
+                                    "last_valid_on": 1680291569
+                                  },
+                                  {
+                                    "name": "Malware/Qakbot",
+                                    "created_on": 1680291552,
+                                    "last_valid_on": 1680291552
+                                  },
+                                  {
+                                    "name": "ThreatType/Banking",
+                                    "created_on": 1680291552,
+                                    "last_valid_on": 1680291552
+                                  },
+                                  {
+                                    "name": "ThreatType/BruteForce",
+                                    "created_on": 1680291552,
+                                    "last_valid_on": 1680291552
+                                  },
+                                  {
+                                    "name": "ThreatType/Criminal",
+                                    "created_on": 1680291552,
+                                    "last_valid_on": 1680291552
+                                  }
+                                ],
+                                "threat_types": [
+                                  "Banking",
+                                  "BruteForce",
+                                  "Criminal"
+                                ],
+                                "vulnerabilities": []
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "No description provided"
+          },
+          "400": {
+            "description": "Validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "$ref": "#/components/schemas/pangea-validation-errors"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/domain": {
+      "post": {
+        "operationId": "ip_intel_post_v2_domain",
+        "summary": "Get domain reputation for IP",
+        "description": "Retrieve the domain name associated with an IP address. When requesting domain information for multiple IP addresses, the response will be asynchronous. See API Reference/Asynchronous Responses",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["ips"],
+                "additionalProperties": false,
+                "properties": {
+                  "ips": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "ip-address"
+                    },
+                    "maxItems": 100,
+                    "minItems": 1,
+                    "examples": [["24.235.114.61"]],
+                    "description": "The IP(s) to be looked up"
+                  },
+                  "verbose": {
+                    "type": "boolean",
+                    "default": false,
+                    "examples": [true],
+                    "description": "Echo the API parameters in the response"
+                  },
+                  "raw": {
+                    "type": "boolean",
+                    "default": false,
+                    "examples": [true],
+                    "description": "Include raw data from this provider"
+                  },
+                  "provider": {
+                    "type": "string",
+                    "enum": ["digitalenvoy", "digitalelement"],
+                    "examples": ["digitalelement"],
+                    "description": "Use domain data from this provider"
+                  }
+                },
+                "examples": [
+                  {
+                    "ips": ["24.235.114.61"],
+                    "provider": "digitalelement"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "type": "object",
+                          "properties": {
+                            "data": {
+                              "type": "object",
+                              "additionalProperties": {
+                                "type": "object",
+                                "properties": {
+                                  "domain_found": {
+                                    "type": "boolean",
+                                    "description": "True, if the domain was found"
+                                  },
+                                  "domain": {
+                                    "type": "string",
+                                    "description": "The domain associated with the IP address"
+                                  }
+                                }
+                              }
+                            },
+                            "parameters": {
+                              "type": "object",
+                              "description": "The parameters, which were passed in the request, echoed back",
+                              "properties": {}
+                            },
+                            "raw_data": {
+                              "type": "object",
+                              "description": "The raw data from the provider. Each provider's data will have its own format",
+                              "properties": {}
+                            }
+                          },
+                          "examples": [
+                            {
+                              "data": {
+                                "24.235.114.61": {
+                                  "domain_found": true,
+                                  "domain": "rogers.com"
+                                }
+                              },
+                              "parameters": {
+                                "ips": ["24.235.114.61"],
+                                "verbose": true,
+                                "raw": true,
+                                "provider": "digitalelement"
+                              },
+                              "raw_data": {
+                                "24.235.114.61": {
+                                  "max_ip": "24.235.114.89",
+                                  "min_ip": "24.235.114.61",
+                                  "domain": "rogers.com",
+                                  "code": "290772"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "No description provided"
+          },
+          "400": {
+            "description": "Validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "$ref": "#/components/schemas/pangea-validation-errors"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["ip-intel"]
+      }
+    },
+    "/v1/domain": {
+      "post": {
+        "operationId": "ip_intel_post_v1_domain",
+        "summary": "Get domain reputation for IP (deprecated)",
+        "description": "Retrieve the domain name associated with an IP address",
+        "tags": ["ip-intel"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["ip"],
+                "additionalProperties": false,
+                "properties": {
+                  "ip": {
+                    "type": "string",
+                    "format": "ip-address",
+                    "examples": ["24.235.114.61"],
+                    "description": "The IP to be looked up"
+                  },
+                  "verbose": {
+                    "type": "boolean",
+                    "default": false,
+                    "examples": [true],
+                    "description": "Echo the API parameters in the response"
+                  },
+                  "raw": {
+                    "type": "boolean",
+                    "default": false,
+                    "examples": [true],
+                    "description": "Include raw data from this provider"
+                  },
+                  "provider": {
+                    "type": "string",
+                    "enum": ["digitalenvoy", "digitalelement"],
+                    "examples": ["digitalelement"],
+                    "description": "Use domain data from this provider"
+                  }
+                },
+                "examples": [
+                  {
+                    "ip": "24.235.114.61",
+                    "provider": "digitalelement"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "type": "object",
+                          "properties": {
+                            "data": {
+                              "type": "object",
+                              "properties": {
+                                "domain_found": {
+                                  "type": "boolean",
+                                  "description": "True, if the domain was found"
+                                },
+                                "domain": {
+                                  "type": "string",
+                                  "description": "The domain associated with the IP address"
+                                }
+                              }
+                            },
+                            "parameters": {
+                              "type": "object",
+                              "description": "The parameters, which were passed in the request, echoed back",
+                              "properties": {}
+                            },
+                            "raw_data": {
+                              "type": "object",
+                              "description": "The raw data from the provider. Each provider's data will have its own format",
+                              "properties": {}
+                            }
+                          },
+                          "examples": [
+                            {
+                              "data": {
+                                "domain_found": true,
+                                "domain": "rogers.com"
+                              },
+                              "parameters": {
+                                "ip": "24.235.114.61",
+                                "verbose": true,
+                                "raw": true,
+                                "provider": "digitalelement"
+                              },
+                              "raw_data": {
+                                "max_ip": "24.235.114.89",
+                                "min_ip": "24.235.114.61",
+                                "domain": "rogers.com",
+                                "code": "290772"
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "No description provided"
+          },
+          "400": {
+            "description": "Validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "$ref": "#/components/schemas/pangea-validation-errors"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/proxy": {
+      "post": {
+        "operationId": "ip_intel_post_v2_proxy",
+        "summary": "Get proxy for IP",
+        "description": "Determine if an IP address originates from a proxy. When requesting information on multiple IP addresses, the response will be asynchronous. See API Reference/Asynchronous Responses",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["ips"],
+                "additionalProperties": false,
+                "properties": {
+                  "ips": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "ip-address"
+                    },
+                    "maxItems": 100,
+                    "minItems": 1,
+                    "examples": [["34.201.32.172"]],
+                    "description": "The IP(s) to be looked up"
+                  },
+                  "verbose": {
+                    "type": "boolean",
+                    "default": false,
+                    "examples": [true],
+                    "description": "Echo the API parameters in the response"
+                  },
+                  "raw": {
+                    "type": "boolean",
+                    "default": false,
+                    "examples": [true],
+                    "description": "Include raw data from this provider"
+                  },
+                  "provider": {
+                    "type": "string",
+                    "enum": ["digitalenvoy", "digitalelement"],
+                    "examples": ["digitalelement"],
+                    "description": "Use proxy data from this provider"
+                  }
+                },
+                "examples": [
+                  {
+                    "ips": ["34.201.32.172"],
+                    "provider": "digitalelement"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "type": "object",
+                          "properties": {
+                            "data": {
+                              "type": "object",
+                              "additionalProperties": {
+                                "type": "object",
+                                "properties": {
+                                  "is_proxy": {
+                                    "type": "boolean",
+                                    "description": "- True - Indicates the IP address belongs to a proxy service\n- False - Indicates the IP address is not associated with a proxy service"
+                                  }
+                                }
+                              }
+                            },
+                            "parameters": {
+                              "type": "object",
+                              "description": "The parameters, which were passed in the request, echoed back.",
+                              "properties": {}
+                            },
+                            "raw_data": {
+                              "type": "object",
+                              "description": "The raw data from the provider. Each provider's data will have its own format.",
+                              "properties": {}
+                            }
+                          },
+                          "examples": [
+                            {
+                              "data": {
+                                "34.201.32.172": {
+                                  "is_proxy": true
+                                }
+                              },
+                              "parameters": {
+                                "ips": ["34.201.32.172"],
+                                "verbose": true,
+                                "raw": true,
+                                "provider": "digitalelement"
+                              },
+                              "raw_data": {
+                                "34.201.32.172": {
+                                  "max_ip": "34.201.102.222",
+                                  "min_ip": "34.201.32.172",
+                                  "type": "hosting",
+                                  "description": "cloud",
+                                  "node": "?",
+                                  "names": "?"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "No description provided"
+          },
+          "400": {
+            "description": "Validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "$ref": "#/components/schemas/pangea-validation-errors"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["ip-intel"]
+      }
+    },
+    "/v1/proxy": {
+      "post": {
+        "operationId": "ip_intel_post_v1_proxy",
+        "summary": "Get proxy for IP (deprecated)",
+        "description": "Determine if an IP address originates from a proxy.",
+        "tags": ["ip-intel"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["ip"],
+                "additionalProperties": false,
+                "properties": {
+                  "ip": {
+                    "type": "string",
+                    "format": "ip-address",
+                    "examples": ["34.201.32.172"],
+                    "description": "The IP to be looked up"
+                  },
+                  "verbose": {
+                    "type": "boolean",
+                    "default": false,
+                    "examples": [true],
+                    "description": "Echo the API parameters in the response"
+                  },
+                  "raw": {
+                    "type": "boolean",
+                    "default": false,
+                    "examples": [true],
+                    "description": "Include raw data from this provider"
+                  },
+                  "provider": {
+                    "type": "string",
+                    "enum": ["digitalenvoy", "digitalelement"],
+                    "examples": ["digitalelement"],
+                    "description": "Use proxy data from this provider"
+                  }
+                },
+                "examples": [
+                  {
+                    "ip": "34.201.32.172",
+                    "provider": "digitalelement"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "type": "object",
+                          "properties": {
+                            "data": {
+                              "type": "object",
+                              "properties": {
+                                "is_proxy": {
+                                  "type": "boolean",
+                                  "description": "- True - Indicates the IP address belongs to a proxy service\n- False - Indicates the IP address is not associated with a proxy service"
+                                }
+                              }
+                            },
+                            "parameters": {
+                              "type": "object",
+                              "description": "The parameters, which were passed in the request, echoed back.",
+                              "properties": {}
+                            },
+                            "raw_data": {
+                              "type": "object",
+                              "description": "The raw data from the provider. Each provider's data will have its own format.",
+                              "properties": {}
+                            }
+                          },
+                          "examples": [
+                            {
+                              "data": {
+                                "is_proxy": true
+                              },
+                              "parameters": {
+                                "ip": "34.201.32.172",
+                                "verbose": true,
+                                "raw": true,
+                                "provider": "digitalelement"
+                              },
+                              "raw_data": {
+                                "max_ip": "34.201.102.222",
+                                "min_ip": "34.201.32.172",
+                                "type": "hosting",
+                                "description": "cloud",
+                                "node": "?",
+                                "names": "?"
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "No description provided"
+          },
+          "400": {
+            "description": "Validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "$ref": "#/components/schemas/pangea-validation-errors"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/vpn": {
+      "post": {
+        "operationId": "ip_intel_post_v2_vpn",
+        "summary": "Get VPN for IP",
+        "description": "Determine if an IP address originates from a VPN. When requesting information on multiple IP addresses, the response will be asynchronous. See API Reference/Asynchronous Responses",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["ips"],
+                "additionalProperties": false,
+                "properties": {
+                  "ips": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "ip-address"
+                    },
+                    "maxItems": 100,
+                    "minItems": 1,
+                    "examples": [["2.56.189.74"]],
+                    "description": "The IP(s) to be looked up"
+                  },
+                  "verbose": {
+                    "type": "boolean",
+                    "default": false,
+                    "examples": [true],
+                    "description": "Echo the API parameters in the response"
+                  },
+                  "raw": {
+                    "type": "boolean",
+                    "default": false,
+                    "examples": [true],
+                    "description": "Include raw data from this provider"
+                  },
+                  "provider": {
+                    "type": "string",
+                    "enum": ["digitalenvoy", "digitalelement"],
+                    "examples": ["digitalelement"],
+                    "description": "Use vpn data from this provider"
+                  }
+                },
+                "examples": [
+                  {
+                    "ips": ["2.56.189.74"],
+                    "provider": "digitalelement"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "type": "object",
+                          "properties": {
+                            "data": {
+                              "type": "object",
+                              "additionalProperties": {
+                                "type": "object",
+                                "properties": {
+                                  "is_vpn": {
+                                    "type": "boolean",
+                                    "description": "- True - Indicates the IP address belongs to a VPN service\n- False - Indicates the IP address is not associated with a VPN service"
+                                  }
+                                }
+                              }
+                            },
+                            "parameters": {
+                              "type": "object",
+                              "description": "The parameters, which were passed in the request, echoed back.",
+                              "properties": {}
+                            },
+                            "raw_data": {
+                              "type": "object",
+                              "description": "The raw data from the provider. Each provider's data will have its own format.",
+                              "properties": {}
+                            }
+                          },
+                          "examples": [
+                            {
+                              "data": {
+                                "2.56.189.74": {
+                                  "is_vpn": true
+                                }
+                              },
+                              "parameters": {
+                                "ips": ["2.56.189.74"],
+                                "verbose": true,
+                                "raw": true,
+                                "provider": "digitalelement"
+                              },
+                              "raw_data": {
+                                "2.56.189.74": {
+                                  "max_ip": "2.56.189.74",
+                                  "min_ip": "2.56.189.74",
+                                  "type": "hosting",
+                                  "description": "vpn",
+                                  "node": "entry",
+                                  "names": "surfshark"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "No description provided"
+          },
+          "400": {
+            "description": "Validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "$ref": "#/components/schemas/pangea-validation-errors"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["ip-intel"]
+      }
+    },
+    "/v1/vpn": {
+      "post": {
+        "operationId": "ip_intel_post_v1_vpn",
+        "summary": "Get VPN for IP (deprecated)",
+        "description": "Determine if an IP address originates from a VPN.",
+        "tags": ["ip-intel"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["ip"],
+                "additionalProperties": false,
+                "properties": {
+                  "ip": {
+                    "type": "string",
+                    "format": "ip-address",
+                    "examples": ["2.56.189.74"],
+                    "description": "The IP to be looked up"
+                  },
+                  "verbose": {
+                    "type": "boolean",
+                    "default": false,
+                    "examples": [true],
+                    "description": "Echo the API parameters in the response"
+                  },
+                  "raw": {
+                    "type": "boolean",
+                    "default": false,
+                    "examples": [true],
+                    "description": "Include raw data from this provider"
+                  },
+                  "provider": {
+                    "type": "string",
+                    "enum": ["digitalenvoy", "digitalelement"],
+                    "examples": ["digitalelement"],
+                    "description": "Use vpn data from this provider"
+                  }
+                },
+                "examples": [
+                  {
+                    "ip": "2.56.189.74",
+                    "provider": "digitalelement"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "type": "object",
+                          "properties": {
+                            "data": {
+                              "type": "object",
+                              "properties": {
+                                "is_vpn": {
+                                  "type": "boolean",
+                                  "description": "- True - Indicates the IP address belongs to a VPN service\n- False - Indicates the IP address is not associated with a VPN service"
+                                }
+                              }
+                            },
+                            "parameters": {
+                              "type": "object",
+                              "description": "The parameters, which were passed in the request, echoed back.",
+                              "properties": {}
+                            },
+                            "raw_data": {
+                              "type": "object",
+                              "description": "The raw data from the provider. Each provider's data will have its own format.",
+                              "properties": {}
+                            }
+                          },
+                          "examples": [
+                            {
+                              "data": {
+                                "is_vpn": true
+                              },
+                              "parameters": {
+                                "ip": "2.56.189.74",
+                                "verbose": true,
+                                "raw": true,
+                                "provider": "digitalelement"
+                              },
+                              "raw_data": {
+                                "max_ip": "2.56.189.74",
+                                "min_ip": "2.56.189.74",
+                                "type": "hosting",
+                                "description": "vpn",
+                                "node": "entry",
+                                "names": "surfshark"
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "No description provided"
+          },
+          "400": {
+            "description": "Validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "$ref": "#/components/schemas/pangea-validation-errors"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/geolocate": {
+      "post": {
+        "operationId": "ip_intel_post_v2_geolocate",
+        "summary": "Get location for IP",
+        "description": "Retrieve location information associated with an IP address. When requesting geolocation for multiple IP addresses, the response will be asynchronous. See API Reference/Asynchronous Responses",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["ips"],
+                "additionalProperties": false,
+                "properties": {
+                  "ips": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "ip-address"
+                    },
+                    "maxItems": 100,
+                    "minItems": 1,
+                    "examples": [["93.231.182.110"]],
+                    "description": "The IP(s) to be looked up"
+                  },
+                  "verbose": {
+                    "type": "boolean",
+                    "default": false,
+                    "examples": [true],
+                    "description": "Echo the API parameters in the response"
+                  },
+                  "raw": {
+                    "type": "boolean",
+                    "default": false,
+                    "examples": [true],
+                    "description": "Include raw data from this provider"
+                  },
+                  "provider": {
+                    "type": "string",
+                    "enum": ["digitalenvoy", "digitalelement"],
+                    "examples": ["digitalelement"],
+                    "description": "Use location data from this provider"
+                  }
+                },
+                "examples": [
+                  {
+                    "ips": ["93.231.182.110"],
+                    "provider": "digitalelement"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "type": "object",
+                          "properties": {
+                            "data": {
+                              "type": "object",
+                              "additionalProperties": {
+                                "type": "object",
+                                "properties": {
+                                  "country": {
+                                    "type": "string",
+                                    "description": "The country where the IP is located"
+                                  },
+                                  "city": {
+                                    "type": "string",
+                                    "description": "The city where the IP is located"
+                                  },
+                                  "latitude": {
+                                    "type": "number",
+                                    "description": "The latitude of the IP"
+                                  },
+                                  "longitude": {
+                                    "type": "number",
+                                    "description": "The longitude of the IP"
+                                  },
+                                  "postal_code": {
+                                    "type": "string",
+                                    "description": "The postal code where the IP is located"
+                                  },
+                                  "country_code": {
+                                    "type": "string",
+                                    "description": "The two-digit country code associated with the IP address"
+                                  }
+                                }
+                              }
+                            },
+                            "parameter": {
+                              "type": "object",
+                              "description": "The parameters, which were passed in the request, echoed back.",
+                              "properties": {}
+                            },
+                            "raw_data": {
+                              "type": "object",
+                              "description": "The raw data from the provider. Each provider's data will have its own format.",
+                              "properties": {}
+                            }
+                          },
+                          "examples": [
+                            {
+                              "data": {
+                                "93.231.182.110": {
+                                  "country": "Federal Republic Of Germany",
+                                  "city": "unna",
+                                  "latitude": 51.56,
+                                  "longitude": 7.66,
+                                  "postal_code": "59425",
+                                  "country_code": "de"
+                                }
+                              },
+                              "parameters": {
+                                "ips": ["93.231.182.110"],
+                                "verbose": true,
+                                "raw": true
+                              },
+                              "raw_data": {
+                                "93.231.182.110": {
+                                  "min_ip": "93.231.182.100",
+                                  "max_ip": "93.231.182.111",
+                                  "country": "deu",
+                                  "region": "nw",
+                                  "city": "unna",
+                                  "connection_speed": "broadband",
+                                  "connection_type": "wifi",
+                                  "metro_code": 276002,
+                                  "latitude": 51.56,
+                                  "longitude": 7.66,
+                                  "postal_code": "59425",
+                                  "country_code": 276,
+                                  "region_code": 10528,
+                                  "city_code": 7627,
+                                  "continent_code": 5,
+                                  "two_letter_country": "de",
+                                  "internal_code": 24,
+                                  "area_codes": "?",
+                                  "country_conf": 99,
+                                  "region_conf": 99,
+                                  "city_conf": 95,
+                                  "postal_conf": 90,
+                                  "gmt_offset": 100,
+                                  "in_dst": "n",
+                                  "timezone_name": "europe/berlin",
+                                  "DBVersion": "2022.11.16.21.47"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "No description provided"
+          },
+          "400": {
+            "description": "Validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "$ref": "#/components/schemas/pangea-validation-errors"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["ip-intel"]
+      }
+    },
+    "/v1/geolocate": {
+      "post": {
+        "operationId": "ip_intel_post_v1_geolocate",
+        "summary": "Get location for IP (deprecated)",
+        "description": "Retrieve location information associated with an IP address.",
+        "tags": ["ip-intel"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["ip"],
+                "additionalProperties": false,
+                "properties": {
+                  "ip": {
+                    "type": "string",
+                    "format": "ip-address",
+                    "examples": ["93.231.182.110"],
+                    "description": "The IP to be looked up"
+                  },
+                  "verbose": {
+                    "type": "boolean",
+                    "default": false,
+                    "examples": [true],
+                    "description": "Echo the API parameters in the response"
+                  },
+                  "raw": {
+                    "type": "boolean",
+                    "default": false,
+                    "examples": [true],
+                    "description": "Include raw data from this provider"
+                  },
+                  "provider": {
+                    "type": "string",
+                    "enum": ["digitalenvoy", "digitalelement"],
+                    "examples": ["digitalelement"],
+                    "description": "Use location data from this provider"
+                  }
+                },
+                "examples": [
+                  {
+                    "ip": "93.231.182.110",
+                    "provider": "digitalelement"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "type": "object",
+                          "properties": {
+                            "data": {
+                              "type": "object",
+                              "properties": {
+                                "country": {
+                                  "type": "string",
+                                  "description": "The country where the IP is located"
+                                },
+                                "city": {
+                                  "type": "string",
+                                  "description": "The city where the IP is located"
+                                },
+                                "latitude": {
+                                  "type": "number",
+                                  "description": "The latitude of the IP"
+                                },
+                                "longitude": {
+                                  "type": "number",
+                                  "description": "The longitude of the IP"
+                                },
+                                "postal_code": {
+                                  "type": "string",
+                                  "description": "The postal code where the IP is located"
+                                },
+                                "country_code": {
+                                  "type": "string",
+                                  "description": "The two-digit country code associated with the IP address"
+                                }
+                              }
+                            },
+                            "parameter": {
+                              "type": "object",
+                              "description": "The parameters, which were passed in the request, echoed back.",
+                              "properties": {}
+                            },
+                            "raw_data": {
+                              "type": "object",
+                              "description": "The raw data from the provider. Each provider's data will have its own format.",
+                              "properties": {}
+                            }
+                          },
+                          "examples": [
+                            {
+                              "data": {
+                                "country": "Federal Republic Of Germany",
+                                "city": "unna",
+                                "latitude": 51.56,
+                                "longitude": 7.66,
+                                "postal_code": "59425",
+                                "country_code": "de"
+                              },
+                              "parameters": {
+                                "ip": "93.231.182.110",
+                                "verbose": true,
+                                "raw": true
+                              },
+                              "raw_data": {
+                                "min_ip": "93.231.182.100",
+                                "max_ip": "93.231.182.111",
+                                "country": "deu",
+                                "region": "nw",
+                                "city": "unna",
+                                "connection_speed": "broadband",
+                                "connection_type": "wifi",
+                                "metro_code": 276002,
+                                "latitude": 51.56,
+                                "longitude": 7.66,
+                                "postal_code": "59425",
+                                "country_code": 276,
+                                "region_code": 10528,
+                                "city_code": 7627,
+                                "continent_code": 5,
+                                "two_letter_country": "de",
+                                "internal_code": 24,
+                                "area_codes": "?",
+                                "country_conf": 99,
+                                "region_conf": 99,
+                                "city_conf": 95,
+                                "postal_conf": 90,
+                                "gmt_offset": 100,
+                                "in_dst": "n",
+                                "timezone_name": "europe/berlin",
+                                "DBVersion": "2022.11.16.21.47"
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "No description provided"
+          },
+          "400": {
+            "description": "Validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "$ref": "#/components/schemas/pangea-validation-errors"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/request/{requestId}": {
+      "get": {
+        "operationId": "get_async_request",
+        "summary": "Get an asynchronous request",
+        "description": "Will retrieve the result, or will return 202 if the original request is still in progress",
+        "tags": ["ip-intel"],
+        "parameters": [
+          {
+            "name": "requestId",
+            "in": "path",
+            "description": "The request ID to poll",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Asynchronous request in progress",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "type": "object",
+                          "properties": {
+                            "ttl_mins": {
+                              "type": "integer"
+                            },
+                            "retry_counter": {
+                              "type": "integer"
+                            },
+                            "location": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/pangea-response"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "openapi": "3.1.0",
+  "components": {
+    "schemas": {
+      "pangea-response": {
+        "title": "Response Schema",
+        "description": "Pangea standard response schema",
+        "type": "object",
+        "required": ["request_id", "request_time", "response_time", "status"],
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "description": "A unique identifier assigned to each request made to the API. It is used to track and identify a specific request and its associated data. The `request_id` can be helpful for troubleshooting, auditing, and tracing the flow of requests within the system. It allows users to reference and retrieve information related to a particular request, such as the response, parameters, and raw data associated with that specific request.\n\n```\n\"request_id\":\"prq_x6fdiizbon6j3bsdvnpmwxsz2aan7fqd\"\n```"
+          },
+          "request_time": {
+            "type": "string",
+            "description": "The timestamp indicates the exact moment when a request is made to the API. It represents the date and time at which the request was initiated by the client. The `request_time` is useful for tracking and analyzing the timing of requests, measuring response times, and monitoring performance metrics. It allows users to determine the duration between the request initiation and the corresponding response, aiding in the assessment of API performance and latency.\n\n```\n\"request_time\":\"2022-09-21T17:24:33.105Z\"\n```"
+          },
+          "response_time": {
+            "type": "string",
+            "description": "Duration it takes for the API to process a request and generate a response. It represents the elapsed time from when the request is received by the API to when the corresponding response is returned to the client.\n\n```\n\"response_time\":\"2022-09-21T17:24:34.007Z\"\n```"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["Success"],
+            "description": "It represents the status or outcome of the API request made for IP information. It indicates the current state or condition of the request and provides information on the success or failure of the request.\n\n```\n\"status\":\"success\"\n```"
+          },
+          "summary": {
+            "type": "string",
+            "description": "Provides a concise and brief overview of the purpose or primary objective of the API endpoint. It serves as a high-level summary or description of the functionality or feature offered by the endpoint."
+          },
+          "result": {
+            "type": "object"
+          }
+        },
+        "examples": [
+          {
+            "request_id": "prq_x6fdiizbon6j3bsdvnpmwxsz2aan7fqd",
+            "request_time": "2022-09-21T17:24:33.105Z",
+            "response_time": "2022-09-21T17:24:34.007Z",
+            "status": "success"
+          }
+        ]
+      },
+      "pangea-validation-errors": {
+        "$ref": "#/components/schemas/pangea-response",
+        "required": ["result"],
+        "properties": {
+          "result": {
+            "type": "object",
+            "required": ["errors"],
+            "properties": {
+              "errors": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "required": ["code", "detail", "source"],
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "FieldRequired",
+                        "InvalidString",
+                        "InvalidNumber",
+                        "InvalidInteger",
+                        "InvalidObject",
+                        "InvalidArray",
+                        "InvalidNull",
+                        "InvalidBool",
+                        "BadFormat",
+                        "BadFormatPangeaDuration",
+                        "BadFormatDateTime",
+                        "BadFormatTime",
+                        "BadFormatDate",
+                        "BadFormatEmail",
+                        "BadFormatHostname",
+                        "BadFormatIPv4",
+                        "BadFormatIPv6",
+                        "BadFormatIPAddress",
+                        "BadFormatUUID",
+                        "BadFormatURI",
+                        "BadFormatURIReference",
+                        "BadFormatIRI",
+                        "BadFormatIRIReference",
+                        "BadFormatJSONPointer",
+                        "BadFormatRelativeJSONPointer",
+                        "BadFormatRegex",
+                        "BadFormatJSONPath",
+                        "BadFormatBase64",
+                        "DoesNotMatchPattern",
+                        "DoesNotMatchPatternProperties",
+                        "NotEnumMember",
+                        "AboveMaxLength",
+                        "BelowMinLength",
+                        "AboveMaxItems",
+                        "BelowMinItems",
+                        "NotMultipleOf",
+                        "NotWithinRange",
+                        "UnexpectedProperty",
+                        "InvalidPropertyName",
+                        "AboveMaxProperties",
+                        "BelowMinProperties",
+                        "NotContains",
+                        "ContainsTooMany",
+                        "ContainsTooFew",
+                        "ItemNotUnique",
+                        "UnexpectedAdditionalItem",
+                        "InvalidConst",
+                        "IsDependentOn",
+                        "IsTooBig",
+                        "IsTooSmall",
+                        "ShouldNotBeValid",
+                        "NoUnevaluatedItems",
+                        "NoUnevaluatedProperties",
+                        "DoesNotExist",
+                        "IsReadOnly",
+                        "CannotAddToDefault",
+                        "MustProvideOne",
+                        "MutuallyExclusive",
+                        "BadState",
+                        "InaccessibleURI",
+                        "ProviderDisabled",
+                        "ConfigProjectMismatch",
+                        "ConfigServiceMismatch",
+                        "ConfigNotExist"
+                      ]
+                    },
+                    "detail": {
+                      "type": "string",
+                      "description": "Human readable description of the error"
+                    },
+                    "source": {
+                      "type": "string",
+                      "description": "Path to the data source of the error",
+                      "format": "json-pointer"
+                    },
+                    "path": {
+                      "type": "string",
+                      "description": "The Schema path where the error ocurred",
+                      "format": "json-pointer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "FileIntelServiceConfig": {
+        "type": "object",
+        "description": "Configuration options available for File Intel service",
+        "required": [],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The config ID"
+          },
+          "created_at": {
+            "type": "string",
+            "description": "The DB timestamp when this config was created. Ignored when submitted.",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "description": "The DB timestamp when this config was last updated at",
+            "format": "date-time"
+          },
+          "name": {
+            "description": "configuration name",
+            "type": "string"
+          },
+          "proxy_enabled": {
+            "description": "In Private Cloud deployment, set this to true, otherwise it should be false",
+            "type": "boolean",
+            "default": false
+          },
+          "saasconfig_resource_id": {
+            "type": "string",
+            "description": "Service config ID on Pangea SaaS cloud"
+          },
+          "reputation_default_provider": {
+            "type": "string",
+            "enum": ["reversinglabs", "crowdstrike"],
+            "description": "Use Reversing Labs/CrowdStrike File Intel reputation provider"
+          }
+        },
+        "additionalProperties": false
+      },
+      "IPIntelServiceConfig": {
+        "type": "object",
+        "description": "Configuration options available for IP Intel service",
+        "required": [],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The config ID"
+          },
+          "created_at": {
+            "type": "string",
+            "description": "The DB timestamp when this config was created. Ignored when submitted.",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "description": "The DB timestamp when this config was last updated at",
+            "format": "date-time"
+          },
+          "name": {
+            "description": "configuration name",
+            "type": "string"
+          },
+          "proxy_enabled": {
+            "description": "In Private Cloud deployment, set this to true, otherwise it should be false",
+            "type": "boolean",
+            "default": false
+          },
+          "saasconfig_resource_id": {
+            "type": "string",
+            "description": "Service config ID on Pangea SaaS cloud"
+          },
+          "vpn_default_provider": {
+            "type": "string",
+            "default": "digitalelement",
+            "enum": ["digitalelement"],
+            "description": "Use DigitalElement as default VPN reputation provider"
+          },
+          "proxy_default_provider": {
+            "type": "string",
+            "default": "digitalelement",
+            "enum": ["digitalelement"],
+            "description": "Use DigitalElement as default Proxy reputation provider"
+          },
+          "domain_default_provider": {
+            "type": "string",
+            "default": "digitalelement",
+            "enum": ["digitalelement"],
+            "description": "Use DigitalElement as default Domain reputation provider"
+          },
+          "geolocate_default_provider": {
+            "type": "string",
+            "default": "digitalelement",
+            "enum": ["digitalelement"],
+            "description": "Use DigitalElement as default Geolocate reputation provider"
+          },
+          "whois_default_provider": {
+            "type": "string",
+            "default": "whoisxml",
+            "enum": ["whoisxml"],
+            "description": "Use WhoIs as default whois provider"
+          },
+          "reputation_default_provider": {
+            "type": "string",
+            "enum": ["crowdstrike", "cymru"],
+            "description": "Use CrowdStrike/Team Cymru as IP Intel reputation provider"
+          }
+        },
+        "additionalProperties": false
+      },
+      "DomainIntelServiceConfig": {
+        "type": "object",
+        "description": "Configuration options available for Domain Intel service",
+        "required": [],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The config ID"
+          },
+          "created_at": {
+            "type": "string",
+            "description": "The DB timestamp when this config was created. Ignored when submitted.",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "description": "The DB timestamp when this config was last updated at",
+            "format": "date-time"
+          },
+          "name": {
+            "description": "configuration name",
+            "type": "string"
+          },
+          "proxy_enabled": {
+            "description": "In Private Cloud deployment, set this to true, otherwise it should be false",
+            "type": "boolean",
+            "default": false
+          },
+          "saasconfig_resource_id": {
+            "type": "string",
+            "description": "Service config ID on Pangea SaaS cloud"
+          },
+          "whois_default_provider": {
+            "type": "string",
+            "default": "whoisxml",
+            "enum": ["whoisxml"],
+            "description": "Use WhoIs as default whois provider"
+          },
+          "reputation_default_provider": {
+            "type": "string",
+            "enum": ["crowdstrike", "cymru"],
+            "description": "Use CrowdStrike/Team Cymru Domain Intel reputation provider"
+          }
+        },
+        "additionalProperties": false
+      },
+      "URLIntelServiceConfig": {
+        "type": "object",
+        "description": "Configuration options available for URL Intel service",
+        "required": [],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The config ID"
+          },
+          "created_at": {
+            "type": "string",
+            "description": "The DB timestamp when this config was created. Ignored when submitted.",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "description": "The DB timestamp when this config was last updated at",
+            "format": "date-time"
+          },
+          "name": {
+            "description": "configuration name",
+            "type": "string"
+          },
+          "proxy_enabled": {
+            "description": "In Private Cloud deployment, set this to true, otherwise it should be false",
+            "type": "boolean",
+            "default": false
+          },
+          "saasconfig_resource_id": {
+            "type": "string",
+            "description": "Service config ID on Pangea SaaS cloud"
+          },
+          "reputation_default_provider": {
+            "type": "string",
+            "default": "crowdstrike",
+            "enum": ["crowdstrike"],
+            "description": "Use CrowdStrike as URL Intel reputation provider"
+          }
+        },
+        "additionalProperties": false
+      },
+      "UserIntelServiceConfig": {
+        "type": "object",
+        "description": "Configuration options available for User Intel service",
+        "required": [],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The config ID"
+          },
+          "created_at": {
+            "type": "string",
+            "description": "The DB timestamp when this config was created. Ignored when submitted.",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "description": "The DB timestamp when this config was last updated at",
+            "format": "date-time"
+          },
+          "name": {
+            "description": "configuration name",
+            "type": "string"
+          },
+          "proxy_enabled": {
+            "description": "In Private Cloud deployment, set this to true, otherwise it should be false",
+            "type": "boolean",
+            "default": false
+          },
+          "saasconfig_resource_id": {
+            "type": "string",
+            "description": "Service config ID on Pangea SaaS cloud"
+          },
+          "user_breached_default_provider": {
+            "type": "string",
+            "default": "spycloud",
+            "enum": ["spycloud"],
+            "description": "Use SpyCloud as default user breach info provider"
+          },
+          "password_breached_default_provider": {
+            "type": "string",
+            "default": "spycloud",
+            "enum": ["spycloud"],
+            "description": "Use SpyCloud as default password breach info provider"
+          },
+          "breach_default_provider": {
+            "type": "string",
+            "enum": ["spycloud"],
+            "description": "Use SpyCloud as default breach provider"
+          }
+        },
+        "additionalProperties": false
+      },
+      "IntelServiceConfigList": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "List or filter/search records.",
+        "properties": {
+          "filter": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "description": "Only records where id equals this value.",
+                "nullable": false,
+                "type": "string"
+              },
+              "id__contains": {
+                "description": "Only records where id includes each substring.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "id__in": {
+                "description": "Only records where id equals one of the provided substrings.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "created_at": {
+                "description": "Only records where created_at equals this value.",
+                "format": "date-time",
+                "nullable": false,
+                "type": "string"
+              },
+              "created_at__gt": {
+                "description": "Only records where created_at is greater than this value.",
+                "format": "date-time",
+                "type": "string"
+              },
+              "created_at__gte": {
+                "description": "Only records where created_at is greater than or equal to this value.",
+                "format": "date-time",
+                "type": "string"
+              },
+              "created_at__lt": {
+                "description": "Only records where created_at is less than this value.",
+                "format": "date-time",
+                "type": "string"
+              },
+              "created_at__lte": {
+                "description": "Only records where created_at is less than or equal to this value.",
+                "format": "date-time",
+                "type": "string"
+              },
+              "updated_at": {
+                "description": "Only records where updated_at equals this value.",
+                "format": "date-time",
+                "nullable": false,
+                "type": "string"
+              },
+              "updated_at__gt": {
+                "description": "Only records where updated_at is greater than this value.",
+                "format": "date-time",
+                "type": "string"
+              },
+              "updated_at__gte": {
+                "description": "Only records where updated_at is greater than or equal to this value.",
+                "format": "date-time",
+                "type": "string"
+              },
+              "updated_at__lt": {
+                "description": "Only records where updated_at is less than this value.",
+                "format": "date-time",
+                "type": "string"
+              },
+              "updated_at__lte": {
+                "description": "Only records where updated_at is less than or equal to this value.",
+                "format": "date-time",
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          },
+          "last": {
+            "description": "Reflected value from a previous response to obtain the next page of results.",
+            "type": "string"
+          },
+          "order": {
+            "description": "Order results asc(ending) or desc(ending).",
+            "enum": ["asc", "desc"],
+            "type": "string"
+          },
+          "order_by": {
+            "description": "Which field to order results by.",
+            "enum": ["id", "created_at", "updated_at"],
+            "type": "string"
+          },
+          "size": {
+            "description": "Maximum results to include in the response.",
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": []
+      },
+      "DateTimeRel": {
+        "type": "string",
+        "description": "An RFC-3339 formatted timestamp, or relative time adjustment from the current time.",
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/Duration"
+          },
+          {
+            "title": "Date",
+            "description": "A specific date (YYYY-MM-DD) in the past. e.g. 2023-03-25",
+            "pattern": "^\\d{4}-\\d{1,2}-\\d{1,2}$",
+            "type": "string",
+            "examples": ["2023-03-25"]
+          }
+        ],
+        "maxLength": 128
+      },
+      "Duration": {
+        "type": "string",
+        "title": "Relative Date",
+        "description": "A date some time in the past. e.g. 10d, 1w, 2mo, 1year etc",
+        "pattern": "^(\\d+)(d|da|day|days|mo|mon|month|months|w|week|weeks|y|year|years)$",
+        "examples": ["10d"]
+      },
+      "cursor": {
+        "type": "string",
+        "examples": ["a22037ed-ab67-4bc8-9c66-fb6a9f7caf34"],
+        "description": "Token provided by SpyCloud when `raw` is set to `true`. Post this string to the API to view the next page of the results. Each raw results page displays up to 1000 records."
+      },
+      "severity": {
+        "type": "array",
+        "items": {
+          "type": "integer"
+        },
+        "examples": [[25]],
+        "description": "Filter for records that match one of the given severities"
+      },
+      "email": {
+        "type": "string",
+        "format": "email",
+        "examples": ["test@example.com"],
+        "description": "An email address to search for"
+      },
+      "emails": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "format": "email"
+        },
+        "maxItems": 100,
+        "minItems": 1,
+        "examples": [["test@example.com"]],
+        "description": "A list of email addresses to search for"
+      },
+      "phone_numbers": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "pattern": "[0-9]+",
+          "minLength": 7,
+          "maxLength": 15
+        },
+        "maxItems": 100,
+        "minItems": 1,
+        "examples": [["8005550123"]],
+        "description": "A list of phone numbers to search for"
+      },
+      "phone_number": {
+        "type": "string",
+        "pattern": "[0-9]+",
+        "minLength": 7,
+        "maxLength": 15,
+        "examples": ["8005550123"],
+        "description": "Phone number to search for"
+      },
+      "username": {
+        "type": "string",
+        "examples": ["shortpatrick"],
+        "description": "A user name to search for"
+      },
+      "usernames": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "maxItems": 100,
+        "minItems": 1,
+        "examples": [["shortpatrick"]],
+        "description": "A list of user names to search for"
+      },
+      "ip": {
+        "type": "string",
+        "format": "ip-address",
+        "examples": ["192.168.140.37"],
+        "description": "An IP address to search for"
+      },
+      "ips": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "format": "ip-address"
+        },
+        "maxItems": 100,
+        "minItems": 1,
+        "examples": [["192.168.140.37"]],
+        "description": "A list of IP addresses to search for"
+      },
+      "domain": {
+        "type": "string",
+        "format": "hostname",
+        "examples": ["example.com"],
+        "description": "Search for user under this domain"
+      },
+      "domains": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "format": "hostname"
+        },
+        "maxItems": 100,
+        "minItems": 1,
+        "examples": [["example.com"]],
+        "description": "Search for user under these domains"
+      },
+      "start": {
+        "type": "string",
+        "$ref": "#/components/schemas/DateTimeRel",
+        "examples": ["2018-07-10"],
+        "description": "Earliest date for search"
+      },
+      "end": {
+        "type": "string",
+        "$ref": "#/components/schemas/DateTimeRel",
+        "examples": ["2023-03-31"],
+        "description": "Latest date for search"
+      },
+      "verbose": {
+        "type": "boolean",
+        "default": false,
+        "examples": [true],
+        "description": "Echo the API parameters in the response"
+      },
+      "raw": {
+        "type": "boolean",
+        "default": false,
+        "examples": [true],
+        "description": "Include raw data from this provider"
+      },
+      "provider": {
+        "type": "string",
+        "enum": ["spycloud"],
+        "examples": ["spycloud"],
+        "description": "Use this provider"
+      },
+      "pangea-service-config-id": {
+        "type": "string",
+        "description": "An ID for a service config",
+        "pattern": "^pci_[a-z2-7]{32}$",
+        "examples": ["pci_wuk7tvtpswyjtlsx52b7yyi2l7zotv4a"]
+      }
+    },
+    "securitySchemes": {
+      "APIToken": {
+        "type": "http",
+        "bearerFormat": "token",
+        "description": "Pangea API Token",
+        "scheme": "bearer"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "ip-intel",
+      "description": "Malicious behavior check on IP"
+    },
+    {
+      "name": "deprecated",
+      "description": "Deprecated"
+    }
+  ]
+}
