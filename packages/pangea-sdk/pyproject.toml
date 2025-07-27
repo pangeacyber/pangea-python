@@ -34,7 +34,7 @@ packages = [
 ]
 
 [tool.poetry.group.dev.dependencies]
-docstring-parser = "^0.15"
+docstring-parser = "^0.17.0"
 mypy = "1.17.0"
 pytest = "8.3.5"
 pytest-asyncio = "1.1.0"
