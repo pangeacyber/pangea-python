@@ -52,7 +52,6 @@ from pangea.services.vault.models.common import (
     JWTVerifyResult,
     ListRequest,
     ListResult,
-    Metadata,
     PangeaToken,
     PangeaTokenRotateRequest,
     RequestManualRotationState,
@@ -312,7 +311,7 @@ class Vault(ServiceBase):
         *,
         name: str | None = None,
         folder: str | None = None,
-        metadata: Metadata | None = None,
+        metadata: Mapping[str, str] | None = None,
         tags: Tags | None = None,
         disabled_at: str | None = None,
         enabled: bool | None = None,
@@ -388,7 +387,7 @@ class Vault(ServiceBase):
         result_class: type[TResult] = SecretStoreResult,  # type: ignore[assignment]
         name: str | None = None,
         folder: str | None = None,
-        metadata: Metadata | None = None,
+        metadata: Mapping[str, str] | None = None,
         tags: Tags | None = None,
         disabled_at: datetime.datetime | None = None,
         **kwargs: Any,
@@ -413,22 +412,22 @@ class Vault(ServiceBase):
         *,
         name: str | None = None,
         folder: str | None = None,
-        metadata: Metadata | None = None,
+        metadata: Mapping[str, str] | None = None,
         tags: Tags | None = None,
         disabled_at: datetime.datetime | None = None,
     ) -> PangeaResponse[Secret]:
         """
         Store secret
 
-        Store a secret.
+        Store a secret as a Vault item.
 
         Args:
-            secret: The secret value.
-            name: The name of this item.
-            folder: The folder where this item is stored.
-            metadata: User-provided metadata.
-            tags: A list of user-defined tags.
-            disabled_at: Timestamp indicating when the item will be disabled.
+            secret: Secret value
+            name: Name of the item
+            folder: Folder where the item is stored
+            metadata: Metadata provided by the user
+            tags: List of user-defined tags
+            disabled_at: Timestamp indicating when the item will be disabled
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -454,25 +453,38 @@ class Vault(ServiceBase):
         *,
         name: str | None = None,
         folder: str | None = None,
-        metadata: Metadata | None = None,
+        metadata: Mapping[str, str] | None = None,
         tags: Tags | None = None,
         disabled_at: datetime.datetime | None = None,
         rotation_frequency: str | None = None,
-        rotation_state: RotationState | None = None,
+        rotation_state: Literal["deactivated", "destroyed", "inherited"] | None = None,
         rotation_grace_period: str | None = None,
     ) -> PangeaResponse[PangeaToken]:
         """
         Store secret
 
-        Store a Pangea token.
+        Store a Pangea token as a Vault item.
 
         Args:
-            token: The Pangea token value.
-            name: The name of this item.
-            folder: The folder where this item is stored.
-            metadata: User-provided metadata.
-            tags: A list of user-defined tags.
-            disabled_at: Timestamp indicating when the item will be disabled.
+            token: Pangea token value
+            name: Name of the item
+            folder: Folder where the item is stored
+            metadata: Metadata provided by the user
+            tags: List of user-defined tags
+            disabled_at: Timestamp indicating when the item will be disabled
+            rotation_frequency: Time interval between item rotations, provided
+              as a positive number followed by a time unit: `secs`, `mins`, `hrs`,
+              `days`, `weeks`, `months`, or `years`. You can use abbreviations
+              like `1d`. Omit to inherit from the parent folder or default
+              settings. Set to `never` to disable rotation.
+            rotation_state: Target state for the previous version after
+                rotation. Set to `inherited` to inherit from the parent folder
+                or default settings.
+            rotation_grace_period: Grace period for the previous version,
+              provided as a positive number followed by a time unit: `secs`,
+              `mins`, `hrs`, `days`, `weeks`, `months`, or `years`. You can use
+              abbreviations like `1d`. Omit to inherit from the parent folder or
+              default settings.
 
         Raises:
             PangeaAPIException: If an API Error happens
@@ -503,7 +515,7 @@ class Vault(ServiceBase):
         *,
         name: str | None = None,
         folder: str | None = None,
-        metadata: Metadata | None = None,
+        metadata: Mapping[str, str] | None = None,
         tags: Tags | None = None,
         disabled_at: datetime.datetime | None = None,
         rotation_frequency: str | None = None,
@@ -665,7 +677,7 @@ class Vault(ServiceBase):
         algorithm: AsymmetricKeySigningAlgorithm,
         name: str | None = None,
         folder: str | None = None,
-        metadata: Metadata | None = None,
+        metadata: Mapping[str, str] | None = None,
         tags: Tags | None = None,
         rotation_frequency: str | None = None,
         rotation_state: RequestRotationState | None = RequestRotationState.INHERITED,
@@ -711,7 +723,7 @@ class Vault(ServiceBase):
         algorithm: AsymmetricKeyEncryptionAlgorithm,
         name: str | None = None,
         folder: str | None = None,
-        metadata: Metadata | None = None,
+        metadata: Mapping[str, str] | None = None,
         tags: Tags | None = None,
         rotation_frequency: str | None = None,
         rotation_state: RequestRotationState | None = RequestRotationState.INHERITED,
@@ -757,7 +769,7 @@ class Vault(ServiceBase):
         algorithm: AsymmetricKeyJwtAlgorithm,
         name: str | None = None,
         folder: str | None = None,
-        metadata: Metadata | None = None,
+        metadata: Mapping[str, str] | None = None,
         tags: Tags | None = None,
         rotation_frequency: str | None = None,
         rotation_state: RequestRotationState | None = RequestRotationState.INHERITED,
@@ -803,7 +815,7 @@ class Vault(ServiceBase):
         algorithm: AsymmetricKeyPkiAlgorithm,
         name: str | None = None,
         folder: str | None = None,
-        metadata: Metadata | None = None,
+        metadata: Mapping[str, str] | None = None,
         tags: Tags | None = None,
         rotation_frequency: str | None = None,
         rotation_state: RequestRotationState | None = RequestRotationState.INHERITED,
@@ -849,7 +861,7 @@ class Vault(ServiceBase):
         algorithm: AsymmetricKeyAlgorithm,
         name: str | None = None,
         folder: str | None = None,
-        metadata: Metadata | None = None,
+        metadata: Mapping[str, str] | None = None,
         tags: Tags | None = None,
         rotation_frequency: str | None = None,
         rotation_state: RequestRotationState | None = RequestRotationState.INHERITED,
@@ -895,7 +907,7 @@ class Vault(ServiceBase):
         algorithm: SymmetricKeyEncryptionAlgorithm,
         name: str | None = None,
         folder: str | None = None,
-        metadata: Metadata | None = None,
+        metadata: Mapping[str, str] | None = None,
         tags: Tags | None = None,
         rotation_frequency: str | None = None,
         rotation_state: RequestRotationState | None = RequestRotationState.INHERITED,
@@ -941,7 +953,7 @@ class Vault(ServiceBase):
         algorithm: SymmetricKeyJwtAlgorithm,
         name: str | None = None,
         folder: str | None = None,
-        metadata: Metadata | None = None,
+        metadata: Mapping[str, str] | None = None,
         tags: Tags | None = None,
         rotation_frequency: str | None = None,
         rotation_state: RequestRotationState | None = RequestRotationState.INHERITED,
@@ -987,7 +999,7 @@ class Vault(ServiceBase):
         algorithm: SymmetricKeyFpeAlgorithm,
         name: str | None = None,
         folder: str | None = None,
-        metadata: Metadata | None = None,
+        metadata: Mapping[str, str] | None = None,
         tags: Tags | None = None,
         rotation_frequency: str | None = None,
         rotation_state: RequestRotationState | None = RequestRotationState.INHERITED,
@@ -1033,7 +1045,7 @@ class Vault(ServiceBase):
         algorithm: SymmetricKeyAlgorithm,
         name: str | None = None,
         folder: str | None = None,
-        metadata: Metadata | None = None,
+        metadata: Mapping[str, str] | None = None,
         tags: Tags | None = None,
         rotation_frequency: str | None = None,
         rotation_state: RequestRotationState | None = RequestRotationState.INHERITED,
@@ -1078,7 +1090,7 @@ class Vault(ServiceBase):
         algorithm: AsymmetricKeyAlgorithm | SymmetricKeyAlgorithm,
         name: str | None = None,
         folder: str | None = None,
-        metadata: Metadata | None = None,
+        metadata: Mapping[str, str] | None = None,
         tags: Tags | None = None,
         rotation_frequency: str | None = None,
         rotation_state: RequestRotationState | None = RequestRotationState.INHERITED,
@@ -1144,7 +1156,7 @@ class Vault(ServiceBase):
         private_key: str,
         name: str | None = None,
         folder: str | None = None,
-        metadata: Metadata | None = None,
+        metadata: Mapping[str, str] | None = None,
         tags: Tags | None = None,
         rotation_frequency: str | None = None,
         rotation_state: RequestRotationState | None = RequestRotationState.INHERITED,
@@ -1194,7 +1206,7 @@ class Vault(ServiceBase):
         private_key: str,
         name: str | None = None,
         folder: str | None = None,
-        metadata: Metadata | None = None,
+        metadata: Mapping[str, str] | None = None,
         tags: Tags | None = None,
         rotation_frequency: str | None = None,
         rotation_state: RequestRotationState | None = RequestRotationState.INHERITED,
@@ -1244,7 +1256,7 @@ class Vault(ServiceBase):
         private_key: str,
         name: str | None = None,
         folder: str | None = None,
-        metadata: Metadata | None = None,
+        metadata: Mapping[str, str] | None = None,
         tags: Tags | None = None,
         rotation_frequency: str | None = None,
         rotation_state: RequestRotationState | None = RequestRotationState.INHERITED,
@@ -1294,7 +1306,7 @@ class Vault(ServiceBase):
         private_key: str,
         name: str | None = None,
         folder: str | None = None,
-        metadata: Metadata | None = None,
+        metadata: Mapping[str, str] | None = None,
         tags: Tags | None = None,
         rotation_frequency: str | None = None,
         rotation_state: RequestRotationState | None = RequestRotationState.INHERITED,
@@ -1343,7 +1355,7 @@ class Vault(ServiceBase):
         key: str,
         name: str | None = None,
         folder: str | None = None,
-        metadata: Metadata | None = None,
+        metadata: Mapping[str, str] | None = None,
         tags: Tags | None = None,
         rotation_frequency: str | None = None,
         rotation_state: RequestRotationState | None = RequestRotationState.INHERITED,
@@ -1391,7 +1403,7 @@ class Vault(ServiceBase):
         key: str,
         name: str | None = None,
         folder: str | None = None,
-        metadata: Metadata | None = None,
+        metadata: Mapping[str, str] | None = None,
         tags: Tags | None = None,
         rotation_frequency: str | None = None,
         rotation_state: RequestRotationState | None = RequestRotationState.INHERITED,
@@ -1439,7 +1451,7 @@ class Vault(ServiceBase):
         key: str,
         name: str | None = None,
         folder: str | None = None,
-        metadata: Metadata | None = None,
+        metadata: Mapping[str, str] | None = None,
         tags: Tags | None = None,
         rotation_frequency: str | None = None,
         rotation_state: RequestRotationState | None = RequestRotationState.INHERITED,
@@ -1496,7 +1508,7 @@ class Vault(ServiceBase):
         key: str | None = None,
         name: str | None = None,
         folder: str | None = None,
-        metadata: Metadata | None = None,
+        metadata: Mapping[str, str] | None = None,
         tags: Tags | None = None,
         rotation_frequency: str | None = None,
         rotation_state: RequestRotationState | None = RequestRotationState.INHERITED,
@@ -1932,7 +1944,7 @@ class Vault(ServiceBase):
         name: str,
         folder: str,
         *,
-        metadata: Metadata | None = None,
+        metadata: Mapping[str, str] | None = None,
         tags: Tags | None = None,
         rotation_frequency: str | None = None,
         rotation_state: RequestRotationState = RequestRotationState.INHERITED,

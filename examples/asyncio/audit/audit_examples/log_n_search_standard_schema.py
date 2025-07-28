@@ -86,6 +86,7 @@ def print_page_results(search_res: PangeaResponse[SearchOutput], offset: int, co
     assert search_res.result
     print("\n--------------------------------------------------------------------\n")
     for row in search_res.result.events:
+        assert row.envelope.event
         print(
             f"{row.envelope.received_at}\t{row.envelope.event['message']}\t{row.envelope.event['source']}\t\t"
             f"{row.envelope.event['actor']}\t\t{row.membership_verification}\t\t {row.consistency_verification}\t\t {row.signature_verification}\t\t"

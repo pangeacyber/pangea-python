@@ -22,7 +22,6 @@ from pangea.services.vault.models.asymmetric import (
 )
 from pangea.services.vault.models.common import (
     ExportEncryptionType,
-    Metadata,
     RequestManualRotationState,
     RequestRotationState,
     Tags,
@@ -41,7 +40,7 @@ from tests.test_tools import load_test_environment
 
 TIME = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 FOLDER_VALUE = f"/test_key_folder/{TIME}/"
-METADATA_VALUE = cast(Metadata, {"test": "True", "field1": "value1", "field2": "value2"})
+METADATA_VALUE = {"test": "True", "field1": "value1", "field2": "value2"}
 TAGS_VALUE = cast(Tags, ["test", "symmetric"])
 ROTATION_FREQUENCY_VALUE = "1d"
 ROTATION_STATE_VALUE = RequestRotationState.DEACTIVATED

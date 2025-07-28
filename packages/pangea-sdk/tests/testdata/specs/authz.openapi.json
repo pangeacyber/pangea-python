@@ -1,0 +1,1984 @@
+{
+  "info": {
+    "title": "authz",
+    "description": "Authorization as a service",
+    "version": "2",
+    "contact": {
+      "name": "Pangea",
+      "url": "https://pangea.cloud/docs/support",
+      "email": "support@pangea.cloud"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://authz.aws.us.pangea.cloud",
+      "description": "Pangea regional service cluster"
+    },
+    {
+      "url": "https://authz.aws.us-east.pangea.cloud",
+      "description": "Pangea regional service cluster"
+    },
+    {
+      "url": "https://authz.aws.eu.pangea.cloud",
+      "description": "Pangea regional service cluster"
+    }
+  ],
+  "paths": {
+    "/v1/tuple/create": {
+      "post": {
+        "operationId": "authz_post_v1_tuple_create",
+        "summary": "Create tuples",
+        "description": "Write tuples. The request will fail if tuples do not validate against the schema defined resource types.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["tuples"],
+                "properties": {
+                  "tuples": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/v1-tuple"
+                    }
+                  }
+                },
+                "additionalProperties": false,
+                "examples": [
+                  {
+                    "tuples": [
+                      {
+                        "resource": {
+                          "type": "folder",
+                          "id": "family_photos"
+                        },
+                        "relation": "owner",
+                        "subject": {
+                          "type": "user",
+                          "id": "toretto"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Ok",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "type": "object",
+                          "properties": {}
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "$ref": "#/components/schemas/pangea-validation-errors"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["authz"]
+      }
+    },
+    "/v1/tuple/list": {
+      "post": {
+        "operationId": "authz_post_v1_tuple_list",
+        "summary": "List tuples",
+        "description": "Return a paginated list of filtered tuples. The filter is given in terms of a tuple. Fill out the fields that you want to filter. If the filter is empty it will return all the tuples.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/authz-filter-v1-tuples",
+                "unevaluatedProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Ok",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "type": "object",
+                          "required": ["tuples", "count"],
+                          "properties": {
+                            "tuples": {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/components/schemas/v1-tuple"
+                              }
+                            },
+                            "count": {
+                              "type": "integer"
+                            },
+                            "last": {
+                              "type": "string"
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "$ref": "#/components/schemas/pangea-validation-errors"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["authz"]
+      }
+    },
+    "/v1/tuple/delete": {
+      "post": {
+        "operationId": "authz_post_v1_tuple_delete",
+        "summary": "Delete tuples",
+        "description": "Delete tuples.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["tuples"],
+                "properties": {
+                  "tuples": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/v1-tuple-identifiers"
+                    }
+                  }
+                },
+                "additionalProperties": false,
+                "examples": [
+                  {
+                    "tuples": [
+                      {
+                        "resource": {
+                          "type": "folder",
+                          "id": "family_photos"
+                        },
+                        "relation": "owner",
+                        "subject": {
+                          "type": "user",
+                          "id": "toretto"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Ok",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "type": "object",
+                          "properties": {}
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "$ref": "#/components/schemas/pangea-validation-errors"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["authz"]
+      }
+    },
+    "/v1/check": {
+      "post": {
+        "operationId": "authz_post_v1_check",
+        "summary": "Check access",
+        "description": "Check if a subject has permission to do action on the resource.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["resource", "action", "subject"],
+                "properties": {
+                  "resource": {
+                    "$ref": "#/components/schemas/v1-partial_resource"
+                  },
+                  "action": {
+                    "type": "string",
+                    "pattern": "^([a-zA-Z0-9_][a-zA-Z0-9/|_]*)$"
+                  },
+                  "subject": {
+                    "$ref": "#/components/schemas/v1-subject"
+                  },
+                  "debug": {
+                    "type": "boolean",
+                    "description": "In the event of an allowed check, return a path that granted access."
+                  },
+                  "attributes": {
+                    "type": "object",
+                    "description": "A JSON object of attribute data."
+                  }
+                },
+                "additionalProperties": false,
+                "examples": [
+                  {
+                    "resource": {
+                      "type": "folder",
+                      "id": "family_photos"
+                    },
+                    "action": "edit",
+                    "subject": {
+                      "type": "user",
+                      "id": "toretto"
+                    },
+                    "debug": true
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Ok",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "type": "object",
+                          "required": [
+                            "schema_id",
+                            "schema_version",
+                            "allowed",
+                            "depth"
+                          ],
+                          "properties": {
+                            "schema_id": {
+                              "type": "string"
+                            },
+                            "schema_version": {
+                              "type": "integer"
+                            },
+                            "allowed": {
+                              "type": "boolean"
+                            },
+                            "depth": {
+                              "type": "integer"
+                            },
+                            "debug": {
+                              "type": "object",
+                              "properties": {
+                                "path": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "type": {
+                                        "type": "string"
+                                      },
+                                      "id": {
+                                        "type": "string"
+                                      },
+                                      "action": {
+                                        "type": "string"
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "$ref": "#/components/schemas/pangea-validation-errors"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["authz"]
+      }
+    },
+    "/v1/check/bulk": {
+      "post": {
+        "operationId": "authz_post_v1_check_bulk",
+        "summary": "Perform a bulk check request",
+        "description": "Perform multiple checks in a single request to see if a subjects have permission to do actions on the resources.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["checks"],
+                "properties": {
+                  "checks": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 100,
+                    "items": {
+                      "type": "object",
+                      "required": ["resource", "action", "subject"],
+                      "properties": {
+                        "resource": {
+                          "$ref": "#/components/schemas/v1-partial_resource"
+                        },
+                        "action": {
+                          "type": "string",
+                          "pattern": "^([a-zA-Z0-9_][a-zA-Z0-9/|_]*)$"
+                        },
+                        "subject": {
+                          "$ref": "#/components/schemas/v1-subject"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "description": "Check requests to perform, for example:\n```\n[\n  {\n    \"resource\": {\n      \"type\": \"file\",\n      \"id\": \"1\"\n    },\n    \"action\": \"read\",\n    \"subject\": {\n      \"type\": \"user\",\n      \"id\": \"1\"\n    }\n  }\n]\n```",
+                    "examples": [
+                      [
+                        {
+                          "resource": {
+                            "type": "file",
+                            "id": "1"
+                          },
+                          "action": "read",
+                          "subject": {
+                            "type": "user",
+                            "id": "1"
+                          }
+                        }
+                      ]
+                    ]
+                  },
+                  "debug": {
+                    "type": "boolean",
+                    "description": "In the event of an allowed check, return a path that granted access."
+                  },
+                  "attributes": {
+                    "type": "object",
+                    "description": "A JSON object of attribute data."
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Ok",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "type": "object",
+                          "required": [
+                            "schema_id",
+                            "schema_version",
+                            "allowed",
+                            "results"
+                          ],
+                          "properties": {
+                            "schema_id": {
+                              "type": "string"
+                            },
+                            "schema_version": {
+                              "type": "integer"
+                            },
+                            "allowed": {
+                              "type": "boolean"
+                            },
+                            "results": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "required": ["checked", "allowed", "depth"],
+                                "properties": {
+                                  "checked": {
+                                    "type": "string"
+                                  },
+                                  "allowed": {
+                                    "type": "boolean"
+                                  },
+                                  "depth": {
+                                    "type": "integer"
+                                  },
+                                  "debug": {
+                                    "type": "object",
+                                    "properties": {
+                                      "path": {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "object",
+                                          "properties": {
+                                            "type": {
+                                              "type": "string"
+                                            },
+                                            "id": {
+                                              "type": "string"
+                                            },
+                                            "action": {
+                                              "type": "string"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                },
+                                "additionalProperties": false
+                              }
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "$ref": "#/components/schemas/pangea-validation-errors"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["authz"]
+      }
+    },
+    "/v1/list-resources": {
+      "post": {
+        "operationId": "authz_post_v1_list-resources",
+        "summary": "List allowed resources",
+        "description": "Given a type, action, and subject, list all the resources in the namespace that the subject has access to the action with.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["type", "action", "subject"],
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "action": {
+                    "type": "string",
+                    "pattern": "^([a-zA-Z0-9_][a-zA-Z0-9/|_]*)$"
+                  },
+                  "subject": {
+                    "$ref": "#/components/schemas/v1-subject"
+                  },
+                  "attributes": {
+                    "type": "object",
+                    "description": "A JSON object of attribute data."
+                  }
+                },
+                "additionalProperties": false,
+                "examples": [
+                  {
+                    "type": "folder",
+                    "action": "edit",
+                    "subject": {
+                      "type": "user",
+                      "id": "toretto"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Ok",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "type": "object",
+                          "required": ["ids"],
+                          "properties": {
+                            "ids": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "$ref": "#/components/schemas/pangea-validation-errors"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["authz"]
+      }
+    },
+    "/v1/list-subjects": {
+      "post": {
+        "operationId": "authz_post_v1_list-subjects",
+        "summary": "List allowed subjects",
+        "description": "Given a resource and an action, return the list of subjects who have access to the action for the given resource.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["resource", "action"],
+                "properties": {
+                  "resource": {
+                    "$ref": "#/components/schemas/v1-resource"
+                  },
+                  "action": {
+                    "type": "string",
+                    "pattern": "^([a-zA-Z0-9_][a-zA-Z0-9/|_]*)$"
+                  },
+                  "attributes": {
+                    "type": "object",
+                    "description": "A JSON object of attribute data."
+                  },
+                  "debug": {
+                    "type": "boolean",
+                    "description": "Return a path for each found subject."
+                  }
+                },
+                "additionalProperties": false,
+                "examples": [
+                  {
+                    "resource": {
+                      "type": "folder",
+                      "id": "family_photos"
+                    },
+                    "action": "edit"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Ok",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "type": "object",
+                          "required": ["subjects"],
+                          "properties": {
+                            "subjects": {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/components/schemas/v1-subject-with-debug"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "$ref": "#/components/schemas/pangea-validation-errors"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["authz"]
+      }
+    },
+    "/request/{requestId}": {
+      "get": {
+        "operationId": "get_async_request",
+        "summary": "Get an asynchronous request",
+        "description": "Will retrieve the result, or will return 202 if the original request is still in progress",
+        "tags": ["authz"],
+        "parameters": [
+          {
+            "name": "requestId",
+            "in": "path",
+            "description": "The request ID to poll",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Asynchronous request in progress",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "type": "object",
+                          "properties": {
+                            "ttl_mins": {
+                              "type": "integer"
+                            },
+                            "retry_counter": {
+                              "type": "integer"
+                            },
+                            "location": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/pangea-response"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "openapi": "3.1.0",
+  "components": {
+    "schemas": {
+      "pangea-response": {
+        "title": "Response Schema",
+        "description": "Pangea standard response schema",
+        "type": "object",
+        "required": ["request_id", "request_time", "response_time", "status"],
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "description": "A unique identifier assigned to each request made to the API. It is used to track and identify a specific request and its associated data. The `request_id` can be helpful for troubleshooting, auditing, and tracing the flow of requests within the system. It allows users to reference and retrieve information related to a particular request, such as the response, parameters, and raw data associated with that specific request.\n\n```\n\"request_id\":\"prq_x6fdiizbon6j3bsdvnpmwxsz2aan7fqd\"\n```"
+          },
+          "request_time": {
+            "type": "string",
+            "description": "The timestamp indicates the exact moment when a request is made to the API. It represents the date and time at which the request was initiated by the client. The `request_time` is useful for tracking and analyzing the timing of requests, measuring response times, and monitoring performance metrics. It allows users to determine the duration between the request initiation and the corresponding response, aiding in the assessment of API performance and latency.\n\n```\n\"request_time\":\"2022-09-21T17:24:33.105Z\"\n```"
+          },
+          "response_time": {
+            "type": "string",
+            "description": "Duration it takes for the API to process a request and generate a response. It represents the elapsed time from when the request is received by the API to when the corresponding response is returned to the client.\n\n```\n\"response_time\":\"2022-09-21T17:24:34.007Z\"\n```"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["Success"],
+            "description": "It represents the status or outcome of the API request made for IP information. It indicates the current state or condition of the request and provides information on the success or failure of the request.\n\n```\n\"status\":\"success\"\n```"
+          },
+          "summary": {
+            "type": "string",
+            "description": "Provides a concise and brief overview of the purpose or primary objective of the API endpoint. It serves as a high-level summary or description of the functionality or feature offered by the endpoint."
+          },
+          "result": {
+            "type": "object"
+          }
+        },
+        "examples": [
+          {
+            "request_id": "prq_x6fdiizbon6j3bsdvnpmwxsz2aan7fqd",
+            "request_time": "2022-09-21T17:24:33.105Z",
+            "response_time": "2022-09-21T17:24:34.007Z",
+            "status": "success"
+          }
+        ]
+      },
+      "pangea-validation-errors": {
+        "$ref": "#/components/schemas/pangea-response",
+        "required": ["result"],
+        "properties": {
+          "result": {
+            "type": "object",
+            "required": ["errors"],
+            "properties": {
+              "errors": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "required": ["code", "detail", "source"],
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "FieldRequired",
+                        "InvalidString",
+                        "InvalidNumber",
+                        "InvalidInteger",
+                        "InvalidObject",
+                        "InvalidArray",
+                        "InvalidNull",
+                        "InvalidBool",
+                        "BadFormat",
+                        "BadFormatPangeaDuration",
+                        "BadFormatDateTime",
+                        "BadFormatTime",
+                        "BadFormatDate",
+                        "BadFormatEmail",
+                        "BadFormatHostname",
+                        "BadFormatIPv4",
+                        "BadFormatIPv6",
+                        "BadFormatIPAddress",
+                        "BadFormatUUID",
+                        "BadFormatURI",
+                        "BadFormatURIReference",
+                        "BadFormatIRI",
+                        "BadFormatIRIReference",
+                        "BadFormatJSONPointer",
+                        "BadFormatRelativeJSONPointer",
+                        "BadFormatRegex",
+                        "BadFormatJSONPath",
+                        "BadFormatBase64",
+                        "DoesNotMatchPattern",
+                        "DoesNotMatchPatternProperties",
+                        "NotEnumMember",
+                        "AboveMaxLength",
+                        "BelowMinLength",
+                        "AboveMaxItems",
+                        "BelowMinItems",
+                        "NotMultipleOf",
+                        "NotWithinRange",
+                        "UnexpectedProperty",
+                        "InvalidPropertyName",
+                        "AboveMaxProperties",
+                        "BelowMinProperties",
+                        "NotContains",
+                        "ContainsTooMany",
+                        "ContainsTooFew",
+                        "ItemNotUnique",
+                        "UnexpectedAdditionalItem",
+                        "InvalidConst",
+                        "IsDependentOn",
+                        "IsTooBig",
+                        "IsTooSmall",
+                        "ShouldNotBeValid",
+                        "NoUnevaluatedItems",
+                        "NoUnevaluatedProperties",
+                        "DoesNotExist",
+                        "IsReadOnly",
+                        "CannotAddToDefault",
+                        "MustProvideOne",
+                        "MutuallyExclusive",
+                        "BadState",
+                        "InaccessibleURI",
+                        "ProviderDisabled",
+                        "ConfigProjectMismatch",
+                        "ConfigServiceMismatch",
+                        "ConfigNotExist"
+                      ]
+                    },
+                    "detail": {
+                      "type": "string",
+                      "description": "Human readable description of the error"
+                    },
+                    "source": {
+                      "type": "string",
+                      "description": "Path to the data source of the error",
+                      "format": "json-pointer"
+                    },
+                    "path": {
+                      "type": "string",
+                      "description": "The Schema path where the error ocurred",
+                      "format": "json-pointer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "schema": {
+        "type": "object",
+        "required": ["id", "name", "version", "schema"],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/authz-schema-id"
+          },
+          "name": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer"
+          },
+          "schema": {
+            "type": "string"
+          },
+          "metadata": {
+            "type": "object"
+          }
+        }
+      },
+      "pangea-service-config-id": {
+        "type": "string",
+        "description": "An ID for a service config",
+        "pattern": "^pci_[a-z2-7]{32}$",
+        "examples": ["pci_wuk7tvtpswyjtlsx52b7yyi2l7zotv4a"]
+      },
+      "authz-resource-id": {
+        "type": "string",
+        "description": "An ID for a resource",
+        "pattern": "^pro_[a-z2-7]{32}$",
+        "examples": ["pro_wuk7tvtpswyjtlsx52b7yyi2l7zotv4a"]
+      },
+      "authz-schema-id": {
+        "type": "string",
+        "description": "An authorization schema ID",
+        "pattern": "^pzs_[a-z2-7]{32}$",
+        "examples": ["pro_wuk7tvtpswyjtlsx52b7yyi2l7zotv4a"]
+      },
+      "authz-timestamp": {
+        "type": "string",
+        "description": "A time in ISO-8601 format",
+        "examples": ["2022-10-01T19:07:31.314Z"],
+        "format": "date-time"
+      },
+      "connections-config": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "authn": {
+            "type": "object",
+            "properties": {
+              "enforce_groups": {
+                "type": "boolean"
+              },
+              "config_id": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "authz-service-config-creation": {
+        "type": "object",
+        "description": "AuthZ service configuration",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "updated_at": {
+            "$ref": "#/components/schemas/authz-timestamp"
+          },
+          "permission_pool_rid": {
+            "$ref": "#/components/schemas/authz-resource-id"
+          },
+          "primary_default_schema": {
+            "$ref": "#/components/schemas/authz-schema-id"
+          },
+          "audit_decision_activity": {
+            "type": "object",
+            "properties": {
+              "areas": {
+                "type": "object",
+                "properties": {
+                  "allowed_checks": {
+                    "type": "boolean"
+                  },
+                  "denied_checks": {
+                    "type": "boolean"
+                  }
+                }
+              },
+              "audit_service_config_id": {
+                "$ref": "#/components/schemas/pangea-service-config-id"
+              },
+              "enabled": {
+                "type": "boolean"
+              }
+            }
+          },
+          "connections": {
+            "$ref": "#/components/schemas/connections-config"
+          }
+        }
+      },
+      "authz-service-config": {
+        "$ref": "#/components/schemas/authz-service-config-creation",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/pangea-service-config-id"
+          },
+          "updated_at": {
+            "$ref": "#/components/schemas/authz-timestamp"
+          }
+        }
+      },
+      "authz-permissionpool-resource-config": {
+        "type": "object",
+        "description": "AuthZ permission pool configuration",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/authz-resource-id"
+          },
+          "name": {
+            "type": "string"
+          },
+          "updated_at": {
+            "$ref": "#/components/schemas/authz-timestamp"
+          }
+        }
+      },
+      "tuple": {
+        "type": "object",
+        "required": ["resource", "relation", "subject"],
+        "properties": {
+          "resource": {
+            "$ref": "#/components/schemas/partial_resource"
+          },
+          "relation": {
+            "type": "string",
+            "pattern": "^([a-zA-Z0-9_][a-zA-Z0-9/|_]*)$"
+          },
+          "subject": {
+            "$ref": "#/components/schemas/subject"
+          },
+          "expires_at": {
+            "$ref": "#/components/schemas/authz-timestamp"
+          },
+          "attributes": {
+            "type": "object",
+            "description": "A JSON object of attribute data."
+          }
+        },
+        "additionalProperties": false
+      },
+      "tuple-identifiers": {
+        "type": "object",
+        "required": ["resource", "relation", "subject"],
+        "properties": {
+          "resource": {
+            "$ref": "#/components/schemas/partial_resource"
+          },
+          "relation": {
+            "type": "string",
+            "pattern": "^([a-zA-Z0-9_][a-zA-Z0-9/|_]*)$"
+          },
+          "subject": {
+            "$ref": "#/components/schemas/subject"
+          }
+        },
+        "additionalProperties": false
+      },
+      "v1-tuple": {
+        "type": "object",
+        "required": ["resource", "relation", "subject"],
+        "properties": {
+          "resource": {
+            "$ref": "#/components/schemas/v1-partial_resource"
+          },
+          "relation": {
+            "type": "string",
+            "pattern": "^([a-zA-Z0-9_][a-zA-Z0-9/|_]*)$"
+          },
+          "subject": {
+            "$ref": "#/components/schemas/v1-subject"
+          },
+          "expires_at": {
+            "$ref": "#/components/schemas/authz-timestamp"
+          },
+          "attributes": {
+            "type": "object",
+            "description": "A JSON object of attribute data."
+          }
+        },
+        "additionalProperties": false
+      },
+      "v1-tuple-identifiers": {
+        "type": "object",
+        "required": ["resource", "relation", "subject"],
+        "properties": {
+          "resource": {
+            "$ref": "#/components/schemas/v1-partial_resource"
+          },
+          "relation": {
+            "type": "string",
+            "pattern": "^([a-zA-Z0-9_][a-zA-Z0-9/|_]*)$"
+          },
+          "subject": {
+            "$ref": "#/components/schemas/v1-subject"
+          },
+          "expires_at": {
+            "$ref": "#/components/schemas/authz-timestamp"
+          }
+        },
+        "additionalProperties": false
+      },
+      "attribute_data": {
+        "type": "object",
+        "required": ["namespace", "id", "attributes"],
+        "properties": {
+          "namespace": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string",
+            "pattern": "^([a-zA-Z0-9_][a-zA-Z0-9/|_.@-]*)$"
+          },
+          "attributes": {
+            "type": "object",
+            "description": "A JSON object of attribute data."
+          }
+        },
+        "additionalProperties": false
+      },
+      "v1-attribute_data": {
+        "type": "object",
+        "required": ["type", "id", "attributes"],
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string",
+            "pattern": "^([a-zA-Z0-9_][a-zA-Z0-9/|_.@-]*)$"
+          },
+          "attributes": {
+            "type": "object",
+            "description": "A JSON object of attribute data."
+          }
+        },
+        "additionalProperties": false
+      },
+      "resource": {
+        "type": "object",
+        "required": ["namespace", "id"],
+        "properties": {
+          "namespace": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string",
+            "pattern": "^([a-zA-Z0-9_][a-zA-Z0-9/|_.@-]*)$"
+          }
+        },
+        "additionalProperties": false
+      },
+      "v1-resource": {
+        "type": "object",
+        "required": ["type", "id"],
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string",
+            "pattern": "^([a-zA-Z0-9_][a-zA-Z0-9/|_.@-]*)$"
+          }
+        },
+        "additionalProperties": false
+      },
+      "partial_resource": {
+        "type": "object",
+        "required": ["namespace"],
+        "properties": {
+          "namespace": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string",
+            "pattern": "^([a-zA-Z0-9_][a-zA-Z0-9/|_.@-]*)$"
+          }
+        },
+        "additionalProperties": false
+      },
+      "v1-partial_resource": {
+        "type": "object",
+        "required": ["type"],
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "subject": {
+        "type": "object",
+        "required": ["namespace", "id"],
+        "properties": {
+          "namespace": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string",
+            "pattern": "^([a-zA-Z0-9_][a-zA-Z0-9/|_.@-]*)$"
+          },
+          "action": {
+            "type": "string",
+            "pattern": "^([a-zA-Z0-9_][a-zA-Z0-9/|_]*)$"
+          }
+        },
+        "additionalProperties": false
+      },
+      "v1-subject": {
+        "type": "object",
+        "required": ["type", "id"],
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string",
+            "pattern": "^([a-zA-Z0-9_][a-zA-Z0-9/|_.@-]*)$"
+          },
+          "action": {
+            "type": "string",
+            "pattern": "^([a-zA-Z0-9_][a-zA-Z0-9/|_]*)$"
+          }
+        },
+        "additionalProperties": false
+      },
+      "v1-subject-with-debug": {
+        "type": "object",
+        "required": ["type", "id"],
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string",
+            "pattern": "^([a-zA-Z0-9_][a-zA-Z0-9/|_.@-]*)$"
+          },
+          "debug": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "action": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "authz-filter-tuples": {
+        "additionalProperties": false,
+        "description": "List or filter/search records.",
+        "properties": {
+          "schema_id": {
+            "type": "string"
+          },
+          "filter": {
+            "patternProperties": {
+              "^attributes_([A-Za-z]+)$": {
+                "description": "Only records where attributes field equals this value.",
+                "type": "string"
+              },
+              "^attributes_([A-Za-z]+)__contains$": {
+                "description": "Only records where attributes field contains one of these substrings.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "^attributes_([A-Za-z]+)__exists$": {
+                "description": "Only records where attributes field exists (true) or doesn't (false).",
+                "type": "boolean"
+              }
+            },
+            "properties": {
+              "resource_namespace": {
+                "description": "Only records where resource namespace equals this value.",
+                "nullable": false,
+                "type": "string"
+              },
+              "resource_namespace__contains": {
+                "description": "Only records where resource namespace includes each substring.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "resource_namespace__in": {
+                "description": "Only records where resource namespace equals one of the provided substrings.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "resource_id": {
+                "description": "Only records where resource id equals this value.",
+                "nullable": false,
+                "type": "string"
+              },
+              "resource_id__contains": {
+                "description": "Only records where resource id includes each substring.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "resource_id__in": {
+                "description": "Only records where resource id equals one of the provided substrings.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "relation": {
+                "description": "Only records where relation equals this value.",
+                "nullable": false,
+                "type": "string"
+              },
+              "relation__contains": {
+                "description": "Only records where relation includes each substring.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "relation__in": {
+                "description": "Only records where relation equals one of the provided substrings.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "subject_namespace": {
+                "description": "Only records where subject namespace equals this value.",
+                "nullable": false,
+                "type": "string"
+              },
+              "subject_namespace__contains": {
+                "description": "Only records where subject namespace includes each substring.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "subject_namespace__in": {
+                "description": "Only records where subject namespace equals one of the provided substrings.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "subject_id": {
+                "description": "Only records where subject id equals this value.",
+                "nullable": false,
+                "type": "string"
+              },
+              "subject_id__contains": {
+                "description": "Only records where subject id includes each substring.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "subject_id__in": {
+                "description": "Only records where subject id equals one of the provided substrings.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "subject_action": {
+                "description": "Only records where subject action equals this value.",
+                "nullable": false,
+                "type": "string"
+              },
+              "subject_action__contains": {
+                "description": "Only records where subject action includes each substring.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "subject_action__in": {
+                "description": "Only records where subject action equals one of the provided substrings.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "expires_at": {
+                "description": "Only records where expires_at equals this value.",
+                "format": "date-time",
+                "nullable": false,
+                "type": "string"
+              },
+              "expires_at__gt": {
+                "description": "Only records where expires_at is greater than this value.",
+                "format": "date-time",
+                "type": "string"
+              },
+              "expires_at__gte": {
+                "description": "Only records where expires_at is greater than or equal to this value.",
+                "format": "date-time",
+                "type": "string"
+              },
+              "expires_at__lt": {
+                "description": "Only records where expires_at is less than this value.",
+                "format": "date-time",
+                "type": "string"
+              },
+              "expires_at__lte": {
+                "description": "Only records where expires_at is less than or equal to this value.",
+                "format": "date-time",
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "last": {
+            "description": "Reflected value from a previous response to obtain the next page of results.",
+            "type": "string"
+          },
+          "order": {
+            "description": "Order results asc(ending) or desc(ending).",
+            "enum": ["asc", "desc"],
+            "type": "string"
+          },
+          "order_by": {
+            "description": "Which field to order results by.",
+            "enum": [
+              "resource_namespace",
+              "resource_id",
+              "relation",
+              "subject_namespace",
+              "subject_id",
+              "subject_action"
+            ],
+            "type": "string"
+          },
+          "size": {
+            "description": "Maximum results to include in the response.",
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [],
+        "type": "object"
+      },
+      "authz-filter-v1-tuples": {
+        "additionalProperties": false,
+        "description": "List or filter/search records.",
+        "properties": {
+          "schema_id": {
+            "type": "string"
+          },
+          "filter": {
+            "patternProperties": {
+              "^attributes_([A-Za-z]+)$": {
+                "description": "Only records where attributes field equals this value.",
+                "type": "string"
+              },
+              "^attributes_([A-Za-z]+)__contains$": {
+                "description": "Only records where attributes field contains one of these substrings.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "^attributes_([A-Za-z]+)__exists$": {
+                "description": "Only records where attributes field exists (true) or doesn't (false).",
+                "type": "boolean"
+              }
+            },
+            "properties": {
+              "resource_type": {
+                "description": "Only records where resource type equals this value.",
+                "nullable": false,
+                "type": "string"
+              },
+              "resource_type__contains": {
+                "description": "Only records where resource type includes each substring.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "resource_type__in": {
+                "description": "Only records where resource type equals one of the provided substrings.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "resource_id": {
+                "description": "Only records where resource id equals this value.",
+                "nullable": false,
+                "type": "string"
+              },
+              "resource_id__contains": {
+                "description": "Only records where resource id includes each substring.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "resource_id__in": {
+                "description": "Only records where resource id equals one of the provided substrings.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "relation": {
+                "description": "Only records where relation equals this value.",
+                "nullable": false,
+                "type": "string"
+              },
+              "relation__contains": {
+                "description": "Only records where relation includes each substring.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "relation__in": {
+                "description": "Only records where relation equals one of the provided substrings.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "subject_type": {
+                "description": "Only records where subject type equals this value.",
+                "nullable": false,
+                "type": "string"
+              },
+              "subject_type__contains": {
+                "description": "Only records where subject type includes each substring.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "subject_type__in": {
+                "description": "Only records where subject type equals one of the provided substrings.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "subject_id": {
+                "description": "Only records where subject id equals this value.",
+                "nullable": false,
+                "type": "string"
+              },
+              "subject_id__contains": {
+                "description": "Only records where subject id includes each substring.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "subject_id__in": {
+                "description": "Only records where subject id equals one of the provided substrings.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "subject_action": {
+                "description": "Only records where subject action equals this value.",
+                "nullable": false,
+                "type": "string"
+              },
+              "subject_action__contains": {
+                "description": "Only records where subject action includes each substring.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "subject_action__in": {
+                "description": "Only records where subject action equals one of the provided substrings.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "expires_at": {
+                "description": "Only records where expires_at equals this value.",
+                "format": "date-time",
+                "nullable": false,
+                "type": "string"
+              },
+              "expires_at__gt": {
+                "description": "Only records where expires_at is greater than this value.",
+                "format": "date-time",
+                "type": "string"
+              },
+              "expires_at__gte": {
+                "description": "Only records where expires_at is greater than or equal to this value.",
+                "format": "date-time",
+                "type": "string"
+              },
+              "expires_at__lt": {
+                "description": "Only records where expires_at is less than this value.",
+                "format": "date-time",
+                "type": "string"
+              },
+              "expires_at__lte": {
+                "description": "Only records where expires_at is less than or equal to this value.",
+                "format": "date-time",
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "last": {
+            "description": "Reflected value from a previous response to obtain the next page of results.",
+            "type": "string"
+          },
+          "order": {
+            "description": "Order results asc(ending) or desc(ending).",
+            "enum": ["asc", "desc"],
+            "type": "string"
+          },
+          "order_by": {
+            "description": "Which field to order results by.",
+            "enum": [
+              "resource_type",
+              "resource_id",
+              "relation",
+              "subject_type",
+              "subject_id",
+              "subject_action"
+            ],
+            "type": "string"
+          },
+          "size": {
+            "description": "Maximum results to include in the response.",
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [],
+        "type": "object"
+      },
+      "authz-filter-data": {
+        "additionalProperties": false,
+        "description": "List or filter/search records.",
+        "properties": {
+          "schema_id": {
+            "type": "string"
+          },
+          "filter": {
+            "patternProperties": {
+              "^attributes_([A-Za-z]+)$": {
+                "description": "Only records where attributes field equals this value.",
+                "type": "string"
+              },
+              "^attributes_([A-Za-z]+)__contains$": {
+                "description": "Only records where attributes field contains one of these substrings.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "^attributes_([A-Za-z]+)__exists$": {
+                "description": "Only records where attributes field exists (true) or doesn't (false).",
+                "type": "boolean"
+              }
+            },
+            "properties": {
+              "object_namespace": {
+                "description": "Only records where object namespace equals this value.",
+                "nullable": false,
+                "type": "string"
+              },
+              "object_namespace__contains": {
+                "description": "Only records where object namespace includes each substring.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "object_namespace__in": {
+                "description": "Only records where object namespace equals one of the provided substrings.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "object_id": {
+                "description": "Only records where object id equals this value.",
+                "nullable": false,
+                "type": "string"
+              },
+              "object_id__contains": {
+                "description": "Only records where object id includes each substring.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "object_id__in": {
+                "description": "Only records where object id equals one of the provided substrings.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            },
+            "type": "object"
+          },
+          "last": {
+            "description": "Reflected value from a previous response to obtain the next page of results.",
+            "type": "string"
+          },
+          "order": {
+            "description": "Order results asc(ending) or desc(ending).",
+            "enum": ["asc", "desc"],
+            "type": "string"
+          },
+          "order_by": {
+            "description": "Which field to order results by.",
+            "enum": ["object_namespace"],
+            "type": "string"
+          },
+          "size": {
+            "description": "Maximum results to include in the response.",
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [],
+        "type": "object"
+      },
+      "authz-filter-v1-data": {
+        "additionalProperties": false,
+        "description": "List or filter/search records.",
+        "properties": {
+          "schema_id": {
+            "type": "string"
+          },
+          "filter": {
+            "patternProperties": {
+              "^attributes_([A-Za-z]+)$": {
+                "description": "Only records where attributes field equals this value.",
+                "type": "string"
+              },
+              "^attributes_([A-Za-z]+)__contains$": {
+                "description": "Only records where attributes field contains one of these substrings.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "^attributes_([A-Za-z]+)__exists$": {
+                "description": "Only records where attributes field exists (true) or doesn't (false).",
+                "type": "boolean"
+              }
+            },
+            "properties": {
+              "object_type": {
+                "description": "Only records where object type equals this value.",
+                "nullable": false,
+                "type": "string"
+              },
+              "object_type__contains": {
+                "description": "Only records where object type includes each substring.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "object_type__in": {
+                "description": "Only records where object type equals one of the provided substrings.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "object_id": {
+                "description": "Only records where object id equals this value.",
+                "nullable": false,
+                "type": "string"
+              },
+              "object_id__contains": {
+                "description": "Only records where object id includes each substring.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "object_id__in": {
+                "description": "Only records where object id equals one of the provided substrings.",
+                "items": {
+                  "description": "A substring to check for.",
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            },
+            "type": "object"
+          },
+          "last": {
+            "description": "Reflected value from a previous response to obtain the next page of results.",
+            "type": "string"
+          },
+          "order": {
+            "description": "Order results asc(ending) or desc(ending).",
+            "enum": ["asc", "desc"],
+            "type": "string"
+          },
+          "order_by": {
+            "description": "Which field to order results by.",
+            "enum": ["object_type"],
+            "type": "string"
+          },
+          "size": {
+            "description": "Maximum results to include in the response.",
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [],
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "APIToken": {
+        "type": "http",
+        "bearerFormat": "token",
+        "description": "Pangea API Token",
+        "scheme": "bearer"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "authz",
+      "description": "Authorization as a service"
+    }
+  ]
+}

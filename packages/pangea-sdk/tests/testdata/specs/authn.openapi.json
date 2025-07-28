@@ -4286,6 +4286,7 @@
       "authn-duration-seconds": {
         "type": "integer",
         "description": "A positive time duration in seconds",
+        "minimum": 1,
         "exclusiveMinimum": 0,
         "examples": [86400]
       },

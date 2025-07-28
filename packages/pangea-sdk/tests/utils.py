@@ -3,7 +3,8 @@ from __future__ import annotations
 import sys
 import traceback
 import typing
-from typing import TYPE_CHECKING, Any, cast
+from datetime import datetime
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 import typing_extensions
 from pydantic import BaseModel
@@ -102,9 +103,13 @@ def assert_matches_type(
         assert isinstance(value, bool)
     elif origin is float:
         assert isinstance(value, float)
+    elif origin == datetime:
+        assert isinstance(value, datetime)
     elif origin is object:
         # Expected unknown type.
         pass
+    elif origin == Literal:
+        assert value in get_args(type_)
     elif origin is dict:
         assert is_dict(value)
 

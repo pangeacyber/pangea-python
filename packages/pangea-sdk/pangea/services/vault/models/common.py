@@ -23,8 +23,7 @@ EncodedPrivateKey = NewType("EncodedPrivateKey", str)
 EncodedSymmetricKey = NewType("EncodedSymmetricKey", str)
 
 
-Metadata = NewType("Metadata", Dict[str, str])
-Tags = NewType("Tags", List[str])
+Tags = list[str]
 
 
 class ItemOrder(str, enum.Enum):
@@ -169,7 +168,7 @@ class ItemData(PangeaResponseResult):
     current_version: Optional[ItemVersion] = None
     name: Optional[str] = None
     folder: Optional[str] = None
-    metadata: Optional[Metadata] = None
+    metadata: Optional[dict[str, str]] = None
     tags: Optional[Tags] = None
     rotation_frequency: Optional[str] = None
     rotation_state: Optional[str] = None
@@ -197,7 +196,7 @@ class Key(PangeaResponseResult):
     current_version: Optional[ItemVersion] = None
     name: str
     folder: str
-    metadata: Optional[Metadata] = None
+    metadata: Optional[dict[str, str]] = None
     tags: Optional[Tags] = None
     rotation_frequency: str
     rotation_state: RotationState
@@ -223,7 +222,7 @@ class Secret(PangeaResponseResult):
     enabled: bool
     name: str
     folder: str
-    metadata: Optional[Metadata] = None
+    metadata: Optional[dict[str, str]] = None
     tags: Optional[Tags] = None
     expiration: Optional[str] = None
     created_at: str
@@ -237,7 +236,7 @@ class ClientSecret(PangeaResponseResult):
     enabled: bool
     name: str
     folder: str
-    metadata: Metadata
+    metadata: dict[str, str]
     tags: Tags
     expiration: str
     created_at: str
@@ -254,7 +253,7 @@ class Folder(PangeaResponseResult):
     type: Literal[ItemType.FOLDER] = ItemType.FOLDER
     name: str
     folder: str
-    metadata: Metadata
+    metadata: dict[str, str]
     tags: Tags
     created_at: str
     inherited_settings: InheritedSettings
@@ -267,7 +266,7 @@ class ListItemData(PangeaResponseResult):
     folder: str
     created_at: str
     tags: Optional[Tags] = None
-    metadata: Optional[Metadata] = None
+    metadata: Optional[dict[str, str]] = None
     last_rotated: Optional[str] = None
     next_rotation: Optional[str] = None
     disabled_at: Optional[str] = None
@@ -325,7 +324,7 @@ class UpdateRequest(APIRequestModel):
     id: str
     name: Optional[str] = None
     folder: Optional[str] = None
-    metadata: Optional[Metadata] = None
+    metadata: Optional[Mapping[str, str]] = None
     tags: Optional[Tags] = None
     disabled_at: Optional[str] = None
     enabled: Optional[bool] = None
@@ -410,7 +409,7 @@ class StateChangeResult(PangeaResponseResult):
 class FolderCreateRequest(APIRequestModel):
     name: str
     folder: str
-    metadata: Optional[Metadata] = None
+    metadata: Optional[Mapping[str, str]] = None
     tags: Optional[Tags] = None
     rotation_frequency: Optional[str] = None
     rotation_state: Optional[RequestRotationState] = None
@@ -431,7 +430,7 @@ class FolderCreateResult(PangeaResponseResult):
     folder: str
     """The folder where this item is stored."""
 
-    metadata: Optional[Metadata] = None
+    metadata: Optional[dict[str, str]] = None
     """User-provided metadata."""
 
     tags: Optional[Tags] = None
@@ -680,7 +679,7 @@ class PangeaToken(PangeaResponseResult):
 
     item_versions: List[PangeaTokenVersion]
 
-    metadata: Optional[Metadata] = None
+    metadata: Optional[dict[str, str]] = None
     """Metadata provided by the user."""
 
     num_versions: int

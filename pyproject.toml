@@ -12,14 +12,14 @@ dependencies = []
 repository = "https://github.com/pangeacyber/pangea-python"
 
 [build-system]
-requires = ["pdm-backend==2.4.4"]
+requires = ["pdm-backend==2.4.5"]
 build-backend = "pdm.backend"
 
 [tool.poetry]
 package-mode = false
 
 [tool.poetry.group.lint.dependencies]
-ruff = "0.11.13"
+ruff = "0.12.5"
 
 [tool.poetry.group.dev.dependencies]
 pangea-django = { path = "./packages/pangea-django", develop = true }

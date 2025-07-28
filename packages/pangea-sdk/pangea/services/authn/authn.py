@@ -438,7 +438,7 @@ class AuthN(ServiceBase):
             ):
                 super().__init__(token, config, logger_name=logger_name)
 
-            def check(self, token: str) -> PangeaResponse[m.ClientTokenCheckResult]:
+            def check(self, token: m.Token) -> PangeaResponse[m.ClientTokenCheckResult]:
                 """
                 Check a token
 
@@ -447,7 +447,7 @@ class AuthN(ServiceBase):
                 OperationId: authn_post_v2_client_token_check
 
                 Args:
-                    token (str): A token value
+                    token: A token value
 
                 Returns:
                     A PangeaResponse with a token and its information in the response.result field.
@@ -459,10 +459,7 @@ class AuthN(ServiceBase):
                         token="ptu_wuk7tvtpswyjtlsx52b7yyi2l7zotv4a",
                     )
                 """
-                input = m.ClientTokenCheckRequest(token=token)
-                return self.request.post(
-                    "v2/client/token/check", m.ClientTokenCheckResult, data=input.model_dump(exclude_none=True)
-                )
+                return self.request.post("v2/client/token/check", m.ClientTokenCheckResult, data={"token": token})
 
     class User(ServiceBase):
         service_name = _SERVICE_NAME

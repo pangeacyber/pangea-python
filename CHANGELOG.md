@@ -11,10 +11,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - AI Guard: multimodal guard.
 
+## 6.3.0 - 2025-07-17
+
+### Added
+
+- AuthZ: bulk check endpoint.
+
+### Changed
+
+- AuthN: modernized models around token check.
+- AuthZ: modernized models around tuples.
+- Vault: simplified `metadata` and `tags`.
+
+## 6.2.0 - 2025-06-25
+
 ### Changed
 
 - AI Guard: `messages` parameter is no longer a generic. A new `Message` model
   has been introduced, and `messages` is now a `Sequence[Message]`.
+- Audit: event data's `hash` is now optional.
 
 ## 6.2.0beta2 - 2025-05-22
 
