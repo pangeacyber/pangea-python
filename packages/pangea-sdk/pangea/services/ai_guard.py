@@ -3,8 +3,8 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from typing import Annotated, Any, Generic, Literal, Optional, Union, overload
 
-from pydantic import AnyUrl, BaseModel, ConfigDict, Field, RootModel
-from typing_extensions import TypeVar
+from pydantic import BaseModel, ConfigDict, Field, RootModel
+from typing_extensions import TypeAlias, TypedDict, TypeVar
 
 from pangea.config import PangeaConfig
 from pangea.response import APIRequestModel, APIResponseModel, PangeaDateTime, PangeaResponse, PangeaResponseResult
@@ -24,21 +24,6 @@ PiiEntityAction = Literal["disabled", "report", "block", "mask", "partial_maskin
 class Message(APIRequestModel):
     role: str
     content: str
-
-
-class TextContent(APIRequestModel):
-    type: Literal["text"]
-    text: str
-
-
-class ImageContent(APIRequestModel):
-    type: Literal["image"]
-    image_src: AnyUrl
-
-
-class MultimodalMessage(APIRequestModel):
-    role: str
-    content: Union[str, list[Annotated[Union[TextContent, ImageContent], Field(discriminator="type")]]]
 
 
 class CodeDetectionOverride(APIRequestModel):
@@ -346,6 +331,51 @@ class TextGuardResult(PangeaResponseResult):
     """Whether or not the original input was transformed."""
 
 
+class GuardDetectors(APIResponseModel):
+    code: Optional[object] = None
+    competitors: Optional[object] = None
+    confidential_and_pii_entity: Optional[object] = None
+    custom_entity: Optional[object] = None
+    language: Optional[object] = None
+    malicious_entity: Optional[object] = None
+    malicious_prompt: Optional[object] = None
+    prompt_hardening: Optional[object] = None
+    secret_and_key_entity: Optional[object] = None
+    topic: Optional[object] = None
+
+
+class GuardResult(PangeaResponseResult):
+    detectors: GuardDetectors
+    """Result of the recipe analyzing and input prompt."""
+
+    access_rules: Optional[object] = None
+    """Result of the recipe evaluating configured rules"""
+
+    blocked: Optional[bool] = None
+    """Whether or not the prompt triggered a block detection."""
+
+    fpe_context: Optional[str] = None
+    """
+    If an FPE redaction method returned results, this will be the context passed
+    to unredact.
+    """
+
+    input_token_count: Optional[float] = None
+    """Number of tokens counted in the input"""
+
+    output: Optional[object] = None
+    """Updated structured prompt."""
+
+    output_token_count: Optional[float] = None
+    """Number of tokens counted in the output"""
+
+    recipe: Optional[str] = None
+    """The Recipe that was used."""
+
+    transformed: Optional[bool] = None
+    """Whether or not the original input was transformed."""
+
+
 class Areas(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -462,9 +492,7 @@ class PartialMasking(BaseModel):
     masking_char: Annotated[Optional[str], Field(max_length=1, min_length=1)] = "*"
 
 
-class RuleRedactionConfig1(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-
+class RuleRedactionConfig1(APIResponseModel):
     redaction_type: Literal[
         "mask",
         "partial_masking",
@@ -475,6 +503,7 @@ class RuleRedactionConfig1(BaseModel):
         "mask",
         "detect_only",
     ]
+    """Redaction method to apply for this rule"""
     redaction_value: Optional[str] = None
     partial_masking: Optional[PartialMasking] = None
     hash: Optional[Hash] = None
@@ -620,9 +649,12 @@ class RuleRedactionConfig5(BaseModel):
     ] = None
 
 
-class Rule(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+class Rule(APIResponseModel):
     redact_rule_id: str
+    """
+    Identifier of the redaction rule to apply. This should match a rule defined
+    in the [Redact service](https://pangea.cloud/docs/redact/using-redact/using-redact).
+    """
     redaction: Union[
         RuleRedactionConfig1,
         RuleRedactionConfig2,
@@ -630,10 +662,37 @@ class Rule(BaseModel):
         RuleRedactionConfig4,
         RuleRedactionConfig5,
     ]
+    """
+    Configuration for the redaction method applied to detected values.
+
+    Each rule supports one redaction type, such as masking, replacement,
+    hashing, Format-Preserving Encryption (FPE), or detection-only mode.
+    Additional parameters may be required depending on the selected redaction
+    type.
+
+    For more details, see the [AI Guard Recipe Actions](https://pangea.cloud/docs/ai-guard/recipes#actions)
+    documentation.
+    """
     block: Optional[bool] = None
+    """
+    If `true`, indicates that further processing should be stopped when this
+    rule is triggered
+    """
     disabled: Optional[bool] = None
+    """
+    If `true`, disables this specific rule even if the detector is enabled
+    """
     reputation_check: Optional[bool] = None
+    """
+    If `true`, performs a reputation check using the configured intel provider.
+    Applies to the Malicious Entity detector when using IP, URL, or Domain Intel
+    services.
+    """
     transform_if_malicious: Optional[bool] = None
+    """
+    If `true`, applies redaction or transformation when the detected value is
+    determined to be malicious by intel analysis
+    """
 
 
 class Settings(BaseModel):
@@ -658,20 +717,46 @@ class ConnectorSettings(BaseModel):
     redact: Optional[RedactConnectorSettings] = None
 
 
-class RecipeConfig(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+class AccessRuleSettings(APIResponseModel):
+    """
+    Configuration for an individual access rule used in an AI Guard recipe. Each
+    rule defines its matching logic and the action to apply when the logic
+    evaluates to true.
+    """
 
+    rule_key: Annotated[str, Field(pattern="^([a-zA-Z0-9_][a-zA-Z0-9/|_]*)$")]
+    """
+    Unique identifier for this rule. Should be user-readable and consistent
+    across recipe updates.
+    """
     name: str
+    """Display label for the rule shown in user interfaces."""
+    state: Literal["block", "report"]
+    """
+    Action to apply if the rule matches. Use 'block' to stop further processing
+    or 'report' to simply log the match.
+    """
+
+
+class RecipeConfig(APIResponseModel):
+    name: str
+    """Human-readable name of the recipe"""
     description: str
-    version: Optional[str] = ""
+    """Detailed description of the recipe's purpose or use case"""
+    version: Optional[str] = "v1"
+    """Optional version identifier for the recipe. Can be used to track changes."""
     detectors: Optional[list[DetectorSetting]] = None
     """Setting for Detectors"""
+    access_rules: Optional[list[AccessRuleSettings]] = None
+    """Configuration for access rules used in an AI Guard recipe."""
     connector_settings: Optional[ConnectorSettings] = None
 
 
 class ServiceConfig(PangeaResponseResult):
     id: Optional[str] = None
+    """ID of an AI Guard service configuration"""
     name: Optional[str] = None
+    """Human-readable name of the AI Guard service configuration"""
     audit_data_activity: Optional[AuditDataActivityConfig] = None
     connections: Optional[ConnectionsConfig] = None
     recipes: Optional[dict[str, RecipeConfig]] = None
@@ -743,6 +828,40 @@ class ServiceConfigsPage(PangeaResponseResult):
     repeated request's last parameter.
     """
     items: Optional[list[ServiceConfig]] = None
+
+
+class ExtraInfoTyped(TypedDict, total=False):
+    """(AIDR) Logging schema."""
+
+    app_name: str
+    """Name of source application."""
+
+    app_group: str
+    """The group of source application."""
+
+    app_version: str
+    """Version of the source application."""
+
+    actor_name: str
+    """Name of subject actor."""
+
+    actor_group: str
+    """The group of subject actor."""
+
+    source_region: str
+    """Geographic region or data center."""
+
+    data_sensitivity: str
+    """Sensitivity level of data involved"""
+
+    customer_tier: str
+    """Tier of the user or organization"""
+
+    use_case: str
+    """Business-specific use case"""
+
+
+ExtraInfo: TypeAlias = Union[ExtraInfoTyped, dict[str, object]]
 
 
 class AIGuard(ServiceBase):
@@ -908,11 +1027,13 @@ class AIGuard(ServiceBase):
 
     def guard(
         self,
-        messages: Sequence[MultimodalMessage],
+        input: Mapping[str, Any],
+        *,
         recipe: str | None = None,
         debug: bool | None = None,
         overrides: Overrides | None = None,
-        app_name: str | None = None,
+        app_id: str | None = None,
+        actor_id: str | None = None,
         llm_provider: str | None = None,
         model: str | None = None,
         model_version: str | None = None,
@@ -921,9 +1042,11 @@ class AIGuard(ServiceBase):
         source_ip: str | None = None,
         source_location: str | None = None,
         tenant_id: str | None = None,
-        sensor_mode: str | None = None,
-        context: Mapping[str, Any] | None = None,
-    ) -> PangeaResponse[TextGuardResult]:
+        event_type: Literal["input", "output"] | None = None,
+        sensor_instance_id: str | None = None,
+        extra_info: ExtraInfo | None = None,
+        count_tokens: bool | None = None,
+    ) -> PangeaResponse[GuardResult]:
         """
         Guard LLM input and output
 
@@ -933,7 +1056,10 @@ class AIGuard(ServiceBase):
         OperationId: ai_guard_post_v1beta_guard
 
         Args:
-            messages: Prompt content and role array in JSON format. The `content` is the multimodal text or image input that will be analyzed.
+            input: 'messages' (required) contains Prompt content and role array
+                in JSON format. The `content` is the multimodal text or image
+                input that will be analyzed. Additional properties such as
+                'tools' may be provided for analysis.
             recipe: Recipe key of a configuration of data types and settings defined in the Pangea User Console. It specifies the rules that are to be applied to the text, such as defang malicious URLs.
             debug: Setting this value to true will provide a detailed analysis of the text data
             app_name: Name of source application.
@@ -945,18 +1071,21 @@ class AIGuard(ServiceBase):
             source_ip: IP address of user or app or agent.
             source_location: Location of user or app or agent.
             tenant_id: For gateway-like integrations with multi-tenant support.
-            sensor_mode: (AIDR) sensor mode.
-            context: (AIDR) Logging schema.
+            event_type: (AIDR) Event Type.
+            sensor_instance_id: (AIDR) sensor instance id.
+            extra_info: (AIDR) Logging schema.
+            count_tokens: Provide input and output token count.
         """
         return self.request.post(
             "v1beta/guard",
-            TextGuardResult,
+            GuardResult,
             data={
-                "messages": messages,
+                "input": input,
                 "recipe": recipe,
                 "debug": debug,
                 "overrides": overrides,
-                "app_name": app_name,
+                "app_id": app_id,
+                "actor_id": actor_id,
                 "llm_provider": llm_provider,
                 "model": model,
                 "model_version": model_version,
@@ -965,8 +1094,10 @@ class AIGuard(ServiceBase):
                 "source_ip": source_ip,
                 "source_location": source_location,
                 "tenant_id": tenant_id,
-                "sensor_mode": sensor_mode,
-                "context": context,
+                "event_type": event_type,
+                "sensor_instance_id": sensor_instance_id,
+                "extra_info": extra_info,
+                "count_tokens": count_tokens,
             },
         )
 

@@ -11,9 +11,10 @@ from pangea.response import PangeaResponse
 from pangea.services.ai_guard import (
     AuditDataActivityConfig,
     ConnectionsConfig,
+    ExtraInfo,
+    GuardResult,
     LogFields,
     Message,
-    MultimodalMessage,
     Overrides,
     RecipeConfig,
     ServiceConfig,
@@ -188,11 +189,13 @@ class AIGuardAsync(ServiceBaseAsync):
 
     async def guard(
         self,
-        messages: Sequence[MultimodalMessage],
+        input: Mapping[str, Any],
+        *,
         recipe: str | None = None,
         debug: bool | None = None,
         overrides: Overrides | None = None,
-        app_name: str | None = None,
+        app_id: str | None = None,
+        actor_id: str | None = None,
         llm_provider: str | None = None,
         model: str | None = None,
         model_version: str | None = None,
@@ -201,9 +204,11 @@ class AIGuardAsync(ServiceBaseAsync):
         source_ip: str | None = None,
         source_location: str | None = None,
         tenant_id: str | None = None,
-        sensor_mode: str | None = None,
-        context: Mapping[str, Any] | None = None,
-    ) -> PangeaResponse[TextGuardResult]:
+        event_type: Literal["input", "output"] | None = None,
+        sensor_instance_id: str | None = None,
+        extra_info: ExtraInfo | None = None,
+        count_tokens: bool | None = None,
+    ) -> PangeaResponse[GuardResult]:
         """
         Guard LLM input and output
 
@@ -213,7 +218,10 @@ class AIGuardAsync(ServiceBaseAsync):
         OperationId: ai_guard_post_v1beta_guard
 
         Args:
-            messages: Prompt content and role array in JSON format. The `content` is the multimodal text or image input that will be analyzed.
+            input: 'messages' (required) contains Prompt content and role array
+                in JSON format. The `content` is the multimodal text or image
+                input that will be analyzed. Additional properties such as
+                'tools' may be provided for analysis.
             recipe: Recipe key of a configuration of data types and settings defined in the Pangea User Console. It specifies the rules that are to be applied to the text, such as defang malicious URLs.
             debug: Setting this value to true will provide a detailed analysis of the text data
             app_name: Name of source application.
@@ -225,18 +233,21 @@ class AIGuardAsync(ServiceBaseAsync):
             source_ip: IP address of user or app or agent.
             source_location: Location of user or app or agent.
             tenant_id: For gateway-like integrations with multi-tenant support.
-            sensor_mode: (AIDR) sensor mode.
-            context: (AIDR) Logging schema.
+            event_type: (AIDR) Event Type.
+            sensor_instance_id: (AIDR) sensor instance id.
+            extra_info: (AIDR) Logging schema.
+            count_tokens: Provide input and output token count.
         """
         return await self.request.post(
             "v1beta/guard",
-            TextGuardResult,
+            GuardResult,
             data={
-                "messages": messages,
+                "input": input,
                 "recipe": recipe,
                 "debug": debug,
                 "overrides": overrides,
-                "app_name": app_name,
+                "app_id": app_id,
+                "actor_id": actor_id,
                 "llm_provider": llm_provider,
                 "model": model,
                 "model_version": model_version,
@@ -245,8 +256,10 @@ class AIGuardAsync(ServiceBaseAsync):
                 "source_ip": source_ip,
                 "source_location": source_location,
                 "tenant_id": tenant_id,
-                "sensor_mode": sensor_mode,
-                "context": context,
+                "event_type": event_type,
+                "sensor_instance_id": sensor_instance_id,
+                "extra_info": extra_info,
+                "count_tokens": count_tokens,
             },
         )
 

@@ -5,20 +5,17 @@ import os
 from collections.abc import AsyncIterator, Iterator
 
 import pytest
-from pydantic import AnyUrl
 
 from pangea import PangeaConfig
 from pangea.asyncio.services.ai_guard import AIGuardAsync
 from pangea.services import AIGuard
 from pangea.services.ai_guard import (
-    ImageContent,
+    GuardResult,
     LogFields,
     Message,
-    MultimodalMessage,
     ServiceConfig,
     ServiceConfigFilter,
     ServiceConfigsPage,
-    TextContent,
     TextGuardResult,
 )
 
@@ -56,27 +53,18 @@ class TestAIGuard:
 
     def test_guard(self, client: AIGuard) -> None:
         response = client.guard(
-            messages=[
-                MultimodalMessage(
-                    role="user",
-                    content=[
-                        TextContent(type="text", text="hello world"),
-                        ImageContent(type="image", image_src=AnyUrl("https://example.org/favicon.ico")),
-                        ImageContent(type="image", image_src=AnyUrl("data:image/jpeg;base64,000000")),
-                    ],
-                ),
-            ],
+            input={"messages": [{"role": "user", "content": "hello world"}]},
             recipe="foobar",
             debug=True,
-            app_name="foobar",
-            context={"foo": "bar", "baz": 123},
+            app_id="foobar",
+            extra_info={"app_name": "my app", "foo": "bar", "baz": "123"},
         )
         assert response.status == "Success"
         assert response.result
-        assert_matches_type(TextGuardResult, response.result, path=["response"])
+        assert_matches_type(GuardResult, response.result, path=["response"])
 
     def test_get_service_config(self, client: AIGuard) -> None:
-        response = client.get_service_config("my_config_id")
+        response = client.get_service_config("pci_22222222222222222222222222222222")
         assert response.status == "Success"
         assert response.result
         assert_matches_type(ServiceConfig, response.result, path=["response"])
@@ -88,13 +76,13 @@ class TestAIGuard:
         assert_matches_type(ServiceConfig, response.result, path=["response"])
 
     def test_update_service_config(self, client: AIGuard) -> None:
-        response = client.update_service_config(id="my_config_id", name="my_config", recipes={})
+        response = client.update_service_config(id="pci_22222222222222222222222222222222", name="my_config", recipes={})
         assert response.status == "Success"
         assert response.result
         assert_matches_type(ServiceConfig, response.result, path=["response"])
 
     def test_delete_service_config(self, client: AIGuard) -> None:
-        response = client.delete_service_config(id="my_config_id")
+        response = client.delete_service_config(id="pci_22222222222222222222222222222222")
         assert response.status == "Success"
         assert response.result
         assert_matches_type(ServiceConfig, response.result, path=["response"])
@@ -102,7 +90,7 @@ class TestAIGuard:
     def test_list_service_configs(self, client: AIGuard) -> None:
         response = client.list_service_configs(
             filter=ServiceConfigFilter(
-                id="my_config_id",
+                id="pci_22222222222222222222222222222222",
                 id__contains=["my", "config", "id"],
                 created_at=datetime.datetime.now(),
             )
@@ -133,45 +121,38 @@ class TestAIGuardAsync:
 
     async def test_guard(self, async_client: AIGuardAsync) -> None:
         response = await async_client.guard(
-            messages=[
-                MultimodalMessage(
-                    role="user",
-                    content=[
-                        TextContent(type="text", text="hello world"),
-                        ImageContent(type="image", image_src=AnyUrl("https://example.org/favicon.ico")),
-                        ImageContent(type="image", image_src=AnyUrl("data:image/jpeg;base64,000000")),
-                    ],
-                ),
-            ],
+            input={"messages": [{"role": "user", "content": "hello world"}]},
             recipe="foobar",
             debug=True,
-            app_name="foobar",
-            context={"foo": "bar", "baz": 123},
+            app_id="foobar",
+            extra_info={"foo": "bar", "baz": 123},
         )
         assert response.status == "Success"
         assert response.result
-        assert_matches_type(TextGuardResult, response.result, path=["response"])
+        assert_matches_type(GuardResult, response.result, path=["response"])
 
     async def test_get_service_config(self, async_client: AIGuardAsync) -> None:
-        response = await async_client.get_service_config("my_config_id")
+        response = await async_client.get_service_config("pci_22222222222222222222222222222222")
         assert response.status == "Success"
         assert response.result
         assert_matches_type(ServiceConfig, response.result, path=["response"])
 
     async def test_create_service_config(self, async_client: AIGuardAsync) -> None:
-        response = await async_client.create_service_config("my_config", recipes={})
+        response = await async_client.create_service_config("pci_22222222222222222222222222222222", recipes={})
         assert response.status == "Success"
         assert response.result
         assert_matches_type(ServiceConfig, response.result, path=["response"])
 
     async def test_update_service_config(self, async_client: AIGuardAsync) -> None:
-        response = await async_client.update_service_config(id="my_config_id", name="my_config", recipes={})
+        response = await async_client.update_service_config(
+            id="pci_22222222222222222222222222222222", name="my_config", recipes={}
+        )
         assert response.status == "Success"
         assert response.result
         assert_matches_type(ServiceConfig, response.result, path=["response"])
 
     async def test_delete_service_config(self, async_client: AIGuardAsync) -> None:
-        response = await async_client.delete_service_config(id="my_config_id")
+        response = await async_client.delete_service_config(id="pci_22222222222222222222222222222222")
         assert response.status == "Success"
         assert response.result
         assert_matches_type(ServiceConfig, response.result, path=["response"])
@@ -179,7 +160,7 @@ class TestAIGuardAsync:
     async def test_list_service_configs(self, async_client: AIGuardAsync) -> None:
         response = await async_client.list_service_configs(
             filter=ServiceConfigFilter(
-                id="my_config_id",
+                id="pci_22222222222222222222222222222222",
                 id__contains=["my", "config", "id"],
                 created_at=datetime.datetime.now(),
             )
