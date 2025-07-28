@@ -24,53 +24,25 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.number || github.ref }}
   cancel-in-progress: true
 
-env:
-  POETRY_VERSION: 2.1.2
-
 jobs:
-  setup:
-    runs-on: ubuntu-24.04
-
-    outputs:
-      examples-matrix: ${{ steps.examples-matrix.outputs.examples-matrix }}
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4.2.2
-
-      - name: Calculate `examples-matrix` output
-        id: examples-matrix
-        working-directory: ./examples
-        env:
-          JQ_FILTER: >-
-            "examples-matrix=" + (split("\n") | map(select(length > 0)) | tostring)
-        run: |
-          examples=$(find . -type f -name 'pyproject.toml' -printf '%h\n' | cut -c 3- | sort -u | jq -cRrs '${{ env.JQ_FILTER }}')
-          echo "$examples"
-          echo "$examples" >> "$GITHUB_OUTPUT"
-
   prefetch:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout code
         uses: actions/checkout@v4.2.2
 
-      - name: Update pip
-        run: |
-          pip install --upgrade pip
-          pip --version
-
-      - name: Install poetry
-        run: |
-          pip install --upgrade poetry==${{ env.POETRY_VERSION }}
-          poetry --version
-
       - name: Setup Python
         uses: actions/setup-python@v5.6.0
         with:
-          python-version: 3.12
-          cache: poetry
-          cache-dependency-path: '**/poetry.lock'
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6.4.3
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --all-extras --all-packages --dev
 
   pre-commit:
     # Skip pre-commit on `main` because the `no-commit-to-branch` hook won't
@@ -85,7 +57,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5.6.0
         with:
-          python-version: 3.12
+          python-version: "3.12"
 
       - uses: pre-commit/action@v3.0.1
 
@@ -96,58 +68,44 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4.2.2
 
-      - name: Install poetry
-        run: |
-          pip install --upgrade poetry==${{ env.POETRY_VERSION }}
-          poetry --version
-
       - name: Setup Python
         uses: actions/setup-python@v5.6.0
         with:
           python-version: "3.10"
-          cache: poetry
-          cache-dependency-path: poetry.lock
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6.4.3
+        with:
+          enable-cache: true
 
       - name: Install dependencies
-        run: |
-          poetry check
-          poetry install
+        run: uv sync --all-extras --all-packages --dev
 
       - name: ruff
-        run: poetry run ruff check .
+        run: uv run ruff check .
 
   lint-mypy:
     needs: [prefetch]
     runs-on: ubuntu-24.04
-    strategy:
-      matrix:
-        package: [pangea-django, pangea-sdk]
-    defaults:
-      run:
-        working-directory: ./packages/${{ matrix.package }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4.2.2
-
-      - name: Install poetry
-        run: |
-          pip install --upgrade poetry==${{ env.POETRY_VERSION }}
-          poetry --version
 
       - name: Setup Python
         uses: actions/setup-python@v5.6.0
         with:
           python-version: "3.10"
-          cache: poetry
-          cache-dependency-path: ./packages/${{ matrix.package }}/poetry.lock
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6.4.3
+        with:
+          enable-cache: true
 
       - name: Install dependencies
-        run: |
-          poetry check
-          poetry install
+        run: uv sync --all-extras --all-packages --dev
 
       - name: mypy
-        run: poetry run mypy .
+        run: uv run mypy .
 
   sdk-test-unit:
     needs: [prefetch]
@@ -162,25 +120,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4.2.2
 
-      - name: Install poetry
-        run: |
-          pip install --upgrade poetry==${{ env.POETRY_VERSION }}
-          poetry --version
-
       - name: Setup Python
         uses: actions/setup-python@v5.6.0
         with:
           python-version: ${{ matrix.python-version }}
-          cache: poetry
-          cache-dependency-path: ./packages/pangea-sdk/poetry.lock
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6.4.3
+        with:
+          enable-cache: true
 
       - name: Install dependencies
-        run: |
-          poetry check
-          poetry install
+        run: uv sync --all-extras --all-packages --dev
 
       - name: Unit test
-        run: poetry run pytest tests/unit/
+        run: uv run pytest tests/unit/
 
   sdk-test-integration:
     needs: [prefetch]
@@ -195,25 +149,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4.2.2
 
-      - name: Install poetry
-        run: |
-          pip install --upgrade poetry==${{ env.POETRY_VERSION }}
-          poetry --version
+      - name: Enable Corepack
+        run: corepack enable
 
       - name: Setup Python
         uses: actions/setup-python@v5.6.0
         with:
           python-version: ${{ matrix.python-version }}
-          cache: poetry
-          cache-dependency-path: ./packages/pangea-sdk/poetry.lock
 
-      - name: Enable Corepack
-        run: corepack enable
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6.4.3
+        with:
+          enable-cache: true
 
       - name: Install dependencies
-        run: |
-          poetry check
-          poetry install
+        run: uv sync --all-extras --all-packages --dev
 
       - name: Integration tests
         run: bash ./scripts/test.sh
@@ -228,69 +178,27 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4.2.2
 
-      - name: Install poetry
-        run: |
-          pip install --upgrade poetry==${{ env.POETRY_VERSION }}
-          poetry --version
-
       - name: Setup Python
         uses: actions/setup-python@v5.6.0
         with:
-          python-version: 3.12
-          cache: poetry
-          cache-dependency-path: ./packages/pangea-sdk/poetry.lock
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6.4.3
+        with:
+          enable-cache: true
 
       - name: Install dependencies
-        run: |
-          poetry check
-          poetry install
+        run: uv sync --all-extras --all-packages --dev
 
       - name: Generate docs
-        run: poetry run python parse_module.py > python_sdk.json
+        run: uv run parse_module.py > python_sdk.json
 
       - name: Upload
         uses: actions/upload-artifact@v4.6.2
         with:
           name: python_sdk.json
           path: ./packages/pangea-sdk/python_sdk.json
-
-  examples:
-    needs: [setup, prefetch]
-    runs-on: ubuntu-24.04
-    strategy:
-      matrix:
-        example: ${{ fromJSON(needs.setup.outputs.examples-matrix) }}
-    defaults:
-      run:
-        working-directory: ./examples/${{ matrix.example }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4.2.2
-
-      - name: Update pip
-        run: |
-          pip install --upgrade pip
-          pip --version
-
-      - name: Install poetry
-        run: |
-          pip install --upgrade poetry==${{ env.POETRY_VERSION }}
-          poetry --version
-
-      - name: Setup Python
-        uses: actions/setup-python@v5.6.0
-        with:
-          python-version: 3.12
-          cache: poetry
-          cache-dependency-path: ./examples/${{ matrix.example }}/poetry.lock
-
-      - name: Install dependencies
-        run: |
-          poetry check
-          poetry install
-
-      - name: mypy
-        run: poetry run mypy .
 
   django-test-unit:
     needs: [prefetch]
@@ -305,22 +213,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4.2.2
 
-      - name: Install poetry
-        run: |
-          pip install --upgrade poetry==${{ env.POETRY_VERSION }}
-          poetry --version
-
       - name: Setup Python
         uses: actions/setup-python@v5.6.0
         with:
           python-version: ${{ matrix.python-version }}
-          cache: poetry
-          cache-dependency-path: ./packages/pangea-django/poetry.lock
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6.4.3
+        with:
+          enable-cache: true
 
       - name: Install dependencies
-        run: |
-          poetry check
-          poetry install
+        run: uv sync --all-extras --all-packages --dev
 
       - name: Unit test
-        run: poetry run python -m pytest
+        run: uv run pytest

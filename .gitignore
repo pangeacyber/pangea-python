@@ -4,13 +4,15 @@ __pycache__/
 *$py.class
 
 # dist / packaging
-.Python
 build/
-develop-eggs/
 dist/
-downloads/
 eggs/
 .eggs/
+parts/
+sdist/
+wheels/
+*.egg-info/
+*.egg
 
 # pyenv
 .python-version

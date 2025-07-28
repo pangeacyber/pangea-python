@@ -5,7 +5,7 @@ import os
 from pangea.config import PangeaConfig
 from pangea.services import IpIntel
 
-from intel_examples.ip.utils import print_ip_domain_data
+from .utils import print_ip_domain_data
 
 token = os.getenv("PANGEA_INTEL_TOKEN")
 assert token
