@@ -21,7 +21,6 @@ This is a list of tools and other useful items that you will find in this reposi
 ## Repository structure
 
 |- **README.md**: This readme file [Click here](/README.md)  
-|- **CHANGELOG.md**: SDK version changes tracking [Click here](/CHANGELOG.md)  
 |- **examples**: SDK examples folder [Clik here](/examples)  
 |----- **audit**: Audit service examples [Click here](/examples/audit)  
 |----- **authn**: AuthN service examples [Click here](/examples/authn)  
