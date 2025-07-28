@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - AI Guard: multimodal guard.
 
+### Changed
+
+- AI Guard: API changes for multimodal guard and service configs.
+
 ## 6.4.0 - 2025-07-28
 
 ### Changed
