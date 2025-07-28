@@ -3,7 +3,6 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import Generic, Literal, Optional, overload
 
-from pydantic import BaseModel, ConfigDict
 from typing_extensions import TypeVar
 
 from pangea.config import PangeaConfig
@@ -21,9 +20,7 @@ MaliciousEntityAction = Literal["report", "defang", "disabled", "block"]
 PiiEntityAction = Literal["disabled", "report", "block", "mask", "partial_masking", "replacement", "hash", "fpe"]
 
 
-class Message(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-
+class Message(APIRequestModel):
     role: str
     content: str
 
@@ -31,18 +28,21 @@ class Message(BaseModel):
 class CodeDetectionOverride(APIRequestModel):
     disabled: Optional[bool] = None
     action: Optional[Literal["report", "block"]] = None
+    threshold: Optional[float] = None
 
 
 class LanguageDetectionOverride(APIRequestModel):
     disabled: Optional[bool] = None
-    allow: Optional[list[str]] = None
-    block: Optional[list[str]] = None
-    report: Optional[list[str]] = None
+    action: Optional[Literal["", "report", "allow", "block"]] = ""
+    languages: Optional[list[str]] = None
+    threshold: Optional[float] = None
 
 
 class TopicDetectionOverride(APIRequestModel):
     disabled: Optional[bool] = None
-    block: Optional[list[str]] = None
+    action: Optional[Literal["", "report", "block"]] = ""
+    topics: Optional[list[str]] = None
+    threshold: Optional[float] = None
 
 
 class PromptInjectionOverride(APIRequestModel):
@@ -145,6 +145,8 @@ class SecretsDetectionOverride(APIRequestModel):
 
 
 class Overrides(APIRequestModel):
+    """Overrides flags."""
+
     ignore_recipe: Optional[bool] = None
     """Bypass existing Recipe content and create an on-the-fly Recipe."""
 
@@ -159,7 +161,7 @@ class Overrides(APIRequestModel):
     secrets_detection: Optional[SecretsDetectionOverride] = None
     selfharm: Optional[SelfHarmOverride] = None
     sentiment: Optional[SentimentOverride] = None
-    topic_detection: Optional[TopicDetectionOverride] = None
+    topic: Optional[TopicDetectionOverride] = None
 
 
 class LogFields(APIRequestModel):
@@ -249,14 +251,23 @@ class SecretsEntityResult(APIResponseModel):
 
 
 class LanguageDetectionResult(APIResponseModel):
-    language: str
-    action: str
+    action: Optional[str] = None
     """The action taken by this Detector"""
+
+    language: Optional[str] = None
+
+
+class Topic(APIResponseModel):
+    topic: str
+    confidence: float
 
 
 class TopicDetectionResult(APIResponseModel):
-    action: str
+    action: Optional[str] = None
     """The action taken by this Detector"""
+
+    topics: Optional[list[Topic]] = None
+    """List of topics detected"""
 
 
 class CodeDetectionResult(APIResponseModel):
@@ -274,38 +285,49 @@ class TextGuardDetector(APIResponseModel, Generic[_T]):
 
 
 class TextGuardDetectors(APIResponseModel):
-    prompt_injection: Optional[TextGuardDetector[PromptInjectionResult]] = None
-    pii_entity: Optional[TextGuardDetector[PiiEntityResult]] = None
-    malicious_entity: Optional[TextGuardDetector[MaliciousEntityResult]] = None
-    custom_entity: Optional[TextGuardDetector[object]] = None
-    secrets_detection: Optional[TextGuardDetector[SecretsEntityResult]] = None
-    profanity_and_toxicity: Optional[TextGuardDetector[object]] = None
-    language_detection: Optional[TextGuardDetector[LanguageDetectionResult]] = None
-    topic_detection: Optional[TextGuardDetector[TopicDetectionResult]] = None
     code_detection: Optional[TextGuardDetector[CodeDetectionResult]] = None
+    competitors: Optional[TextGuardDetector[object]] = None
+    custom_entity: Optional[TextGuardDetector[object]] = None
+    gibberish: Optional[TextGuardDetector[object]] = None
+    hardening: Optional[TextGuardDetector[object]] = None
+    language_detection: Optional[TextGuardDetector[LanguageDetectionResult]] = None
+    malicious_entity: Optional[TextGuardDetector[MaliciousEntityResult]] = None
+    pii_entity: Optional[TextGuardDetector[PiiEntityResult]] = None
+    profanity_and_toxicity: Optional[TextGuardDetector[object]] = None
+    prompt_injection: Optional[TextGuardDetector[PromptInjectionResult]] = None
+    secrets_detection: Optional[TextGuardDetector[SecretsEntityResult]] = None
+    selfharm: Optional[TextGuardDetector[object]] = None
+    sentiment: Optional[TextGuardDetector[object]] = None
+    topic: Optional[TextGuardDetector[TopicDetectionResult]] = None
 
 
 class TextGuardResult(PangeaResponseResult):
     detectors: TextGuardDetectors
     """Result of the recipe analyzing and input prompt."""
 
-    prompt_text: Optional[str] = None
-    """Updated prompt text, if applicable."""
+    access_rules: Optional[object] = None
+    """Result of the recipe evaluating configured rules"""
+
+    blocked: Optional[bool] = None
+    """Whether or not the prompt triggered a block detection."""
+
+    fpe_context: Optional[str] = None
+    """
+    If an FPE redaction method returned results, this will be the context passed to
+    unredact.
+    """
 
     prompt_messages: Optional[object] = None
     """Updated structured prompt, if applicable."""
 
-    blocked: bool
-    """Whether or not the prompt triggered a block detection."""
+    prompt_text: Optional[str] = None
+    """Updated prompt text, if applicable."""
 
-    recipe: str
+    recipe: Optional[str] = None
     """The Recipe that was used."""
 
-    fpe_context: Optional[str] = None
-    """
-    If an FPE redaction method returned results, this will be the context passed
-    to unredact.
-    """
+    transformed: Optional[bool] = None
+    """Whether or not the original input was transformed."""
 
 
 class AIGuard(ServiceBase):
@@ -314,11 +336,9 @@ class AIGuard(ServiceBase):
     Provides methods to interact with Pangea's AI Guard service.
 
     Examples:
-        from pangea import PangeaConfig
         from pangea.services import AIGuard
 
-        config = PangeaConfig(domain="aws.us.pangea.cloud")
-        ai_guard = AIGuard(token="pangea_token", config=config)
+        ai_guard = AIGuard(token="pangea_token")
     """
 
     service_name = "ai-guard"
@@ -338,11 +358,9 @@ class AIGuard(ServiceBase):
             config_id: Configuration ID.
 
         Examples:
-            from pangea import PangeaConfig
             from pangea.services import AIGuard
 
-            config = PangeaConfig(domain="aws.us.pangea.cloud")
-            ai_guard = AIGuard(token="pangea_token", config=config)
+            ai_guard = AIGuard(token="pangea_token")
         """
 
         super().__init__(token, config, logger_name, config_id)
@@ -352,29 +370,31 @@ class AIGuard(ServiceBase):
         self,
         text: str,
         *,
-        recipe: str | None = None,
         debug: bool | None = None,
-        overrides: Overrides | None = None,
         log_fields: LogFields | None = None,
+        overrides: Overrides | None = None,
+        recipe: str | None = None,
     ) -> PangeaResponse[TextGuardResult]:
         """
-        Text Guard for scanning LLM inputs and outputs
+        Guard LLM input and output text
 
-        Analyze and redact text to avoid manipulation of the model, addition of
-        malicious content, and other undesirable data transfers.
+        Detect, remove, or block malicious content and intent in LLM inputs and
+        outputs to prevent model manipulation and data leakage.
 
         OperationId: ai_guard_post_v1_text_guard
 
         Args:
             text: Text to be scanned by AI Guard for PII, sensitive data,
                 malicious content, and other data types defined by the
-                configuration. Supports processing up to 10KB of text.
-            recipe: Recipe key of a configuration of data types and settings
-                defined in the Pangea User Console. It specifies the rules that
-                are to be applied to the text, such as defang malicious URLs.
+                configuration. Supports processing up to 20 KiB of text.
             debug: Setting this value to true will provide a detailed analysis
                 of the text data
             log_field: Additional fields to include in activity log
+            overrides: Overrides flags. Note: This parameter has no effect when
+                the request is made by AIDR
+            recipe: Recipe key of a configuration of data types and settings
+                defined in the Pangea User Console. It specifies the rules that
+                are to be applied to the text, such as defang malicious URLs.
 
         Examples:
             response = ai_guard.guard_text("text")
@@ -391,24 +411,26 @@ class AIGuard(ServiceBase):
         log_fields: LogFields | None = None,
     ) -> PangeaResponse[TextGuardResult]:
         """
-        Text Guard for scanning LLM inputs and outputs
+        Guard LLM input and output text
 
-        Analyze and redact text to avoid manipulation of the model, addition of
-        malicious content, and other undesirable data transfers.
+        Detect, remove, or block malicious content and intent in LLM inputs and
+        outputs to prevent model manipulation and data leakage.
 
         OperationId: ai_guard_post_v1_text_guard
 
         Args:
             messages: Structured messages data to be scanned by AI Guard for
                 PII, sensitive data, malicious content, and other data types
-                defined by the configuration. Supports processing up to 10KB of
-                JSON text
-            recipe: Recipe key of a configuration of data types and settings
-                defined in the Pangea User Console. It specifies the rules that
-                are to be applied to the text, such as defang malicious URLs.
+                defined by the configuration. Supports processing up to 20 KiB
+                of JSON text using Pangea message format.
             debug: Setting this value to true will provide a detailed analysis
                 of the text data
             log_field: Additional fields to include in activity log
+            overrides: Overrides flags. Note: This parameter has no effect when
+                the request is made by AIDR
+            recipe: Recipe key of a configuration of data types and settings
+                defined in the Pangea User Console. It specifies the rules that
+                are to be applied to the text, such as defang malicious URLs.
 
         Examples:
             response = ai_guard.guard_text(messages=[Message(role="user", content="hello world")])
@@ -419,16 +441,16 @@ class AIGuard(ServiceBase):
         text: str | None = None,
         *,
         messages: Sequence[Message] | None = None,
-        recipe: str | None = None,
         debug: bool | None = None,
-        overrides: Overrides | None = None,
         log_fields: LogFields | None = None,
+        overrides: Overrides | None = None,
+        recipe: str | None = None,
     ) -> PangeaResponse[TextGuardResult]:
         """
-        Text Guard for scanning LLM inputs and outputs
+        Guard LLM input and output text
 
-        Analyze and redact text to avoid manipulation of the model, addition of
-        malicious content, and other undesirable data transfers.
+        Detect, remove, or block malicious content and intent in LLM inputs and
+        outputs to prevent model manipulation and data leakage.
 
         OperationId: ai_guard_post_v1_text_guard
 
@@ -440,12 +462,14 @@ class AIGuard(ServiceBase):
                 PII, sensitive data, malicious content, and other data types
                 defined by the configuration. Supports processing up to 10KB of
                 JSON text
-            recipe: Recipe key of a configuration of data types and settings
-                defined in the Pangea User Console. It specifies the rules that
-                are to be applied to the text, such as defang malicious URLs.
             debug: Setting this value to true will provide a detailed analysis
                 of the text data
             log_field: Additional fields to include in activity log
+            overrides: Overrides flags. Note: This parameter has no effect when
+                the request is made by AIDR
+            recipe: Recipe key of a configuration of data types and settings
+                defined in the Pangea User Console. It specifies the rules that
+                are to be applied to the text, such as defang malicious URLs.
 
         Examples:
             response = ai_guard.guard_text("text")
