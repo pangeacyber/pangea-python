@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - AI Guard: multimodal guard.
 
+## 6.4.0 - 2025-07-28
+
+### Changed
+
+- AI Guard: updates to language and topic detectors.
+
 ## 6.3.0 - 2025-07-17
 
 ### Added

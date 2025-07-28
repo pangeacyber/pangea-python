@@ -31,11 +31,9 @@ class AIGuardAsync(ServiceBaseAsync):
     Provides methods to interact with Pangea's AI Guard service.
 
     Examples:
-        from pangea import PangeaConfig
         from pangea.asyncio.services import AIGuardAsync
 
-        config = PangeaConfig(domain="aws.us.pangea.cloud")
-        ai_guard = AIGuardAsync(token="pangea_token", config=config)
+        ai_guard = AIGuardAsync(token="pangea_token")
     """
 
     service_name = "ai-guard"
@@ -55,11 +53,9 @@ class AIGuardAsync(ServiceBaseAsync):
             config_id: Configuration ID.
 
         Examples:
-            from pangea import PangeaConfig
             from pangea.asyncio.services import AIGuardAsync
 
-            config = PangeaConfig(domain="aws.us.pangea.cloud")
-            ai_guard = AIGuardAsync(token="pangea_token", config=config)
+            ai_guard = AIGuardAsync(token="pangea_token")
         """
 
         super().__init__(token, config, logger_name, config_id)
@@ -69,29 +65,31 @@ class AIGuardAsync(ServiceBaseAsync):
         self,
         text: str,
         *,
-        recipe: str | None = None,
         debug: bool | None = None,
-        overrides: Overrides | None = None,
         log_fields: LogFields | None = None,
+        overrides: Overrides | None = None,
+        recipe: str | None = None,
     ) -> PangeaResponse[TextGuardResult]:
         """
-        Text Guard for scanning LLM inputs and outputs
+        Guard LLM input and output text
 
-        Analyze and redact text to avoid manipulation of the model, addition of
-        malicious content, and other undesirable data transfers.
+        Detect, remove, or block malicious content and intent in LLM inputs and
+        outputs to prevent model manipulation and data leakage.
 
         OperationId: ai_guard_post_v1_text_guard
 
         Args:
             text: Text to be scanned by AI Guard for PII, sensitive data,
                 malicious content, and other data types defined by the
-                configuration. Supports processing up to 10KB of text.
-            recipe: Recipe key of a configuration of data types and settings
-                defined in the Pangea User Console. It specifies the rules that
-                are to be applied to the text, such as defang malicious URLs.
+                configuration. Supports processing up to 20 KiB of text.
             debug: Setting this value to true will provide a detailed analysis
                 of the text data
             log_field: Additional fields to include in activity log
+            overrides: Overrides flags. Note: This parameter has no effect when
+                the request is made by AIDR
+            recipe: Recipe key of a configuration of data types and settings
+                defined in the Pangea User Console. It specifies the rules that
+                are to be applied to the text, such as defang malicious URLs.
 
         Examples:
             response = await ai_guard.guard_text("text")
@@ -108,24 +106,26 @@ class AIGuardAsync(ServiceBaseAsync):
         log_fields: LogFields | None = None,
     ) -> PangeaResponse[TextGuardResult]:
         """
-        Text Guard for scanning LLM inputs and outputs
+        Guard LLM input and output text
 
-        Analyze and redact text to avoid manipulation of the model, addition of
-        malicious content, and other undesirable data transfers.
+        Detect, remove, or block malicious content and intent in LLM inputs and
+        outputs to prevent model manipulation and data leakage.
 
         OperationId: ai_guard_post_v1_text_guard
 
         Args:
             messages: Structured messages data to be scanned by AI Guard for
                 PII, sensitive data, malicious content, and other data types
-                defined by the configuration. Supports processing up to 10KB of
-                JSON text
-            recipe: Recipe key of a configuration of data types and settings
-                defined in the Pangea User Console. It specifies the rules that
-                are to be applied to the text, such as defang malicious URLs.
+                defined by the configuration. Supports processing up to 20 KiB
+                of JSON text using Pangea message format.
             debug: Setting this value to true will provide a detailed analysis
                 of the text data
             log_field: Additional fields to include in activity log
+            overrides: Overrides flags. Note: This parameter has no effect when
+                the request is made by AIDR
+            recipe: Recipe key of a configuration of data types and settings
+                defined in the Pangea User Console. It specifies the rules that
+                are to be applied to the text, such as defang malicious URLs.
 
         Examples:
             response = await ai_guard.guard_text(messages=[Message(role="user", content="hello world")])
@@ -142,10 +142,10 @@ class AIGuardAsync(ServiceBaseAsync):
         log_fields: LogFields | None = None,
     ) -> PangeaResponse[TextGuardResult]:
         """
-        Text Guard for scanning LLM inputs and outputs
+        Guard LLM input and output text
 
-        Analyze and redact text to avoid manipulation of the model, addition of
-        malicious content, and other undesirable data transfers.
+        Detect, remove, or block malicious content and intent in LLM inputs and
+        outputs to prevent model manipulation and data leakage.
 
         OperationId: ai_guard_post_v1_text_guard
 
@@ -157,12 +157,14 @@ class AIGuardAsync(ServiceBaseAsync):
                 PII, sensitive data, malicious content, and other data types
                 defined by the configuration. Supports processing up to 10KB of
                 JSON text
-            recipe: Recipe key of a configuration of data types and settings
-                defined in the Pangea User Console. It specifies the rules that
-                are to be applied to the text, such as defang malicious URLs.
             debug: Setting this value to true will provide a detailed analysis
                 of the text data
             log_field: Additional fields to include in activity log
+            overrides: Overrides flags. Note: This parameter has no effect when
+                the request is made by AIDR
+            recipe: Recipe key of a configuration of data types and settings
+                defined in the Pangea User Console. It specifies the rules that
+                are to be applied to the text, such as defang malicious URLs.
 
         Examples:
             response = await ai_guard.guard_text("text")
