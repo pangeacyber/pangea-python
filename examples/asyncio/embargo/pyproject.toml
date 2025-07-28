@@ -16,7 +16,7 @@ packages = [{include = "embargo_examples"}]
 
 [tool.poetry.dependencies]
 python = "^3.9.20"
-pangea-sdk = "^6.2.0"
+pangea-sdk = "^6.3.0"
 
 [tool.poetry.group.dev.dependencies]
 mypy = "^1.17.0"
