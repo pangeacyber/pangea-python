@@ -5,7 +5,7 @@
 
 set -e
 
-skip_items=("cli.py")
+skip_items=(".uv-cache" "cli.py" "utils.py")
 
 # Find all .py files in the current directory and its subdirectories.
 find . -type f -name '*.py' | while read -r file; do
@@ -24,9 +24,8 @@ find . -type f -name '*.py' | while read -r file; do
 
         # Run the file if it should not be skipped
         if [ "$skip" = false ]; then
-            # Run the file using poetry.
             echo -e "\n\nRunning file: $file\n"
-            poetry run python "$file"
+            uv run "$file"
         fi
     else
         echo "Skipping empty file: $file"

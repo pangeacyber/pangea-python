@@ -8,7 +8,7 @@ from pangea.config import PangeaConfig
 from pangea.services import FileIntel
 from pangea.tools import logger_set_pangea_config
 
-from intel_examples.utils import print_reputation_bulk_data
+from ..utils import print_reputation_bulk_data
 
 token = os.getenv("PANGEA_INTEL_TOKEN")
 assert token
