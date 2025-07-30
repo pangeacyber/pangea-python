@@ -243,7 +243,9 @@ class PangeaResponse(ResponseHeader, Generic[T]):
 
     @property
     def http_status(self) -> int:  # type: ignore[return]
-        if self.raw_response:
+        # Must be an explicit None check because Response's boolean
+        # representation is equal to whether or not the response is OK.
+        if self.raw_response is not None:
             if isinstance(self.raw_response, aiohttp.ClientResponse):
                 return self.raw_response.status
             else:

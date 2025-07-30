@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Fixed
+
+- `PangeaResponse.http_status` being `None` when the response is not OK.
+
 ## 6.4.0 - 2025-07-28
 
 ### Changed
