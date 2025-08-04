@@ -1,20 +1,16 @@
 .django-base:
-  image: python:3.9.20@sha256:ef79f8314118b7cde6910d35f4166c902e7f87f47086686256556b97d991a0fb
   before_script:
-    - !reference [.setup, update-pip]
-    - !reference [.setup, update-poetry]
-
     - cd packages/pangea-django/
-    - poetry check --lock
-    - poetry install
+    - uv sync --all-extras --all-packages --dev
   rules:
     - if: $CI_PIPELINE_SOURCE == "push"
 
 django-build:
   extends: .django-base
   stage: build
+  needs: []
   script:
-    - poetry build
+    - uv build -o dist
   artifacts:
     paths: ["packages/pangea-django/dist"]
     when: on_success
@@ -25,6 +21,6 @@ django-publish:
   needs: [django-build]
   script:
     - bash ../../dev/validate_tag.sh $CI_COMMIT_TAG
-    - poetry publish --username __token__ --password $PYPI_SDK_TOKEN
+    - uv publish --username __token__ --password $PYPI_SDK_TOKEN
   rules:
     - if: $CI_COMMIT_TAG =~ /pangea-django\/.+/

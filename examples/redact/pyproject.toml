@@ -1,6 +1,6 @@
 [project]
 name = "redact-examples"
-version = "2.0.0"
+version = "0.0.0"
 description = "This is a set of examples about how to use Python SDK to communicate with Redact service"
 authors = [
   {name = "H. Andres Tournour", email = "andres.tournour@pangea.cloud"}
@@ -10,14 +10,3 @@ requires-python = ">=3.9.2,<4.0.0"
 dependencies = [
   "pangea-sdk"
 ]
-
-[tool.poetry.dependencies]
-python = "^3.9.20"
-pangea-sdk = "^6.2.0"
-
-[tool.poetry.group.dev.dependencies]
-mypy = "^1.17.0"
-
-[build-system]
-requires = ["poetry-core>=2.1.3"]
-build-backend = "poetry.core.masonry.api"

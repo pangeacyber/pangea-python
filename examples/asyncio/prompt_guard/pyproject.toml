@@ -1,16 +1,5 @@
 [project]
-name = "prompt-guard-examples"
+name = "asyncio-prompt-guard-examples"
+version = "0.0.0"
 requires-python = ">=3.9.2,<4.0.0"
-dependencies = [
-  "pangea-sdk"
-]
-
-[tool.poetry]
-package-mode = false
-
-[tool.poetry.dependencies]
-python = "^3.9.20"
-pangea-sdk = { path = "../../../packages/pangea-sdk", develop = true }
-
-[tool.poetry.group.dev.dependencies]
-mypy = "^1.17.0"
+dependencies = ["pangea-sdk"]

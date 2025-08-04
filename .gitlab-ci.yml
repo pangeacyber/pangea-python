@@ -1,7 +1,23 @@
+variables:
+  UV_CACHE_DIR: .uv-cache
+
+  # GitLab CI creates a separate mountpoint for the build directory,
+  # so we need to copy instead of using hard links.
+  UV_LINK_MODE: copy
+
+cache:
+  - key:
+      files:
+        - uv.lock
+    paths:
+      - $UV_CACHE_DIR
+
 default:
-  image: python:3.9.20@sha256:ef79f8314118b7cde6910d35f4166c902e7f87f47086686256556b97d991a0fb
+  image: ghcr.io/astral-sh/uv:python3.9-bookworm-slim
   tags:
     - pangea-internal
+  after_script:
+    - uv cache prune --ci
 
 stages:
   - lint
@@ -10,15 +26,6 @@ stages:
   - integration_tests
   - examples
   - publish
-
-.setup:
-  update-pip:
-    - pip install --upgrade pip
-    - pip --version
-
-  update-poetry:
-    - pip install --upgrade poetry
-    - poetry --version
 
 include:
   - /examples/.examples-ci.yml

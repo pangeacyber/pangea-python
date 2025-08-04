@@ -5,10 +5,13 @@
 from __future__ import annotations
 
 import os
+import sys
+from pathlib import Path
 
 from pangea.config import PangeaConfig
 from pangea.services import IpIntel
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from intel_examples.utils import print_reputation_bulk_data
 
 token = os.getenv("PANGEA_INTEL_TOKEN")

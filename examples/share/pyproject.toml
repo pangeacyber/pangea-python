@@ -1,6 +1,6 @@
 [project]
 name = "share-examples"
-version = "2.0.0"
+version = "0.0.0"
 description = "This is a set of examples about how to use python SDK to communicate with Share service"
 authors = [
   {name = "H. Andres Tournour", email = "andres.tournour@pangea.cloud"}
@@ -11,17 +11,3 @@ dependencies = [
   "click==8.2.1",
   "pangea-sdk"
 ]
-
-[tool.poetry]
-packages = [{include = "share_examples"}]
-
-[tool.poetry.dependencies]
-python = "^3.10.0"
-pangea-sdk =  { path = "../../packages/pangea-sdk/", develop = true }
-
-[tool.poetry.group.dev.dependencies]
-mypy = "^1.17.0"
-
-[build-system]
-requires = ["poetry-core>=2.1.3"]
-build-backend = "poetry.core.masonry.api"

@@ -1,11 +1,14 @@
 # Determine if an IP address is provided by a VPN service.
 
 import os
+import sys
+from pathlib import Path
 
 import pangea.exceptions as pe
 from pangea.config import PangeaConfig
 from pangea.services import IpIntel
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from intel_examples.ip.utils import print_ip_vpn_data
 
 token = os.getenv("PANGEA_INTEL_TOKEN")

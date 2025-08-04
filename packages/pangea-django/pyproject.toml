@@ -7,43 +7,27 @@ authors = [
 ]
 license = "MIT"
 readme = "README.md"
-homepage = "https://github.com/pangeacyber/pangea-python"
-repository = "https://github.com/pangeacyber/pangea-python"
 keywords = ["Pangea", "Django", "AuthN"]
 classifiers = [
     "Topic :: Software Development",
     "Topic :: Software Development :: Libraries",
 ]
-include = ["CHANGELOG.md"]
-requires-python = ">=3.10.0,<4.0.0"
+requires-python = ">=3.10.0, <4.0.0"
 dependencies = [
-  "django",
-  "pangea-sdk",
-  "typing-extensions"
+  "django >=4.2.23, <5.0.0",
+  "pangea-sdk >=6.2.0, <7.0.0",
+  "typing-extensions >=4.14.1, <5.0.0",
 ]
 
-[tool.poetry]
-packages = [
-    { include = "pangea_django" }
+[project.urls]
+repository = "https://github.com/pangeacyber/pangea-python"
+
+[dependency-groups]
+dev = [
+  "django-stubs ==5.2.2",
+  "pytest-cov ==6.2.1",
+  "pytest-django ==4.11.1",
 ]
-
-[tool.poetry.dependencies]
-python = "^3.10.0"
-"Django" = "^4.2.23"
-"pangea-sdk" = "^6.2.0"
-typing-extensions = "^4.14.1"
-
-[tool.poetry.group.dev.dependencies]
-django-stubs = "^5.2.2"
-mypy = "^1.17.0"
-pytest = "^8.3.5"
-pytest-cov = "^6.2.1"
-pytest-django = "^4.11.1"
-pytest-mock = "^3.14.1"
-
-[build-system]
-requires = ["poetry-core>=2.1.3"]
-build-backend = "poetry.core.masonry.api"
 
 [tool.mypy]
 python_version = "3.10"
@@ -51,4 +35,14 @@ warn_unused_ignores = true
 
 [tool.pytest.ini_options]
 addopts = "--cov=pangea_django --cov-report term --cov-report html"
-DJANGO_SETTINGS_MODULE = "tests.settings"
+DJANGO_SETTINGS_MODULE = "tests_django.settings"
+django_find_project = false
+pythonpath = "."
+
+[build-system]
+requires = ["uv_build==0.8.3"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "pangea_django"
+module-root = ""
