@@ -31,7 +31,7 @@ repository = "https://github.com/pangeacyber/pangea-python"
 
 [dependency-groups]
 dev = [
-  "docstring-parser ==0.15",
+  "docstring-parser ==0.17.0",
   "pytest-asyncio ==1.1.0",
   "types-Deprecated ==1.2.9.3",
   "types-python-dateutil ==2.8.19.14",
