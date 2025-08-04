@@ -3,7 +3,7 @@ name = "pangea-python-monorepo"
 version = "0.0.0"
 description = "Pangea Python monorepo"
 authors = []
-license = { text = "MIT" }
+license = "MIT"
 readme = "README.md"
 requires-python = ">=3.10.0,<4.0.0"
 dependencies = []
@@ -11,16 +11,54 @@ dependencies = []
 [project.urls]
 repository = "https://github.com/pangeacyber/pangea-python"
 
-[build-system]
-requires = ["pdm-backend==2.4.5"]
-build-backend = "pdm.backend"
+[tool.uv.sources]
+pangea-django = { workspace = true }
+pangea-sdk = { workspace = true }
 
-[tool.poetry]
-package-mode = false
+[tool.uv.workspace]
+members = [
+  "examples/asyncio/*",
+  "examples/ai_guard",
+  "examples/audit",
+  "examples/authn",
+  "examples/authz",
+  "examples/embargo",
+  "examples/file_scan",
+  "examples/intel",
+  "examples/prompt_guard",
+  "examples/redact",
+  "examples/sanitize",
+  "examples/share",
+  "examples/vault",
+  "packages/pangea-django",
+  "packages/pangea-sdk"
+]
 
-[tool.poetry.group.lint.dependencies]
-ruff = "0.12.5"
+[dependency-groups]
+dev = [
+  "mypy==1.17.0",
+  "pytest==8.3.5",
+  "ruff==0.12.5"
+]
 
-[tool.poetry.group.dev.dependencies]
-pangea-django = { path = "./packages/pangea-django", develop = true }
-pangea-sdk = { path = "./packages/pangea-sdk", develop = true }
+[tool.mypy]
+python_version = "3.9"
+explicit_package_bases = true
+no_namespace_packages = false
+mypy_path = [
+  "examples/ai_guard",
+  "examples/audit",
+  "examples/authn",
+  "examples/authz",
+  "examples/embargo",
+  "examples/file_scan",
+  "examples/intel",
+  "examples/prompt_guard",
+  "examples/redact",
+  "examples/sanitize",
+  "examples/share",
+  "examples/vault",
+]
+
+[tool.uv]
+package = false

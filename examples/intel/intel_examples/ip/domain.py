@@ -1,10 +1,13 @@
 # Retrieve the domain name associated with an IP address.
 
 import os
+import sys
+from pathlib import Path
 
 from pangea.config import PangeaConfig
 from pangea.services import IpIntel
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from intel_examples.ip.utils import print_ip_domain_data
 
 token = os.getenv("PANGEA_INTEL_TOKEN")

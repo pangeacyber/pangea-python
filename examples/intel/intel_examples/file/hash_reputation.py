@@ -1,11 +1,14 @@
 # Retrieve a reputation score for a file hash.
 
 import os
+import sys
+from pathlib import Path
 
 from pangea.config import PangeaConfig
 from pangea.services import FileIntel
 from pangea.tools import logger_set_pangea_config
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from intel_examples.utils import print_reputation_data
 
 token = os.getenv("PANGEA_INTEL_TOKEN")

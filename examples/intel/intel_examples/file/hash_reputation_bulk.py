@@ -1,10 +1,13 @@
 import os
+import sys
+from pathlib import Path
 
 import pangea.exceptions as pe
 from pangea.config import PangeaConfig
 from pangea.services import FileIntel
 from pangea.tools import logger_set_pangea_config
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from intel_examples.utils import print_reputation_bulk_data
 
 token = os.getenv("PANGEA_INTEL_TOKEN")
