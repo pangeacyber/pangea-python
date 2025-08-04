@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- IP Intel: modernized models.
+
 ### Fixed
 
 - `PangeaResponse.http_status` being `None` when the response is not OK.
