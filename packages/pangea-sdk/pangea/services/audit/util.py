@@ -20,6 +20,8 @@ import requests
 from pangea.services.audit.models import Event, EventEnvelope, PublishedRoot
 from pangea.utils import default_encoder, format_datetime
 
+__all__ = ("format_datetime",)
+
 Hash = bytes
 
 

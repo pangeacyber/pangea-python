@@ -10,8 +10,9 @@ import io
 import logging
 from typing import Dict, List, Optional, Tuple
 
-from pangea.request import PangeaConfig, PangeaRequest
-from pangea.response import APIRequestModel, PangeaResponse, PangeaResponseResult, TransferMethod
+from pangea import PangeaConfig, PangeaResponse, PangeaResponseResult, TransferMethod
+from pangea.request import PangeaRequest
+from pangea.response import APIRequestModel
 from pangea.services.base import ServiceBase
 from pangea.utils import FileUploadParams, get_file_upload_params
 

@@ -18,6 +18,9 @@ from pangea.exceptions import AcceptedRequestException
 from pangea.request import PangeaRequest
 from pangea.response import AttachedFile, PangeaResponse, PangeaResponseResult
 
+__all__ = ("ServiceBase",)
+
+
 TResult = TypeVar("TResult", bound=PangeaResponseResult, default=PangeaResponseResult)
 
 

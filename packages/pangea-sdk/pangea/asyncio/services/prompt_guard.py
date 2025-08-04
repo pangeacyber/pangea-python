@@ -12,6 +12,9 @@ if TYPE_CHECKING:
     from pangea.response import PangeaResponse
 
 
+__all__ = ("Message", "PromptGuardAsync")
+
+
 class PromptGuardAsync(ServiceBaseAsync):
     """Prompt Guard service client.
 

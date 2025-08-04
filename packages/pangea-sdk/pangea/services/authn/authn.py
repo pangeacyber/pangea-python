@@ -10,11 +10,10 @@ from collections.abc import Mapping
 from typing import Dict, List, Literal, Optional, Union
 
 import pangea.services.authn.models as m
-from pangea.config import PangeaConfig
-from pangea.response import PangeaResponse, PangeaResponseResult
+from pangea import PangeaConfig, PangeaResponse, PangeaResponseResult
 from pangea.services.base import ServiceBase
 
-__all__ = ["AuthN"]
+__all__ = ("AuthN",)
 
 
 _SERVICE_NAME = "authn"
@@ -930,7 +929,7 @@ class AuthN(ServiceBase):
                 return self.request.post(
                     "v2/user/group/assign",
                     data={"id": user_id, "group_ids": group_ids},
-                    result_class=m.PangeaResponseResult,
+                    result_class=PangeaResponseResult,
                 )
 
             def remove(self, user_id: str, group_id: str) -> PangeaResponse[PangeaResponseResult]:
@@ -944,7 +943,7 @@ class AuthN(ServiceBase):
                 return self.request.post(
                     "v2/user/group/remove",
                     data={"id": user_id, "group_id": group_id},
-                    result_class=m.PangeaResponseResult,
+                    result_class=PangeaResponseResult,
                 )
 
             def list(self, user_id: str) -> PangeaResponse[m.GroupList]:

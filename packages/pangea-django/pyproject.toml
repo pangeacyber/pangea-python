@@ -31,6 +31,7 @@ dev = [
 
 [tool.mypy]
 python_version = "3.10"
+implicit_reexport = false
 warn_unused_ignores = true
 
 [tool.pytest.ini_options]

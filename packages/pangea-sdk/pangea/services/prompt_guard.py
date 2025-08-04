@@ -10,6 +10,9 @@ if TYPE_CHECKING:
     from collections.abc import Iterable
 
 
+__all__ = ("Message", "PromptGuard")
+
+
 class Message(APIRequestModel):
     role: str
     content: str

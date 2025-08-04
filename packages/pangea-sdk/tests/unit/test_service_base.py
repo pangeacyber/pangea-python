@@ -4,8 +4,9 @@ from collections.abc import AsyncIterator, Iterator
 
 import pytest
 
+from pangea import PangeaConfig
 from pangea.asyncio.services.base import ServiceBaseAsync
-from pangea.services.base import PangeaConfig, ServiceBase
+from pangea.services.base import ServiceBase
 
 
 @pytest.fixture(scope="session")

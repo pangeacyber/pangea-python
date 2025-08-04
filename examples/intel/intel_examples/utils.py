@@ -4,7 +4,7 @@ from collections.abc import Mapping
 
 from pangea.services.intel import IntelReputationData
 
-__all__ = ("print_reputation_data", "print_reputation_bulk_data")
+__all__ = ("print_reputation_bulk_data", "print_reputation_data")
 
 
 def print_reputation_data(indicator: str, data: IntelReputationData) -> None:
