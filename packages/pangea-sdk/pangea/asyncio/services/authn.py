@@ -10,9 +10,9 @@ from collections.abc import Mapping
 from typing import Dict, List, Literal, Optional, Union
 
 import pangea.services.authn.models as m
+from pangea import PangeaResponse, PangeaResponseResult
 from pangea.asyncio.services.base import ServiceBaseAsync
 from pangea.config import PangeaConfig
-from pangea.response import PangeaResponse, PangeaResponseResult
 
 __all__ = ["AuthNAsync"]
 
@@ -932,7 +932,7 @@ class AuthNAsync(ServiceBaseAsync):
                 return await self.request.post(
                     "v2/user/group/assign",
                     data={"id": user_id, "group_ids": group_ids},
-                    result_class=m.PangeaResponseResult,
+                    result_class=PangeaResponseResult,
                 )
 
             async def remove(self, user_id: str, group_id: str) -> PangeaResponse[PangeaResponseResult]:
@@ -946,7 +946,7 @@ class AuthNAsync(ServiceBaseAsync):
                 return await self.request.post(
                     "v2/user/group/remove",
                     data={"id": user_id, "group_id": group_id},
-                    result_class=m.PangeaResponseResult,
+                    result_class=PangeaResponseResult,
                 )
 
             async def list(self, user_id: str) -> PangeaResponse[m.GroupList]:

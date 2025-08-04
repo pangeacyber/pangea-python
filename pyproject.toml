@@ -44,6 +44,7 @@ dev = [
 [tool.mypy]
 python_version = "3.9"
 explicit_package_bases = true
+implicit_reexport = false
 no_namespace_packages = false
 mypy_path = [
   "examples/ai_guard",

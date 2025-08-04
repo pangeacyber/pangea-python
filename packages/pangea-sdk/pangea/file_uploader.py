@@ -8,8 +8,11 @@ import io
 import logging
 from typing import Dict, Optional
 
-from pangea.request import PangeaConfig, PangeaRequest
+from pangea.config import PangeaConfig
+from pangea.request import PangeaRequest
 from pangea.response import TransferMethod
+
+__all__ = ("FileUploader",)
 
 
 class FileUploader:

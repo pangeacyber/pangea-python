@@ -57,6 +57,8 @@ from pangea.services.audit.util import (
 from pangea.services.base import ServiceBase
 from pangea.utils import canonicalize_nested_json
 
+__all__ = ("Audit", "SearchOutput", "SearchResultOutput")
+
 
 class AuditBase:
     def __init__(

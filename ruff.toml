@@ -3,13 +3,14 @@ target-version = "py39"
 
 [lint]
 select = [
-    "E",   # pycodestyle
-    "F",   # Pyflakes
-    "FA",  # flake8-future-annotations
-    "UP",  # pyupgrade
-    "B",   # flake8-bugbear
-    "SIM", # flake8-simplify
-    "I",   # isort
+    "E",      # pycodestyle
+    "F",      # Pyflakes
+    "FA",     # flake8-future-annotations
+    "UP",     # pyupgrade
+    "B",      # flake8-bugbear
+    "SIM",    # flake8-simplify
+    "I",      # isort
+    "RUF022", # unsorted-dunder-all
 ]
 ignore = [
     "B017", # Do not assert blind exception: `Exception`.

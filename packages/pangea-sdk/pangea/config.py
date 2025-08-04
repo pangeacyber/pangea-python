@@ -6,6 +6,8 @@ from typing import Any, Optional
 
 from pydantic import BaseModel, model_validator
 
+__all__ = ("PangeaConfig",)
+
 
 class PangeaConfig(BaseModel):
     """Holds run time configuration information used by SDK components."""

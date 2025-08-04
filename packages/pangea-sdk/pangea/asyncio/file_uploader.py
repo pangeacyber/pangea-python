@@ -6,9 +6,10 @@ from __future__ import annotations
 import io
 import logging
 
+from pangea import PangeaConfig, TransferMethod
 from pangea.asyncio.request import PangeaRequestAsync
-from pangea.request import PangeaConfig
-from pangea.response import TransferMethod
+
+__all__ = ("FileUploaderAsync",)
 
 
 class FileUploaderAsync:

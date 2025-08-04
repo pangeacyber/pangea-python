@@ -23,6 +23,8 @@ from pangea.request import MultipartResponse, PangeaRequestBase
 from pangea.response import AttachedFile, PangeaResponse, PangeaResponseResult, ResponseStatus, TransferMethod
 from pangea.utils import default_encoder
 
+__all__ = ("PangeaRequestAsync",)
+
 _FileName: TypeAlias = Union[str, None]
 _FileContent: TypeAlias = Union[str, bytes]
 _FileContentType: TypeAlias = str
