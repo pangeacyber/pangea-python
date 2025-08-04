@@ -3,8 +3,8 @@ from __future__ import annotations
 import datetime
 import inspect
 import json
-import random
 import unittest
+from secrets import token_hex
 from typing import cast
 
 from typing_extensions import Literal
@@ -39,19 +39,14 @@ from pangea.utils import format_datetime, str2str_b64, str_b64_2bytes
 from tests.test_tools import load_test_environment
 
 TIME = datetime.datetime.now(tz=datetime.timezone.utc).strftime("%Y%m%d_%H%M%S")
-FOLDER_VALUE = f"/test_key_folder/{TIME}/"
+FOLDER_VALUE = f"/test_key_folder/{TIME}_{token_hex(16)}/"
 METADATA_VALUE = {"test": "True", "field1": "value1", "field2": "value2"}
 TAGS_VALUE = cast(Tags, ["test", "symmetric"])
 ROTATION_FREQUENCY_VALUE = "1d"
 ROTATION_STATE_VALUE = RequestRotationState.DEACTIVATED
 EXPIRATION_VALUE = datetime.datetime.now(tz=datetime.timezone.utc) + datetime.timedelta(days=1)
 EXPIRATION_VALUE_STR = format_datetime(EXPIRATION_VALUE)
-MAX_RANDOM = 1000000
 ACTOR = "PythonSDKTest"
-
-
-def get_random_id() -> str:
-    return str(random.randrange(1, MAX_RANDOM))
 
 
 def get_function_name() -> str:
@@ -60,7 +55,7 @@ def get_function_name() -> str:
 
 def get_name() -> str:
     caller_name = inspect.stack()[1][3]
-    return f"{TIME}_{ACTOR}_{caller_name}_{get_random_id()}"
+    return f"{TIME}_{ACTOR}_{caller_name}_{token_hex(16)}"
 
 
 KEY_ED25519: dict[str, str | AsymmetricKeySigningAlgorithm] = {
