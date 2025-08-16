@@ -11,18 +11,20 @@ import json
 import logging
 import time
 from collections.abc import Iterable, Mapping
+from random import random
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Type, Union, cast
 
 import requests
 from pydantic import BaseModel
 from pydantic_core import to_jsonable_python
-from requests.adapters import HTTPAdapter, Retry
+from requests.adapters import HTTPAdapter
 from requests_toolbelt import MultipartDecoder  # type: ignore[import-untyped]
 from typing_extensions import TypeAlias, TypeVar, override
 from yarl import URL
 
 import pangea
 import pangea.exceptions as pe
+from pangea._constants import MAX_RETRY_DELAY, RETRYABLE_HTTP_CODES
 from pangea.config import PangeaConfig
 from pangea.response import AttachedFile, PangeaResponse, PangeaResponseResult, ResponseStatus, TransferMethod
 from pangea.utils import default_encoder
@@ -44,6 +46,70 @@ _FileSpec: TypeAlias = Union[_FileContent, _FileSpecTuple2, _FileSpecTuple3, _Fi
 _Files: TypeAlias = Union[Mapping[str, _FileSpec], Iterable[tuple[str, _FileSpec]]]
 
 _HeadersUpdateMapping: TypeAlias = Mapping[str, str]
+
+
+class PangeaHTTPAdapter(HTTPAdapter):
+    """Custom HTTP adapter that keeps track of retried request IDs."""
+
+    @override
+    def __init__(self, config: PangeaConfig, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.config = config
+
+    @override
+    def send(
+        self,
+        request: requests.PreparedRequest,
+        stream: bool = False,
+        timeout: None | float | tuple[float, float] | tuple[float, None] = None,
+        verify: bool | str = True,
+        cert: None | bytes | str | tuple[bytes | str, bytes | str] = None,
+        proxies: Mapping[str, str] | None = None,
+    ) -> requests.Response:
+        max_retries = self.config.request_retries
+        request_ids = set[str]()
+        retries_taken = 0
+        for retries_taken in range(max_retries + 1):
+            remaining_retries = max_retries - retries_taken
+
+            if len(request_ids) > 0:
+                request.headers["X-Pangea-Retried-Request-Ids"] = ",".join(request_ids)
+
+            response = super().send(request, stream, timeout, verify, cert, proxies)
+
+            request_id = response.headers.get("x-request-id")
+            if request_id:
+                request_ids.add(request_id)
+
+            try:
+                response.raise_for_status()
+            except requests.HTTPError as error:
+                if remaining_retries > 0 and self._should_retry(error.response):
+                    error.response.close()
+                    self._sleep_for_retry(retries_taken=retries_taken, max_retries=max_retries, config=self.config)
+                    continue
+
+                break
+
+            break
+
+        return response
+
+    def _calculate_retry_timeout(self, remaining_retries: int, config: PangeaConfig) -> float:
+        max_retries = config.request_retries
+        nb_retries = min(max_retries - remaining_retries, 1000)
+        sleep_seconds = min(config.request_backoff * pow(2.0, nb_retries), MAX_RETRY_DELAY)
+        jitter = 1 - 0.25 * random()
+        timeout = sleep_seconds * jitter
+        return max(timeout, 0)
+
+    def _sleep_for_retry(self, *, retries_taken: int, max_retries: int, config: PangeaConfig) -> None:
+        remaining_retries = max_retries - retries_taken
+        timeout = self._calculate_retry_timeout(remaining_retries, config)
+        time.sleep(timeout)
+
+    def _should_retry(self, response: requests.Response) -> bool:
+        return response.status_code in RETRYABLE_HTTP_CODES
 
 
 class MultipartResponse:
@@ -111,8 +177,8 @@ class PangeaRequestBase:
 
         return self._queued_retry_enabled
 
-    def _get_delay(self, retry_count, start):
-        delay = retry_count * retry_count
+    def _get_delay(self, retry_count: int, start: float) -> float:
+        delay: float = retry_count * retry_count
         now = time.time()
         # if with this delay exceed timeout, reduce delay
         if now - start + delay >= self.config.poll_result_timeout:
@@ -120,10 +186,10 @@ class PangeaRequestBase:
 
         return delay
 
-    def _reach_timeout(self, start):
+    def _reach_timeout(self, start: float) -> bool:
         return time.time() - start >= self.config.poll_result_timeout
 
-    def _get_poll_path(self, request_id: str):
+    def _get_poll_path(self, request_id: str) -> str:
         return f"request/{request_id}"
 
     def _url(self, path: str) -> str:
@@ -628,13 +694,7 @@ class PangeaRequest(PangeaRequestBase):
 
     @override
     def _init_session(self) -> requests.Session:
-        retry_config = Retry(
-            total=self.config.request_retries,
-            backoff_factor=self.config.request_backoff,
-            status_forcelist=[500, 502, 503, 504],
-        )
-
-        adapter = HTTPAdapter(max_retries=retry_config)
+        adapter = PangeaHTTPAdapter(config=self.config)
         session = requests.Session()
 
         session.mount("http://", adapter)

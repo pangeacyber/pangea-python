@@ -22,7 +22,8 @@ def client(request: pytest.FixtureRequest) -> Iterator[Vault]:
 
 @pytest.fixture(scope="session")
 async def async_client(request: pytest.FixtureRequest) -> AsyncIterator[VaultAsync]:
-    yield VaultAsync(token="my_api_token", config=PangeaConfig(base_url_template=base_url))
+    async with VaultAsync(token="my_api_token", config=PangeaConfig(base_url_template=base_url)) as client:
+        yield client
 
 
 class TestVault:

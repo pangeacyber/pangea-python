@@ -93,8 +93,7 @@ The SDK supports the following configuration options via `PangeaConfig`:
   Use `base_url_template` for more control over the URL, such as setting
   service-specific paths. Defaults to `aws.us.pangea.cloud`.
 - `request_retries` — Number of retries on the initial request.
-- `request_backoff` — Backoff strategy passed to 'requests'.
-- `request_timeout` — Timeout used on initial request attempts.
+- `request_backoff` — A backoff factor to apply between request attempts.
 - `poll_result_timeout` — Timeout used to poll results after 202 (in secs).
 - `queued_retry_enabled` — Enable queued request retry support.
 - `custom_user_agent` — Custom user agent to be used in the request headers.
