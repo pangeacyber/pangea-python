@@ -10,6 +10,7 @@ import asyncio
 import json
 import time
 from collections.abc import Iterable, Mapping
+from random import random
 from typing import Dict, List, Optional, Sequence, Tuple, Type, Union, cast
 
 import aiohttp
@@ -19,6 +20,7 @@ from pydantic_core import to_jsonable_python
 from typing_extensions import Any, TypeAlias, TypeVar, override
 
 import pangea.exceptions as pe
+from pangea._constants import MAX_RETRY_DELAY, RETRYABLE_HTTP_CODES
 from pangea.request import MultipartResponse, PangeaRequestBase
 from pangea.response import AttachedFile, PangeaResponse, PangeaResponseResult, ResponseStatus, TransferMethod
 from pangea.utils import default_encoder
@@ -464,13 +466,46 @@ class PangeaRequestAsync(PangeaRequestBase):
 
     @override
     def _init_session(self) -> aiohttp.ClientSession:
-        # retry_config = Retry(
-        #     total=self.config.request_retries,
-        #     backoff_factor=self.config.request_backoff,
-        #     status_forcelist=[500, 502, 503, 504],
-        # )
-        # adapter = HTTPAdapter(max_retries=retry_config)
-        # TODO: Add retry config
+        return aiohttp.ClientSession(middlewares=[self._retry_middleware])
 
-        session = aiohttp.ClientSession()
-        return session
+    def _calculate_retry_timeout(self, remaining_retries: int) -> float:
+        max_retries = self.config.request_retries
+        nb_retries = min(max_retries - remaining_retries, 1000)
+        sleep_seconds = min(self.config.request_backoff * pow(2.0, nb_retries), MAX_RETRY_DELAY)
+        jitter = 1 - 0.25 * random()
+        timeout = sleep_seconds * jitter
+        return max(timeout, 0)
+
+    async def _retry_middleware(
+        self, request: aiohttp.ClientRequest, handler: aiohttp.ClientHandlerType
+    ) -> aiohttp.ClientResponse:
+        max_retries = self.config.request_retries
+        request_ids = set[str]()
+        retries_taken = 0
+        for retries_taken in range(max_retries + 1):
+            remaining_retries = max_retries - retries_taken
+
+            if len(request_ids) > 0:
+                request.headers["X-Pangea-Retried-Request-Ids"] = ",".join(request_ids)
+
+            response = await handler(request)
+
+            request_id = response.headers.get("x-request-id")
+            if request_id:
+                request_ids.add(request_id)
+
+            if not response.ok and remaining_retries > 0 and self._should_retry(response):
+                await self._sleep_for_retry(retries_taken=retries_taken, max_retries=max_retries)
+                continue
+
+            break
+
+        return response
+
+    def _should_retry(self, response: aiohttp.ClientResponse) -> bool:
+        return response.status in RETRYABLE_HTTP_CODES
+
+    async def _sleep_for_retry(self, *, retries_taken: int, max_retries: int) -> None:
+        remaining_retries = max_retries - retries_taken
+        timeout = self._calculate_retry_timeout(remaining_retries)
+        await asyncio.sleep(timeout)

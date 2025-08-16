@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import unittest
 
 import pangea.exceptions as pe
@@ -30,7 +32,6 @@ class TestEmbargo(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(sanction.embargoed_country_name, "Russia")
         self.assertEqual(sanction.embargoed_country_iso_code, "RU")
         self.assertEqual(sanction.issuing_country, "US")
-        await self.embargo.close()
 
     async def test_iso_check(self):
         response = await self.embargo.iso_check(iso_code="CU")
@@ -43,16 +44,11 @@ class TestEmbargo(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(sanction.embargoed_country_name, "Cuba")
         self.assertEqual(sanction.embargoed_country_iso_code, "CU")
         self.assertEqual(sanction.issuing_country, "US")
-        await self.embargo.close()
 
     async def test_embargo_with_bad_auth_token(self):
         token = "noarealauthtoken"
         domain = get_test_domain(TEST_ENVIRONMENT)
         config = PangeaConfig(domain=domain)
-        badembargo = EmbargoAsync(token, config=config)
-
-        try:
+        async with EmbargoAsync(token, config=config) as badembargo:
             with self.assertRaises(pe.UnauthorizedException):
                 await badembargo.ip_check(ip="213.24.238.26")
-        finally:
-            await badembargo.close()

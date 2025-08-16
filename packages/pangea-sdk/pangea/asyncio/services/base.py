@@ -6,11 +6,13 @@
 
 from __future__ import annotations
 
+from types import TracebackType
 from typing import Dict, Optional, Type, Union
 
 from typing_extensions import override
 
 from pangea import PangeaResponse, PangeaResponseResult
+from pangea._typing import T
 from pangea.asyncio.request import PangeaRequestAsync
 from pangea.exceptions import AcceptedRequestException
 from pangea.request import PangeaRequest
@@ -89,8 +91,17 @@ class ServiceBaseAsync(ServiceBase):
         return await self.request.download_file(url=url, filename=filename)
 
     async def close(self):
+        """Close the underlying aiohttp client."""
+
         await self.request.session.close()
-        # Loop over all attributes to check if they are derived from ServiceBaseAsync and close them
-        for _, value in self.__dict__.items():
-            if issubclass(type(value), ServiceBaseAsync):
-                await value.close()
+
+    async def __aenter__(self: T) -> T:
+        return self
+
+    async def __aexit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> None:
+        await self.close()
