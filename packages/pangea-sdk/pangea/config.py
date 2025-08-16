@@ -36,12 +36,12 @@ class PangeaConfig(BaseModel):
 
     request_backoff: float = 0.5
     """
-    Backoff strategy passed to 'requests'
+    A backoff factor to apply between request attempts.
     """
 
     request_timeout: int = 5
     """
-    Timeout used on initial request attempts
+    Unused.
     """
 
     poll_result_timeout: int = 30

@@ -22,7 +22,8 @@ def client(request: pytest.FixtureRequest) -> Iterator[Share]:
 
 @pytest.fixture(scope="session")
 async def async_client(request: pytest.FixtureRequest) -> AsyncIterator[ShareAsync]:
-    yield ShareAsync(token="my_api_token", config=PangeaConfig(base_url_template=base_url))
+    async with ShareAsync(token="my_api_token", config=PangeaConfig(base_url_template=base_url)) as client:
+        yield client
 
 
 class TestShare:
