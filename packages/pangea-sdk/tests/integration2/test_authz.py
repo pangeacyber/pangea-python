@@ -31,7 +31,8 @@ def client(request: pytest.FixtureRequest) -> Iterator[AuthZ]:
 
 @pytest.fixture(scope="session")
 async def async_client(request: pytest.FixtureRequest) -> AsyncIterator[AuthZAsync]:
-    yield AuthZAsync(token="my_api_token", config=PangeaConfig(base_url_template=base_url))
+    async with AuthZAsync(token="my_api_token", config=PangeaConfig(base_url_template=base_url)) as client:
+        yield client
 
 
 class TestAuthZ:

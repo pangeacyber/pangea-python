@@ -66,11 +66,18 @@ class AuthNAsync(ServiceBaseAsync):
              authn = AuthNAsync(token="pangea_token", config=config)
         """
         super().__init__(token, config, logger_name=logger_name)
-        self.user = AuthNAsync.UserAsync(token, config, logger_name=logger_name)
-        self.flow = AuthNAsync.FlowAsync(token, config, logger_name=logger_name)
-        self.client = AuthNAsync.ClientAsync(token, config, logger_name=logger_name)
-        self.session = AuthNAsync.SessionAsync(token, config, logger_name=logger_name)
         self.agreements = AuthNAsync.AgreementsAsync(token, config, logger_name=logger_name)
+        self.client = AuthNAsync.ClientAsync(token, config, logger_name=logger_name)
+        self.flow = AuthNAsync.FlowAsync(token, config, logger_name=logger_name)
+        self.session = AuthNAsync.SessionAsync(token, config, logger_name=logger_name)
+        self.user = AuthNAsync.UserAsync(token, config, logger_name=logger_name)
+
+    async def close(self) -> None:
+        await self.agreements.close()
+        await self.client.close()
+        await self.flow.close()
+        await self.session.close()
+        await self.user.close()
 
     class SessionAsync(ServiceBaseAsync):
         service_name = _SERVICE_NAME
@@ -179,9 +186,14 @@ class AuthNAsync(ServiceBaseAsync):
             logger_name: str = "pangea",
         ) -> None:
             super().__init__(token, config, logger_name=logger_name)
-            self.session = AuthNAsync.ClientAsync.SessionAsync(token, config, logger_name=logger_name)
             self.password = AuthNAsync.ClientAsync.PasswordAsync(token, config, logger_name=logger_name)
+            self.session = AuthNAsync.ClientAsync.SessionAsync(token, config, logger_name=logger_name)
             self.token_endpoints = AuthNAsync.ClientAsync.TokenAsync(token, config, logger_name=logger_name)
+
+        async def close(self) -> None:
+            await self.password.close()
+            await self.session.close()
+            await self.token_endpoints.close()
 
         async def userinfo(self, code: str) -> PangeaResponse[m.ClientUserinfoResult]:
             """
@@ -470,9 +482,14 @@ class AuthNAsync(ServiceBaseAsync):
             logger_name: str = "pangea",
         ) -> None:
             super().__init__(token, config, logger_name=logger_name)
-            self.profile = AuthNAsync.UserAsync.ProfileAsync(token, config, logger_name=logger_name)
             self.authenticators = AuthNAsync.UserAsync.AuthenticatorsAsync(token, config, logger_name=logger_name)
             self.invites = AuthNAsync.UserAsync.InvitesAsync(token, config, logger_name=logger_name)
+            self.profile = AuthNAsync.UserAsync.ProfileAsync(token, config, logger_name=logger_name)
+
+        async def close(self) -> None:
+            await self.authenticators.close()
+            await self.invites.close()
+            await self.profile.close()
 
         async def create(
             self,
