@@ -6,7 +6,16 @@ from typing import overload
 from pangea.asyncio.services.base import ServiceBaseAsync
 from pangea.config import PangeaConfig
 from pangea.response import PangeaResponse
-from pangea.services.ai_guard import LogFields, Message, Overrides, TextGuardResult
+from pangea.services.ai_guard import (
+    LogFields,
+    McpToolsMessage,
+    Message,
+    Overrides,
+    TextGuardResult,
+    get_relevant_content,
+    messages_adapter,
+    patch_messages,
+)
 
 
 class AIGuardAsync(ServiceBaseAsync):
@@ -83,11 +92,12 @@ class AIGuardAsync(ServiceBaseAsync):
     async def guard_text(
         self,
         *,
-        messages: Sequence[Message],
+        messages: Sequence[Message | McpToolsMessage],
         recipe: str | None = None,
         debug: bool | None = None,
         overrides: Overrides | None = None,
         log_fields: LogFields | None = None,
+        only_relevant_content: bool = False,
     ) -> PangeaResponse[TextGuardResult]:
         """
         Guard LLM input and output text
@@ -110,6 +120,8 @@ class AIGuardAsync(ServiceBaseAsync):
             recipe: Recipe key of a configuration of data types and settings
                 defined in the Pangea User Console. It specifies the rules that
                 are to be applied to the text, such as defang malicious URLs.
+            only_relevant_content: Whether or not to only send relevant content
+                to AI Guard.
 
         Examples:
             response = await ai_guard.guard_text(messages=[Message(role="user", content="hello world")])
@@ -119,11 +131,12 @@ class AIGuardAsync(ServiceBaseAsync):
         self,
         text: str | None = None,
         *,
-        messages: Sequence[Message] | None = None,
+        messages: Sequence[Message | McpToolsMessage] | None = None,
         recipe: str | None = None,
         debug: bool | None = None,
         overrides: Overrides | None = None,
         log_fields: LogFields | None = None,
+        only_relevant_content: bool = False,
     ) -> PangeaResponse[TextGuardResult]:
         """
         Guard LLM input and output text
@@ -149,6 +162,8 @@ class AIGuardAsync(ServiceBaseAsync):
             recipe: Recipe key of a configuration of data types and settings
                 defined in the Pangea User Console. It specifies the rules that
                 are to be applied to the text, such as defang malicious URLs.
+            only_relevant_content: Whether or not to only send relevant content
+                to AI Guard.
 
         Examples:
             response = await ai_guard.guard_text("text")
@@ -157,7 +172,11 @@ class AIGuardAsync(ServiceBaseAsync):
         if text is not None and messages is not None:
             raise ValueError("Exactly one of `text` or `messages` must be given")
 
-        return await self.request.post(
+        if only_relevant_content and messages is not None:
+            original_messages = messages
+            messages, original_indices = get_relevant_content(messages)
+
+        response = await self.request.post(
             "v1/text/guard",
             TextGuardResult,
             data={
@@ -169,3 +188,9 @@ class AIGuardAsync(ServiceBaseAsync):
                 "log_fields": log_fields,
             },
         )
+
+        if only_relevant_content and response.result and response.result.transformed:
+            transformed = messages_adapter.validate_python(response.result.prompt_messages)
+            response.result.prompt_messages = patch_messages(original_messages, original_indices, transformed)
+
+        return response
