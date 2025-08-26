@@ -4,7 +4,7 @@ import unittest
 
 from pangea import PangeaConfig
 from pangea.asyncio.services import AIGuardAsync
-from pangea.services.ai_guard import LogFields, Message
+from pangea.services.ai_guard import LogFields, Message, Overrides, PiiEntityOverride
 from pangea.tools import TestEnvironment, get_test_domain, get_test_token, logger_set_pangea_config
 from tests.test_tools import load_test_environment
 
@@ -47,3 +47,24 @@ class TestAIGuardAsync(unittest.IsolatedAsyncioTestCase):
         assert response.status == "Success"
         assert response.result
         assert response.result.prompt_messages
+
+    async def test_text_guard_messages_only_relevant_content(self) -> None:
+        response = await self.client.guard_text(
+            messages=[
+                Message(
+                    role="system",
+                    content="You are a helpful assistant. Here are the tools: Tool1(calc), Tool2(site), Tool3(reverse)",
+                ),
+                Message(role="user", content="What is the sum of response times of example.com and example.org?"),
+                Message(role="context", content="example.com and example.org are websites."),
+                Message(role="assistant", content="Call Tool2(example.org)."),
+                Message(role="tool", content="example.org 2ms"),
+                Message(role="context", content="some context about example.org"),
+            ],
+            overrides=Overrides(ignore_recipe=True, pii_entity=PiiEntityOverride(disabled=False, url="hash")),
+            only_relevant_content=True,
+        )
+        assert response.status == "Success"
+        assert response.result
+        assert isinstance(response.result.prompt_messages, list)
+        assert len(response.result.prompt_messages) == 6

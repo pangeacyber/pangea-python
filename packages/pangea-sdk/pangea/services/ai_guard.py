@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import Generic, Literal, Optional, overload
+from typing import Any, Generic, Literal, Optional, Union, overload
 
-from typing_extensions import TypeVar
+from pydantic import TypeAdapter
 
+from pangea._typing import T
 from pangea.config import PangeaConfig
 from pangea.response import APIRequestModel, APIResponseModel, PangeaResponse, PangeaResponseResult
 from pangea.services.base import ServiceBase
@@ -21,8 +22,17 @@ PiiEntityAction = Literal["disabled", "report", "block", "mask", "partial_maskin
 
 
 class Message(APIRequestModel):
-    role: str
+    role: Optional[str] = None
     content: str
+
+
+class McpToolsMessage(APIRequestModel):
+    role: Literal["tools"]
+    content: list[dict[str, Any]]
+
+
+MessageItem = Union[McpToolsMessage, Message]
+messages_adapter: TypeAdapter[list[MessageItem]] = TypeAdapter(list[MessageItem])
 
 
 class CodeDetectionOverride(APIRequestModel):
@@ -276,12 +286,9 @@ class CodeDetectionResult(APIResponseModel):
     """The action taken by this Detector"""
 
 
-_T = TypeVar("_T")
-
-
-class TextGuardDetector(APIResponseModel, Generic[_T]):
+class TextGuardDetector(APIResponseModel, Generic[T]):
     detected: Optional[bool] = None
-    data: Optional[_T] = None
+    data: Optional[T] = None
 
 
 class TextGuardDetectors(APIResponseModel):
@@ -404,11 +411,12 @@ class AIGuard(ServiceBase):
     def guard_text(
         self,
         *,
-        messages: Sequence[Message],
+        messages: Sequence[Message | McpToolsMessage],
         recipe: str | None = None,
         debug: bool | None = None,
         overrides: Overrides | None = None,
         log_fields: LogFields | None = None,
+        only_relevant_content: bool = False,
     ) -> PangeaResponse[TextGuardResult]:
         """
         Guard LLM input and output text
@@ -431,6 +439,8 @@ class AIGuard(ServiceBase):
             recipe: Recipe key of a configuration of data types and settings
                 defined in the Pangea User Console. It specifies the rules that
                 are to be applied to the text, such as defang malicious URLs.
+            only_relevant_content: Whether or not to only send relevant content
+                to AI Guard.
 
         Examples:
             response = ai_guard.guard_text(messages=[Message(role="user", content="hello world")])
@@ -440,11 +450,12 @@ class AIGuard(ServiceBase):
         self,
         text: str | None = None,
         *,
-        messages: Sequence[Message] | None = None,
+        messages: Sequence[Message | McpToolsMessage] | None = None,
         debug: bool | None = None,
         log_fields: LogFields | None = None,
         overrides: Overrides | None = None,
         recipe: str | None = None,
+        only_relevant_content: bool = False,
     ) -> PangeaResponse[TextGuardResult]:
         """
         Guard LLM input and output text
@@ -470,6 +481,8 @@ class AIGuard(ServiceBase):
             recipe: Recipe key of a configuration of data types and settings
                 defined in the Pangea User Console. It specifies the rules that
                 are to be applied to the text, such as defang malicious URLs.
+            only_relevant_content: Whether or not to only send relevant content
+                to AI Guard.
 
         Examples:
             response = ai_guard.guard_text("text")
@@ -478,7 +491,11 @@ class AIGuard(ServiceBase):
         if text is not None and messages is not None:
             raise ValueError("Exactly one of `text` or `messages` must be given")
 
-        return self.request.post(
+        if only_relevant_content and messages is not None:
+            original_messages = messages
+            messages, original_indices = get_relevant_content(messages)
+
+        response = self.request.post(
             "v1/text/guard",
             TextGuardResult,
             data={
@@ -490,3 +507,64 @@ class AIGuard(ServiceBase):
                 "log_fields": log_fields,
             },
         )
+
+        if only_relevant_content and response.result and response.result.prompt_messages:
+            transformed = messages_adapter.validate_python(response.result.prompt_messages)
+            response.result.prompt_messages = patch_messages(original_messages, original_indices, transformed)
+
+        return response
+
+
+def get_relevant_content(
+    messages: Sequence[Message | McpToolsMessage],
+) -> tuple[list[Message | McpToolsMessage], list[int]]:
+    """
+    Returns relevant messages and their indices in the original list.
+
+    1, If last message is "assistant", then the relevant messages are all system
+      messages that come before it, plus that last assistant message.
+    2. Else, find the last "assistant" message. Then the relevant messages are
+      all system messages that come before it, and all messages that come after
+      it.
+    """
+
+    if len(messages) == 0:
+        return [], []
+
+    system_messages = [msg for msg in messages if msg.role == "system"]
+    system_indices = [i for i, msg in enumerate(messages) if msg.role == "system"]
+
+    # If the last message is assistant, then return all system messages and that
+    # assistant message.
+    if messages[-1].role == "assistant":
+        return system_messages + [messages[-1]], system_indices + [len(messages) - 1]
+
+    # Otherwise, work backwards until we find the last assistant message, then
+    # return all messages after that.
+    last_assistant_index = -1
+    for i in range(len(messages) - 1, -1, -1):
+        if messages[i].role == "assistant":
+            last_assistant_index = i
+            break
+
+    relevant_messages = []
+    indices = []
+    for i, msg in enumerate(messages):
+        if msg.role == "system" or i > last_assistant_index:
+            relevant_messages.append(msg)
+            indices.append(i)
+
+    return relevant_messages, indices
+
+
+def patch_messages(
+    original: Sequence[Message | McpToolsMessage],
+    original_indices: list[int],
+    transformed: Sequence[Message | McpToolsMessage],
+) -> list[Message | McpToolsMessage]:
+    if len(original) == len(transformed):
+        return list(transformed)
+
+    return [
+        transformed[original_indices.index(i)] if i in original_indices else orig for i, orig in enumerate(original)
+    ]

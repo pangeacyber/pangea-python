@@ -8,7 +8,7 @@ import pytest
 from pangea import PangeaConfig
 from pangea.asyncio.services.ai_guard import AIGuardAsync
 from pangea.services import AIGuard
-from pangea.services.ai_guard import LogFields, Message, TextGuardResult
+from pangea.services.ai_guard import LogFields, Message, TextGuardResult, get_relevant_content
 
 from ..utils import assert_matches_type
 
@@ -60,3 +60,76 @@ class TestAIGuardAsync:
         assert response.status == "Success"
         assert response.result
         assert_matches_type(TextGuardResult, response.result, path=["response"])
+
+
+def test_get_relevant_content_empty() -> None:
+    assert get_relevant_content([]) == ([], [])
+
+
+def test_get_relevant_content_keeps_system() -> None:
+    messages = [
+        Message(
+            role="system",
+            content="You are a helpful assistant. Here are the tools: Tool1(calc), Tool2(site), Tool3(reverse)",
+        ),
+        Message(role="user", content="What is the sum of response times of example.com and example.org?"),
+        Message(role="context", content="example.com and example.org are websites."),
+    ]
+    assert get_relevant_content(messages) == (
+        [
+            Message(
+                role="system",
+                content="You are a helpful assistant. Here are the tools: Tool1(calc), Tool2(site), Tool3(reverse)",
+            ),
+            Message(role="user", content="What is the sum of response times of example.com and example.org?"),
+            Message(role="context", content="example.com and example.org are websites."),
+        ],
+        [0, 1, 2],
+    )
+
+
+def test_get_relevant_content_last_assistant() -> None:
+    messages = [
+        Message(
+            role="system",
+            content="You are a helpful assistant. Here are the tools: Tool1(calc), Tool2(site), Tool3(reverse)",
+        ),
+        Message(role="user", content="What is the sum of response times of example.com and example.org?"),
+        Message(role="context", content="example.com and example.org are websites."),
+        Message(role="assistant", content="Call Tool2(example.org)."),
+    ]
+    assert get_relevant_content(messages) == (
+        [
+            Message(
+                role="system",
+                content="You are a helpful assistant. Here are the tools: Tool1(calc), Tool2(site), Tool3(reverse)",
+            ),
+            Message(role="assistant", content="Call Tool2(example.org)."),
+        ],
+        [0, 3],
+    )
+
+
+def test_get_relevant_content_after_assistant() -> None:
+    messages = [
+        Message(
+            role="system",
+            content="You are a helpful assistant. Here are the tools: Tool1(calc), Tool2(site), Tool3(reverse)",
+        ),
+        Message(role="user", content="What is the sum of response times of example.com and example.org?"),
+        Message(role="context", content="example.com and example.org are websites."),
+        Message(role="assistant", content="Call Tool2(example.org)."),
+        Message(role="tool", content="example.org 2ms"),
+        Message(role="context", content="some context about example.org"),
+    ]
+    assert get_relevant_content(messages) == (
+        [
+            Message(
+                role="system",
+                content="You are a helpful assistant. Here are the tools: Tool1(calc), Tool2(site), Tool3(reverse)",
+            ),
+            Message(role="tool", content="example.org 2ms"),
+            Message(role="context", content="some context about example.org"),
+        ],
+        [0, 4, 5],
+    )
