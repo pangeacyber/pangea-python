@@ -13,7 +13,6 @@ from pangea.services.ai_guard import (
     Overrides,
     TextGuardResult,
     get_relevant_content,
-    messages_adapter,
     patch_messages,
 )
 
@@ -189,8 +188,9 @@ class AIGuardAsync(ServiceBaseAsync):
             },
         )
 
-        if only_relevant_content and response.result and response.result.transformed:
-            transformed = messages_adapter.validate_python(response.result.prompt_messages)
-            response.result.prompt_messages = patch_messages(original_messages, original_indices, transformed)
+        if only_relevant_content and response.result and response.result.prompt_messages:
+            response.result.prompt_messages = patch_messages(
+                original_messages, original_indices, response.result.prompt_messages
+            )  # type: ignore[assignment]
 
         return response

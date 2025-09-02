@@ -1,9 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import Any, Generic, Literal, Optional, Union, overload
-
-from pydantic import TypeAdapter
+from typing import Any, Generic, Literal, Optional, overload
 
 from pangea._typing import T
 from pangea.config import PangeaConfig
@@ -29,10 +27,6 @@ class Message(APIRequestModel):
 class McpToolsMessage(APIRequestModel):
     role: Literal["tools"]
     content: list[dict[str, Any]]
-
-
-MessageItem = Union[McpToolsMessage, Message]
-messages_adapter: TypeAdapter[list[MessageItem]] = TypeAdapter(list[MessageItem])
 
 
 class CodeDetectionOverride(APIRequestModel):
@@ -308,6 +302,11 @@ class TextGuardDetectors(APIResponseModel):
     topic: Optional[TextGuardDetector[TopicDetectionResult]] = None
 
 
+class PromptMessage(APIResponseModel):
+    role: str
+    content: str
+
+
 class TextGuardResult(PangeaResponseResult):
     detectors: TextGuardDetectors
     """Result of the recipe analyzing and input prompt."""
@@ -324,7 +323,7 @@ class TextGuardResult(PangeaResponseResult):
     unredact.
     """
 
-    prompt_messages: Optional[object] = None
+    prompt_messages: Optional[list[PromptMessage]] = None
     """Updated structured prompt, if applicable."""
 
     prompt_text: Optional[str] = None
@@ -509,8 +508,9 @@ class AIGuard(ServiceBase):
         )
 
         if only_relevant_content and response.result and response.result.prompt_messages:
-            transformed = messages_adapter.validate_python(response.result.prompt_messages)
-            response.result.prompt_messages = patch_messages(original_messages, original_indices, transformed)
+            response.result.prompt_messages = patch_messages(
+                original_messages, original_indices, response.result.prompt_messages
+            )  # type: ignore[assignment]
 
         return response
 
@@ -560,8 +560,8 @@ def get_relevant_content(
 def patch_messages(
     original: Sequence[Message | McpToolsMessage],
     original_indices: list[int],
-    transformed: Sequence[Message | McpToolsMessage],
-) -> list[Message | McpToolsMessage]:
+    transformed: Sequence[PromptMessage],
+) -> list[Message | McpToolsMessage | PromptMessage]:
     if len(original) == len(transformed):
         return list(transformed)
 
