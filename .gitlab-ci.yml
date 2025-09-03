@@ -13,7 +13,7 @@ cache:
       - $UV_CACHE_DIR
 
 default:
-  image: ghcr.io/astral-sh/uv:python3.9-bookworm-slim@sha256:6ca8e9c81fdd4a52be1dd8090feb7e81a9106c432cff476f8de56d4b1fea9b48
+  image: ghcr.io/astral-sh/uv:python3.9-bookworm-slim@sha256:edf1578e373058dc322a4d920189b815c9be3aec8ccd0d924dbb7c6bf5a64e81
   tags:
     - pangea-internal
   after_script:
