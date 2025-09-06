@@ -40,7 +40,7 @@ dev = [
 ]
 
 [build-system]
-requires = ["uv_build==0.8.14"]
+requires = ["uv_build==0.8.15"]
 build-backend = "uv_build"
 
 [tool.mypy]
