@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from pangea._typing import SequenceNotStr
 from pangea.asyncio.services.base import ServiceBaseAsync
 from pangea.config import PangeaConfig
 from pangea.services.prompt_guard import GuardResult, Message
@@ -58,7 +59,7 @@ class PromptGuardAsync(ServiceBaseAsync):
         self,
         messages: Iterable[Message],
         *,
-        analyzers: Iterable[str] | None = None,
+        analyzers: SequenceNotStr[str] | None = None,
         classify: bool | None = None,
     ) -> PangeaResponse[GuardResult]:
         """

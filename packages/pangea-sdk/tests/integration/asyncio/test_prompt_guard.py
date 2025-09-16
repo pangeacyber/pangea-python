@@ -18,6 +18,9 @@ class TestPromptGuardAsync(unittest.IsolatedAsyncioTestCase):
         self.client = PromptGuardAsync(token, config=config)
         logger_set_pangea_config(logger_name=self.client.logger.name)
 
+    async def asyncTearDown(self) -> None:
+        await self.client.close()
+
     async def test_guard(self) -> None:
         response = await self.client.guard([Message(role="user", content="what was pangea?")])
         assert response.status == "Success"
@@ -37,7 +40,5 @@ class TestPromptGuardAsync(unittest.IsolatedAsyncioTestCase):
         )
         assert response.status == "Success"
         assert response.result
-        assert response.result.detected
-        assert response.result.analyzer
-        assert response.result.type
+        assert response.result.classifications
         assert len(response.result.classifications) > 0

@@ -1,7 +1,10 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Literal, Optional
+from typing import TYPE_CHECKING, Annotated, Literal, Optional
 
+from pydantic import Field
+
+from pangea._typing import SequenceNotStr
 from pangea.config import PangeaConfig
 from pangea.response import APIRequestModel, APIResponseModel, PangeaResponse, PangeaResponseResult
 from pangea.services.base import ServiceBase
@@ -33,19 +36,18 @@ class GuardResult(PangeaResponseResult):
     detected: bool
     """Boolean response for if the prompt was considered malicious or not"""
 
+    analyzer: Optional[str] = None
+
     type: Optional[Literal["direct", "indirect", ""]] = None
     """Type of analysis, either direct or indirect"""
 
-    analyzer: Optional[str] = None
-    """Prompt Analyzers for identifying and rejecting properties of prompts"""
-
-    confidence: float
+    confidence: Annotated[Optional[float], Field(ge=0.0, le=1.0)] = None
     """Percent of confidence in the detection result, ranging from 0 to 1"""
 
     info: Optional[str] = None
     """Extra information about the detection result"""
 
-    classifications: list[Classification]
+    classifications: Optional[list[Classification]] = None
     """List of classification results with labels and confidence scores"""
 
 
@@ -92,7 +94,7 @@ class PromptGuard(ServiceBase):
         self,
         messages: Iterable[Message],
         *,
-        analyzers: Iterable[str] | None = None,
+        analyzers: SequenceNotStr[str] | None = None,
         classify: bool | None = None,
     ) -> PangeaResponse[GuardResult]:
         """
