@@ -909,9 +909,477 @@
         "tags": ["ai-guard"]
       }
     },
+    "/v1/guard": {
+      "post": {
+        "operationId": "ai_guard_post_v1_guard",
+        "summary": "Guard LLM input and output",
+        "description": "Analyze and redact content to avoid manipulation of the model, addition of malicious content, and other undesirable data transfers.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/multimodal-guard"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "type": "object",
+                          "required": ["detectors"],
+                          "properties": {
+                            "output": {
+                              "type": "object",
+                              "description": "Updated structured prompt."
+                            },
+                            "blocked": {
+                              "type": "boolean",
+                              "description": "Whether or not the prompt triggered a block detection."
+                            },
+                            "transformed": {
+                              "type": "boolean",
+                              "description": "Whether or not the original input was transformed."
+                            },
+                            "recipe": {
+                              "type": "string",
+                              "description": "The Recipe that was used."
+                            },
+                            "detectors": {
+                              "type": "object",
+                              "description": "Result of the recipe analyzing and input prompt.",
+                              "properties": {
+                                "malicious_prompt": {
+                                  "type": "object",
+                                  "properties": {
+                                    "detected": {
+                                      "type": "boolean",
+                                      "description": "Whether or not the Malicious Prompt was detected."
+                                    },
+                                    "data": {
+                                      "type": "object",
+                                      "description": "Details about the analyzers.",
+                                      "$ref": "#/components/schemas/prompt-injection-result"
+                                    }
+                                  }
+                                },
+                                "confidential_and_pii_entity": {
+                                  "type": "object",
+                                  "properties": {
+                                    "detected": {
+                                      "type": "boolean",
+                                      "description": "Whether or not the PII Entities were detected."
+                                    },
+                                    "data": {
+                                      "type": "object",
+                                      "description": "Details about the detected entities.",
+                                      "$ref": "#/components/schemas/redact-entity-result"
+                                    }
+                                  }
+                                },
+                                "malicious_entity": {
+                                  "type": "object",
+                                  "properties": {
+                                    "detected": {
+                                      "type": "boolean",
+                                      "description": "Whether or not the Malicious Entities were detected."
+                                    },
+                                    "data": {
+                                      "type": "object",
+                                      "description": "Details about the detected entities.",
+                                      "$ref": "#/components/schemas/malicious-entity-result"
+                                    }
+                                  }
+                                },
+                                "custom_entity": {
+                                  "type": "object",
+                                  "properties": {
+                                    "detected": {
+                                      "type": "boolean",
+                                      "description": "Whether or not the Custom Entities were detected."
+                                    },
+                                    "data": {
+                                      "type": "object",
+                                      "description": "Details about the detected entities.",
+                                      "$ref": "#/components/schemas/redact-entity-result"
+                                    }
+                                  }
+                                },
+                                "secret_and_key_entity": {
+                                  "type": "object",
+                                  "properties": {
+                                    "detected": {
+                                      "type": "boolean",
+                                      "description": "Whether or not the Secret Entities were detected."
+                                    },
+                                    "data": {
+                                      "type": "object",
+                                      "description": "Details about the detected entities.",
+                                      "$ref": "#/components/schemas/redact-entity-result"
+                                    }
+                                  }
+                                },
+                                "competitors": {
+                                  "type": "object",
+                                  "properties": {
+                                    "detected": {
+                                      "type": "boolean",
+                                      "description": "Whether or not the Competitors were detected."
+                                    },
+                                    "data": {
+                                      "type": "object",
+                                      "description": "Details about the detected entities.",
+                                      "$ref": "#/components/schemas/single-entity-result"
+                                    }
+                                  }
+                                },
+                                "prompt_hardening": {
+                                  "type": "object",
+                                  "properties": {
+                                    "data": {
+                                      "type": "object",
+                                      "description": "Details about the detected languages.",
+                                      "$ref": "#/components/schemas/hardening-result"
+                                    }
+                                  }
+                                },
+                                "language": {
+                                  "type": "object",
+                                  "properties": {
+                                    "detected": {
+                                      "type": "boolean",
+                                      "description": "Whether or not the Languages were detected."
+                                    },
+                                    "data": {
+                                      "type": "object",
+                                      "description": "Details about the detected languages.",
+                                      "$ref": "#/components/schemas/language-result"
+                                    }
+                                  }
+                                },
+                                "topic": {
+                                  "type": "object",
+                                  "properties": {
+                                    "detected": {
+                                      "type": "boolean",
+                                      "description": "Whether or not the Topics were detected."
+                                    },
+                                    "data": {
+                                      "type": "object",
+                                      "description": "Details about the detected topics.",
+                                      "$ref": "#/components/schemas/topic-result"
+                                    }
+                                  }
+                                },
+                                "code": {
+                                  "type": "object",
+                                  "properties": {
+                                    "detected": {
+                                      "type": "boolean",
+                                      "description": "Whether or not the Code was detected."
+                                    },
+                                    "data": {
+                                      "type": "object",
+                                      "description": "Details about the detected code.",
+                                      "$ref": "#/components/schemas/language-result"
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            "access_rules": {
+                              "$ref": "#/components/schemas/access-rules-response"
+                            },
+                            "fpe_context": {
+                              "type": "string",
+                              "format": "base64",
+                              "description": "If an FPE redaction method returned results, this will be the context passed to unredact."
+                            },
+                            "input_token_count": {
+                              "type": "number",
+                              "description": "Number of tokens counted in the input"
+                            },
+                            "output_token_count": {
+                              "type": "number",
+                              "description": "Number of tokens counted in the output"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "No description provided"
+          },
+          "400": {
+            "description": "Validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "$ref": "#/components/schemas/pangea-validation-errors"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["ai-guard"]
+      }
+    },
     "/v1beta/guard_async": {
       "post": {
         "operationId": "ai_guard_post_v1beta_guard_async",
+        "summary": "Guard LLM input and output",
+        "description": "Analyze and redact content to avoid manipulation of the model, addition of malicious content, and other undesirable data transfers.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/multimodal-guard"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "type": "object",
+                          "required": ["detectors"],
+                          "properties": {
+                            "output": {
+                              "type": "object",
+                              "description": "Updated structured prompt."
+                            },
+                            "blocked": {
+                              "type": "boolean",
+                              "description": "Whether or not the prompt triggered a block detection."
+                            },
+                            "transformed": {
+                              "type": "boolean",
+                              "description": "Whether or not the original input was transformed."
+                            },
+                            "recipe": {
+                              "type": "string",
+                              "description": "The Recipe that was used."
+                            },
+                            "detectors": {
+                              "type": "object",
+                              "description": "Result of the recipe analyzing and input prompt.",
+                              "properties": {
+                                "malicious_prompt": {
+                                  "type": "object",
+                                  "properties": {
+                                    "detected": {
+                                      "type": "boolean",
+                                      "description": "Whether or not the Malicious Prompt was detected."
+                                    },
+                                    "data": {
+                                      "type": "object",
+                                      "description": "Details about the analyzers.",
+                                      "$ref": "#/components/schemas/prompt-injection-result"
+                                    }
+                                  }
+                                },
+                                "confidential_and_pii_entity": {
+                                  "type": "object",
+                                  "properties": {
+                                    "detected": {
+                                      "type": "boolean",
+                                      "description": "Whether or not the PII Entities were detected."
+                                    },
+                                    "data": {
+                                      "type": "object",
+                                      "description": "Details about the detected entities.",
+                                      "$ref": "#/components/schemas/redact-entity-result"
+                                    }
+                                  }
+                                },
+                                "malicious_entity": {
+                                  "type": "object",
+                                  "properties": {
+                                    "detected": {
+                                      "type": "boolean",
+                                      "description": "Whether or not the Malicious Entities were detected."
+                                    },
+                                    "data": {
+                                      "type": "object",
+                                      "description": "Details about the detected entities.",
+                                      "$ref": "#/components/schemas/malicious-entity-result"
+                                    }
+                                  }
+                                },
+                                "custom_entity": {
+                                  "type": "object",
+                                  "properties": {
+                                    "detected": {
+                                      "type": "boolean",
+                                      "description": "Whether or not the Custom Entities were detected."
+                                    },
+                                    "data": {
+                                      "type": "object",
+                                      "description": "Details about the detected entities.",
+                                      "$ref": "#/components/schemas/redact-entity-result"
+                                    }
+                                  }
+                                },
+                                "secret_and_key_entity": {
+                                  "type": "object",
+                                  "properties": {
+                                    "detected": {
+                                      "type": "boolean",
+                                      "description": "Whether or not the Secret Entities were detected."
+                                    },
+                                    "data": {
+                                      "type": "object",
+                                      "description": "Details about the detected entities.",
+                                      "$ref": "#/components/schemas/redact-entity-result"
+                                    }
+                                  }
+                                },
+                                "competitors": {
+                                  "type": "object",
+                                  "properties": {
+                                    "detected": {
+                                      "type": "boolean",
+                                      "description": "Whether or not the Competitors were detected."
+                                    },
+                                    "data": {
+                                      "type": "object",
+                                      "description": "Details about the detected entities.",
+                                      "$ref": "#/components/schemas/single-entity-result"
+                                    }
+                                  }
+                                },
+                                "prompt_hardening": {
+                                  "type": "object",
+                                  "properties": {
+                                    "data": {
+                                      "type": "object",
+                                      "description": "Details about the detected languages.",
+                                      "$ref": "#/components/schemas/hardening-result"
+                                    }
+                                  }
+                                },
+                                "language": {
+                                  "type": "object",
+                                  "properties": {
+                                    "detected": {
+                                      "type": "boolean",
+                                      "description": "Whether or not the Languages were detected."
+                                    },
+                                    "data": {
+                                      "type": "object",
+                                      "description": "Details about the detected languages.",
+                                      "$ref": "#/components/schemas/language-result"
+                                    }
+                                  }
+                                },
+                                "topic": {
+                                  "type": "object",
+                                  "properties": {
+                                    "detected": {
+                                      "type": "boolean",
+                                      "description": "Whether or not the Topics were detected."
+                                    },
+                                    "data": {
+                                      "type": "object",
+                                      "description": "Details about the detected topics.",
+                                      "$ref": "#/components/schemas/topic-result"
+                                    }
+                                  }
+                                },
+                                "code": {
+                                  "type": "object",
+                                  "properties": {
+                                    "detected": {
+                                      "type": "boolean",
+                                      "description": "Whether or not the Code was detected."
+                                    },
+                                    "data": {
+                                      "type": "object",
+                                      "description": "Details about the detected code.",
+                                      "$ref": "#/components/schemas/language-result"
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            "access_rules": {
+                              "$ref": "#/components/schemas/access-rules-response"
+                            },
+                            "fpe_context": {
+                              "type": "string",
+                              "format": "base64",
+                              "description": "If an FPE redaction method returned results, this will be the context passed to unredact."
+                            },
+                            "input_token_count": {
+                              "type": "number",
+                              "description": "Number of tokens counted in the input"
+                            },
+                            "output_token_count": {
+                              "type": "number",
+                              "description": "Number of tokens counted in the output"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "No description provided"
+          },
+          "400": {
+            "description": "Validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/pangea-response"
+                    },
+                    {
+                      "$ref": "#/components/schemas/pangea-validation-errors"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["ai-guard"]
+      }
+    },
+    "/v1/guard_async": {
+      "post": {
+        "operationId": "ai_guard_post_v1_guard_async",
         "summary": "Guard LLM input and output",
         "description": "Analyze and redact content to avoid manipulation of the model, addition of malicious content, and other undesirable data transfers.",
         "requestBody": {
@@ -1619,11 +2087,11 @@
           },
           "app_id": {
             "type": "string",
-            "description": "Id of source application."
+            "description": "Id of source application/agent"
           },
           "actor_id": {
             "type": "string",
-            "description": "User/Service account id."
+            "description": "User/Service account id/service account"
           },
           "llm_provider": {
             "type": "string",
@@ -1660,12 +2128,18 @@
           "event_type": {
             "type": "string",
             "description": "(AIDR) Event Type.",
-            "enum": ["input", "output"],
+            "enum": [
+              "input",
+              "output",
+              "tool_input",
+              "tool_output",
+              "tool_listing"
+            ],
             "default": "input"
           },
-          "sensor_instance_id": {
+          "collector_instance_id": {
             "type": "string",
-            "description": "(AIDR) sensor instance id."
+            "description": "(AIDR) collector instance id."
           },
           "extra_info": {
             "type": "object",
@@ -1673,19 +2147,19 @@
             "properties": {
               "app_name": {
                 "type": "string",
-                "description": "Name of source application."
+                "description": "Name of source application/agent."
               },
               "app_group": {
                 "type": "string",
-                "description": "The group of source application."
+                "description": "The group of source application/agent."
               },
               "app_version": {
                 "type": "string",
-                "description": "Version of the source application."
+                "description": "Version of the source application/agent."
               },
               "actor_name": {
                 "type": "string",
-                "description": "Name of subject actor."
+                "description": "Name of subject actor/service account."
               },
               "actor_group": {
                 "type": "string",
@@ -1695,17 +2169,37 @@
                 "type": "string",
                 "description": "Geographic region or data center."
               },
-              "data_sensitivity": {
+              "sub_tenant": {
                 "type": "string",
-                "description": "Sensitivity level of data involved"
+                "description": "Sub tenant of the user or organization"
               },
-              "customer_tier": {
-                "type": "string",
-                "description": "Tier of the user or organization"
-              },
-              "use_case": {
-                "type": "string",
-                "description": "Business-specific use case"
+              "mcp_tools": {
+                "type": "array",
+                "title": "MCP tools grouped by server",
+                "description": "Each item groups tools for a given MCP server.",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["server_name", "tools"],
+                  "properties": {
+                    "server_name": {
+                      "type": "string",
+                      "minLength": 1,
+                      "description": "MCP server name"
+                    },
+                    "tools": {
+                      "type": "array",
+                      "minItems": 1,
+                      "uniqueItems": true,
+                      "items": {
+                        "type": "string",
+                        "minLength": 1,
+                        "description": "Tool name"
+                      }
+                    }
+                  }
+                },
+                "uniqueItems": true
               }
             },
             "additionalProperties": true

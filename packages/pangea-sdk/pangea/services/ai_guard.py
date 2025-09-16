@@ -1,7 +1,9 @@
 from __future__ import annotations
 
-from collections.abc import Sequence
-from typing import Any, Generic, Literal, Optional, overload
+from collections.abc import Mapping, Sequence
+from typing import Annotated, Any, Generic, Literal, Optional, overload
+
+from pydantic import BaseModel, ConfigDict, Field, RootModel
 
 from pangea._typing import T
 from pangea.config import PangeaConfig
@@ -280,26 +282,26 @@ class CodeDetectionResult(APIResponseModel):
     """The action taken by this Detector"""
 
 
-class TextGuardDetector(APIResponseModel, Generic[T]):
+class GuardDetector(APIResponseModel, Generic[T]):
     detected: Optional[bool] = None
     data: Optional[T] = None
 
 
 class TextGuardDetectors(APIResponseModel):
-    code_detection: Optional[TextGuardDetector[CodeDetectionResult]] = None
-    competitors: Optional[TextGuardDetector[object]] = None
-    custom_entity: Optional[TextGuardDetector[object]] = None
-    gibberish: Optional[TextGuardDetector[object]] = None
-    hardening: Optional[TextGuardDetector[object]] = None
-    language_detection: Optional[TextGuardDetector[LanguageDetectionResult]] = None
-    malicious_entity: Optional[TextGuardDetector[MaliciousEntityResult]] = None
-    pii_entity: Optional[TextGuardDetector[PiiEntityResult]] = None
-    profanity_and_toxicity: Optional[TextGuardDetector[object]] = None
-    prompt_injection: Optional[TextGuardDetector[PromptInjectionResult]] = None
-    secrets_detection: Optional[TextGuardDetector[SecretsEntityResult]] = None
-    selfharm: Optional[TextGuardDetector[object]] = None
-    sentiment: Optional[TextGuardDetector[object]] = None
-    topic: Optional[TextGuardDetector[TopicDetectionResult]] = None
+    code_detection: Optional[GuardDetector[CodeDetectionResult]] = None
+    competitors: Optional[GuardDetector[object]] = None
+    custom_entity: Optional[GuardDetector[object]] = None
+    gibberish: Optional[GuardDetector[object]] = None
+    hardening: Optional[GuardDetector[object]] = None
+    language_detection: Optional[GuardDetector[LanguageDetectionResult]] = None
+    malicious_entity: Optional[GuardDetector[MaliciousEntityResult]] = None
+    pii_entity: Optional[GuardDetector[PiiEntityResult]] = None
+    profanity_and_toxicity: Optional[GuardDetector[object]] = None
+    prompt_injection: Optional[GuardDetector[PromptInjectionResult]] = None
+    secrets_detection: Optional[GuardDetector[SecretsEntityResult]] = None
+    selfharm: Optional[GuardDetector[object]] = None
+    sentiment: Optional[GuardDetector[object]] = None
+    topic: Optional[GuardDetector[TopicDetectionResult]] = None
 
 
 class PromptMessage(APIResponseModel):
@@ -334,6 +336,121 @@ class TextGuardResult(PangeaResponseResult):
 
     transformed: Optional[bool] = None
     """Whether or not the original input was transformed."""
+
+
+class Tool(RootModel[str]):
+    root: Annotated[str, Field(min_length=1)]
+    """Tool name"""
+
+
+class McpTool(APIRequestModel):
+    server_name: Annotated[str, Field(min_length=1)]
+    """MCP server name"""
+
+    tools: Annotated[list[Tool], Field(min_length=1)]
+
+
+class ExtraInfo(BaseModel):
+    """(AIDR) Logging schema."""
+
+    # Additional properties are allowed here.
+    model_config = ConfigDict(extra="allow")
+
+    app_name: Optional[str] = None
+    """Name of source application/agent."""
+
+    app_group: Optional[str] = None
+    """The group of source application/agent."""
+
+    app_version: Optional[str] = None
+    """Version of the source application/agent."""
+
+    actor_name: Optional[str] = None
+    """Name of subject actor/service account."""
+
+    actor_group: Optional[str] = None
+    """The group of subject actor."""
+
+    source_region: Optional[str] = None
+    """Geographic region or data center."""
+
+    sub_tenant: Optional[str] = None
+    """Sub tenant of the user or organization"""
+    mcp_tools: Optional[Sequence[McpTool]] = None
+
+    """Each item groups tools for a given MCP server."""
+
+
+class AccessRuleResult(APIResponseModel):
+    """
+    Details about the evaluation of a single rule, including whether it matched,
+    the action to take, the rule name, and optional debugging information.
+    """
+
+    matched: bool
+    """Whether this rule's logic evaluated to true for the input."""
+
+    action: str
+    """
+    The action resulting from the rule evaluation. One of 'allowed', 'blocked',
+    or 'reported'.
+    """
+
+    name: str
+    """A human-readable name for the rule."""
+
+    logic: Optional[dict[str, Any]] = None
+    """The JSON logic expression evaluated for this rule."""
+
+    attributes: Optional[dict[str, Any]] = None
+    """The input attribute values that were available during rule evaluation."""
+
+
+class GuardDetectors(APIResponseModel):
+    """Result of the recipe analyzing and input prompt."""
+
+    code: Optional[GuardDetector[CodeDetectionResult]] = None
+    competitors: Optional[GuardDetector[object]] = None
+    confidential_and_pii_entity: Optional[GuardDetector[PiiEntityResult]] = None
+    custom_entity: Optional[GuardDetector[object]] = None
+    language: Optional[GuardDetector[LanguageDetectionResult]] = None
+    malicious_entity: Optional[GuardDetector[MaliciousEntityResult]] = None
+    malicious_prompt: Optional[GuardDetector[PromptInjectionResult]] = None
+    prompt_hardening: Optional[GuardDetector[object]] = None
+    secret_and_key_entity: Optional[GuardDetector[SecretsEntityResult]] = None
+    topic: Optional[GuardDetector[TopicDetectionResult]] = None
+
+
+class GuardResult(PangeaResponseResult):
+    output: Optional[dict[str, Any]] = None
+    """Updated structured prompt."""
+
+    blocked: Optional[bool] = None
+    """Whether or not the prompt triggered a block detection."""
+
+    transformed: Optional[bool] = None
+    """Whether or not the original input was transformed."""
+
+    recipe: Optional[str] = None
+    """The Recipe that was used."""
+
+    detectors: GuardDetectors
+    """Result of the recipe analyzing and input prompt."""
+
+    access_rules: Optional[dict[str, AccessRuleResult]] = None
+    """Result of the recipe evaluating configured rules"""
+
+    fpe_context: Optional[str] = None
+    """
+    If an FPE redaction method returned results, this will be the context passed
+    to unredact.
+    """
+
+    input_token_count: Optional[float] = None
+    """Number of tokens counted in the input"""
+
+    output_token_count: Optional[float] = None
+    """Number of tokens counted in the output"""
 
 
 class AIGuard(ServiceBase):
@@ -513,6 +630,82 @@ class AIGuard(ServiceBase):
             )  # type: ignore[assignment]
 
         return response
+
+    def guard(
+        self,
+        input: Mapping[str, Any],
+        *,
+        recipe: str | None = None,
+        debug: bool | None = None,
+        overrides: Overrides | None = None,
+        app_id: str | None = None,
+        actor_id: str | None = None,
+        llm_provider: str | None = None,
+        model: str | None = None,
+        model_version: str | None = None,
+        request_token_count: int | None = None,
+        response_token_count: int | None = None,
+        source_ip: str | None = None,
+        source_location: str | None = None,
+        tenant_id: str | None = None,
+        event_type: Literal["input", "output", "tool_input", "tool_output", "tool_listing"] | None = None,
+        collector_instance_id: str | None = None,
+        extra_info: ExtraInfo | None = None,
+        count_tokens: bool | None = None,
+    ) -> PangeaResponse[GuardResult]:
+        """
+        Guard LLM input and output
+
+        Analyze and redact content to avoid manipulation of the model, addition
+        of malicious content, and other undesirable data transfers.
+
+        OperationId: ai_guard_post_v1_guard
+
+        Args:
+            input: 'messages' (required) contains Prompt content and role array
+                in JSON format. The `content` is the multimodal text or image
+                input that will be analyzed. Additional properties such as
+                'tools' may be provided for analysis.
+            recipe: Recipe key of a configuration of data types and settings defined in the Pangea User Console. It specifies the rules that are to be applied to the text, such as defang malicious URLs.
+            debug: Setting this value to true will provide a detailed analysis of the text data
+            app_name: Name of source application.
+            llm_provider: Underlying LLM.  Example: 'OpenAI'.
+            model: Model used to perform the event. Example: 'gpt'.
+            model_version: Model version used to perform the event. Example: '3.5'.
+            request_token_count: Number of tokens in the request.
+            response_token_count: Number of tokens in the response.
+            source_ip: IP address of user or app or agent.
+            source_location: Location of user or app or agent.
+            tenant_id: For gateway-like integrations with multi-tenant support.
+            event_type: (AIDR) Event Type.
+            collector_instance_id: (AIDR) collector instance id.
+            extra_info: (AIDR) Logging schema.
+            count_tokens: Provide input and output token count.
+        """
+        return self.request.post(
+            "v1/guard",
+            GuardResult,
+            data={
+                "input": input,
+                "recipe": recipe,
+                "debug": debug,
+                "overrides": overrides,
+                "app_id": app_id,
+                "actor_id": actor_id,
+                "llm_provider": llm_provider,
+                "model": model,
+                "model_version": model_version,
+                "request_token_count": request_token_count,
+                "response_token_count": response_token_count,
+                "source_ip": source_ip,
+                "source_location": source_location,
+                "tenant_id": tenant_id,
+                "event_type": event_type,
+                "collector_instance_id": collector_instance_id,
+                "extra_info": extra_info,
+                "count_tokens": count_tokens,
+            },
+        )
 
 
 def get_relevant_content(
