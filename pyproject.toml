@@ -60,6 +60,7 @@ mypy_path = [
   "examples/share",
   "examples/vault",
 ]
+plugins = ['pydantic.mypy']
 
 [tool.uv]
 package = false

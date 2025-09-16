@@ -1,12 +1,16 @@
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from typing import overload
+
+from typing_extensions import Any, Literal
 
 from pangea.asyncio.services.base import ServiceBaseAsync
 from pangea.config import PangeaConfig
 from pangea.response import PangeaResponse
 from pangea.services.ai_guard import (
+    ExtraInfo,
+    GuardResult,
     LogFields,
     McpToolsMessage,
     Message,
@@ -194,3 +198,79 @@ class AIGuardAsync(ServiceBaseAsync):
             )  # type: ignore[assignment]
 
         return response
+
+    async def guard(
+        self,
+        input: Mapping[str, Any],
+        *,
+        recipe: str | None = None,
+        debug: bool | None = None,
+        overrides: Overrides | None = None,
+        app_id: str | None = None,
+        actor_id: str | None = None,
+        llm_provider: str | None = None,
+        model: str | None = None,
+        model_version: str | None = None,
+        request_token_count: int | None = None,
+        response_token_count: int | None = None,
+        source_ip: str | None = None,
+        source_location: str | None = None,
+        tenant_id: str | None = None,
+        event_type: Literal["input", "output", "tool_input", "tool_output", "tool_listing"] | None = None,
+        collector_instance_id: str | None = None,
+        extra_info: ExtraInfo | None = None,
+        count_tokens: bool | None = None,
+    ) -> PangeaResponse[GuardResult]:
+        """
+        Guard LLM input and output
+
+        Analyze and redact content to avoid manipulation of the model, addition
+        of malicious content, and other undesirable data transfers.
+
+        OperationId: ai_guard_post_v1_guard
+
+        Args:
+            input: 'messages' (required) contains Prompt content and role array
+                in JSON format. The `content` is the multimodal text or image
+                input that will be analyzed. Additional properties such as
+                'tools' may be provided for analysis.
+            recipe: Recipe key of a configuration of data types and settings defined in the Pangea User Console. It specifies the rules that are to be applied to the text, such as defang malicious URLs.
+            debug: Setting this value to true will provide a detailed analysis of the text data
+            app_name: Name of source application.
+            llm_provider: Underlying LLM.  Example: 'OpenAI'.
+            model: Model used to perform the event. Example: 'gpt'.
+            model_version: Model version used to perform the event. Example: '3.5'.
+            request_token_count: Number of tokens in the request.
+            response_token_count: Number of tokens in the response.
+            source_ip: IP address of user or app or agent.
+            source_location: Location of user or app or agent.
+            tenant_id: For gateway-like integrations with multi-tenant support.
+            event_type: (AIDR) Event Type.
+            collector_instance_id: (AIDR) collector instance id.
+            extra_info: (AIDR) Logging schema.
+            count_tokens: Provide input and output token count.
+        """
+        return await self.request.post(
+            "v1/guard",
+            GuardResult,
+            data={
+                "input": input,
+                "recipe": recipe,
+                "debug": debug,
+                "overrides": overrides,
+                "app_id": app_id,
+                "actor_id": actor_id,
+                "llm_provider": llm_provider,
+                "model": model,
+                "model_version": model_version,
+                "request_token_count": request_token_count,
+                "response_token_count": response_token_count,
+                "source_ip": source_ip,
+                "source_location": source_location,
+                "tenant_id": tenant_id,
+                "event_type": event_type,
+                "collector_instance_id": collector_instance_id,
+                "extra_info": extra_info,
+                "count_tokens": count_tokens,
+            },
+        )
