@@ -1,4 +1,4 @@
-__version__ = "6.6.0"
+__version__ = "6.7.0"
 
 from pangea.config import PangeaConfig
 from pangea.file_uploader import FileUploader
