@@ -8,7 +8,16 @@ import pytest
 from pangea import PangeaConfig
 from pangea.asyncio.services.ai_guard import AIGuardAsync
 from pangea.services import AIGuard
-from pangea.services.ai_guard import ExtraInfo, GuardResult, LogFields, Message, TextGuardResult, get_relevant_content
+from pangea.services.ai_guard import (
+    ExtraInfo,
+    GuardResult,
+    ImageDetectionItems,
+    LogFields,
+    Message,
+    Overrides,
+    TextGuardResult,
+    get_relevant_content,
+)
 
 from ..utils import assert_matches_type
 
@@ -50,6 +59,14 @@ class TestAIGuard:
             debug=True,
             app_id="foobar",
             extra_info=ExtraInfo(app_name="my app", foo="bar", baz="123"),
+            overrides=Overrides(
+                image=ImageDetectionItems(
+                    disabled=False,
+                    action="block",
+                    topics=["test"],
+                    threshold=0.5,
+                ),
+            ),
         )
         assert response.status == "Success"
         assert response.result
@@ -72,6 +89,26 @@ class TestAIGuardAsync:
         assert response.status == "Success"
         assert response.result
         assert_matches_type(TextGuardResult, response.result, path=["response"])
+
+    async def test_guard(self, async_client: AIGuardAsync) -> None:
+        response = await async_client.guard(
+            input={"messages": [{"role": "user", "content": "hello world"}]},
+            recipe="foobar",
+            debug=True,
+            app_id="foobar",
+            extra_info=ExtraInfo(app_name="my app", foo="bar", baz="123"),
+            overrides=Overrides(
+                image=ImageDetectionItems(
+                    disabled=False,
+                    action="block",
+                    topics=["test"],
+                    threshold=0.5,
+                ),
+            ),
+        )
+        assert response.status == "Success"
+        assert response.result
+        assert_matches_type(GuardResult, response.result, path=["response"])
 
 
 def test_get_relevant_content_empty() -> None:
