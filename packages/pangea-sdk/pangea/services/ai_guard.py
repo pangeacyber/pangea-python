@@ -150,6 +150,13 @@ class SecretsDetectionOverride(APIRequestModel):
     pangea_token: Optional[PiiEntityAction] = None
 
 
+class ImageDetectionItems(APIRequestModel):
+    disabled: Optional[bool] = None
+    action: Optional[Literal["", "report", "block"]] = ""
+    topics: Optional[list[str]] = None
+    threshold: Annotated[Optional[float], Field(ge=0.0, le=1.0, multiple_of=0.01)] = None
+
+
 class Overrides(APIRequestModel):
     """Overrides flags."""
 
@@ -159,6 +166,7 @@ class Overrides(APIRequestModel):
     code_detection: Optional[CodeDetectionOverride] = None
     competitors: Optional[CompetitorsOverride] = None
     gibberish: Optional[GibberishOverride] = None
+    image: Optional[ImageDetectionItems] = None
     language_detection: Optional[LanguageDetectionOverride] = None
     malicious_entity: Optional[MaliciousEntityOverride] = None
     pii_entity: Optional[PiiEntityOverride] = None
