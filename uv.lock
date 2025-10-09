@@ -1332,7 +1332,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "django", specifier = ">=4.2.24,<5.0.0" },
+    { name = "django", specifier = ">=4.2.25,<5.0.0" },
     { name = "pangea-sdk", editable = "packages/pangea-sdk" },
     { name = "typing-extensions", specifier = ">=4.15.0,<5.0.0" },
 ]
