@@ -1398,7 +1398,7 @@ requires-dist = [
     { name = "cryptography", specifier = ">=46.0.1,<46.0.2" },
     { name = "deprecated", specifier = ">=1.2.18,<2.0.0" },
     { name = "google-crc32c", specifier = ">=1.7.1,<2.0.0" },
-    { name = "pydantic", specifier = ">=2.11.9,<3.0.0" },
+    { name = "pydantic", specifier = ">=2.11.10,<3.0.0" },
     { name = "python-dateutil", specifier = ">=2.9.0.post0,<3.0.0" },
     { name = "requests", specifier = ">=2.32.5,<3.0.0" },
     { name = "requests-toolbelt", specifier = ">=1.0.0,<2.0.0" },
