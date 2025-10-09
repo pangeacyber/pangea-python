@@ -18,7 +18,7 @@
           - sanitize
           - vault
           - share
-  image: ghcr.io/astral-sh/uv:python${PYTHON_VERSION}-bookworm-slim
+  image: ghcr.io/astral-sh/uv:python${PYTHON_VERSION}-bookworm
   before_script:
     - export PANGEA_AI_GUARD_TOKEN="${PANGEA_INTEGRATION_TOKEN_LVE_AWS}"
     - export PANGEA_AUDIT_AUTH0_CONFIG_ID="${PANGEA_AUDIT_CONFIG_ID_3_LVE_AWS}"
