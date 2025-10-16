@@ -28,6 +28,6 @@ stages:
   - publish
 
 include:
-  - /examples/.examples-ci.yml
+  - /examples/.gitlab-ci.yml
   - /packages/pangea-django/.django-ci.yml
   - /packages/pangea-sdk/.sdk-ci.yml
