@@ -38,7 +38,7 @@ members = [
 dev = [
   "mypy==1.18.2",
   "pytest==8.4.2",
-  "ruff==0.14.1"
+  "ruff==0.14.2"
 ]
 
 [tool.mypy]
