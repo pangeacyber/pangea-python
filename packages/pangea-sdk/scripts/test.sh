@@ -34,6 +34,11 @@ pnpm dlx start-server-and-test --expect 404 \
   4010 \
   "uv run pytest tests/integration2/test_prompt_guard.py"
 
+pnpx start-server-and-test --expect 404 \
+  "pnpx @stoplight/prism-cli mock -d --json-schema-faker-fillProperties=false tests/testdata/specs/redact.openapi.json" \
+  4010 \
+  "uv run pytest tests/integration2/test_redact.py"
+
 pnpm dlx start-server-and-test --expect 404 \
   "pnpm dlx @stoplight/prism-cli mock -d --json-schema-faker-fillProperties=false tests/testdata/specs/share.openapi.json" \
   4010 \

@@ -9,6 +9,7 @@ from __future__ import annotations
 from typing import Dict, List, Optional, Union
 
 import pangea.services.redact as m
+from pangea._typing import T
 from pangea.asyncio.services.base import ServiceBaseAsync
 from pangea.config import PangeaConfig
 from pangea.response import PangeaResponse
@@ -182,11 +183,11 @@ class RedactAsync(ServiceBaseAsync):
             "v1/redact_structured", m.StructuredResult, data=input.model_dump(exclude_none=True)
         )
 
-    async def unredact(self, redacted_data: m.RedactedData, fpe_context: str) -> PangeaResponse[m.UnredactResult]:
+    async def unredact(self, redacted_data: T, fpe_context: str) -> PangeaResponse[m.UnredactResult[T]]:
         """
         Unredact
 
-        Decrypt or unredact fpe redactions
+        Decrypt or unredact FPE redactions
 
         OperationId: redact_post_v1_unredact
 
@@ -202,5 +203,6 @@ class RedactAsync(ServiceBaseAsync):
                 available response fields can be found in our
                 [API Documentation](https://pangea.cloud/docs/api/redact#unredact-post)
         """
-        input = m.UnredactRequest(redacted_data=redacted_data, fpe_context=fpe_context)
-        return await self.request.post("v1/unredact", m.UnredactResult, data=input.model_dump(exclude_none=True))
+        return await self.request.post(
+            "v1/unredact", m.UnredactResult, data={"redacted_data": redacted_data, "fpe_context": fpe_context}
+        )

@@ -9,6 +9,9 @@ from __future__ import annotations
 import enum
 from typing import Dict, List, Optional, Union
 
+from typing_extensions import Generic
+
+from pangea._typing import T
 from pangea.config import PangeaConfig
 from pangea.response import APIRequestModel, APIResponseModel, PangeaResponse, PangeaResponseResult
 from pangea.services.base import ServiceBase
@@ -174,28 +177,9 @@ class StructuredResult(PangeaResponseResult):
     """FPE context used to encrypt and redact data"""
 
 
-class UnredactRequest(APIRequestModel):
-    """
-    Class input to unredact data request
-
-    Arguments:
-    redacted_data: Data to unredact
-    fpe_context (base64): FPE context used to decrypt and unredact data
-    """
-
-    redacted_data: RedactedData
-    fpe_context: str
-
-
-RedactedData = Union[str, Dict]
-
-
-class UnredactResult(PangeaResponseResult):
-    """
-    Result class after an unredact request
-    """
-
-    data: RedactedData
+class UnredactResult(PangeaResponseResult, Generic[T]):
+    data: T
+    """The unredacted data"""
 
 
 class Redact(ServiceBase):
@@ -364,11 +348,11 @@ class Redact(ServiceBase):
         )
         return self.request.post("v1/redact_structured", StructuredResult, data=input.model_dump(exclude_none=True))
 
-    def unredact(self, redacted_data: RedactedData, fpe_context: str) -> PangeaResponse[UnredactResult]:
+    def unredact(self, redacted_data: T, fpe_context: str) -> PangeaResponse[UnredactResult[T]]:
         """
         Unredact
 
-        Decrypt or unredact fpe redactions
+        Decrypt or unredact FPE redactions
 
         OperationId: redact_post_v1_unredact
 
@@ -384,5 +368,6 @@ class Redact(ServiceBase):
                 available response fields can be found in our
                 [API Documentation](https://pangea.cloud/docs/api/redact#unredact-post)
         """
-        input = UnredactRequest(redacted_data=redacted_data, fpe_context=fpe_context)
-        return self.request.post("v1/unredact", UnredactResult, data=input.model_dump(exclude_none=True))
+        return self.request.post(
+            "v1/unredact", UnredactResult, data={"redacted_data": redacted_data, "fpe_context": fpe_context}
+        )
