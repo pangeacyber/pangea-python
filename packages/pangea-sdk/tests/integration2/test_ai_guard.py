@@ -13,8 +13,10 @@ from pangea.services.ai_guard import (
     GuardResult,
     ImageDetectionItems,
     LogFields,
+    MaliciousEntityOverride,
+    MaliciousPromptOverride,
     Message,
-    Overrides,
+    Overrides2,
     TextGuardResult,
     get_relevant_content,
 )
@@ -59,13 +61,17 @@ class TestAIGuard:
             debug=True,
             app_id="foobar",
             extra_info=ExtraInfo(app_name="my app", foo="bar", baz="123"),
-            overrides=Overrides(
+            overrides=Overrides2(
                 image=ImageDetectionItems(
                     disabled=False,
                     action="block",
                     topics=["test"],
                     threshold=0.5,
                 ),
+                malicious_entity=MaliciousEntityOverride(
+                    disabled=False, domain="block", ip_address="block", url="block"
+                ),
+                malicious_prompt=MaliciousPromptOverride(disabled=False, action="block"),
             ),
         )
         assert response.status == "Success"
@@ -97,13 +103,17 @@ class TestAIGuardAsync:
             debug=True,
             app_id="foobar",
             extra_info=ExtraInfo(app_name="my app", foo="bar", baz="123"),
-            overrides=Overrides(
+            overrides=Overrides2(
                 image=ImageDetectionItems(
                     disabled=False,
                     action="block",
                     topics=["test"],
                     threshold=0.5,
                 ),
+                malicious_entity=MaliciousEntityOverride(
+                    disabled=False, domain="block", ip_address="block", url="block"
+                ),
+                malicious_prompt=MaliciousPromptOverride(disabled=False, action="block"),
             ),
         )
         assert response.status == "Success"

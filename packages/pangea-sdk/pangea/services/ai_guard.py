@@ -178,6 +178,25 @@ class Overrides(APIRequestModel):
     topic: Optional[TopicDetectionOverride] = None
 
 
+class MaliciousPromptOverride(APIRequestModel):
+    disabled: Optional[bool] = None
+    action: Optional[Literal["report", "block"]] = None
+
+
+class Overrides2(APIRequestModel):
+    ignore_recipe: Optional[bool] = False
+    """Bypass existing Recipe content and create an on-the-fly Recipe."""
+    code: Optional[CodeDetectionOverride] = None
+    language: Optional[LanguageDetectionOverride] = None
+    topic: Optional[TopicDetectionOverride] = None
+    malicious_prompt: Optional[MaliciousPromptOverride] = None
+    malicious_entity: Optional[MaliciousEntityOverride] = None
+    competitors: Optional[CompetitorsOverride] = None
+    confidential_and_pii_entity: Optional[PiiEntityOverride] = None
+    secret_and_key_entity: Optional[SecretsDetectionOverride] = None
+    image: Optional[ImageDetectionItems] = None
+
+
 class LogFields(APIRequestModel):
     """Additional fields to include in activity log"""
 
@@ -645,7 +664,7 @@ class AIGuard(ServiceBase):
         *,
         recipe: str | None = None,
         debug: bool | None = None,
-        overrides: Overrides | None = None,
+        overrides: Overrides2 | None = None,
         app_id: str | None = None,
         actor_id: str | None = None,
         llm_provider: str | None = None,

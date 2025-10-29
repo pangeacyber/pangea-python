@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- AI Guard: multimodal guard now has its own `Overrides2` model.
+
 ## 6.9.0 - 2025-10-27
 
 ### Changed
