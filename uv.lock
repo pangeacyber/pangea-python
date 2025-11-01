@@ -1392,7 +1392,7 @@ dev = [
 
 [[package]]
 name = "pangea-sdk"
-version = "6.9.0"
+version = "6.10.0"
 source = { editable = "packages/pangea-sdk" }
 dependencies = [
     { name = "aiohttp" },
