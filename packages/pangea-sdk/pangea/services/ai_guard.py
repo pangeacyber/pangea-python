@@ -283,6 +283,24 @@ class SecretsEntityResult(APIResponseModel):
     """Detected redaction rules."""
 
 
+class RedactEntityResultItem(APIResponseModel):
+    action: str
+    """The action taken on this Entity"""
+
+    redacted: bool
+
+    type: str
+
+    value: str
+
+    start_pos: Optional[int] = None
+
+
+class RedactEntityResult(APIResponseModel):
+    entities: Optional[list[RedactEntityResultItem]] = None
+    """Detected redaction rules."""
+
+
 class LanguageDetectionResult(APIResponseModel):
     action: Optional[str] = None
     """The action taken by this Detector"""
@@ -438,13 +456,13 @@ class GuardDetectors(APIResponseModel):
 
     code: Optional[GuardDetector[CodeDetectionResult]] = None
     competitors: Optional[GuardDetector[object]] = None
-    confidential_and_pii_entity: Optional[GuardDetector[PiiEntityResult]] = None
-    custom_entity: Optional[GuardDetector[object]] = None
+    confidential_and_pii_entity: Optional[GuardDetector[RedactEntityResult]] = None
+    custom_entity: Optional[GuardDetector[RedactEntityResult]] = None
     language: Optional[GuardDetector[LanguageDetectionResult]] = None
     malicious_entity: Optional[GuardDetector[MaliciousEntityResult]] = None
     malicious_prompt: Optional[GuardDetector[PromptInjectionResult]] = None
     prompt_hardening: Optional[GuardDetector[object]] = None
-    secret_and_key_entity: Optional[GuardDetector[SecretsEntityResult]] = None
+    secret_and_key_entity: Optional[GuardDetector[RedactEntityResult]] = None
     topic: Optional[GuardDetector[TopicDetectionResult]] = None
 
 
