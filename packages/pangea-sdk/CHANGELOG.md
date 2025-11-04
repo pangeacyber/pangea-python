@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## 6.11.0 - 2025-11-04
+
 ### Changed
 
 - AI Guard: `entities` from Redact is now an optional field.
