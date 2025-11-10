@@ -1690,11 +1690,13 @@
           },
           "request_time": {
             "type": "string",
-            "description": "The timestamp indicates the exact moment when a request is made to the API. It represents the date and time at which the request was initiated by the client. The `request_time` is useful for tracking and analyzing the timing of requests, measuring response times, and monitoring performance metrics. It allows users to determine the duration between the request initiation and the corresponding response, aiding in the assessment of API performance and latency.\n\n```\n\"request_time\":\"2022-09-21T17:24:33.105Z\"\n```"
+            "description": "The timestamp indicates the exact moment when a request is made to the API. It represents the date and time at which the request was initiated by the client. The `request_time` is useful for tracking and analyzing the timing of requests, measuring response times, and monitoring performance metrics. It allows users to determine the duration between the request initiation and the corresponding response, aiding in the assessment of API performance and latency.\n\n```\n\"request_time\":\"2022-09-21T17:24:33.105Z\"\n```",
+            "format": "date-time"
           },
           "response_time": {
             "type": "string",
-            "description": "Duration it takes for the API to process a request and generate a response. It represents the elapsed time from when the request is received by the API to when the corresponding response is returned to the client.\n\n```\n\"response_time\":\"2022-09-21T17:24:34.007Z\"\n```"
+            "description": "Duration it takes for the API to process a request and generate a response. It represents the elapsed time from when the request is received by the API to when the corresponding response is returned to the client.\n\n```\n\"response_time\":\"2022-09-21T17:24:34.007Z\"\n```",
+            "format": "date-time"
           },
           "status": {
             "type": "string",
@@ -1831,7 +1833,7 @@
             "description": "Detected redaction rules.",
             "items": {
               "type": "object",
-              "required": ["type", "value", "redacted", "action"],
+              "required": ["type", "value", "action"],
               "properties": {
                 "action": {
                   "type": "string",
@@ -1842,9 +1844,6 @@
                 },
                 "value": {
                   "type": "string"
-                },
-                "redacted": {
-                  "type": "boolean"
                 },
                 "start_pos": {
                   "type": "integer",
@@ -1870,9 +1869,6 @@
                 },
                 "value": {
                   "type": "string"
-                },
-                "redacted": {
-                  "type": "boolean"
                 },
                 "start_pos": {
                   "type": "integer",
@@ -2422,6 +2418,43 @@
             },
             "additionalProperties": false
           },
+          "custom_entity": {
+            "type": "object",
+            "properties": {
+              "disabled": {
+                "type": "boolean"
+              },
+              "rules": {
+                "type": "array",
+                "description": "Custom rules.",
+                "examples": [
+                  [
+                    {
+                      "name": "my rule1",
+                      "action": "mask"
+                    },
+                    {
+                      "name": "my rule2",
+                      "action": "block"
+                    }
+                  ]
+                ],
+                "items": {
+                  "type": "object",
+                  "required": ["name", "action"],
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "action": {
+                      "$ref": "#/components/schemas/pii-entity-action"
+                    }
+                  }
+                }
+              }
+            },
+            "additionalProperties": false
+          },
           "secrets_detection": {
             "type": "object",
             "properties": {
@@ -2670,6 +2703,43 @@
               },
               "us_ssn": {
                 "$ref": "#/components/schemas/pii-entity-action"
+              }
+            },
+            "additionalProperties": false
+          },
+          "custom_entity": {
+            "type": "object",
+            "properties": {
+              "disabled": {
+                "type": "boolean"
+              },
+              "rules": {
+                "type": "array",
+                "description": "Custom rules.",
+                "examples": [
+                  [
+                    {
+                      "name": "my rule1",
+                      "action": "mask"
+                    },
+                    {
+                      "name": "my rule2",
+                      "action": "block"
+                    }
+                  ]
+                ],
+                "items": {
+                  "type": "object",
+                  "required": ["name", "action"],
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "action": {
+                      "$ref": "#/components/schemas/pii-entity-action"
+                    }
+                  }
+                }
               }
             },
             "additionalProperties": false
