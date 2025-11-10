@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## 6.12.0 - 2025-11-10
+
 ### Changed
 
 - AI Guard: malicious prompt detector's `action` and `analyzer_responses` are
