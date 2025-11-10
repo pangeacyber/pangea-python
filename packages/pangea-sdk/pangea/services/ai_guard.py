@@ -222,10 +222,10 @@ class AnalyzerResponse(APIResponseModel):
 
 
 class PromptInjectionResult(APIResponseModel):
-    action: str
+    action: Optional[str] = None
     """The action taken by this Detector"""
 
-    analyzer_responses: list[AnalyzerResponse]
+    analyzer_responses: Optional[list[AnalyzerResponse]] = None
     """Triggered prompt injection analyzers."""
 
 
