@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - AI Guard: malicious prompt detector's `action` and `analyzer_responses` are
   now optional.
 
+### Removed
+
+- AI Guard: `redacted` field from `RedactEntityResultItem`.
+
 ## 6.11.0 - 2025-11-04
 
 ### Changed

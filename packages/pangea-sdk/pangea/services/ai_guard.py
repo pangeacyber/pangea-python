@@ -287,8 +287,6 @@ class RedactEntityResultItem(APIResponseModel):
     action: str
     """The action taken on this Entity"""
 
-    redacted: bool
-
     type: str
 
     value: str
