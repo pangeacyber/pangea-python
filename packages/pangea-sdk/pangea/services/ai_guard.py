@@ -238,7 +238,7 @@ class PiiEntity(APIResponseModel):
 
 
 class PiiEntityResult(APIResponseModel):
-    entities: list[PiiEntity]
+    entities: Optional[list[PiiEntity]] = None
     """Detected redaction rules."""
 
 
@@ -251,22 +251,8 @@ class MaliciousEntity(APIResponseModel):
 
 
 class MaliciousEntityResult(APIResponseModel):
-    entities: list[MaliciousEntity]
+    entities: Optional[list[MaliciousEntity]] = None
     """Detected harmful items."""
-
-
-class CustomEntity(APIResponseModel):
-    type: str
-    value: str
-    action: str
-    """The action taken on this Entity"""
-    start_pos: Optional[int] = None
-    raw: Optional[dict[str, object]] = None
-
-
-class CustomEntityResult(APIResponseModel):
-    entities: list[CustomEntity]
-    """Detected redaction rules."""
 
 
 class SecretsEntity(APIResponseModel):
@@ -279,7 +265,7 @@ class SecretsEntity(APIResponseModel):
 
 
 class SecretsEntityResult(APIResponseModel):
-    entities: list[SecretsEntity]
+    entities: Optional[list[SecretsEntity]] = None
     """Detected redaction rules."""
 
 
