@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## 6.13.0 - 2025-11-12
+
 ### Changed
 
 - AI Guard: all `entities` fields are now optional.
