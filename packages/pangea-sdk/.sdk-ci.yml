@@ -22,7 +22,6 @@
     SERVICE_USER_INTEL_ENV: LVE
     SERVICE_PROMPT_GUARD_ENV: LVE
     SERVICE_REDACT_ENV: LVE
-    SERVICE_SANITIZE_ENV: LVE
     SERVICE_VAULT_ENV: LVE
     SERVICE_SHARE_ENV: LVE
 
@@ -93,9 +92,6 @@
       - CLOUD: [AWS]
         ENV: ${SERVICE_REDACT_ENV}
         TEST: test_redact
-      - CLOUD: [AWS]
-        ENV: ${SERVICE_SANITIZE_ENV}
-        TEST: test_sanitize
       - CLOUD: [AWS]
         ENV: ${SERVICE_VAULT_ENV}
         TEST: test_vault

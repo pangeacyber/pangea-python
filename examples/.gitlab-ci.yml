@@ -15,7 +15,6 @@
           - intel
           - prompt_guard
           - redact
-          - sanitize
           - vault
           - share
   image: ghcr.io/astral-sh/uv:python${PYTHON_VERSION}-bookworm
@@ -36,7 +35,6 @@
     - export PANGEA_REDACT_CONFIG_ID="${PANGEA_REDACT_CONFIG_ID_1_LVE_AWS}"
     - export PANGEA_REDACT_MULTICONFIG_TOKEN="${PANGEA_INTEGRATION_MULTI_CONFIG_TOKEN_LVE_AWS}"
     - export PANGEA_REDACT_TOKEN="${PANGEA_INTEGRATION_TOKEN_LVE_AWS}"
-    - export PANGEA_SANITIZE_TOKEN="${PANGEA_INTEGRATION_TOKEN_LVE_AWS}"
     - export PANGEA_VAULT_TOKEN="${PANGEA_INTEGRATION_TOKEN_LVE_AWS}"
     - export PANGEA_SHARE_TOKEN="${PANGEA_INTEGRATION_TOKEN_LVE_AWS}"
     - export PANGEA_VAULT_FPE_KEY_ID="${PANGEA_INTEGRATION_FPE_KEY_ID_LVE_AWS}"
