@@ -49,28 +49,6 @@ jobs:
       - name: Install dependencies
         run: uv sync --all-extras --all-packages --dev
 
-  pre-commit:
-    # Skip pre-commit on `main` because the `no-commit-to-branch` hook won't
-    # allow it.
-    if: ${{ github.ref != 'refs/heads/main' }}
-    needs: [prefetch]
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Harden runner
-        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
-        with:
-          egress-policy: audit
-
-      - name: Checkout code
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-
-      - name: Setup Python
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
-        with:
-          python-version: "3.12"
-
-      - uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd # v3.0.1
-
   lint-ruff:
     needs: [prefetch]
     runs-on: ubuntu-24.04
@@ -133,7 +111,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13']
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
     defaults:
       run:
         working-directory: ./packages/pangea-sdk
@@ -168,7 +146,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13']
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
     defaults:
       run:
         working-directory: ./packages/pangea-sdk
@@ -242,7 +220,7 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        python-version: ['3.10', '3.11', '3.12', '3.13']
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
     defaults:
       run:
         working-directory: ./packages/pangea-django
