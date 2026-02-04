@@ -24,7 +24,7 @@ repository = "https://github.com/pangeacyber/pangea-python"
 
 [dependency-groups]
 dev = [
-  "django-stubs ==5.2.8",
+  "django-stubs ==5.2.9",
   "pytest-cov ==7.0.0",
   "pytest-django ==4.11.1",
 ]
