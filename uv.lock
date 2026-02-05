@@ -1505,7 +1505,7 @@ dev = [
     { name = "docstring-parser", specifier = "==0.17.0" },
     { name = "pytest-asyncio", specifier = "==1.3.0" },
     { name = "pytest-httpserver", specifier = "==1.1.3" },
-    { name = "types-deprecated", specifier = "==1.3.1.20251101" },
+    { name = "types-deprecated", specifier = "==1.3.1.20260130" },
     { name = "types-python-dateutil", specifier = "==2.9.0.20260124" },
     { name = "types-requests", specifier = "==2.32.4.20260107" },
 ]
@@ -2050,11 +2050,11 @@ wheels = [
 
 [[package]]
 name = "types-deprecated"
-version = "1.3.1.20251101"
+version = "1.3.1.20260130"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/c6/96/0f96107945697e452c56a2e9f575da627e61d67940e5913d9c968e5e8be1/types_deprecated-1.3.1.20251101.tar.gz", hash = "sha256:f002d266b73201f46ec6fc712c1f016067ec6cb44357559cdb50c86b010951a7", size = 8358, upload-time = "2025-11-01T03:04:05.6Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/b5/97/9924e496f88412788c432891cacd041e542425fe0bffff4143a7c1c89ac4/types_deprecated-1.3.1.20260130.tar.gz", hash = "sha256:726b05e5e66d42359b1d6631835b15de62702588c8a59b877aa4b1e138453450", size = 8455, upload-time = "2026-01-30T03:58:17.401Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/9e/50/fb191dba89031e30c9ea07c3133c6fe8e7da038ef4d0b79539cf85fb1a97/types_deprecated-1.3.1.20251101-py3-none-any.whl", hash = "sha256:274edcc2a084d3fe31802d3c1379abd630716d3db34e40577e12ad84d6b73134", size = 9057, upload-time = "2025-11-01T03:04:04.633Z" },
+    { url = "https://files.pythonhosted.org/packages/d2/b2/6f920582af7efcd37165cd6321707f3ad5839dd24565a8a982f2bd9c6fd1/types_deprecated-1.3.1.20260130-py3-none-any.whl", hash = "sha256:593934d85c38ca321a9d301f00c42ffe13e4cf830b71b10579185ba0ce172d9a", size = 9077, upload-time = "2026-01-30T03:58:16.633Z" },
 ]
 
 [[package]]
