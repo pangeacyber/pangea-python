@@ -41,7 +41,7 @@ django_find_project = false
 pythonpath = "."
 
 [build-system]
-requires = ["uv_build==0.9.28"]
+requires = ["uv_build==0.9.30"]
 build-backend = "uv_build"
 
 [tool.uv.build-backend]
